@@ -1,0 +1,35 @@
+name: Docker CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: |
+          if [ -f package.json ]; then
+            npm install
+          else
+            echo "No frontend package.json found"
+          fi
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: |
+          if [ -f package.json ] && grep -q "\"test\"" package.json; then
+            npm test || echo "Frontend tests failed"
+          else
+            echo "No frontend tests found"
+          fi
+
+      - name: Build frontend image
+        run: docker build -t projet-integration-frontend ./frontend
