@@ -8,7 +8,10 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "dev": "node --watch src/server.js",
+    "test" : "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +23,19 @@
     "express": "^5.2.1"
   },
   "devDependencies": {
-    "prisma": "^6.19.3"
+    "jest": "^30.3.0",
+    "prisma": "^6.19.3",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.js"],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70,
+        "functions": 70,
+        "branches": 70
+      }
+    }
   }
 }
