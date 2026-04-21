@@ -42,10 +42,7 @@ const handleLogin = async () => {
       password: password.value,
     })
 
-    authStore.setAuthSession({ //check
-      accessToken: data.accessToken,
-      user: data.user,
-    })
+    authStore.setAuthSession({ user: data.user,})
 
     router.push('/dashboard')
   } catch (error) {
