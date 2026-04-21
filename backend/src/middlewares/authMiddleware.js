@@ -25,7 +25,7 @@ const authMiddleware = (req, res, next) => {
       userId: decoded.userId,
       role: decoded.role,
       roleId: decoded.roleId,
-      normalUserId: decoded.normalUserId,
+      // normalUserId a été supprimé ici car l'ID est maintenant un UUID unique
     };
 
     // Logger l'accès pour audit sécurité

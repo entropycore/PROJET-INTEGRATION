@@ -1,8 +1,6 @@
 'use strict';
 
 const { body, validationResult } = require('express-validator');
-// ↑ body() = valider un champ du req.body
-// validationResult() = récupérer les erreurs de validation
 
 // ── RÈGLES PAR TYPE ──
 const rules = {
@@ -14,7 +12,7 @@ const rules = {
       .withMessage('Email obligatoire')
       .isEmail()
       .withMessage('Email invalide')
-      .normalizeEmail(), //convertir en minuscules
+      .normalizeEmail(),
 
     body('password')
       .trim()
@@ -26,7 +24,7 @@ const rules = {
 
   // Règles inscription
   register: [
-    body('nom')
+    body('lastName') // <-- Modifié ici (au lieu de 'nom')
       .trim()
       .notEmpty()
       .withMessage('Nom obligatoire')
@@ -35,7 +33,7 @@ const rules = {
       .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
       .withMessage('Nom invalide'),
 
-    body('prenom')
+    body('firstName') // <-- Modifié ici (au lieu de 'prenom')
       .trim()
       .notEmpty()
       .withMessage('Prénom obligatoire')
