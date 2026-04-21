@@ -1,15 +1,102 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+enum RoleUtilisateur {
+  ETUDIANT
+  PROFESSEUR
+  ADMINISTRATEUR
+  PROFESSIONNEL
+}
+
+enum StatutCompteType {
+  ACTIF
+  INACTIF
+  SUSPENDU
+  EN_ATTENTE
+}
+
+model Utilisateur {
+  idUtilisateur         BigInt           @id @default(autoincrement()) @map("id_utilisateur")
+  nom                   String           @db.VarChar(100)
+  prenom                String           @db.VarChar(100)
+  email                 String           @unique @db.VarChar(150)
+  motDePasseHash        String           @map("mot_de_passe_hash")
+  telephone             String?          @db.VarChar(30)
+  photoProfil           String?          @map("photo_profil")
+  statutCompte          StatutCompteType @default(EN_ATTENTE) @map("statut_compte")
+  role                  RoleUtilisateur
+  dateCreation          DateTime         @default(now()) @map("date_creation")
+  dateDerniereConnexion DateTime?        @map("date_derniere_connexion")
+
+  etudiant              Etudiant?
+  professeur            Professeur?
+  administrateur        Administrateur?
+  professionnel         Professionnel?
+
+  @@map("utilisateur")
+}
+
+model Etudiant {
+  idEtudiant             BigInt      @id @default(autoincrement()) @map("id_etudiant")
+  idUtilisateur          BigInt      @unique @map("id_utilisateur")
+  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+  
+  codeApogee             String?     @unique @map("code_apogee") @db.VarChar(50)
+  cne                    String?     @unique @db.VarChar(50)
+  filiere                String      @db.VarChar(120)
+  niveau                 String      @db.VarChar(50)
+  dateNaissance          DateTime?   @map("date_naissance") @db.Date
+  adresse                String?     @db.Text
+  ville                  String?     @db.VarChar(100)
+  bio                    String?     @db.Text
+  objectifProfessionnel  String?     @map("objectif_professionnel") @db.Text
+  linkedinUrl            String?     @map("linkedin_url") @db.Text
+
+  @@map("etudiant")
+}
+
+model Professeur {
+  idProfesseur           BigInt      @id @default(autoincrement()) @map("id_professeur")
+  idUtilisateur          BigInt      @unique @map("id_utilisateur")
+  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+  
+  matricule              String?     @unique @db.VarChar(50)
+  grade                  String?     @db.VarChar(100)
+  specialite             String?     @db.VarChar(150)
+  departement            String?     @db.VarChar(150)
+
+  @@map("professeur")
+}
+
+model Administrateur {
+  idAdministrateur       BigInt      @id @default(autoincrement()) @map("id_administrateur")
+  idUtilisateur          BigInt      @unique @map("id_utilisateur")
+  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+  
+  matriculeAdmin         String?     @unique @map("matricule_admin") @db.VarChar(50)
+  service                String?     @db.VarChar(120)
+  niveauAdmin            String?     @map("niveau_admin") @db.VarChar(50)
+
+  @@map("administrateur")
+}
+
+model Professionnel {
+  idProfessionnel        BigInt      @id @default(autoincrement()) @map("id_professionnel")
+  idUtilisateur          BigInt      @unique @map("id_utilisateur")
+  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+  
+  entreprise             String?     @db.VarChar(150)
+  poste                  String?     @db.VarChar(120)
+  secteur                String?     @db.VarChar(120)
+  bio                    String?     @db.Text
+  compteValide           Boolean     @default(false) @map("compte_valide")
+
+  @@map("professionnel")
 }
