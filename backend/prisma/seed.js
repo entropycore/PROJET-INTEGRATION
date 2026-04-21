@@ -6,47 +6,51 @@ const prisma = new PrismaClient();
 async function main() {
   const passwordHash = await bcrypt.hash('Password123!', 10);
 
-  await prisma.utilisateur.create({
+  
+  await prisma.user.create({
     data: {
-      nom: 'Admin',
-      prenom: 'Super',
+      lastName: 'Admin',
+      firstName: 'Super',
       email: 'admin@genstudio.com',
-      motDePasseHash: passwordHash,
-      statutCompte: 'ACTIF',
-      role: 'ADMINISTRATEUR',
-      administrateur: {
+      passwordHash: passwordHash,
+      accountStatus: 'ACTIVE',
+      role: 'ADMINISTRATOR',
+      administrator: {
         create: {
-          matriculeAdmin: 'ADM-2026',
-          service: 'Direction IT',
+          employeeId: 'ADM-2026',
+          department: 'Direction IT',
         },
       },
     },
   });
 
-  await prisma.utilisateur.create({
+  
+  await prisma.user.create({
     data: {
-      nom: 'El Alaoui',
-      prenom: 'Youssef',
+      lastName: 'El Alaoui',
+      firstName: 'Youssef',
       email: 'etudiant@genstudio.com',
-      motDePasseHash: passwordHash,
-      statutCompte: 'ACTIF',
-      role: 'ETUDIANT',
-      etudiant: {
+      passwordHash: passwordHash,
+      accountStatus: 'ACTIVE',
+      role: 'STUDENT',
+      student: {
         create: {
-          codeApogee: 'APG123456',
+          apogeeCode: 'APG123456',
           cne: 'K123456789',
-          filiere: 'Génie Informatique',
-          niveau: 'GINF1',
-          ville: 'Tanger',
+          major: 'Génie Informatique',
+          level: 'GINF1',
+          city: 'Tanger',
         },
       },
     },
   });
+
+  console.log('Base de données seedée avec succès !');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error(' Erreur lors du seed :', e);
     process.exit(1);
   })
   .finally(async () => {
