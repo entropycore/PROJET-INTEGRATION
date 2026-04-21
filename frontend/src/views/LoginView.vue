@@ -14,20 +14,55 @@ const password = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
-const allowedDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN || 'ensa.ac.ma' 
+const allowedDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN  
 
 const isEmailValid = computed(() => {
+  const regex = new RegExp(`^[a-zA-Z0-9._%+-]+@${allowedDomain.replace('.', '\\.')}$`)
+  return regex.test(email.value.trim())
 })
 
 const handleLogin = async () => {
+  errorMessage.value = ''
 
+  if (!email.value.trim() || !password.value.trim()) {
+    errorMessage.value = 'Veuillez remplir tous les champs.'
+    return
+  }
 
+  if (!isEmailValid.value) {
+    errorMessage.value = `L\'adresse e-mail doit se terminer par @${allowedDomain}.`
+    return
+  }
+
+  try {
+    isLoading.value = true
+
+    const data = await loginRequest({
+      email: email.value.trim(),
+      password: password.value,
+    })
+
+    authStore.setAuthSession({ //check
+      accessToken: data.accessToken,
+      user: data.user,
+    })
+
+    router.push('/dashboard')
+  } catch (error) {
+    errorMessage.value =
+      error?.response?.data?.message ||
+      'Connexion impossible. Vérifiez vos identifiants.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const goToRequestAccess = () => {
+  router.push('/request-access')
 }
 
 const goToForgotPassword = () => {
+  router.push('/forgot-password')
 }
 </script>
 
