@@ -6,97 +6,102 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
-enum RoleUtilisateur {
-  ETUDIANT
-  PROFESSEUR
-  ADMINISTRATEUR
-  PROFESSIONNEL
+
+enum UserRole {
+  STUDENT
+  PROFESSOR
+  ADMINISTRATOR
+  PROFESSIONAL
 }
 
-enum StatutCompteType {
-  ACTIF
-  INACTIF
-  SUSPENDU
-  EN_ATTENTE
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
 }
 
-model Utilisateur {
-  idUtilisateur         BigInt           @id @default(autoincrement()) @map("id_utilisateur")
-  nom                   String           @db.VarChar(100)
-  prenom                String           @db.VarChar(100)
-  email                 String           @unique @db.VarChar(150)
-  motDePasseHash        String           @map("mot_de_passe_hash")
-  telephone             String?          @db.VarChar(30)
-  photoProfil           String?          @map("photo_profil")
-  statutCompte          StatutCompteType @default(EN_ATTENTE) @map("statut_compte")
-  role                  RoleUtilisateur
-  dateCreation          DateTime         @default(now()) @map("date_creation")
-  dateDerniereConnexion DateTime?        @map("date_derniere_connexion")
 
-  etudiant              Etudiant?
-  professeur            Professeur?
-  administrateur        Administrateur?
-  professionnel         Professionnel?
 
-  @@map("utilisateur")
-}
-
-model Etudiant {
-  idEtudiant             BigInt      @id @default(autoincrement()) @map("id_etudiant")
-  idUtilisateur          BigInt      @unique @map("id_utilisateur")
-  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+model User {
+  id              String        @id @default(uuid()) @map("id_user")
   
-  codeApogee             String?     @unique @map("code_apogee") @db.VarChar(50)
-  cne                    String?     @unique @db.VarChar(50)
-  filiere                String      @db.VarChar(120)
-  niveau                 String      @db.VarChar(50)
-  dateNaissance          DateTime?   @map("date_naissance") @db.Date
-  adresse                String?     @db.Text
-  ville                  String?     @db.VarChar(100)
-  bio                    String?     @db.Text
-  objectifProfessionnel  String?     @map("objectif_professionnel") @db.Text
-  linkedinUrl            String?     @map("linkedin_url") @db.Text
+  lastName        String        @map("last_name") @db.VarChar(100)
+  firstName       String        @map("first_name") @db.VarChar(100)
+  email           String        @unique @db.VarChar(150)
+  passwordHash    String        @map("password_hash")
+  phone           String?       @db.VarChar(30)
+  profilePicture  String?       @map("profile_picture")
+  accountStatus   AccountStatus @default(PENDING) @map("account_status")
+  role            UserRole
+  createdAt       DateTime      @default(now()) @map("created_at")
+  lastLoginAt     DateTime?     @map("last_login_at")
 
-  @@map("etudiant")
+  student         Student?
+  professor       Professor?
+  administrator   Administrator?
+  professional    Professional?
+
+  @@map("users")
 }
 
-model Professeur {
-  idProfesseur           BigInt      @id @default(autoincrement()) @map("id_professeur")
-  idUtilisateur          BigInt      @unique @map("id_utilisateur")
-  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+model Student {
+  id              String    @id @default(uuid()) @map("id_student")
+  userId          String    @unique @map("user_id") // Doit être String pour correspondre à User.id
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  matricule              String?     @unique @db.VarChar(50)
-  grade                  String?     @db.VarChar(100)
-  specialite             String?     @db.VarChar(150)
-  departement            String?     @db.VarChar(150)
+  apogeeCode      String?   @unique @map("apogee_code") @db.VarChar(50)
+  cne             String?   @unique @db.VarChar(50)
+  major           String    @db.VarChar(120)
+  level           String    @db.VarChar(50)  
+  birthDate       DateTime? @map("birth_date") @db.Date
+  address         String?   @db.Text
+  city            String?   @db.VarChar(100)
+  bio             String?   @db.Text
+  careerObjective String?   @map("career_objective") @db.Text
+  linkedinUrl     String?   @map("linkedin_url") @db.Text
 
-  @@map("professeur")
+  @@map("students")
 }
 
-model Administrateur {
-  idAdministrateur       BigInt      @id @default(autoincrement()) @map("id_administrateur")
-  idUtilisateur          BigInt      @unique @map("id_utilisateur")
-  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+model Professor {
+  id              String    @id @default(uuid()) @map("id_professor")
+  userId          String    @unique @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  matriculeAdmin         String?     @unique @map("matricule_admin") @db.VarChar(50)
-  service                String?     @db.VarChar(120)
-  niveauAdmin            String?     @map("niveau_admin") @db.VarChar(50)
+  employeeId      String?   @unique @map("employee_id") @db.VarChar(50) 
+  grade           String?   @db.VarChar(100)
+  specialty       String?   @db.VarChar(150)
+  department      String?   @db.VarChar(150)
 
-  @@map("administrateur")
+  @@map("professors")
 }
 
-model Professionnel {
-  idProfessionnel        BigInt      @id @default(autoincrement()) @map("id_professionnel")
-  idUtilisateur          BigInt      @unique @map("id_utilisateur")
-  utilisateur            Utilisateur @relation(fields: [idUtilisateur], references: [idUtilisateur], onDelete: Cascade)
+model Administrator {
+  id              String    @id @default(uuid()) @map("id_administrator")
+  userId          String    @unique @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  entreprise             String?     @db.VarChar(150)
-  poste                  String?     @db.VarChar(120)
-  secteur                String?     @db.VarChar(120)
-  bio                    String?     @db.Text
-  compteValide           Boolean     @default(false) @map("compte_valide")
+  employeeId      String?   @unique @map("employee_id") @db.VarChar(50) 
+  department      String?   @db.VarChar(120) 
+  adminLevel      String?   @map("admin_level") @db.VarChar(50)
 
-  @@map("professionnel")
+  @@map("administrators")
+}
+
+model Professional {
+  id              String    @id @default(uuid()) @map("id_professional")
+  userId          String    @unique @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  company         String?   @db.VarChar(150) 
+  jobTitle        String?   @map("job_title") @db.VarChar(120) 
+  sector          String?   @db.VarChar(120)
+  bio             String?   @db.Text
+  isVerified      Boolean   @default(false) @map("is_verified") 
+
+  @@map("professionals")
 }
