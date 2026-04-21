@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:15
+    container_name: base_donnees
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dev_back
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: ${DATABASE_URL}
+      PORT: ${DB_PORT} 
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev     
+    ports:
+      - "${BACKEND_PORT}:3000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dev_front
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    environment:
+      VITE_API_URL: http://localhost:${BACKEND_PORT}
+    volumes:
+      - ./frontend:/app 
+      - /app/node_modules
+    command: npm run dev
+
+
+volumes:
+  postgres_data:
