@@ -7,8 +7,11 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      
   backend:
     build:
       context: ./backend
@@ -18,8 +21,8 @@ services:
       - db
     environment:
       NODE_ENV: development
-      DATABASE_URL: ${DATABASE_URL}
-      PORT: ${DB_PORT} 
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public"
+      PORT: 3000 
     volumes:
       - ./backend:/app
       - /app/node_modules
