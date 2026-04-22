@@ -31,7 +31,7 @@ app.use(notFound);
 app.use(handleErrors);
 
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   logger.info(`Serveur démarré sur le port ${PORT}`);
   console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
