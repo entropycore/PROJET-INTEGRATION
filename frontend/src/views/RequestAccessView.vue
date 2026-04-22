@@ -98,19 +98,20 @@ const handleSubmit = async () => {
 
         <div class="hero-text">
           <h1>
-            Votre identité<br />
-            professionnelle<br />
-            <span>certifiée.</span>
+            Recrutez des profils<br />
+            vérifiés et<br />
+            <span>certifiés.</span>
           </h1>
 
+
           <p>
-            Construisez un portfolio académique validé par votre institution,
-            et reconnu par les recruteurs.
+            Découvrez une sélection de portfolios académiques validés, offrant une
+            visibilité claire et fiable sur les compétences des candidats.
           </p>
 
           <p>
-            Chaque réalisation validée devient un atout officiel pour votre
-            insertion professionnelle.
+            Chaque réalisation présentée est certifiée par son institution, pour un
+            recrutement basé sur des données authentiques.
           </p>
         </div>
       </div>
