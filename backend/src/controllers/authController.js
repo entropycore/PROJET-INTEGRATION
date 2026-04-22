@@ -2,23 +2,26 @@
 
 const { PrismaClient } = require('../generated/prisma');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); // Nécessaire pour le token de vérification d'email
+const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateTokens');
 const { setCookies, clearCookies } = require('../utils/setCookies');
-const sendEmail = require('../utils/sendEmail'); // Utilitaire d'envoi d'email
+const sendEmail = require('../utils/sendEmail');
 
 const prisma = new PrismaClient();
 
-// 1. --- INSCRIPTION (Strictement réservée aux Professionnels) ---
+// Inscription
 exports.register = async (req, res, next) => {
   try {
-    // On extrait uniquement les champs nécessaires (le rôle n'est pas demandé au frontend)
-    const { email, password, lastName, firstName, company, jobTitle, ...profileData } = req.body;
+    const { email, password, lastName, firstName, company, jobTitle } = req.body;
     
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const emailToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(emailToken).digest('hex');
+    const tokenExpiration = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const result = await prisma.$transaction(async (tx) => {
-      // Création de l'utilisateur de base (Rôle forcé côté serveur)
       const newUser = await tx.user.create({
         data: {
           email,
@@ -30,35 +33,26 @@ exports.register = async (req, res, next) => {
         }
       });
 
-      // Création du profil professionnel avec l'email NON vérifié par défaut
       await tx.professional.create({ 
         data: { 
           userId: newUser.id, 
           company,
           jobTitle,
-          isEmailVerified: false, 
-          ...profileData 
+          isEmailVerified: false,
+          emailVerifyToken: hashedToken,
+          emailVerifyExpires: tokenExpiration
         } 
       });
 
       return newUser;
     });
 
-    // Génération du Token pour l'email (valide 24 heures)
-    const emailToken = jwt.sign(
-      { userId: result.id }, 
-      process.env.ACCESS_TOKEN_SECRET, 
-      { expiresIn: '1d' }
-    );
-
-    // Construction de l'URL de vérification
     const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify-email?token=${emailToken}`;
     
-    // Envoi de l'email
     await sendEmail(
       email, 
-      "Vérifiez votre adresse email - ValiDia", 
-      `Bonjour ${firstName},\n\nMerci de demander l'accès à ValiDia. Veuillez cliquer sur ce lien pour vérifier votre adresse email :\n\n${verifyUrl}\n\nCe lien est valide pendant 24 heures.`
+      "Vérifiez votre adresse email", 
+      `Bonjour ${firstName},\n\nMerci de demander l'accès à notre plateforme. Veuillez cliquer sur ce lien pour vérifier votre adresse email :\n\n${verifyUrl}\n\nCe lien est valide pendant 24 heures et à usage unique.`
     );
 
     res.status(201).json({ 
@@ -70,7 +64,7 @@ exports.register = async (req, res, next) => {
   }
 };
 
-// 2. --- VÉRIFICATION DE L'EMAIL (Nouvelle fonction) ---
+// Vérification de l'email
 exports.verifyEmail = async (req, res, next) => {
   try {
     const { token } = req.query;
@@ -79,13 +73,26 @@ exports.verifyEmail = async (req, res, next) => {
       return res.status(400).json({ success: false, message: "Token de vérification manquant." });
     }
 
-    // Vérification de la validité du token
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-    // Mise à jour de isEmailVerified dans la table Professional uniquement
+    const professional = await prisma.professional.findFirst({
+      where: {
+        emailVerifyToken: hashedToken,
+        emailVerifyExpires: { gt: new Date() }
+      }
+    });
+
+    if (!professional) {
+      return res.status(400).json({ success: false, message: "Lien de vérification invalide ou expiré." });
+    }
+
     await prisma.professional.update({
-      where: { userId: decoded.userId },
-      data: { isEmailVerified: true }
+      where: { id: professional.id },
+      data: { 
+        isEmailVerified: true,
+        emailVerifyToken: null,
+        emailVerifyExpires: null
+      }
     });
 
     res.json({ 
@@ -93,14 +100,11 @@ exports.verifyEmail = async (req, res, next) => {
       message: "Email vérifié avec succès. Votre demande est en attente de validation par l'administration." 
     });
   } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return res.status(400).json({ success: false, message: "Le lien de vérification a expiré." });
-    }
-    return res.status(400).json({ success: false, message: "Lien de vérification invalide." });
+    next(err);
   }
 };
 
-// 3. --- CONNEXION (Login) ---
+// Connexion
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -113,7 +117,6 @@ exports.login = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Identifiants invalides." });
     }
 
-    // VÉRIFICATION DE L'EMAIL (Seulement si c'est un professionnel)
     if (user.role === 'PROFESSIONAL') {
       if (!user.professional || !user.professional.isEmailVerified) {
         return res.status(403).json({ 
@@ -123,7 +126,6 @@ exports.login = async (req, res, next) => {
       }
     }
 
-    // VÉRIFICATION DU STATUT DU COMPTE (Pour tout le monde)
     if (user.accountStatus !== 'ACTIVE') {
       return res.status(403).json({ success: false, message: "Votre compte est en attente d'activation ou a été suspendu." });
     }
@@ -149,7 +151,7 @@ exports.login = async (req, res, next) => {
   }
 };
 
-// 4. --- INFORMATIONS UTILISATEUR ---
+// Informations utilisateur connecté
 exports.getMe = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
@@ -162,7 +164,44 @@ exports.getMe = async (req, res, next) => {
   }
 };
 
-// 5. --- DÉCONNEXION ---
+// Refresh Token
+exports.refreshToken = async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      include: { student: true, professor: true, administrator: true, professional: true }
+    });
+
+    if (!user || user.accountStatus !== 'ACTIVE') {
+      return res.status(403).json({ success: false, message: "Compte inactif ou non trouvé." });
+    }
+
+    let roleId = null;
+    if (user.role === 'STUDENT') roleId = user.student?.id;
+    if (user.role === 'PROFESSIONAL') roleId = user.professional?.id;
+    if (user.role === 'PROFESSOR') roleId = user.professor?.id;
+    if (user.role === 'ADMINISTRATOR') roleId = user.administrator?.id;
+    
+    const newAccessToken = generateAccessToken({ 
+      userId: user.id, 
+      role: user.role, 
+      roleId: roleId 
+    });
+
+    res.cookie('accessToken', newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 15 * 60 * 1000 
+    });
+
+    res.json({ success: true, message: "Access Token renouvelé avec succès." });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Déconnexion
 exports.logout = (req, res) => {
   clearCookies(res);
   res.json({ success: true, message: "Déconnexion réussie." });

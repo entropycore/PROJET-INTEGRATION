@@ -103,6 +103,7 @@ model Professional {
   bio             String?   @db.Text
   isVerified      Boolean   @default(false) @map("is_verified") 
   isEmailVerified Boolean   @default(false) @map("is_email_verified")
-
+  emailVerifyToken   String?   @unique @map("email_verify_token")
+  emailVerifyExpires DateTime? @map("email_verify_expires")
   @@map("professionals")
 }
