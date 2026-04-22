@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { loginRequest } from '../services/authService'
+import { login, getMe } from '../services/authService'
 import  AppLogo  from '../components/AppLogo.vue'
 import '../assets/styles/login.css'
 
@@ -37,12 +37,14 @@ const handleLogin = async () => {
   try {
     isLoading.value = true
 
-    const data = await loginRequest({
+    await login({
       email: email.value.trim(),
       password: password.value,
     })
 
-    authStore.setAuthSession({ user: data.user,})
+    const meResponse = await getMe()
+
+    authStore.setAuthSession({ user: meResponse.data })
 
     router.push('/dashboard')
   } catch (error) {
