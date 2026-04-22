@@ -99,7 +99,7 @@ const togglePassword = () => {
     <section class="auth-right">
       <div class="auth-card">
         <div class="auth-form-block">
-          <h2>Bon retour !</h2>
+          <h2>Bon retour</h2>
           <p class="subtitle">Connectez-vous à votre espace personnel</p>
 
           <form class="auth-form" @submit.prevent="handleLogin">
@@ -134,19 +134,24 @@ const togglePassword = () => {
               </div>
             </div>
 
-            <div class="forgot-password-row">
-              <button
-                class="forgot-password"
-                type="button"
-                @click="goToForgotPassword"
-              >
-                Mot de passe oublié ?
-              </button>
-            </div>
+            <div class="login-form-links">
+              <div class="forgot-password-row">
+                <button
+                  class="forgot-password"
+                  type="button"
+                  @click="goToForgotPassword"
+                >
+                  Mot de passe oublié?
+                </button>
+              </div>
 
-            <p class="access-request-text" @click="goToRequestAccess">
-              Demandez l’accès à notre plateforme
-            </p>
+              <p class="access-request-text">
+                Vous n'avez pas encore de compte ?
+                <span class="access-request-link" @click="goToRequestAccess">
+                  Demandez l'accès
+                </span>
+              </p>
+            </div>
 
             <p v-if="errorMessage" class="error-message">
               {{ errorMessage }}
