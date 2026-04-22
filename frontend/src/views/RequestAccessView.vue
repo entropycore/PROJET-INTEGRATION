@@ -8,11 +8,10 @@ import  AppLogo  from '../components/AppLogo.vue'
 const router = useRouter()
 
 const form = reactive({
-  // À confirmer avec le backend :
   lastName: '',
   firstName: '',
   email: '',
-  companyName: '',
+  company: '',
   jobTitle: '',
   password: '',
   passwordConfirmation: '',
@@ -34,7 +33,7 @@ const validateForm = () => {
     !form.lastName.trim() ||
     !form.firstName.trim() ||
     !form.email.trim() ||
-    !form.companyName.trim() ||
+    !form.company.trim() ||
     !form.jobTitle.trim() ||
     !form.password.trim() ||
     !form.passwordConfirmation.trim()
@@ -57,15 +56,18 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try { 
-    await requestAccess({
-      lastName: form.lastName,
-      firstName: form.firstName,
-      email: form.email,
-      companyName: form.companyName,
-      jobTitle: form.jobTitle,
+    const response = await requestAccess({
+      email: form.email.trim(),
       password: form.password,
+      lastName: form.lastName.trim(),
+      firstName: form.firstName.trim(),
+      company: form.company.trim(),
+      jobTitle: form.jobTitle.trim(),
     })
 
+    successMessage.value =
+      response?.message ||
+      "Demande envoyee. Veuillez verifier votre boite de reception pour valider votre email."
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message || "Impossible d'envoyer la demande."
@@ -157,7 +159,7 @@ const handleSubmit = async () => {
               <label for="companyName">Nom de l'entreprise</label>
               <input
                 id="companyName"
-                v-model="form.companyName"
+                v-model="form.company"
                 type="text"
                 placeholder="Saisir le nom de votre entreprise..."
               />
