@@ -7,9 +7,9 @@ export const useAuthStore = defineStore('auth', {
   }),
 
   actions: {
-    setAuthSession(data) {
-      this.user = data.user
-      this.isAuthenticated = true
+    setAuthSession(user) {
+      this.user = user
+      this.isAuthenticated = Boolean(user)
     },
 
     clearAuthSession() {
