@@ -25,3 +25,37 @@ describe('Smoke Test - Page de Connexion', () => {
     expect(wrapper.find('.submit-btn').text()).toContain('Se connecter')
   })
 })
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import RequestAccessPage from './views/RequestAccessView.vue'
+import { createTestingPinia } from '@pinia/testing'
+
+describe('Smoke Tests - Demande d\'accès', () => {
+  let wrapper;
+
+  beforeEach(() => {
+    wrapper = mount(RequestAccessPage, {
+      global: { plugins: [createTestingPinia({ createSpy: vi.fn })] },
+    })
+  })
+
+  it('doit changer le texte du bouton et le désactiver pendant l\'envoi', async () => {
+    const submitBtn = wrapper.find('.submit-btn')
+    
+    // Simuler le remplissage pour passer la validation
+    await wrapper.find('#lastName').setValue('Berrada')
+    await wrapper.find('#firstName').setValue('Amina')
+    await wrapper.find('#email').setValue('amina@email.ma')
+    await wrapper.find('#companyName').setValue('TechCo')
+    await wrapper.find('#jobTitle').setValue('Dev')
+    await wrapper.find('#password').setValue('123456')
+    await wrapper.find('#passwordConfirmation').setValue('123456')
+
+    // Soumettre le formulaire
+    await wrapper.find('form').trigger('submit.prevent')
+    
+    // Vérifier l'état "isSubmitting" via le texte du bouton
+    expect(submitBtn.text()).toContain('Envoi...')
+    expect(submitBtn.attributes()).toHaveProperty('disabled')
+  })
+})

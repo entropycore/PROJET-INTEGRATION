@@ -25,3 +25,32 @@ describe('Smoke Test - Page de Connexion', () => {
     expect(wrapper.find('.submit-btn').text()).toContain('Se connecter')
   })
 })
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach } from 'vitest'
+import RequestAccessPage from './views/RequestAccessView.vue'
+import { createTestingPinia } from '@pinia/testing'
+
+describe('UI Tests - Demande d\'accès', () => {
+  let wrapper;
+
+  beforeEach(() => {
+    wrapper = mount(RequestAccessPage, {
+      global: { plugins: [createTestingPinia()] },
+    })
+  })
+
+  it('doit avoir des champs password masqués', () => {
+    // Vérifier les attributs HTML type="password"
+    expect(wrapper.find('#password').attributes('type')).toBe('password')
+    expect(wrapper.find('#passwordConfirmation').attributes('type')).toBe('password')
+  })
+
+  it('doit afficher le logo AppLogo', () => {
+    // Vérifie si le composant AppLogo est rendu
+    expect(wrapper.findComponent({ name: 'AppLogo' }).exists()).toBe(true)
+  })
+
+  it('doit afficher la note importante à l\'utilisateur', () => {
+    expect(wrapper.find('.request-note').text()).toContain('Votre demande sera validée par l\'administration')
+  })
+})
