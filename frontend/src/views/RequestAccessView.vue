@@ -3,7 +3,8 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { requestAccess } from '../services/requestAccessService'
 import '../assets/styles/request-access.css'
-import  AppLogo  from '../components/AppLogo.vue'
+import AppLogo from '../components/AppLogo.vue'
+
 
 const router = useRouter()
 
@@ -20,9 +21,19 @@ const form = reactive({
 const errorMessage = ref('')
 const successMessage = ref('')
 const isSubmitting = ref(false)
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const goToLogin = () => {
   router.push('/login')
+}
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
+
+const toggleConfirmPassword = () => {
+  showConfirmPassword.value = !showConfirmPassword.value
 }
 
 const validateForm = () => {
@@ -82,7 +93,7 @@ const handleSubmit = async () => {
     <section class="auth-left">
       <div class="brand-block">
         <div class="brand-logo-row">
-            <AppLogo />
+          <AppLogo />
         </div>
 
         <div class="hero-text">
@@ -107,15 +118,6 @@ const handleSubmit = async () => {
 
     <section class="auth-right">
       <div class="auth-card auth-card-request">
-        <div class="auth-tabs">
-          <button class="tab" type="button" @click="goToLogin">
-            Connexion
-          </button>
-          <button class="tab active" type="button">
-            Demander l'accès
-          </button>
-        </div>
-
         <div class="auth-form-block">
           <h2>Rejoignez ValiDia</h2>
           <p class="subtitle">
@@ -175,25 +177,43 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="form-row">
+            <div class="password-row">
               <div class="form-group password-group">
                 <label for="password">Mot de passe</label>
-                <input
-                  id="password"
-                  v-model="form.password"
-                  type="password"
-                  placeholder="••••••••"
-                />
+                <div class="input-wrapper">
+                  <input
+                    id="password"
+                    v-model="form.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    placeholder="••••••••"
+                  />
+                  <img
+                    class="toggle-icon"
+                    :src="showPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                    alt=""
+                    aria-hidden="true"
+                    @click="togglePassword"
+                  />
+                </div>
               </div>
 
               <div class="form-group password-group">
                 <label for="passwordConfirmation">Confirmation</label>
-                <input
-                  id="passwordConfirmation"
-                  v-model="form.passwordConfirmation"
-                  type="password"
-                  placeholder="••••••••"
-                />
+                <div class="input-wrapper">
+                  <input
+                    id="passwordConfirmation"
+                    v-model="form.passwordConfirmation"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    placeholder="••••••••"
+                  />
+                  <img
+                    class="toggle-icon"
+                    :src="showConfirmPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                    alt=""
+                    aria-hidden="true"
+                    @click="toggleConfirmPassword"
+                  />
+                </div>
               </div>
             </div>
 
@@ -216,6 +236,11 @@ const handleSubmit = async () => {
             <button class="submit-btn" type="submit" :disabled="isSubmitting">
               {{ isSubmitting ? 'Envoi...' : 'Envoyer une demande' }}
             </button>
+
+            <p class="login-link">
+              Already have an account?
+              <span @click="goToLogin">Log in</span>
+            </p>
           </form>
         </div>
       </div>
