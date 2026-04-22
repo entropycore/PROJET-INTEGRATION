@@ -61,12 +61,6 @@ const rules = {
         'Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'
       ),
 
-   // body('role')
-     // .trim()
-     // .notEmpty()
-     // .withMessage('Rôle obligatoire')
-      // .isIn(['etudiant', 'professeur', 'admin', 'professionnel'])
-     // .withMessage('Rôle invalide'),
   ],
 
   // Règles forgotPassword
