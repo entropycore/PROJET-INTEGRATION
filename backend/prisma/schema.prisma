@@ -1,15 +1,110 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client"
+  provider = "prisma-client-js"
   output   = "../src/generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+
+enum UserRole {
+  STUDENT
+  PROFESSOR
+  ADMINISTRATOR
+  PROFESSIONAL
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+
+
+model User {
+  id              String        @id @default(uuid()) @map("id_user")
+  
+  lastName        String        @map("last_name") @db.VarChar(100)
+  firstName       String        @map("first_name") @db.VarChar(100)
+  email           String        @unique @db.VarChar(150)
+  passwordHash    String        @map("password_hash")
+  phone           String?       @db.VarChar(30)
+  profilePicture  String?       @map("profile_picture")
+  accountStatus   AccountStatus @default(PENDING) @map("account_status")
+  role            UserRole
+  createdAt       DateTime      @default(now()) @map("created_at")
+  lastLoginAt     DateTime?     @map("last_login_at")
+
+  student         Student?
+  professor       Professor?
+  administrator   Administrator?
+  professional    Professional?
+
+  @@map("users")
+}
+
+model Student {
+  id              String    @id @default(uuid()) @map("id_student")
+  userId          String    @unique @map("user_id") // Doit être String pour correspondre à User.id
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  apogeeCode      String?   @unique @map("apogee_code") @db.VarChar(50)
+  cne             String?   @unique @db.VarChar(50)
+  major           String    @db.VarChar(120)
+  level           String    @db.VarChar(50)  
+  birthDate       DateTime? @map("birth_date") @db.Date
+  address         String?   @db.Text
+  city            String?   @db.VarChar(100)
+  bio             String?   @db.Text
+  careerObjective String?   @map("career_objective") @db.Text
+  linkedinUrl     String?   @map("linkedin_url") @db.Text
+
+  @@map("students")
+}
+
+model Professor {
+  id              String    @id @default(uuid()) @map("id_professor")
+  userId          String    @unique @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  employeeId      String?   @unique @map("employee_id") @db.VarChar(50) 
+  grade           String?   @db.VarChar(100)
+  specialty       String?   @db.VarChar(150)
+  department      String?   @db.VarChar(150)
+
+  @@map("professors")
+}
+
+model Administrator {
+  id              String    @id @default(uuid()) @map("id_administrator")
+  userId          String    @unique @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  employeeId      String?   @unique @map("employee_id") @db.VarChar(50) 
+  department      String?   @db.VarChar(120) 
+  adminLevel      String?   @map("admin_level") @db.VarChar(50)
+
+  @@map("administrators")
+}
+
+model Professional {
+  id              String    @id @default(uuid()) @map("id_professional")
+  userId          String    @unique @map("user_id")
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  company         String?   @db.VarChar(150) 
+  jobTitle        String?   @map("job_title") @db.VarChar(120) 
+  sector          String?   @db.VarChar(120)
+  bio             String?   @db.Text
+  isVerified      Boolean   @default(false) @map("is_verified") 
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  emailVerifyToken   String?   @unique @map("email_verify_token")
+  emailVerifyExpires DateTime? @map("email_verify_expires")
+  @@map("professionals")
 }
