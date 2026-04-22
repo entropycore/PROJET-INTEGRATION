@@ -71,6 +71,9 @@ CREATE TABLE "professionals" (
     "sector" VARCHAR(120),
     "bio" TEXT,
     "is_verified" BOOLEAN NOT NULL DEFAULT false,
+    "is_email_verified" BOOLEAN NOT NULL DEFAULT false,
+    "email_verify_token" TEXT,
+    "email_verify_expires" TIMESTAMP(3),
 
     CONSTRAINT "professionals_pkey" PRIMARY KEY ("id_professional")
 );
@@ -101,6 +104,9 @@ CREATE UNIQUE INDEX "administrators_employee_id_key" ON "administrators"("employ
 
 -- CreateIndex
 CREATE UNIQUE INDEX "professionals_user_id_key" ON "professionals"("user_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "professionals_email_verify_token_key" ON "professionals"("email_verify_token");
 
 -- AddForeignKey
 ALTER TABLE "students" ADD CONSTRAINT "students_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id_user") ON DELETE CASCADE ON UPDATE CASCADE;
