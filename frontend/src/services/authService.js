@@ -11,10 +11,15 @@ export const login = async ({ email, password }) => {
 
 export const getMe = async () => {
   const response = await api.get('/me')
-  return response.data
+  return response
 }
 
 export const logout = async () => {
   const response = await api.post('/logout')
+  return response.data
+}
+
+export const refreshToken = async () => {
+  const response = await api.post('/refresh-token')
   return response.data
 }

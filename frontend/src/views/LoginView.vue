@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { login, getMe } from '../services/authService'
@@ -12,26 +12,16 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const successMessage = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
 
-const allowedDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN  
-
-const isEmailValid = computed(() => {
-  const regex = new RegExp(`^[a-zA-Z0-9._%+-]+@${allowedDomain.replace('.', '\\.')}$`)
-  return regex.test(email.value.trim())
-})
-
 const handleLogin = async () => {
   errorMessage.value = ''
+  successMessage.value = ''
 
   if (!email.value.trim() || !password.value.trim()) {
     errorMessage.value = 'Veuillez remplir tous les champs.'
-    return
-  }
-
-  if (!isEmailValid.value) {
-    errorMessage.value = `L\'adresse e-mail doit se terminer par @${allowedDomain}.`
     return
   }
 
@@ -45,9 +35,8 @@ const handleLogin = async () => {
 
     const meResponse = await getMe()
 
-    authStore.setAuthSession({ user: meResponse.data })
-
-    router.push('/dashboard')
+    authStore.setAuthSession(meResponse.data.data)
+    successMessage.value = 'Connexion réussie.'
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message ||
@@ -55,10 +44,6 @@ const handleLogin = async () => {
   } finally {
     isLoading.value = false
   }
-}
-
-const goToForgotPassword = () => {
-  router.push('/forgot-password')
 }
 
 const goToRequestAccess = () => {
@@ -135,16 +120,6 @@ const togglePassword = () => {
             </div>
 
             <div class="login-form-links">
-              <div class="forgot-password-row">
-                <button
-                  class="forgot-password"
-                  type="button"
-                  @click="goToForgotPassword"
-                >
-                  Mot de passe oublié?
-                </button>
-              </div>
-
               <p class="access-request-text">
                 Vous n'avez pas encore de compte ?
                 <span class="access-request-link" @click="goToRequestAccess">
@@ -155,6 +130,10 @@ const togglePassword = () => {
 
             <p v-if="errorMessage" class="error-message">
               {{ errorMessage }}
+            </p>
+
+            <p v-if="successMessage" class="success-message">
+              {{ successMessage }}
             </p>
 
             <button class="submit-btn" type="submit" :disabled="isLoading">
