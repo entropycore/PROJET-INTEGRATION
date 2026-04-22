@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
-import LoginView from '../views/LoginView.vue'
+import LoginPage from '@/views/LoginView.vue'
 
 // Simulation du routeur pour éviter les erreurs de navigation pendant le test
 const mockRouter = { push: vi.fn() }
@@ -10,7 +10,7 @@ vi.mock('vue-router', () => ({ useRouter: () => mockRouter }))
 describe('Smoke Test - Page de Connexion', () => {
   it('Vérifie la présence des éléments essentiels du DOM', () => {
     const pinia = createPinia()
-    const wrapper = mount(LoginView, {
+    const wrapper = mount(LoginPage, {
       global: { plugins: [pinia] }
     })
 
