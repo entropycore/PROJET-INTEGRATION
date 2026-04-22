@@ -98,3 +98,36 @@ describe('LoginPage.vue - Tests d\'authentification', () => {
     expect(pushSpy).toHaveBeenCalledWith('/forgot-password')
   })
 })
+import { mount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach } from 'vitest'
+import RequestAccessPage from './views/RequestAccessView.vue'
+import { createTestingPinia } from '@pinia/testing'
+
+describe('Unit Tests - Demande d\'accès', () => {
+  let wrapper;
+
+  beforeEach(() => {
+    wrapper = mount(RequestAccessPage, {
+      global: { plugins: [createTestingPinia()] },
+    })
+  })
+
+  it('doit valider que les mots de passe ne correspondent pas', async () => {
+    // Utilisation des IDs exacts du template
+    await wrapper.find('#password').setValue('Password123')
+    await wrapper.find('#passwordConfirmation').setValue('Diff123')
+    
+    await wrapper.find('form').trigger('submit.prevent')
+    
+    // Vérification du message d'erreur défini dans ton code
+    expect(wrapper.find('.error-message').text()).toBe('Les mots de passe ne correspondent pas.')
+  })
+
+  it('doit afficher une erreur si un champ obligatoire est vide', async () => {
+    // On laisse lastName vide et on soumet
+    await wrapper.find('#firstName').setValue('Amina')
+    await wrapper.find('form').trigger('submit.prevent')
+    
+    expect(wrapper.find('.error-message').text()).toBe('Veuillez remplir tous les champs.')
+  })
+})
