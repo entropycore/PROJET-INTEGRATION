@@ -30,13 +30,63 @@
   font-size: 0.95rem;
 }
 
-.password-group input {
-  padding-right: 14px;
+.password-row {
+  display: flex;
+  gap: 16px;
+}
+
+.password-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrapper input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding-right: 44px;
+}
+
+.toggle-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  object-fit: contain;
+}
+
+.login-link {
+  margin: 8px 0 0;
+  text-align: center;
+  color: #6e6b67;
+  font-size: 0.92rem;
+}
+
+.login-link span {
+  color: #2f5a60;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-link span:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 640px) {
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .password-row {
+    flex-direction: column;
   }
 
   .auth-card-request {
