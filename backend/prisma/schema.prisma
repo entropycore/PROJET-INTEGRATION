@@ -102,6 +102,7 @@ model Professional {
   sector          String?   @db.VarChar(120)
   bio             String?   @db.Text
   isVerified      Boolean   @default(false) @map("is_verified") 
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
 
   @@map("professionals")
 }
