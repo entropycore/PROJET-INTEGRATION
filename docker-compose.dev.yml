@@ -30,22 +30,22 @@ services:
     ports:
       - "${BACKEND_PORT}:3000"
 
-# ARRETE LE FRONTEND POUR LE MOMENT, CAR IL Y A DES PROBLEMES DE CORS AVEC LE BACKEND. JE VAIS LES RESOUDRE AVANT DE RELANCER LE FRONTEND EN DOCKER.
-#  frontend:
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#    container_name: dev_front
-#    depends_on:
-#      - backend
-#    ports:
-#      - "${FRONTEND_PORT:-5173}:5173"
-#    environment:
-#      VITE_API_URL: http://localhost:${BACKEND_PORT}
-#    volumes:
-#      - ./frontend:/app 
-#      - /app/node_modules
-#    command: npm run dev
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dev_front
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    environment:
+      VITE_API_URL: http://localhost:${BACKEND_PORT}
+    volumes:
+      - ./frontend:/app 
+      - /app/node_modules
+    command: npm run dev
+
 
 volumes:
   postgres_data:
