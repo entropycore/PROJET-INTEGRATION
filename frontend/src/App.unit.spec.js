@@ -1,9 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import LoginPage from '../views/LoginView.vue'
+import LoginPage from '@/views/LoginView.vue'
 import { createTestingPinia } from '@pinia/testing'
 import { createRouter, createWebHistory } from 'vue-router'
-
 /**
  * Configuration du routeur pour simuler la navigation
  */
@@ -11,7 +10,6 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [{ path: '/dashboard', name: 'dashboard', component: { template: '<div></div>' } }],
 })
-
 describe('LoginPage.vue - Tests d\'authentification', () => {
   let wrapper;
   const allowedDomain = 'ensa.ac.ma';
@@ -111,18 +109,24 @@ describe('Unit Tests - Demande d\'accès', () => {
       global: { plugins: [createTestingPinia()] },
     })
   })
-
-  it('doit valider que les mots de passe ne correspondent pas', async () => {
-    // Utilisation des IDs exacts du template
+it('doit valider que les mots de passe ne correspondent pas', async () => {
+    // 1. On remplit TOUS les champs requis par ton validateForm()
+    await wrapper.find('#lastName').setValue('Berrada')
+    await wrapper.find('#firstName').setValue('Amina')
+    await wrapper.find('#email').setValue('amina@email.ma')
+    await wrapper.find('#companyName').setValue('Ma Société') 
+    await wrapper.find('#jobTitle').setValue('Développeur')      
+    
+    // 2. On met des mots de passe différents
     await wrapper.find('#password').setValue('Password123')
     await wrapper.find('#passwordConfirmation').setValue('Diff123')
     
+    // 3. On soumet
     await wrapper.find('form').trigger('submit.prevent')
     
-    // Vérification du message d'erreur défini dans ton code
+    // 4. Maintenant, ça va passer !
     expect(wrapper.find('.error-message').text()).toBe('Les mots de passe ne correspondent pas.')
-  })
-
+})
   it('doit afficher une erreur si un champ obligatoire est vide', async () => {
     // On laisse lastName vide et on soumet
     await wrapper.find('#firstName').setValue('Amina')
