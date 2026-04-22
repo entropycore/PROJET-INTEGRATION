@@ -176,22 +176,36 @@ body {
   object-fit: contain;
 }
   
+.login-form-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: -4px;
+}
+
 .forgot-password-row {
   display: flex;
-    justify-content: flex-end;
-    margin-top: -4px;
-  }
+  justify-content: center;
+  width: 100%;
+  margin-top: 0;
+}
 
 .access-request-text {
-  margin: -2px 0 2px;
+  margin: 0;
   color: #7d7c79;
-  font-size: 0.96rem;
+  font-size: 1rem;
   line-height: 1.5;
+  text-align: center;
+}
+
+.access-request-link {
+  color: #2f5a60;
   cursor: pointer;
 }
 
-.access-request-text:hover {
-  color: #2f5a60;
+.access-request-link:hover {
+  text-decoration: underline;
 }
   
   .forgot-password {
