@@ -23,3 +23,11 @@ export const refreshToken = async () => {
   const response = await api.post('/refresh-token')
   return response.data
 }
+
+export const verifyEmail = async (token) => {
+  const response = await api.get('/verify-email', {
+    params: { token },
+  })
+
+  return response.data
+}
