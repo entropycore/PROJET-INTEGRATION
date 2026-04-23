@@ -5,7 +5,7 @@ import { createTestingPinia } from '@pinia/testing'
 import { createRouter, createWebHistory } from 'vue-router'
 /**
  * Configuration du routeur pour simuler la navigation
- */
+ **/
 const router = createRouter({
   history: createWebHistory(),
   routes: [{ path: '/dashboard', name: 'dashboard', component: { template: '<div></div>' } }],
