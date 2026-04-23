@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // 100 requêtes max
+  skip: (req, res) => process.env.NODE_ENV === 'test',
   message: {
     success: false,
     message: 'Trop de requêtes, réessayez dans 15 minutes',
@@ -41,3 +42,4 @@ const forgotPasswordLimiter = rateLimit({
 });
 
 module.exports = { globalLimiter, authLimiter, forgotPasswordLimiter };
+

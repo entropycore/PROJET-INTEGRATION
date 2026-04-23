@@ -30,9 +30,13 @@ app.use('/api/auth', authRoutes);
 app.use(notFound);
 app.use(handleErrors);
 
+// ─── Démarrage serveur SEULEMENT si lancé directement ───
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    logger.info(`Serveur démarré sur le port ${PORT}`);
+    console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
+  });
+}
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  logger.info(`Serveur démarré sur le port ${PORT}`);
-  console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
-});
+module.exports = app;
