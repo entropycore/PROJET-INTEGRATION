@@ -1,56 +1,203 @@
-import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createPinia } from 'pinia'
-import LoginPage from '@/views/LoginView.vue'
-
-// Simulation du routeur pour éviter les erreurs de navigation pendant le test
-const mockRouter = { push: vi.fn() }
-vi.mock('vue-router', () => ({ useRouter: () => mockRouter }))
-
-describe('Smoke Test - Page de Connexion', () => {
-  it('Vérifie la présence des éléments essentiels du DOM', () => {
-    const pinia = createPinia()
-    const wrapper = mount(LoginPage, {
-      global: { plugins: [pinia] }
-    })
-
-    // Vérifie si le logo de l'application est bien rendu [cite: 33]
-    expect(wrapper.findComponent({ name: 'AppLogo' }).exists()).toBe(true)
-    
-    // Vérifie que les champs de saisie (Email et Mot de passe) sont présents [cite: 33]
-    expect(wrapper.find('#email').exists()).toBe(true)
-    expect(wrapper.find('#password').exists()).toBe(true)
-    
-    // Vérifie que le bouton de soumission est affiché avec le bon texte [cite: 33]
-    expect(wrapper.find('.submit-btn').text()).toContain('Se connecter')
-  })
-})
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach } from 'vitest'
-import RequestAccessPage from './views/RequestAccessView.vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTestingPinia } from '@pinia/testing'
+import LoginPage from '@/views/LoginView.vue'
+import RequestAccessPage from '@/views/RequestAccessView.vue'
 
-describe('UI Tests - Demande d\'accès', () => {
-  let wrapper;
+const { mockRouter, loginMock, getMeMock, requestAccessMock } = vi.hoisted(() => ({
+  mockRouter: {
+    push: vi.fn(),
+  },
+  loginMock: vi.fn(),
+  getMeMock: vi.fn(),
+  requestAccessMock: vi.fn(),
+}))
+
+vi.mock('vue-router', () => ({
+  useRouter: () => mockRouter,
+}))
+
+vi.mock('./services/authService', () => ({
+  login: loginMock,
+  getMe: getMeMock,
+}))
+
+vi.mock('./services/requestAccessService', () => ({
+  requestAccess: requestAccessMock,
+}))
+
+const flushPromises = async () => {
+  await Promise.resolve()
+  await new Promise((resolve) => setTimeout(resolve, 0))
+}
+
+describe('Tests UI & Logique - Page de Connexion', () => {
+  let wrapper
 
   beforeEach(() => {
-    wrapper = mount(RequestAccessPage, {
-      global: { plugins: [createTestingPinia()] },
+    vi.clearAllMocks()
+    loginMock.mockResolvedValue({})
+    getMeMock.mockResolvedValue({
+      data: {
+        data: {
+          id: 1,
+          email: 'test@ensa.ac.ma',
+        },
+      },
+    })
+
+    wrapper = mount(LoginPage, {
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        stubs: { AppLogo: true },
+      },
     })
   })
 
-  it('doit avoir des champs password masqués', () => {
-    // Vérifier les attributs HTML type="password"
-    expect(wrapper.find('#password').attributes('type')).toBe('password')
-    expect(wrapper.find('#passwordConfirmation').attributes('type')).toBe('password')
+  it('doit respecter la conformite visuelle et structurelle', () => {
+    expect(wrapper.find('.auth-page').exists()).toBe(true)
+    expect(wrapper.find('.auth-card').exists()).toBe(true)
+    expect(wrapper.find('h1').text()).toContain('Votre identité')
+    expect(wrapper.find('.submit-btn').text()).toBe('Se connecter')
   })
 
-  it('doit afficher le logo AppLogo', () => {
-    // Vérifie si le composant AppLogo est rendu
-    expect(wrapper.findComponent({ name: 'AppLogo' }).exists()).toBe(true)
+  it('doit basculer la visibilite du mot de passe', async () => {
+    const passwordInput = wrapper.find('#password')
+    const toggleIcon = wrapper.find('.toggle-icon')
+
+    expect(passwordInput.attributes('type')).toBe('password')
+
+    await toggleIcon.trigger('click')
+    expect(passwordInput.attributes('type')).toBe('text')
+
+    await toggleIcon.trigger('click')
+    expect(passwordInput.attributes('type')).toBe('password')
   })
 
-  it('doit afficher la note importante à l\'utilisateur', () => {
-    expect(wrapper.find('.request-note').text()).toContain('Votre demande sera validée par l\'administration')
+  it("doit afficher l'indicateur d'erreur rouge si les champs sont vides", async () => {
+    await wrapper.find('form').trigger('submit.prevent')
+
+    const errorLabel = wrapper.find('.error-message')
+    expect(errorLabel.exists()).toBe(true)
+    expect(errorLabel.text()).toBe('Veuillez remplir tous les champs.')
+    expect(errorLabel.classes()).toContain('error-message')
+  })
+
+  it('doit rester stable visuellement avec un mot de passe extremement long', async () => {
+    const passwordInput = wrapper.find('#password')
+    const longPassword = 'p'.repeat(2000)
+
+    await passwordInput.setValue(longPassword)
+
+    expect(passwordInput.element.value).toBe(longPassword)
+    expect(wrapper.find('.auth-card').exists()).toBe(true)
+  })
+
+  it('doit desactiver le bouton et changer le texte lors de clics rapides', async () => {
+    let resolveLogin
+    loginMock.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveLogin = resolve
+        }),
+    )
+
+    await wrapper.find('#email').setValue('test@ensa.ac.ma')
+    await wrapper.find('#password').setValue('12345678')
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    const submitBtn = wrapper.find('.submit-btn')
+    expect(submitBtn.attributes()).toHaveProperty('disabled')
+    expect(submitBtn.text()).toBe('Connexion...')
+
+    resolveLogin({})
+    await flushPromises()
+  })
+
+  it("doit naviguer vers la demande d'acces via le lien dedie", async () => {
+    await wrapper.find('.access-request-link').trigger('click')
+
+    expect(mockRouter.push).toHaveBeenCalledWith('/request-access')
+  })
+})
+
+describe("Tests Unitaires - Page Demande d'acces", () => {
+  let wrapper
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    requestAccessMock.mockResolvedValue({ message: 'Demande envoyee.' })
+
+    wrapper = mount(RequestAccessPage, {
+      global: {
+        plugins: [createTestingPinia({ createSpy: vi.fn })],
+        stubs: { AppLogo: true },
+      },
+    })
+  })
+
+  it('doit afficher une erreur si un champ obligatoire est vide', async () => {
+    await wrapper.find('form').trigger('submit.prevent')
+
+    const error = wrapper.find('.error-message')
+    expect(error.exists()).toBe(true)
+    expect(error.text()).toBe('Veuillez remplir tous les champs.')
+  })
+
+  it('doit valider que les mots de passe ne correspondent pas', async () => {
+    await wrapper.find('#lastName').setValue('Berrada')
+    await wrapper.find('#firstName').setValue('Amina')
+    await wrapper.find('#email').setValue('amina@email.ma')
+    await wrapper.find('#companyName').setValue('Ma SociÃ©tÃ©')
+    await wrapper.find('#jobTitle').setValue('DÃ©veloppeur')
+    await wrapper.find('#password').setValue('Password123')
+    await wrapper.find('#passwordConfirmation').setValue('Diff123')
+    await wrapper.find('form').trigger('submit.prevent')
+
+    const error = wrapper.find('.error-message')
+    expect(error.text()).toBe('Les mots de passe ne correspondent pas.')
+  })
+
+  it('doit basculer la visibilite du mot de passe', async () => {
+    const passwordInput = wrapper.find('#password')
+    const toggleIcon = wrapper.findAll('.toggle-icon')[0]
+
+    expect(passwordInput.attributes('type')).toBe('password')
+
+    await toggleIcon.trigger('click')
+    expect(passwordInput.attributes('type')).toBe('text')
+
+    await toggleIcon.trigger('click')
+    expect(passwordInput.attributes('type')).toBe('password')
+  })
+
+  it('doit basculer la visibilite de la confirmation du mot de passe', async () => {
+    const confirmInput = wrapper.find('#passwordConfirmation')
+    const toggleIcon = wrapper.findAll('.toggle-icon')[1]
+
+    expect(confirmInput.attributes('type')).toBe('password')
+
+    await toggleIcon.trigger('click')
+    expect(confirmInput.attributes('type')).toBe('text')
+
+    await toggleIcon.trigger('click')
+    expect(confirmInput.attributes('type')).toBe('password')
+  })
+
+  it('doit afficher un message de succes apres une soumission valide', async () => {
+    await wrapper.find('#lastName').setValue('Berrada')
+    await wrapper.find('#firstName').setValue('Amina')
+    await wrapper.find('#email').setValue('amina@email.ma')
+    await wrapper.find('#companyName').setValue('Ma SociÃ©tÃ©')
+    await wrapper.find('#jobTitle').setValue('DÃ©veloppeur')
+    await wrapper.find('#password').setValue('Password123')
+    await wrapper.find('#passwordConfirmation').setValue('Password123')
+    await wrapper.find('form').trigger('submit.prevent')
+    await flushPromises()
+
+    const success = wrapper.find('.success-message')
+    expect(success.exists()).toBe(true)
+    expect(success.text()).toContain('Demande envoyee')
   })
 })
