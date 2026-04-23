@@ -1,9 +1,9 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppLogo from '../components/AppLogo.vue'
 import { verifyEmail } from '../services/authService'
-import '../assets/styles/request-access.css'
+import '../assets/styles/verification-email.css'
 
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +16,30 @@ const goToLogin = () => {
   router.push('/login')
 }
 
+const statusTitle = computed(() => {
+  if (isLoading.value) {
+    return "Vérification de l'email"
+  }
+
+  if (isSuccess.value) {
+    return 'Email vérifié avec succès'
+  }
+
+  return 'Vérification impossible'
+})
+
+const statusText = computed(() => {
+  if (isLoading.value) {
+    return 'Nous confirmons votre adresse email. Veuillez patienter un instant.'
+  }
+
+  if (isSuccess.value) {
+    return 'Votre demande est en attente de validation par l\'administration.'
+  }
+
+  return message.value || "Impossible de vérifier l'adresse email."
+})
+
 onMounted(async () => {
   const token = route.query.token
 
@@ -26,9 +50,8 @@ onMounted(async () => {
   }
 
   try {
-    const response = await verifyEmail(token)
+    await verifyEmail(token)
     isSuccess.value = true
-    message.value = response.message
   } catch (error) {
     message.value =
       error?.response?.data?.message ||
@@ -40,58 +63,90 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="auth-page">
-    <section class="auth-left">
-      <div class="brand-block">
-        <AppLogo />
-
-        <div class="hero-text">
-          <h1>
-            Votre identité<br />
-            professionnelle<br />
-            <span>certifiée.</span>
-          </h1>
-
-          <p>
-            Finalisez votre accès en confirmant votre adresse email.
-          </p>
-
-          <p>
-            Une fois l'email validé, votre demande pourra être traitée par
-            l'administration.
-          </p>
+  <div class="verify-email-page">
+    <div class="verify-email-wrapper">
+      <section class="verify-email-card">
+        <div class="verify-email-logo">
+          <AppLogo />
         </div>
-      </div>
-    </section>
 
-    <section class="auth-right">
-      <div class="auth-card">
-        <div class="auth-form-block">
-          <h2>Vérification email</h2>
-          <p class="subtitle">
-            {{ isLoading ? 'Vérification en cours...' : 'Résultat de la vérification' }}
-          </p>
-
-          <div class="auth-form">
-            <p v-if="!isLoading && !isSuccess" class="error-message">
-              {{ message }}
-            </p>
-
-            <p v-if="!isLoading && isSuccess" class="success-message">
-              {{ message }}
-            </p>
-
-            <button
-              v-if="!isLoading"
-              class="submit-btn"
-              type="button"
-              @click="goToLogin"
+        <div class="verify-email-content">
+          <div
+            class="status-icon"
+            :class="{
+              'status-icon-loading': isLoading,
+              'status-icon-success': !isLoading && isSuccess,
+              'status-icon-error': !isLoading && !isSuccess,
+            }"
+            aria-hidden="true"
+          >
+            <svg
+              v-if="isLoading"
+              viewBox="0 0 24 24"
+              class="status-spinner"
             >
-              Retour à la connexion
-            </button>
+              <circle
+                class="status-spinner-track"
+                cx="12"
+                cy="12"
+                r="9"
+              />
+              <path
+                class="status-spinner-head"
+                d="M12 3a9 9 0 0 1 9 9"
+              />
+            </svg>
+
+            <svg
+              v-else-if="isSuccess"
+              viewBox="0 0 24 24"
+              class="status-symbol"
+            >
+              <path
+                d="M7 12.5l3.2 3.2L17.5 8.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2.4"
+              />
+            </svg>
+
+            <svg
+              v-else
+              viewBox="0 0 24 24"
+              class="status-symbol"
+            >
+              <path
+                d="M12 8v5"
+                fill="none"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-width="2.4"
+              />
+              <circle cx="12" cy="16.5" r="1.1" fill="currentColor" />
+            </svg>
           </div>
+
+          <div class="verify-email-copy">
+            <h1>{{ statusTitle }}</h1>
+            <p>{{ statusText }}</p>
+          </div>
+
+          <button
+            v-if="!isLoading"
+            class="verify-email-button"
+            type="button"
+            @click="goToLogin"
+          >
+            Retour à la connexion
+          </button>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 </template>
+
+<style scoped>
+
+</style>
