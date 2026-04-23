@@ -3,16 +3,16 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { requestAccess } from '../services/requestAccessService'
 import '../assets/styles/request-access.css'
-import  AppLogo  from '../components/AppLogo.vue'
+import AppLogo from '../components/AppLogo.vue'
+
 
 const router = useRouter()
 
 const form = reactive({
-  // À confirmer avec le backend :
   lastName: '',
   firstName: '',
   email: '',
-  companyName: '',
+  company: '',
   jobTitle: '',
   password: '',
   passwordConfirmation: '',
@@ -21,9 +21,19 @@ const form = reactive({
 const errorMessage = ref('')
 const successMessage = ref('')
 const isSubmitting = ref(false)
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const goToLogin = () => {
   router.push('/login')
+}
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
+
+const toggleConfirmPassword = () => {
+  showConfirmPassword.value = !showConfirmPassword.value
 }
 
 const validateForm = () => {
@@ -34,7 +44,7 @@ const validateForm = () => {
     !form.lastName.trim() ||
     !form.firstName.trim() ||
     !form.email.trim() ||
-    !form.companyName.trim() ||
+    !form.company.trim() ||
     !form.jobTitle.trim() ||
     !form.password.trim() ||
     !form.passwordConfirmation.trim()
@@ -57,15 +67,18 @@ const handleSubmit = async () => {
   isSubmitting.value = true
 
   try { 
-    await requestAccess({
-      lastName: form.lastName,
-      firstName: form.firstName,
-      email: form.email,
-      companyName: form.companyName,
-      jobTitle: form.jobTitle,
+    const response = await requestAccess({
+      email: form.email.trim(),
       password: form.password,
+      lastName: form.lastName.trim(),
+      firstName: form.firstName.trim(),
+      company: form.company.trim(),
+      jobTitle: form.jobTitle.trim(),
     })
 
+    successMessage.value =
+      response?.message ||
+      "Demande envoyee. Veuillez verifier votre boite de reception pour valider votre email."
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message || "Impossible d'envoyer la demande."
@@ -80,24 +93,25 @@ const handleSubmit = async () => {
     <section class="auth-left">
       <div class="brand-block">
         <div class="brand-logo-row">
-            <AppLogo />
+          <AppLogo />
         </div>
 
         <div class="hero-text">
           <h1>
-            Votre identité<br />
-            professionnelle<br />
-            <span>certifiée.</span>
+            Recrutez des profils<br />
+            vérifiés et<br />
+            <span>certifiés.</span>
           </h1>
 
+
           <p>
-            Construisez un portfolio académique validé par votre institution,
-            et reconnu par les recruteurs.
+            Découvrez une sélection de portfolios académiques validés, offrant une
+            visibilité claire et fiable sur les compétences des candidats.
           </p>
 
           <p>
-            Chaque réalisation validée devient un atout officiel pour votre
-            insertion professionnelle.
+            Chaque réalisation présentée est certifiée par son institution, pour un
+            recrutement basé sur des données authentiques.
           </p>
         </div>
       </div>
@@ -105,15 +119,6 @@ const handleSubmit = async () => {
 
     <section class="auth-right">
       <div class="auth-card auth-card-request">
-        <div class="auth-tabs">
-          <button class="tab" type="button" @click="goToLogin">
-            Connexion
-          </button>
-          <button class="tab active" type="button">
-            Demander l'accès
-          </button>
-        </div>
-
         <div class="auth-form-block">
           <h2>Rejoignez ValiDia</h2>
           <p class="subtitle">
@@ -157,7 +162,7 @@ const handleSubmit = async () => {
               <label for="companyName">Nom de l'entreprise</label>
               <input
                 id="companyName"
-                v-model="form.companyName"
+                v-model="form.company"
                 type="text"
                 placeholder="Saisir le nom de votre entreprise..."
               />
@@ -173,25 +178,43 @@ const handleSubmit = async () => {
               />
             </div>
 
-            <div class="form-row">
+            <div class="password-row">
               <div class="form-group password-group">
                 <label for="password">Mot de passe</label>
-                <input
-                  id="password"
-                  v-model="form.password"
-                  type="password"
-                  placeholder="••••••••"
-                />
+                <div class="input-wrapper">
+                  <input
+                    id="password"
+                    v-model="form.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    placeholder="••••••••"
+                  />
+                  <img
+                    class="toggle-icon"
+                    :src="showPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                    alt=""
+                    aria-hidden="true"
+                    @click="togglePassword"
+                  />
+                </div>
               </div>
 
               <div class="form-group password-group">
                 <label for="passwordConfirmation">Confirmation</label>
-                <input
-                  id="passwordConfirmation"
-                  v-model="form.passwordConfirmation"
-                  type="password"
-                  placeholder="••••••••"
-                />
+                <div class="input-wrapper">
+                  <input
+                    id="passwordConfirmation"
+                    v-model="form.passwordConfirmation"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    placeholder="••••••••"
+                  />
+                  <img
+                    class="toggle-icon"
+                    :src="showConfirmPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                    alt=""
+                    aria-hidden="true"
+                    @click="toggleConfirmPassword"
+                  />
+                </div>
               </div>
             </div>
 
@@ -214,6 +237,11 @@ const handleSubmit = async () => {
             <button class="submit-btn" type="submit" :disabled="isSubmitting">
               {{ isSubmitting ? 'Envoi...' : 'Envoyer une demande' }}
             </button>
+
+            <p class="login-link">
+              Already have an account?
+              <span @click="goToLogin">Log in</span>
+            </p>
           </form>
         </div>
       </div>

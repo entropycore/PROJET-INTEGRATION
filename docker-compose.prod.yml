@@ -1,0 +1,53 @@
+services:
+  # --- Base de données PostgreSQL ---
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5432}:5432" 
+    networks:
+      - app-network
+
+  # --- Backend (API) ---
+  backend:
+    image: eriie/image-backend:latest
+    container_name: backend_api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      # On utilise le nom du service 'db' comme hôte
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
+      PORT: ${BACKEND_PORT:-3000}
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    networks:
+      - app-network
+
+  # --- Frontend ---
+  frontend:
+    image: eriie/image-frontend:latest
+    container_name: frontend_web
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-80}:5173"
+    networks:
+      - app-network
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+# --- Réseaux et Volumes ---
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

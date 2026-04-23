@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { loginRequest } from '../services/authService'
+import { login, getMe } from '../services/authService'
 import  AppLogo  from '../components/AppLogo.vue'
 import '../assets/styles/login.css'
 
@@ -12,39 +12,31 @@ const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const errorMessage = ref('')
+const successMessage = ref('')
 const isLoading = ref(false)
-
-const allowedDomain = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN  
-
-const isEmailValid = computed(() => {
-  const regex = new RegExp(`^[a-zA-Z0-9._%+-]+@${allowedDomain.replace('.', '\\.')}$`)
-  return regex.test(email.value.trim())
-})
+const showPassword = ref(false)
 
 const handleLogin = async () => {
   errorMessage.value = ''
+  successMessage.value = ''
 
   if (!email.value.trim() || !password.value.trim()) {
     errorMessage.value = 'Veuillez remplir tous les champs.'
     return
   }
 
-  if (!isEmailValid.value) {
-    errorMessage.value = `L\'adresse e-mail doit se terminer par @${allowedDomain}.`
-    return
-  }
-
   try {
     isLoading.value = true
 
-    const data = await loginRequest({
+    await login({
       email: email.value.trim(),
       password: password.value,
     })
 
-    authStore.setAuthSession({ user: data.user,})
+    const meResponse = await getMe()
 
-    router.push('/dashboard')
+    authStore.setAuthSession(meResponse.data.data)
+    successMessage.value = 'Connexion réussie.'
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message ||
@@ -58,8 +50,8 @@ const goToRequestAccess = () => {
   router.push('/request-access')
 }
 
-const goToForgotPassword = () => {
-  router.push('/forgot-password')
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
 }
 </script>
 
@@ -91,15 +83,8 @@ const goToForgotPassword = () => {
 
     <section class="auth-right">
       <div class="auth-card">
-        <div class="auth-tabs">
-          <button class="tab active" type="button">Connexion</button>
-          <button class="tab" type="button" @click="goToRequestAccess">
-            Demander l'accès
-          </button>
-        </div>
-
         <div class="auth-form-block">
-          <h2>Bon retour !</h2>
+          <h2>Bon retour</h2>
           <p class="subtitle">Connectez-vous à votre espace personnel</p>
 
           <form class="auth-form" @submit.prevent="handleLogin">
@@ -116,27 +101,39 @@ const goToForgotPassword = () => {
 
             <div class="form-group">
               <label for="password">Mot de passe</label>
-              <input
-                id="password"
-                v-model="password" 
-                type="password"
-                placeholder="••••••••"
-                autocomplete="current-password"
-              />
+              <div class="input-wrapper">
+                <input
+                  id="password"
+                  v-model="password"
+                  :type="showPassword ? 'text' : 'password'"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                />
+                <img
+                  class="toggle-icon"
+                  :src="showPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                  alt=""
+                  aria-hidden="true"
+                  @click="togglePassword"
+                />
+              </div>
             </div>
 
-            <div class="forgot-password-row">
-              <button
-                class="forgot-password"
-                type="button"
-                @click="goToForgotPassword"
-              >
-                Mot de passe oublié ?
-              </button>
+            <div class="login-form-links">
+              <p class="access-request-text">
+                Vous n'avez pas encore de compte ?
+                <span class="access-request-link" @click="goToRequestAccess">
+                  Demandez l'accès
+                </span>
+              </p>
             </div>
 
             <p v-if="errorMessage" class="error-message">
               {{ errorMessage }}
+            </p>
+
+            <p v-if="successMessage" class="success-message">
+              {{ successMessage }}
             </p>
 
             <button class="submit-btn" type="submit" :disabled="isLoading">
