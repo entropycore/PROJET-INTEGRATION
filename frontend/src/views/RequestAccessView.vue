@@ -61,6 +61,16 @@ const validateForm = () => {
   return true
 }
 
+const getRequestAccessErrorMessage = (error) => {
+  const apiError = error?.response?.data
+
+  if (Array.isArray(apiError?.errors) && apiError.errors.length > 0) {
+    return apiError.errors[0]?.message || apiError?.message || "Impossible d'envoyer la demande."
+  }
+
+  return apiError?.message || "Impossible d'envoyer la demande."
+}
+
 const handleSubmit = async () => {
   if (!validateForm()) return
 
@@ -80,8 +90,7 @@ const handleSubmit = async () => {
       response?.message ||
       "Demande envoyee. Veuillez verifier votre boite de reception pour valider votre email."
   } catch (error) {
-    errorMessage.value =
-      error?.response?.data?.message || "Impossible d'envoyer la demande."
+    errorMessage.value = getRequestAccessErrorMessage(error)
   } finally {
     isSubmitting.value = false
   }
