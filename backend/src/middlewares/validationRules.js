@@ -1,10 +1,7 @@
 'use strict';
 
 const { body, validationResult } = require('express-validator');
-// ↑ body() = valider un champ du req.body
-// validationResult() = récupérer les erreurs de validation
 
-// ── RÈGLES PAR TYPE ──
 const rules = {
   // Règles login
   login: [
@@ -23,53 +20,49 @@ const rules = {
       .isLength({ min: 8 })
       .withMessage('Minimum 8 caractères'),
   ],
+register: [
+  body('lastName')
+    .trim()
+    .notEmpty()
+    .withMessage('Nom obligatoire')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Nom entre 2 et 50 caractères')
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
+    .withMessage('Nom invalide'),
 
-  // Règles inscription
-  register: [
-    body('nom')
-      .trim()
-      .notEmpty()
-      .withMessage('Nom obligatoire')
-      .isLength({ min: 2, max: 50 })
-      .withMessage('Nom entre 2 et 50 caractères')
-      .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
-      .withMessage('Nom invalide'),
+  body('firstName')
+    .trim()
+    .notEmpty()
+    .withMessage('Prénom obligatoire')
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Prénom entre 2 et 50 caractères')
+    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
+    .withMessage('Prénom invalide'),
 
-    body('prenom')
-      .trim()
-      .notEmpty()
-      .withMessage('Prénom obligatoire')
-      .isLength({ min: 2, max: 50 })
-      .withMessage('Prénom entre 2 et 50 caractères')
-      .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
-      .withMessage('Prénom invalide'),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email obligatoire')
+    .isEmail()
+    .withMessage('Email invalide')
+    .normalizeEmail(),
 
-    body('email')
-      .trim()
-      .notEmpty()
-      .withMessage('Email obligatoire')
-      .isEmail()
-      .withMessage('Email invalide')
-      .normalizeEmail(),
+  body('password')
+    .trim()
+    .notEmpty()
+    .withMessage('Mot de passe obligatoire')
+    .isLength({ min: 8 })
+    .withMessage('Minimum 8 caractères')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
+    .withMessage('Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'),
 
-    body('password')
-      .trim()
-      .notEmpty()
-      .withMessage('Mot de passe obligatoire')
-      .isLength({ min: 8 })
-      .withMessage('Minimum 8 caractères')
-      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
-      .withMessage(
-        'Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'
-      ),
-
-    body('role')
-      .trim()
-      .notEmpty()
-      .withMessage('Rôle obligatoire')
-      .isIn(['etudiant', 'professeur', 'admin', 'professionnel'])
-      .withMessage('Rôle invalide'),
-  ],
+  body('role')
+    .trim()
+    .notEmpty()
+    .withMessage('Rôle obligatoire')
+    .isIn(['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'])
+    .withMessage('Rôle invalide'),
+],
 
   // Règles forgotPassword
   forgotPassword: [
