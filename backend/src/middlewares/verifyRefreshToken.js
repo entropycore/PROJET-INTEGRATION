@@ -16,15 +16,13 @@ const verifyRefreshToken = (req, res, next) => {
       });
     }
 
-    // Vérifier avec REFRESH_TOKEN_SECRET
-    // Différent de ACCESS_TOKEN_SECRET — plus sécurisé
+  
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
     // Injecter dans req.user
     req.user = {
       userId: decoded.userId,
-      role: decoded.role,
-    };
+     }; 
 
     logger.info({
       message: 'Refresh token vérifié',
