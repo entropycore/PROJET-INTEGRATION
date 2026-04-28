@@ -25,7 +25,6 @@ const authMiddleware = (req, res, next) => {
       userId: decoded.userId,
       role: decoded.role,
       roleId: decoded.roleId,
-    
     };
 
     // Logger l'accès pour audit sécurité
