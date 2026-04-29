@@ -11,7 +11,7 @@ const rules = {
       .withMessage('Email obligatoire')
       .isEmail()
       .withMessage('Email invalide')
-      .normalizeEmail(), //convertir en minuscules
+      .normalizeEmail(),
 
     body('password')
       .trim()

@@ -19,7 +19,7 @@ const verifyRefreshToken = (req, res, next) => {
   
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-    // Injecter dans req.user
+    // Injecter dans req.user (Ghir l-ID bo7do li kayn f had l-token)
     req.user = {
       userId: decoded.userId,
      }; 
