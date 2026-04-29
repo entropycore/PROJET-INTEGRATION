@@ -1,7 +1,7 @@
 import api from './api'
 
 export const login = async ({ email, password }) => {
-  const response = await api.post('/login', {
+  const response = await api.post('/auth/login', {
     email,
     password,
   })
@@ -10,22 +10,22 @@ export const login = async ({ email, password }) => {
 }
 
 export const getMe = async () => {
-  const response = await api.get('/me')
+  const response = await api.get('/auth/me')
   return response
 }
 
 export const logout = async () => {
-  const response = await api.post('/logout')
+  const response = await api.post('/auth/logout')
   return response.data
 }
 
 export const refreshToken = async () => {
-  const response = await api.post('/refresh-token')
+  const response = await api.post('/auth/refresh-token')
   return response.data
 }
 
 export const verifyEmail = async (token) => {
-  const response = await api.get('/verify-email', {
+  const response = await api.get('/auth/verify-email', {
     params: { token },
   })
 
