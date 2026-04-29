@@ -1,5 +1,7 @@
 <template>
-    <div>
-      <h1>Admin Dashboard</h1>
-    </div>
-  </template>
+  <RoleDashboard role-area="admin" title="Admin Dashboard" />
+</template>
+
+<script setup>
+import RoleDashboard from '../../components/RoleDashboard.vue'
+</script>
