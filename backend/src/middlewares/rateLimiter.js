@@ -18,7 +18,7 @@ const globalLimiter = rateLimit({
 // Protection contre brute force
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 tentatives max
+  max: 10, // 5 tentatives max
   message: {
     success: false,
     message: 'Trop de tentatives de connexion, réessayez dans 15 minutes',
