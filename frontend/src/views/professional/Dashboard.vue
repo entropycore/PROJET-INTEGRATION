@@ -1,5 +1,7 @@
 <template>
-    <div>
-      <h1>Professional Dashboard</h1>
-    </div>
-  </template>
+  <RoleDashboard role-area="professional" title="Professional Dashboard" />
+</template>
+
+<script setup>
+import RoleDashboard from '../../components/RoleDashboard.vue'
+</script>

@@ -1,5 +1,7 @@
 <template>
-    <div>
-      <h1>Student Dashboard</h1>
-    </div>
-  </template>
+  <RoleDashboard role-area="student" title="Student Dashboard" />
+</template>
+
+<script setup>
+import RoleDashboard from '../../components/RoleDashboard.vue'
+</script>
