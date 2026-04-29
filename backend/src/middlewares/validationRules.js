@@ -56,12 +56,6 @@ register: [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
     .withMessage('Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'),
 
-  body('role')
-    .trim()
-    .notEmpty()
-    .withMessage('Rôle obligatoire')
-    .isIn(['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'])
-    .withMessage('Rôle invalide'),
 ],
 
   // Règles forgotPassword
