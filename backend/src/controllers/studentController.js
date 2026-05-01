@@ -1,22 +1,26 @@
 'use strict';
 
+const { success } = require('../utils/apiResponse');
+
 exports.getDashboard = (req, res) => {
-  res.json({
-    success: true,
-    message: 'Acces autorise a l espace etudiant',
-    data: {
+  return success(
+    res,
+    200,
+    'Acces autorise a l espace etudiant',
+    {
       area: 'student',
       user: req.user,
-    },
-  });
+    }
+  );
 };
 
 exports.getProfile = (req, res) => {
-  res.json({
-    success: true,
-    message: 'Profil etudiant accessible',
-    data: {
+  return success(
+    res,
+    200,
+    'Profil etudiant accessible',
+    {
       user: req.user,
-    },
-  });
+    }
+  );
 };
