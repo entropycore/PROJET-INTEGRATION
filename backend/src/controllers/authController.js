@@ -60,6 +60,13 @@ exports.register = async (req, res, next) => {
       message: "Demande envoyée. Veuillez vérifier votre boîte de réception pour valider votre email." 
     });
   } catch (err) {
+    // Handling dyal erreur unique constraint (Prisma P2002)
+    if (err.code === 'P2002') {
+      return res.status(409).json({
+        success: false,
+        message: "Email déjà utilisé"
+      });
+    }
     next(err);
   }
 };
