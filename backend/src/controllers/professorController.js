@@ -1,22 +1,26 @@
 'use strict';
 
+const { success } = require('../utils/apiResponse');
+
 exports.getDashboard = (req, res) => {
-  res.json({
-    success: true,
-    message: 'Acces autorise a l espace professeur',
-    data: {
+  return success(
+    res,
+    200,
+    'Acces autorise a l espace professeur',
+    {
       area: 'professor',
       user: req.user,
-    },
-  });
+    }
+  );
 };
 
 exports.getProfile = (req, res) => {
-  res.json({
-    success: true,
-    message: 'Profil professeur accessible',
-    data: {
+  return success(
+    res,
+    200,
+    'Profil professeur accessible',
+    {
       user: req.user,
-    },
-  });
+    }
+  );
 };
