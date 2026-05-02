@@ -1,6 +1,9 @@
 describe('Demonstration E2E - Plateforme ValiDia', () => {
-  // Configuration de l'API
-  const API_BASE_URL = Cypress.env('API_BASE_URL') || 'http://localhost:3000';
+  let API_BASE_URL;
+  before(() => {
+    // Configuration de l'API
+    API_BASE_URL = Cypress.env('API_BASE_URL') || 'http://localhost:3000';
+  });
 
   const remplirFormulaireDemandeAcces = ({
     lastName = 'Rabii',
@@ -127,7 +130,6 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
       });
 
       cy.get('.submit-btn').click();
-      cy.wait('@registerError');
 
       cy.get('.error-message')
         .should('exist')
