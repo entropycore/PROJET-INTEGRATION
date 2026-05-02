@@ -4,9 +4,15 @@ import { createTestingPinia } from '@pinia/testing'
 import LoginPage from '@/views/LoginView.vue'
 import RequestAccessPage from '@/views/RequestAccessView.vue'
 
-const { mockRouter, loginMock, getMeMock, requestAccessMock } = vi.hoisted(() => ({
+const { mockRouter, mockRoute, loginMock, getMeMock, requestAccessMock } = vi.hoisted(() => ({
   mockRouter: {
     push: vi.fn(),
+  },
+  mockRoute: {
+    path: '/login',
+    name: 'login',
+    params: {},
+    query: {},
   },
   loginMock: vi.fn(),
   getMeMock: vi.fn(),
@@ -15,6 +21,7 @@ const { mockRouter, loginMock, getMeMock, requestAccessMock } = vi.hoisted(() =>
 
 vi.mock('vue-router', () => ({
   useRouter: () => mockRouter,
+  useRoute: () => mockRoute,
 }))
 
 vi.mock('./services/authService', () => ({
@@ -149,8 +156,8 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
     await wrapper.find('#lastName').setValue('Berrada')
     await wrapper.find('#firstName').setValue('Amina')
     await wrapper.find('#email').setValue('amina@email.ma')
-    await wrapper.find('#companyName').setValue('Ma SociÃ©tÃ©')
-    await wrapper.find('#jobTitle').setValue('DÃ©veloppeur')
+    await wrapper.find('#companyName').setValue('Ma Société')
+    await wrapper.find('#jobTitle').setValue('Développeur')
     await wrapper.find('#password').setValue('Password123')
     await wrapper.find('#passwordConfirmation').setValue('Diff123')
     await wrapper.find('form').trigger('submit.prevent')
@@ -189,8 +196,8 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
     await wrapper.find('#lastName').setValue('Berrada')
     await wrapper.find('#firstName').setValue('Amina')
     await wrapper.find('#email').setValue('amina@email.ma')
-    await wrapper.find('#companyName').setValue('Ma SociÃ©tÃ©')
-    await wrapper.find('#jobTitle').setValue('DÃ©veloppeur')
+    await wrapper.find('#companyName').setValue('Ma Société')
+    await wrapper.find('#jobTitle').setValue('Développeur')
     await wrapper.find('#password').setValue('Password123')
     await wrapper.find('#passwordConfirmation').setValue('Password123')
     await wrapper.find('form').trigger('submit.prevent')
@@ -198,6 +205,6 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
 
     const success = wrapper.find('.success-message')
     expect(success.exists()).toBe(true)
-    expect(success.text()).toContain('Demande envoyee')
+    expect(success.text()).toContain('Demande envoyée')
   })
 })

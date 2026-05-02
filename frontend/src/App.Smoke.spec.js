@@ -2,17 +2,22 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import LoginPage from '@/views/LoginView.vue'
+import RequestAccessPage from '@/views/RequestAccessView.vue'
 
-/**
- * Simulation du routeur (Mock)
- * On simule useRouter pour intercepter les appels à router.push()
- */
+// Simulation du routeur (Mock)
 const mockRouter = {
-  push: vi.fn()
+  push: vi.fn(),
+}
+const mockRoute = {
+  path: '/login',
+  name: 'login',
+  params: {},
+  query: {},
 }
 
 vi.mock('vue-router', () => ({
-  useRouter: () => mockRouter
+  useRouter: () => mockRouter,
+  useRoute: () => mockRoute,
 }))
 
 describe('Smoke Test - Page de Connexion', () => {
@@ -36,7 +41,7 @@ describe('Smoke Test - Page de Connexion', () => {
 
   it('doit confirmer que les éléments essentiels du DOM sont présents', () => {
     // 1. Vérifie si le logo de l'application est présent (via son composant)
-    // On cherche l'élément qui contient le logo
+
     expect(wrapper.findComponent({ name: 'AppLogo' }).exists()).toBe(true)
 
     // 2. Vérifie la présence du titre principal (H1)
@@ -65,17 +70,7 @@ describe('Smoke Test - Page de Connexion', () => {
     expect(wrapper.find('.success-message').exists()).toBe(false)
   })
 })
-import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import RequestAccessPage from '@/views/RequestAccessView.vue'
-import { createTestingPinia } from '@pinia/testing'
 
-// Simulation du router pour éviter les erreurs lors du rendu du composant
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-  }),
-}))
 
 // Simulation du service d'accès pour tester la soumission sans backend réel
 vi.mock('../services/requestAccessService', () => ({
