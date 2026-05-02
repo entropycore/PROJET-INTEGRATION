@@ -25,6 +25,58 @@ enum AccountStatus {
   PENDING
 }
 
+enum SkillType {
+  TECHNICAL
+  SOFT_SKILL
+}
+
+enum ProjectType {
+  MODULE
+  INTEGRATION
+  HACKATHON
+  PERSONAL
+  INTERNSHIP
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  TEACHERS
+  SHARED_LINK
+}
+
+enum ValidationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CHANGES_REQUESTED
+}
+
+enum ActivityType {
+  CLUB
+  EVENT
+  HACKATHON
+  COMPETITION
+  ASSOCIATIVE_ENGAGEMENT
+  CONFERENCE
+}
+
+enum RecommendationLetterType {
+  DOUBLE_DEGREE
+  MASTER
+  DOCTORATE
+  INTERNSHIP
+  EMPLOYMENT
+  INTERNATIONAL_PROGRAM
+}
+
+enum PortfolioStatus {
+  DRAFT
+  ACTIVE
+  HIDDEN
+  ARCHIVED
+}
+
 
 
 model User {
@@ -45,7 +97,15 @@ model User {
   professor       Professor?
   administrator   Administrator?
   professional    Professional?
+  recommendationLettersAuthored RecommendationLetter[] @relation("RecommendationLetterAuthor")
+  recommendationLettersValidated RecommendationLetter[] @relation("RecommendationLetterValidator")
+  commentsAuthored Comment[] @relation("CommentAuthor")
+  commentsValidated Comment[] @relation("CommentValidator")
+  recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
+  recommendationsValidated Recommendation[] @relation("RecommendationValidator")
 
+  @@index([role, accountStatus])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -64,6 +124,14 @@ model Student {
   bio             String?   @db.Text
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
+  academicPaths   AcademicPath[]
+  studentSkills   StudentSkill[]
+  projects        Project[]
+  internships     Internship[]
+  activities      ExtracurricularActivity[]
+  recommendationLetters RecommendationLetter[]
+  portfolio       Portfolio?
+  recommendations Recommendation[]
 
   @@map("students")
 }
@@ -77,6 +145,9 @@ model Professor {
   grade           String?   @db.VarChar(100)
   specialty       String?   @db.VarChar(150)
   department      String?   @db.VarChar(150)
+  projectValidations ProjectValidation[]
+  supervisedInternships Internship[]        @relation("InternshipSupervisor")
+  internshipValidations InternshipValidation[]
 
   @@map("professors")
 }
@@ -89,22 +160,358 @@ model Administrator {
   employeeId      String?   @unique @map("employee_id") @db.VarChar(50) 
   department      String?   @db.VarChar(120) 
   adminLevel      String?   @map("admin_level") @db.VarChar(50)
+  certificateValidations CertificateValidation[]
+  approvedProfessionals Professional[] @relation("ProfessionalApprovedBy")
+  rejectedProfessionals Professional[] @relation("ProfessionalRejectedBy")
+  suspendedProfessionals Professional[] @relation("ProfessionalSuspendedBy")
 
   @@map("administrators")
 }
 
 model Professional {
-  id              String    @id @default(uuid()) @map("id_professional")
-  userId          String    @unique @map("user_id")
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  company         String?   @db.VarChar(150) 
-  jobTitle        String?   @map("job_title") @db.VarChar(120) 
-  sector          String?   @db.VarChar(120)
-  bio             String?   @db.Text
-  isVerified      Boolean   @default(false) @map("is_verified") 
-  isEmailVerified Boolean   @default(false) @map("is_email_verified")
-  emailVerifyToken   String?   @unique @map("email_verify_token")
-  emailVerifyExpires DateTime? @map("email_verify_expires")
+  id                        String         @id @default(uuid()) @map("id_professional")
+  userId                    String         @unique @map("user_id")
+  user                      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company                   String?        @db.VarChar(150) 
+  jobTitle                  String?        @map("job_title") @db.VarChar(120) 
+  sector                    String?        @db.VarChar(120)
+  bio                       String?        @db.Text
+  isVerified                Boolean        @default(false) @map("is_verified") 
+  isEmailVerified           Boolean        @default(false) @map("is_email_verified")
+  emailVerifyToken          String?        @unique @map("email_verify_token")
+  emailVerifyExpires        DateTime?      @map("email_verify_expires")
+  emailVerifiedAt           DateTime?      @map("email_verified_at")
+  approvedAt                DateTime?      @map("approved_at")
+  approvedByAdministratorId String?        @map("approved_by_administrator_id")
+  approvedByAdministrator   Administrator? @relation("ProfessionalApprovedBy", fields: [approvedByAdministratorId], references: [id], onDelete: SetNull)
+  rejectedAt                DateTime?      @map("rejected_at")
+  rejectedByAdministratorId String?        @map("rejected_by_administrator_id")
+  rejectedByAdministrator   Administrator? @relation("ProfessionalRejectedBy", fields: [rejectedByAdministratorId], references: [id], onDelete: SetNull)
+  rejectionReason           String?        @map("rejection_reason") @db.Text
+  suspendedAt               DateTime?      @map("suspended_at")
+  suspendedByAdministratorId String?       @map("suspended_by_administrator_id")
+  suspendedByAdministrator  Administrator? @relation("ProfessionalSuspendedBy", fields: [suspendedByAdministratorId], references: [id], onDelete: SetNull)
+  suspensionReason          String?        @map("suspension_reason") @db.Text
+
+  @@index([isEmailVerified])
+  @@index([isVerified])
+  @@index([approvedByAdministratorId])
+  @@index([rejectedByAdministratorId])
+  @@index([suspendedByAdministratorId])
   @@map("professionals")
+}
+
+model AcademicPath {
+  id          String    @id @default(uuid()) @map("id_academic_path")
+  studentId   String    @map("student_id")
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  institution String    @db.VarChar(150)
+  degree      String    @db.VarChar(150)
+  major       String?   @db.VarChar(120)
+  startDate   DateTime? @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  honor       String?   @db.VarChar(100)
+
+  @@index([studentId])
+  @@map("academic_paths")
+}
+
+model Skill {
+  id          String       @id @default(uuid()) @map("id_skill")
+  name        String       @unique @map("name") @db.VarChar(120)
+  type        SkillType
+  description String?      @db.Text
+  studentSkills StudentSkill[]
+
+  @@map("skills")
+}
+
+model StudentSkill {
+  id              String    @id @default(uuid()) @map("id_student_skill")
+  studentId       String    @map("student_id")
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skillId         String    @map("skill_id")
+  skill           Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  masteryLevel    String?   @map("mastery_level") @db.VarChar(50)
+  skillSource     String?   @map("skill_source") @db.VarChar(100)
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@unique([studentId, skillId])
+  @@index([studentId])
+  @@index([skillId])
+  @@map("student_skills")
+}
+
+model Technology {
+  id                String              @id @default(uuid()) @map("id_technology")
+  name              String              @map("name") @db.VarChar(120)
+  version           String?             @db.VarChar(50)
+  category          String?             @db.VarChar(100)
+  projectTechnologies ProjectTechnology[]
+  internshipTechnologies InternshipTechnology[]
+
+  @@unique([name, version])
+  @@map("technologies")
+}
+
+model Project {
+  id                String               @id @default(uuid()) @map("id_project")
+  studentId         String               @map("student_id")
+  student           Student              @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title             String               @db.VarChar(200)
+  description       String               @db.Text
+  type              ProjectType
+  teamRole          String?              @map("team_role") @db.VarChar(120)
+  githubUrl         String?              @map("github_url") @db.Text
+  youtubeUrl        String?              @map("youtube_url") @db.Text
+  result            String?              @db.Text
+  generalFeedback   String?              @map("general_feedback") @db.Text
+  createdAt         DateTime             @default(now()) @map("created_at")
+  submittedAt       DateTime?            @map("submitted_at")
+  validationStatus  ValidationStatus     @default(PENDING) @map("validation_status")
+  visibility        Visibility           @default(PRIVATE)
+  media             ProjectMedia[]
+  technologies      ProjectTechnology[]
+  validations       ProjectValidation[]
+
+  @@index([studentId])
+  @@index([validationStatus])
+  @@index([studentId, validationStatus])
+  @@map("projects")
+}
+
+model ProjectMedia {
+  id          String    @id @default(uuid()) @map("id_project_media")
+  projectId   String    @map("project_id")
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaType   String    @map("media_type") @db.VarChar(50)
+  mediaUrl    String    @map("media_url") @db.Text
+  description String?   @db.Text
+
+  @@index([projectId])
+  @@map("project_media")
+}
+
+model ProjectTechnology {
+  id           String      @id @default(uuid()) @map("id_project_technology")
+  projectId    String      @map("project_id")
+  project      Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technologyId String      @map("technology_id")
+  technology   Technology  @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, technologyId])
+  @@index([projectId])
+  @@index([technologyId])
+  @@map("project_technologies")
+}
+
+model ProjectValidation {
+  id                String           @id @default(uuid()) @map("id_project_validation")
+  projectId         String           @map("project_id")
+  project           Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  professorId       String           @map("professor_id")
+  professor         Professor        @relation(fields: [professorId], references: [id], onDelete: Restrict)
+  decision          ValidationStatus
+  comment           String?          @db.Text
+  professorFeedback String?          @map("professor_feedback") @db.Text
+  decisionDate      DateTime         @default(now()) @map("decision_date")
+
+  @@index([projectId])
+  @@index([professorId])
+  @@map("project_validations")
+}
+
+model Internship {
+  id                  String                @id @default(uuid()) @map("id_internship")
+  studentId           String                @map("student_id")
+  student             Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  supervisorProfessorId String?             @map("supervisor_professor_id")
+  supervisorProfessor Professor?            @relation("InternshipSupervisor", fields: [supervisorProfessorId], references: [id], onDelete: SetNull)
+  hostOrganization    String                @map("host_organization") @db.VarChar(150)
+  duration            String?               @db.VarChar(100)
+  startDate           DateTime?             @map("start_date") @db.Date
+  endDate             DateTime?             @map("end_date") @db.Date
+  missions            String?               @db.Text
+  reportUrl           String?               @map("report_url") @db.Text
+  validationStatus    ValidationStatus      @default(PENDING) @map("validation_status")
+  visibility          Visibility            @default(PRIVATE)
+  technologies        InternshipTechnology[]
+  validations         InternshipValidation[]
+
+  @@index([studentId])
+  @@index([supervisorProfessorId])
+  @@index([validationStatus])
+  @@index([studentId, validationStatus])
+  @@map("internships")
+}
+
+model InternshipTechnology {
+  id           String      @id @default(uuid()) @map("id_internship_technology")
+  internshipId String      @map("internship_id")
+  internship   Internship  @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  technologyId String      @map("technology_id")
+  technology   Technology  @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@unique([internshipId, technologyId])
+  @@index([internshipId])
+  @@index([technologyId])
+  @@map("internship_technologies")
+}
+
+model InternshipValidation {
+  id           String           @id @default(uuid()) @map("id_internship_validation")
+  internshipId String           @map("internship_id")
+  internship   Internship       @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  professorId  String           @map("professor_id")
+  professor    Professor        @relation(fields: [professorId], references: [id], onDelete: Restrict)
+  decision     ValidationStatus
+  comment      String?          @db.Text
+  decisionDate DateTime         @default(now()) @map("decision_date")
+
+  @@index([internshipId])
+  @@index([professorId])
+  @@map("internship_validations")
+}
+
+model ExtracurricularActivity {
+  id           String      @id @default(uuid()) @map("id_activity")
+  studentId    String      @map("student_id")
+  student      Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type         ActivityType
+  title        String      @db.VarChar(200)
+  description  String?     @db.Text
+  organization String?     @db.VarChar(150)
+  startDate    DateTime?   @map("start_date") @db.Date
+  endDate      DateTime?   @map("end_date") @db.Date
+  visibility   Visibility  @default(PRIVATE)
+  certificates Certificate[]
+
+  @@index([studentId])
+  @@map("extracurricular_activities")
+}
+
+model Certificate {
+  id               String                 @id @default(uuid()) @map("id_certificate")
+  activityId       String                 @map("activity_id")
+  activity         ExtracurricularActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  documentUrl      String                 @map("document_url") @db.Text
+  validationStatus ValidationStatus       @default(PENDING) @map("validation_status")
+  submittedAt      DateTime               @default(now()) @map("submitted_at")
+  validations      CertificateValidation[]
+
+  @@index([activityId])
+  @@index([validationStatus])
+  @@map("certificates")
+}
+
+model CertificateValidation {
+  id              String            @id @default(uuid()) @map("id_certificate_validation")
+  certificateId   String            @map("certificate_id")
+  certificate     Certificate       @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  administratorId String            @map("administrator_id")
+  administrator   Administrator     @relation(fields: [administratorId], references: [id], onDelete: Restrict)
+  decision        ValidationStatus
+  comment         String?           @db.Text
+  decisionDate    DateTime          @default(now()) @map("decision_date")
+
+  @@index([certificateId])
+  @@index([administratorId])
+  @@map("certificate_validations")
+}
+
+model RecommendationLetter {
+  id               String                    @id @default(uuid()) @map("id_recommendation_letter")
+  studentId        String                    @map("student_id")
+  student          Student                   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  authorUserId     String                    @map("author_user_id")
+  authorUser       User                      @relation("RecommendationLetterAuthor", fields: [authorUserId], references: [id], onDelete: Restrict)
+  validatorUserId  String?                   @map("validator_user_id")
+  validatorUser    User?                     @relation("RecommendationLetterValidator", fields: [validatorUserId], references: [id], onDelete: SetNull)
+  title            String                    @db.VarChar(200)
+  content          String                    @db.Text
+  type             RecommendationLetterType
+  documentUrl      String?                   @map("document_url") @db.Text
+  validationStatus ValidationStatus          @default(PENDING) @map("validation_status")
+  visibility       Visibility                @default(PRIVATE)
+  downloadable     Boolean                   @default(false)
+  createdAt        DateTime                  @default(now()) @map("created_at")
+  validatedAt      DateTime?                 @map("validated_at")
+  rejectionReason  String?                   @map("rejection_reason") @db.Text
+
+  @@index([studentId])
+  @@index([authorUserId])
+  @@index([validatorUserId])
+  @@index([validationStatus])
+  @@map("recommendation_letters")
+}
+
+model Portfolio {
+  id             String           @id @default(uuid()) @map("id_portfolio")
+  studentId      String           @unique @map("student_id")
+  student        Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title          String           @db.VarChar(200)
+  publicSlug     String           @unique @map("public_slug") @db.VarChar(200)
+  description    String?          @db.Text
+  visibility     Visibility       @default(PRIVATE)
+  status         PortfolioStatus  @default(DRAFT)
+  targetDomain   String?          @map("target_domain") @db.VarChar(120)
+  generatedAt    DateTime         @default(now()) @map("generated_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  comments       Comment[]
+  recommendations Recommendation[]
+
+  @@map("portfolios")
+}
+
+model Comment {
+  id           String           @id @default(uuid()) @map("id_comment")
+  portfolioId  String           @map("portfolio_id")
+  portfolio    Portfolio        @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  authorUserId String           @map("author_user_id")
+  authorUser   User             @relation("CommentAuthor", fields: [authorUserId], references: [id], onDelete: Cascade)
+  validatorUserId String?       @map("validator_user_id")
+  validatorUser User?           @relation("CommentValidator", fields: [validatorUserId], references: [id], onDelete: SetNull)
+  targetType   String?          @map("target_type") @db.VarChar(100)
+  targetId     String?          @map("target_id")
+  content      String           @db.Text
+  status       ValidationStatus @default(PENDING)
+  createdAt    DateTime         @default(now()) @map("created_at")
+  validatedAt  DateTime?        @map("validated_at")
+  rejectionReason String?       @map("rejection_reason") @db.Text
+
+  @@index([portfolioId])
+  @@index([authorUserId])
+  @@index([validatorUserId])
+  @@index([status])
+  @@index([targetType, targetId])
+  @@map("comments")
+}
+
+model Recommendation {
+  id                 String           @id @default(uuid()) @map("id_recommendation")
+  portfolioId        String           @map("portfolio_id")
+  portfolio          Portfolio        @relation(fields: [portfolioId], references: [id], onDelete: Cascade)
+  studentId          String           @map("student_id")
+  student            Student          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  authorUserId       String           @map("author_user_id")
+  authorUser         User             @relation("RecommendationAuthor", fields: [authorUserId], references: [id], onDelete: Cascade)
+  validatorUserId    String?          @map("validator_user_id")
+  validatorUser      User?            @relation("RecommendationValidator", fields: [validatorUserId], references: [id], onDelete: SetNull)
+  title              String           @db.VarChar(200)
+  content            String           @db.Text
+  organization       String?          @db.VarChar(150)
+  authorJobTitle     String?          @map("author_job_title") @db.VarChar(120)
+  recommendationType String?          @map("recommendation_type") @db.VarChar(100)
+  status             ValidationStatus @default(PENDING)
+  visibility         Visibility       @default(PRIVATE)
+  createdAt          DateTime         @default(now()) @map("created_at")
+  validatedAt        DateTime?        @map("validated_at")
+  rejectionReason    String?          @map("rejection_reason") @db.Text
+
+  @@index([portfolioId])
+  @@index([studentId])
+  @@index([authorUserId])
+  @@index([validatorUserId])
+  @@index([status])
+  @@map("recommendations")
 }

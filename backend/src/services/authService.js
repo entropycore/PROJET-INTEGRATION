@@ -1,12 +1,10 @@
 'use strict';
 
-const { PrismaClient } = require('../generated/prisma');
+const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateTokens');
-
-const prisma = new PrismaClient();
 
 //  Fonction pour éviter de répéter le code du Role ID
 const getRoleId = (user) => {
@@ -76,7 +74,12 @@ exports.verifyEmailToken = async (token) => {
 
   await prisma.professional.update({
     where: { id: professional.id },
-    data: { isEmailVerified: true, emailVerifyToken: null, emailVerifyExpires: null }
+    data: {
+      isEmailVerified: true,
+      emailVerifyToken: null,
+      emailVerifyExpires: null,
+      emailVerifiedAt: new Date(),
+    }
   });
 
   return true;
@@ -93,8 +96,18 @@ exports.loginUser = async (email, password) => {
     throw new Error("INVALID_CREDENTIALS");
   }
 
-  if (user.role === 'PROFESSIONAL' && (!user.professional || !user.professional.isEmailVerified)) {
-    throw new Error("EMAIL_NOT_VERIFIED");
+  if (user.role === 'PROFESSIONAL') {
+    if (!user.professional || !user.professional.isEmailVerified) {
+      throw new Error("EMAIL_NOT_VERIFIED");
+    }
+
+    if (user.accountStatus === 'PENDING') {
+      throw new Error("ACCOUNT_PENDING_APPROVAL");
+    }
+
+    if (user.accountStatus === 'ACTIVE' && !user.professional.isVerified) {
+      throw new Error("ACCOUNT_NOT_ACTIVE");
+    }
   }
 
   if (user.accountStatus !== 'ACTIVE') {
@@ -126,6 +139,13 @@ exports.refreshUserToken = async (userId) => {
   });
 
   if (!user || user.accountStatus !== 'ACTIVE') throw new Error("ACCOUNT_INACTIVE");
+
+  if (
+    user.role === 'PROFESSIONAL' &&
+    (!user.professional || !user.professional.isEmailVerified || !user.professional.isVerified)
+  ) {
+    throw new Error("ACCOUNT_INACTIVE");
+  }
 
   const roleId = getRoleId(user); // Utilisation de la fonction helper
 
