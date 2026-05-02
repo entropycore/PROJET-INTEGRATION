@@ -55,11 +55,13 @@ const handleLogout = async () => {
             v-for="item in section.items"
             :key="item.path"
             :to="item.path"
-            class="sidebar-link"
-          >
+             class="sidebar-link"
+            active-class="sidebar-link-active"
+            exact-active-class="sidebar-link-exact-active"
+>
             <img :src="getIcon(item.icon)" class="sidebar-icon" />
             <span>{{ item.label }}</span>
-          </RouterLink>
+        </RouterLink>
         </div>
       </nav>
     </div>

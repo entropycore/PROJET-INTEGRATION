@@ -54,9 +54,14 @@
   text-decoration: none;
 }
 
-.sidebar-link.router-link-active {
+.sidebar-link-active {
+  background: transparent;
+  font-weight: normal;
+}
+
+.sidebar-link-exact-active {
   background: #e3e7e4;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .sidebar-icon {
