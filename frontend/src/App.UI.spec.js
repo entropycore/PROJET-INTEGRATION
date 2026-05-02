@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTestingPinia } from '@pinia/testing'
 import LoginPage from '@/views/LoginView.vue'
 import RequestAccessPage from '@/views/RequestAccessView.vue'
+import VerifyEmail from '@/views/VerifyEmailView.vue'
 
-const { mockRouter, mockRoute, loginMock, getMeMock, requestAccessMock } = vi.hoisted(() => ({
+const { mockRouter, mockRoute, loginMock, getMeMock, requestAccessMock, verifyEmailMock } = vi.hoisted(() => ({
   mockRouter: {
     push: vi.fn(),
   },
@@ -17,6 +18,7 @@ const { mockRouter, mockRoute, loginMock, getMeMock, requestAccessMock } = vi.ho
   loginMock: vi.fn(),
   getMeMock: vi.fn(),
   requestAccessMock: vi.fn(),
+  verifyEmailMock: vi.fn(),
 }))
 
 vi.mock('vue-router', () => ({
@@ -27,6 +29,7 @@ vi.mock('vue-router', () => ({
 vi.mock('./services/authService', () => ({
   login: loginMock,
   getMe: getMeMock,
+  verifyEmail: verifyEmailMock,
 }))
 
 vi.mock('./services/requestAccessService', () => ({
@@ -52,6 +55,7 @@ describe('Tests UI & Logique - Page de Connexion', () => {
         },
       },
     })
+    verifyEmailMock.mockResolvedValue({})
 
     wrapper = mount(LoginPage, {
       global: {
@@ -206,5 +210,32 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
     const success = wrapper.find('.success-message')
     expect(success.exists()).toBe(true)
     expect(success.text()).toContain('Demande envoyee.')
+  })
+})
+
+describe('VerifyEmail - Tests UI', () => {
+  it('devrait afficher le spinner pendant le chargement', () => {
+    const wrapper = mount(VerifyEmail)
+    expect(wrapper.find('.status-spinner').exists()).toBe(true)
+  })
+
+  it('devrait appliquer la classe de succès quand l\'email est vérifié', async () => {
+    const wrapper = mount(VerifyEmail)
+    wrapper.vm.isLoading = false
+    wrapper.vm.isSuccess = true
+    await wrapper.vm.$nextTick()
+
+    expect(wrapper.find('.status-icon-success').exists()).toBe(true)
+  })
+
+  it('devrait afficher le bouton de retour seulement après le chargement', async () => {
+    const wrapper = mount(VerifyEmail)
+    // Au début (loading: true), le bouton n'existe pas
+    expect(wrapper.find('.verify-email-button').exists()).toBe(false)
+    
+    // Après le chargement
+    wrapper.vm.isLoading = false
+    await wrapper.vm.$nextTick()
+    expect(wrapper.find('.verify-email-button').exists()).toBe(true)
   })
 })
