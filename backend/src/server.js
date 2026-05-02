@@ -32,16 +32,6 @@ app.use(handleErrors);
 
 
 const PORT = process.env.BACKEND_PORT;
-
-// Had l-code ghadi y-rejja3 message melli dkhoul l http://localhost:3000/
-app.get('/', (req, res) => {
-    res.json({
-        success: true,
-        message: "Backend is running successfully! 🚀",
-        environment: process.env.NODE_ENV || 'development'
-    });
-});
-
 app.listen(PORT, () => {
   logger.info(`Serveur démarré sur le port ${PORT}`);
   console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
