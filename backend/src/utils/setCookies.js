@@ -47,4 +47,4 @@ const clearCookies = (res) => {
   });
 };
 
-module.exports = { setCookies, clearCookies };
+module.exports = { setCookies, clearCookies ,setAccessTokenCookie };
