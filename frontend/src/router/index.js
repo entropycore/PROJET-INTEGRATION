@@ -53,6 +53,11 @@ const router = createRouter({
       component: () => import('../views/admin/Validations.vue'),
     },
     {
+      path: 'profiles',
+      name: 'admin-profiles',
+      component: () => import('../views/Profiles.vue'),
+    },
+    {
       path: 'notifications',
       name: 'admin-notifications',
       component: () => import('../views/Notifications.vue'),
@@ -62,6 +67,11 @@ const router = createRouter({
       name: 'admin-profile',
       component: () => import('../views/Profile.vue'),
     },
+    {
+        path: 'reports',
+        name: 'admin-reports',
+        component: () => import('../views/admin/Reports.vue'),
+        }
   ],
 },
         {
