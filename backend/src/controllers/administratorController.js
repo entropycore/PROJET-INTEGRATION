@@ -113,7 +113,10 @@ exports.getProfessionalRequest = async (req, res, next) => {
 
 exports.approveProfessionalRequest = async (req, res, next) => {
   try {
-    const request = await administratorService.approveProfessionalRequest(req.params.userId);
+    const request = await administratorService.approveProfessionalRequest(
+      req.params.userId,
+      req.user.roleId
+    );
 
     return success(res, 200, 'Demande professionnelle approuvée.', request);
   } catch (err) {
@@ -124,7 +127,16 @@ exports.approveProfessionalRequest = async (req, res, next) => {
 
 exports.rejectProfessionalRequest = async (req, res, next) => {
   try {
-    const request = await administratorService.rejectProfessionalRequest(req.params.userId);
+    const rejectionReason =
+      typeof req.body?.rejectionReason === 'string'
+        ? req.body.rejectionReason.trim() || null
+        : null;
+
+    const request = await administratorService.rejectProfessionalRequest(
+      req.params.userId,
+      req.user.roleId,
+      rejectionReason
+    );
 
     return success(res, 200, 'Demande professionnelle rejetée.', request);
   } catch (err) {
