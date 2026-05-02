@@ -67,7 +67,7 @@ const stats = computed(() => {
 /* ======================
    RECENT REQUESTS
 ====================== */
-const requests = computed(() => {
+/*const requests = computed(() => {
   return (dashboardData.value.recentRequests || []).map((req) => ({
     id: req.id,
     initial: req.requesterName?.charAt(0)?.toUpperCase() || '?',
@@ -78,7 +78,42 @@ const requests = computed(() => {
     createdAt: req.createdAt,
     tone: req.type === 'ACCESS_REQUEST' ? 'orange' : 'green'
   }))
-})
+}) */
+const requests = computed(() => [
+  {
+    id: 1,
+    initial: 'S',
+    name: 'Sara Bensaid',
+    email: 'sara.bensaid@accenture.com',
+    organization: 'Accenture Maroc',
+    type: "Demande d'accès",
+    createdAt: '2026-05-02T13:50:00.000Z',
+    tone: 'orange',
+    raw: {
+      phone: '0600000000',
+      company: 'Accenture Maroc',
+      position: 'Recruiter',
+      sector: 'IT',
+      status: 'PENDING',
+      bio: 'Responsable recrutement.'
+    }
+  },
+  {
+    id: 2,
+    initial: 'T',
+    name: 'Tazi Imane',
+    email: 'i.tazi@ensa.tanger.ma',
+    organization: null,
+    type: 'Certificate validation',
+    createdAt: '2026-05-02T13:36:00.000Z',
+    tone: 'green',
+    raw: {
+      targetType: 'CERTIFICATE',
+      status: 'PENDING'
+    }
+  }
+])
+
 
 /* ======================
    ACTIONS URGENTES
@@ -148,37 +183,57 @@ const actions = computed(() => {
       <div class="dashboard-grid">
         <!-- LEFT -->
         <div class="recent-requests">
-          <div class="card-header">
-            <h3>Recent Requests :</h3>
-          </div>
+  <div class="card-header">
+    <h3>Recent Requests :</h3>
+  </div>
 
-          <div class="request-list">
-            <div
-              v-for="req in requests"
-              :key="req.id"
-              class="request-item"
-            >
-              <div class="avatar">{{ req.initial }}</div>
+  <div class="request-list">
+    <div
+      v-for="req in requests"
+      :key="req.id"
+      class="request-item"
+    >
+      <div class="avatar">
+        {{ req.initial }}
+      </div>
 
-              <div class="request-info">
-                <p class="name">{{ req.name }}</p>
-                <p class="email">{{ req.email }}</p>
-                <p class="org">{{ req.organization }}</p>
-              </div>
-
-              <div class="request-actions">
-                <button class="btn-light">Voir tout</button>
-                <button :class="['btn-badge', req.tone]">
-                  {{ req.type }}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <button class="view-all">
-            voir tous les notifications
-          </button>
+      <div class="request-info">
+        <div class="request-top-row">
+          <span class="request-name">{{ req.name }}</span>
+          <span v-if="req.organization" class="request-org">
+            {{ req.organization }}
+          </span>
         </div>
+
+        <p class="request-email">{{ req.email }}</p>
+        <small class="request-time">{{ req.time || req.createdAt }}</small>
+      </div>
+
+      <div class="request-actions">
+        <button class="btn-light" type="button" @click="openRequestModal(req)">
+          Voir tout
+        </button>
+
+        <button
+          v-if="req.tone === 'orange'"
+          class="btn-accept"
+          type="button"
+          @click="approveRequest(req)"
+        >
+          Accepter
+        </button>
+
+        <span :class="['request-type', req.tone]">
+          {{ req.type }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <RouterLink to="/admin/notifications" class="view-all">
+    voir tous les notifications
+  </RouterLink>
+</div>
 
         <!-- RIGHT -->
         <div class="urgent-actions">

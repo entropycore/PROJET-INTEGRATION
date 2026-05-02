@@ -112,6 +112,7 @@
 }
 
 /* REQUESTS */
+/* REQUESTS */
 
 .request-list {
   display: flex;
@@ -122,20 +123,20 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: clamp(0.7rem, 1vw, 1rem);
-  padding: clamp(0.75rem, 1vw, 1rem) 0;
+  gap: clamp(0.8rem, 1vw, 1rem);
+  padding: clamp(0.8rem, 1.1vw, 1rem) 0;
   border-bottom: 1px solid #eeeeea;
 }
 
 .avatar {
-  width: clamp(2rem, 2.5vw, 2.3rem);
-  height: clamp(2rem, 2.5vw, 2.3rem);
+  width: clamp(2rem, 2.4vw, 2.4rem);
+  height: clamp(2rem, 2.4vw, 2.4rem);
   border-radius: 50%;
   background: #2f5a60;
   color: white;
   display: grid;
   place-items: center;
-  font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+  font-size: clamp(0.75rem, 0.85vw, 0.9rem);
   font-weight: 700;
 }
 
@@ -143,37 +144,46 @@
   min-width: 0;
 }
 
-.request-info .name {
-  margin: 0;
-  color: #1f2d2d;
-  font-size: clamp(0.78rem, 0.9vw, 0.95rem);
-  font-weight: 700;
+.request-top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-.request-info .email,
-.request-info .org {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.request-name {
+  color: #24363a;
+  font-size: clamp(0.82rem, 0.9vw, 0.95rem);
+  font-weight: 700;
   white-space: nowrap;
 }
 
-.request-info .email {
-  margin: 0.2rem 0;
-  color: #58625f;
-  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+.request-org {
+  color: #9a9388;
+  font-size: clamp(0.72rem, 0.78vw, 0.82rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.request-info .org {
-  margin: 0;
-  color: #9a9388;
-  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
-  font-style: italic;
+.request-email {
+  margin: 0.2rem 0;
+  color: #58625f;
+  font-size: clamp(0.74rem, 0.8vw, 0.85rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.request-time {
+  color: #9a9f9d;
+  font-size: clamp(0.68rem, 0.75vw, 0.78rem);
 }
 
 .request-actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.65rem;
   flex-wrap: nowrap;
 }
 
@@ -182,29 +192,44 @@
   border: 1px solid #ddded8;
   background: white;
   color: #5f6865;
-  border-radius: 0.35rem;
-  padding: 0 0.75rem;
-  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
+  border-radius: 0.4rem;
+  padding: 0 0.8rem;
+  font-size: clamp(0.7rem, 0.75vw, 0.8rem);
   cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.btn-badge {
+.btn-accept {
   min-height: 1.8rem;
   border: none;
-  border-radius: 999px;
+  background: #2f5a60;
+  color: white;
+  border-radius: 0.4rem;
   padding: 0 0.8rem;
-  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
-  font-weight: 700;
+  font-size: clamp(0.7rem, 0.75vw, 0.8rem);
   cursor: pointer;
   white-space: nowrap;
 }
 
-.btn-badge.orange {
+.request-type {
+  min-height: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 0.9rem;
+  font-size: clamp(0.7rem, 0.75vw, 0.8rem);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.request-type.orange {
   background: #f4e8d1;
   color: #b87518;
 }
 
-.btn-badge.green {
+.request-type.green {
   background: #e8efec;
   color: #285759;
 }
@@ -217,9 +242,12 @@
   border-radius: 0.45rem;
   background: #dfe7e2;
   color: #1f2d2d;
+  display: grid;
+  place-items: center;
   font-size: clamp(0.75rem, 0.85vw, 0.9rem);
   font-weight: 700;
   cursor: pointer;
+  text-decoration: none;
 }
 
 /* URGENT ACTIONS */
