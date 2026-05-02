@@ -1,4 +1,6 @@
 describe('Demonstration E2E - Plateforme ValiDia', () => {
+  // Configuration de l'API
+  const API_BASE_URL = Cypress.env('API_BASE_URL') || 'http://localhost:3000';
 
   const remplirFormulaireDemandeAcces = ({
     lastName = 'Rabii',
@@ -18,9 +20,7 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
     cy.get('#passwordConfirmation').should('be.visible').clear().type(passwordConfirmation);
   };
 
-  // ==========================================
   // SECTION 1 : LOGIN
-  // ==========================================
   describe('1. Page Login', () => {
 
     beforeEach(() => {
@@ -60,9 +60,7 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
     });
   });
 
-  // ==========================================
   // SECTION 2 : REQUEST ACCESS
-  // ==========================================
   describe('2. Request Access', () => {
 
     beforeEach(() => {
@@ -72,9 +70,12 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
 
     it('remplir formulaire et succès', () => {
 
-      cy.intercept('POST', '**/api/auth/register', {
-        statusCode: 200,
-        body: { message: 'Demande validée avec succès' }
+      cy.intercept('POST', `${API_BASE_URL}/api/auth/register`, {
+        statusCode: 201,
+        body: { 
+          success: true,
+          message: 'Demande envoyée. Veuillez vérifier votre boîte de réception pour valider votre email.' 
+        }
       }).as('submitReq');
 
       remplirFormulaireDemandeAcces();
@@ -88,10 +89,24 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
 
       cy.get('.success-message', { timeout: 6000 })
         .should('be.visible')
-        .and('contain', 'validée');
+        .and('contain', 'Demande envoyée');
     });
 
     it('retour vers login', () => {
+      // Intercept pour remplir et soumettre d'abord
+      cy.intercept('POST', `${API_BASE_URL}/api/auth/register`, {
+        statusCode: 201,
+        body: { 
+          success: true,
+          message: 'Demande envoyée. Veuillez vérifier votre boîte de réception pour valider votre email.' 
+        }
+      }).as('register');
+
+      remplirFormulaireDemandeAcces();
+      cy.get('.submit-btn').click();
+      cy.wait('@register');
+
+      // Maintenant cliquer sur le lien retour
       cy.get('.login-link span')
         .should('be.visible')
         .click();
@@ -100,12 +115,19 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
     });
 
     it('erreur mots de passe différents', () => {
+      // Intercept pour éviter un appel réel au backend
+      cy.intercept('POST', `${API_BASE_URL}/api/auth/register`, {
+        statusCode: 400,
+        body: { error: 'Les mots de passe ne correspondent pas' }
+      }).as('registerError');
+
       remplirFormulaireDemandeAcces({
         password: 'Pass123!',
         passwordConfirmation: 'Pass456!',
       });
 
       cy.get('.submit-btn').click();
+      cy.wait('@registerError');
 
       cy.get('.error-message')
         .should('exist')
@@ -117,17 +139,22 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
 
       cy.get('#lastName')
         .should('be.visible')
-        .type(xss)
-        .should('have.value', xss);
+        .type(xss);
+
+      // Vérifier que le script n'a pas été exécuté
+      cy.get('#lastName').should('have.value', xss);
     });
 
     it('etat isSubmitting', () => {
 
-      cy.intercept('POST', '**/api/auth/register', (req) => {
+      cy.intercept('POST', `${API_BASE_URL}/api/auth/register`, (req) => {
         req.reply({
-          delay: 1000, // simulation lenteur
-          statusCode: 200,
-          body: { message: 'Demande validée avec succès' }
+          delay: 1000, 
+          statusCode: 201,
+          body: { 
+            success: true,
+            message: 'Demande envoyée. Veuillez vérifier votre boîte de réception pour valider votre email.' 
+          }
         });
       }).as('slowRequest');
 
