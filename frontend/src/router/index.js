@@ -7,6 +7,7 @@ import StudentDashboard from '../views/student/Dashboard.vue'
 import ProfessorDashboard from '../views/professor/Dashboard.vue'
 import ProfessionalDashboard from '../views/professional/Dashboard.vue'
 import { useAuthStore } from '../stores/auth'
+import { getMe } from '../services/authService'
 
 const router = createRouter({
     history: createWebHistory(),
@@ -57,8 +58,18 @@ const router = createRouter({
         }
     ]
 })
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
     const authStore = useAuthStore()//condition de verification de connexion
+
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+      try {
+        const meResponse = await getMe()
+        authStore.setAuthSession(meResponse.data.data)
+      } catch {
+        authStore.clearAuthSession()
+      }
+    }
+
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
       return {
         path: '/login',
