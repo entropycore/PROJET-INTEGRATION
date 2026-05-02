@@ -50,6 +50,11 @@ const router = createRouter({
             path: '/professional',
             component: ProfessionalDashboard,
             meta: { requiresAuth: true, roles: ['PROFESSIONAL'] },
+        },
+        {
+            path: '/403',
+            name: 'not-authorized',
+            component: () => import('../views/NotAuthorized.vue'),
         }
     ]
 })
@@ -71,12 +76,11 @@ router.beforeEach(async (to) => {
         query: { error: 'unauthorized' },
       }
     }
-    if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) { //condition de mismatch de roles
-        return {
-          path: '/login',
-          query: { error: 'unauthorized' },
-        }
+    if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
+    return {
+      path: '/403',
     }
+}
     return true
 })
   
