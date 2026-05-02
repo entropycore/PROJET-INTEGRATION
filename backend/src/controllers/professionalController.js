@@ -1,22 +1,26 @@
 'use strict';
 
+const { success } = require('../utils/apiResponse');
+
 exports.getDashboard = (req, res) => {
-  res.json({
-    success: true,
-    message: 'Acces autorise a l espace professionnel',
-    data: {
+  return success(
+    res,
+    200,
+    'Acces autorise a l espace professionnel',
+    {
       area: 'professional',
       user: req.user,
-    },
-  });
+    }
+  );
 };
 
 exports.getProfile = (req, res) => {
-  res.json({
-    success: true,
-    message: 'Profil professionnel accessible',
-    data: {
+  return success(
+    res,
+    200,
+    'Profil professionnel accessible',
+    {
       user: req.user,
-    },
-  });
+    }
+  );
 };
