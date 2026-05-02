@@ -47,6 +47,7 @@ exports.login = async (req, res, next) => {
   } catch (err) {
     if (err.message === "INVALID_CREDENTIALS") return res.status(401).json({ success: false, message: "Identifiants invalides." });
     if (err.message === "EMAIL_NOT_VERIFIED") return res.status(403).json({ success: false, message: "Veuillez vérifier votre email." });
+    if (err.message === "ACCOUNT_PENDING_APPROVAL") return res.status(403).json({ success: false, message: "Demande en attente de validation par l'administration." });
     if (err.message === "ACCOUNT_NOT_ACTIVE") return res.status(403).json({ success: false, message: "Compte en attente ou suspendu." });
     next(err);
   }
