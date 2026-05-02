@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTestingPinia } from '@pinia/testing'
 import LoginPage from '@/views/LoginView.vue'
 import RequestAccessPage from '@/views/RequestAccessView.vue'
+import VerifyEmail from '@/views/VerifyEmailView.vue'
 
-const { mockRouter, mockRoute, loginMock, getMeMock, requestAccessMock } = vi.hoisted(() => ({
+const { mockRouter, mockRoute, loginMock, getMeMock, verifyEmailMock, requestAccessMock } = vi.hoisted(() => ({
   mockRouter: {
     push: vi.fn(),
   },
@@ -16,6 +17,7 @@ const { mockRouter, mockRoute, loginMock, getMeMock, requestAccessMock } = vi.ho
   },
   loginMock: vi.fn(),
   getMeMock: vi.fn(),
+  verifyEmailMock: vi.fn(),
   requestAccessMock: vi.fn(),
 }))
 
@@ -32,6 +34,7 @@ vi.mock('vue-router', async () => {
 vi.mock('./services/authService', () => ({
   login: loginMock,
   getMe: getMeMock,
+  verifyEmail: verifyEmailMock,
 }))
 
 vi.mock('./services/requestAccessService', () => ({
@@ -48,6 +51,7 @@ describe('LoginPage.vue - Tests unitaires de la page de connexion', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    mockRoute.query = {}
     loginMock.mockResolvedValue({})
     getMeMock.mockResolvedValue({
       data: {
@@ -108,7 +112,10 @@ describe('LoginPage.vue - Tests unitaires de la page de connexion', () => {
   })
 
   it("doit rediriger l'utilisateur vers la page de demande d'acces", async () => {
-    await wrapper.find('.access-request-link').trigger('click')
+    const link = wrapper.find('.access-request-link')
+    expect(link.exists()).toBe(true)
+    await link.trigger('click')
+    await flushPromises()
 
     expect(mockRouter.push).toHaveBeenCalledWith('/request-access')
   })
@@ -176,5 +183,39 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
     const success = wrapper.find('.success-message')
     expect(success.exists()).toBe(true)
     expect(success.text()).toContain('Demande envoyee.')
+  })
+})
+
+describe('VerifyEmail - Tests Unitaires', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockRoute.query = {}
+    verifyEmailMock.mockResolvedValue({})
+  })
+
+  it('devrait afficher une erreur si le token est manquant', async () => {
+    const wrapper = mount(VerifyEmail)
+    await flushPromises()
+
+    expect(wrapper.vm.statusTitle).toBe('Vérification impossible')
+    expect(wrapper.vm.statusText).toBe('Token de vérification manquant.')
+    expect(verifyEmailMock).not.toHaveBeenCalled()
+  })
+
+  it('devrait afficher le message d\'erreur quand la vérification échoue', async () => {
+    mockRoute.query = { token: 'test-token' }
+    verifyEmailMock.mockRejectedValue({
+      response: {
+        data: {
+          message: 'Le lien de vérification est expiré',
+        },
+      },
+    })
+
+    const wrapper = mount(VerifyEmail)
+    await flushPromises()
+
+    expect(verifyEmailMock).toHaveBeenCalledWith('test-token')
+    expect(wrapper.vm.statusText).toBe('Le lien de vérification est expiré')
   })
 })

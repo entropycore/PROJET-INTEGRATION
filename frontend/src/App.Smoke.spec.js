@@ -3,8 +3,9 @@ import { mount } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import LoginPage from '@/views/LoginView.vue'
 import RequestAccessPage from '@/views/RequestAccessView.vue'
+import VerifyEmail from '@/views/VerifyEmailView.vue'
 
-// Simulation du routeur (Mock)
+
 const mockRouter = {
   push: vi.fn(),
 }
@@ -24,15 +25,11 @@ describe('Smoke Test - Page de Connexion', () => {
   let wrapper;
 
   beforeEach(() => {
-    // Réinitialisation du mock avant chaque test
     vi.clearAllMocks()
-
-    // Montage du composant avec un Pinia de test
     wrapper = mount(LoginPage, {
       global: {
         plugins: [createTestingPinia({ createSpy: vi.fn })],
         stubs: {
-          // On remplace AppLogo par un composant vide pour simplifier le test
           AppLogo: true 
         }
       }
@@ -129,5 +126,17 @@ describe('Smoke Tests - Demande d\'accès', () => {
     const submitBtn = wrapper.find('button[type="submit"]')
     expect(submitBtn.text()).toContain('Envoi...')
     expect(submitBtn.attributes()).toHaveProperty('disabled')
+  })
+})
+describe('VerifyEmail - Tests Smoke', () => {
+  it('devrait monter le composant sans erreur', () => {
+    const wrapper = mount(VerifyEmail)
+    expect(wrapper.exists()).toBe(true)
+  })
+
+  it('devrait afficher le logo de l\'application', () => {
+    const wrapper = mount(VerifyEmail)
+    const logo = wrapper.findComponent({ name: 'AppLogo' })
+    expect(logo.exists()).toBe(true)
   })
 })
