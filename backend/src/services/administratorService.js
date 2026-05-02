@@ -20,7 +20,16 @@ const professionalRequestSelect = {
       bio: true,
       isVerified: true,
       isEmailVerified: true,
+      emailVerifiedAt: true,
       emailVerifyExpires: true,
+      approvedAt: true,
+      approvedByAdministratorId: true,
+      rejectedAt: true,
+      rejectedByAdministratorId: true,
+      rejectionReason: true,
+      suspendedAt: true,
+      suspendedByAdministratorId: true,
+      suspensionReason: true,
     },
   },
 };
@@ -66,7 +75,7 @@ exports.getProfessionalRequest = async (userId) => {
   return getProfessionalRequestOrThrow(userId);
 };
 
-exports.approveProfessionalRequest = async (userId) => {
+exports.approveProfessionalRequest = async (userId, administratorId) => {
   const request = await getProfessionalRequestOrThrow(userId);
 
   if (!request.professional.isEmailVerified) {
@@ -84,7 +93,17 @@ exports.approveProfessionalRequest = async (userId) => {
   return prisma.$transaction(async (tx) => {
     await tx.professional.update({
       where: { userId },
-      data: { isVerified: true },
+      data: {
+        isVerified: true,
+        approvedAt: new Date(),
+        approvedByAdministratorId: administratorId || null,
+        rejectedAt: null,
+        rejectedByAdministratorId: null,
+        rejectionReason: null,
+        suspendedAt: null,
+        suspendedByAdministratorId: null,
+        suspensionReason: null,
+      },
     });
 
     await tx.user.update({
@@ -99,7 +118,7 @@ exports.approveProfessionalRequest = async (userId) => {
   });
 };
 
-exports.rejectProfessionalRequest = async (userId) => {
+exports.rejectProfessionalRequest = async (userId, administratorId, rejectionReason) => {
   const request = await getProfessionalRequestOrThrow(userId);
 
   if (request.accountStatus !== 'PENDING') {
@@ -109,7 +128,17 @@ exports.rejectProfessionalRequest = async (userId) => {
   return prisma.$transaction(async (tx) => {
     await tx.professional.update({
       where: { userId },
-      data: { isVerified: false },
+      data: {
+        isVerified: false,
+        approvedAt: null,
+        approvedByAdministratorId: null,
+        rejectedAt: new Date(),
+        rejectedByAdministratorId: administratorId || null,
+        rejectionReason: rejectionReason || null,
+        suspendedAt: null,
+        suspendedByAdministratorId: null,
+        suspensionReason: null,
+      },
     });
 
     await tx.user.update({

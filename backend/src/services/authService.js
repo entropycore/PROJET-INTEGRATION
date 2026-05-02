@@ -74,7 +74,12 @@ exports.verifyEmailToken = async (token) => {
 
   await prisma.professional.update({
     where: { id: professional.id },
-    data: { isEmailVerified: true, emailVerifyToken: null, emailVerifyExpires: null }
+    data: {
+      isEmailVerified: true,
+      emailVerifyToken: null,
+      emailVerifyExpires: null,
+      emailVerifiedAt: new Date(),
+    }
   });
 
   return true;
