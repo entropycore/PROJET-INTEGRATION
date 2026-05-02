@@ -175,3 +175,33 @@ describe('Demonstration E2E - Plateforme ValiDia', () => {
     });
   });
 });
+
+describe('Page de Vérification d\'Email - Flux E2E', () => {
+  it('devrait confirmer l\'email avec un token valide et rediriger vers login', () => {
+
+    cy.intercept('GET', '**/api/auth/verify-email?token=token_valide_demo', {
+    statusCode: 200,
+    body: { message: 'Email vérifié' }
+  }).as('verifyEmail');
+    cy.visit('/verify-email?token=token_valide_demo')
+
+    // Vérifier le message de succès (Attendre que l'API réponde)
+    cy.contains('h1', 'Email vérifié avec succès').should('be.visible')
+    cy.contains('p', 'Votre demande est en attente de validation').should('be.visible')
+
+    // Tester la redirection
+    cy.get('.verify-email-button').click()
+    cy.url().should('include', '/login')
+  })
+
+  it('devrait afficher une erreur pour un token invalide', () => {
+    cy.intercept('GET', '**/api/auth/verify-email*', {
+  statusCode: 400,
+  body: { message: 'Token invalide' }
+}).as('verifyEmail');
+    cy.visit('/verify-email?token=token_invalide')
+    
+    cy.contains('h1', 'Vérification impossible').should('be.visible')
+    cy.get('.status-icon-error').should('be.visible')
+  })
+})
