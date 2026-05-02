@@ -205,6 +205,6 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
 
     const success = wrapper.find('.success-message')
     expect(success.exists()).toBe(true)
-    expect(success.text()).toContain('Demande envoyée')
+    expect(success.text()).toContain('Demande envoyee.')
   })
 })
