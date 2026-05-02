@@ -64,9 +64,7 @@ const stats = computed(() => {
   ]
 })
 
-/* ======================
-   RECENT REQUESTS
-====================== */
+/* RECENT REQUESTS*/
 /*const requests = computed(() => {
   return (dashboardData.value.recentRequests || []).map((req) => ({
     id: req.id,
@@ -142,6 +140,23 @@ const actions = computed(() => {
     }
   ]
 })
+
+/* ======================
+   ACTIONS *====================== */
+const selectedRequest = ref(null)
+
+const openRequestModal = (request) => {
+  selectedRequest.value = request
+}
+
+const closeRequestModal = () => {
+  selectedRequest.value = null
+}
+
+const approveRequest = (request) => {
+  console.log('Demande acceptée:', request)
+  alert(`Demande acceptée pour ${request.name}`)
+}
 </script>
 
 <template>
@@ -210,22 +225,22 @@ const actions = computed(() => {
       </div>
 
       <div class="request-actions">
-        <button class="btn-light" type="button" @click="openRequestModal(req)">
-          Voir tout
-        </button>
+          <button class="btn-light" @click="openRequestModal(req)">
+            Voir
+          </button>
+<!-- je doit ajouter la connexion avec backend pour voir les boites modales et accepeter l´user ou valider la cerficat-->
+          <!-- ==
+           <button
+            v-if="req.tone === 'orange'"
+            class="btn-accept"
+            @click="approveRequest(req)">Accepter
+          </button>== -->
+          
+          
 
-        <button
-          v-if="req.tone === 'orange'"
-          class="btn-accept"
-          type="button"
-          @click="approveRequest(req)"
-        >
-          Accepter
-        </button>
-
-        <span :class="['request-type', req.tone]">
-          {{ req.type }}
-        </span>
+          <span :class="['request-type', req.tone]">
+        {{ req.type }}
+          </span>
       </div>
     </div>
   </div>
@@ -258,4 +273,5 @@ const actions = computed(() => {
       </div>
     </template>
   </section>
+  
 </template>
