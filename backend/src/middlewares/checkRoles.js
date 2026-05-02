@@ -2,8 +2,7 @@
 
 const logger = require('../logs/logger');
 
-// Vérifier que l'utilisateur a le bon rôle
-// Utilisation : checkRoles('admin') ou checkRoles('admin', 'professeur')
+
 const checkRoles = (...rolesAutorises) => {
   return (req, res, next) => {
     // authMiddleware doit être appelé avant checkRoles
@@ -14,11 +13,11 @@ const checkRoles = (...rolesAutorises) => {
       });
     }
 
-    const roleUtilisateur = req.user.role;
+    const roleUtilisateur = req.user.role?.toUpperCase();
 
     // Vérifier si le rôle est autorisé
     if (!rolesAutorises.includes(roleUtilisateur)) {
-      // Logger la tentative d'accès non autorisé
+      
       logger.warn({
         message: 'Accès refusé — rôle insuffisant',
         userId: req.user.userId,
