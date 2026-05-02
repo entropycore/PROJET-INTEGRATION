@@ -1,0 +1,39 @@
+.topbar {
+  height: 40px;
+  border-bottom: 1px solid #ddd;
+  background: #f7f7f4;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.role {
+  font-size: 10px;
+  background: #e5e9e5;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 22px;
+  height: 22px;
+  background: #2f5a60;
+  color: white;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+}
