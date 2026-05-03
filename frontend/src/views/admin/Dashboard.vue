@@ -40,29 +40,32 @@ const stats = computed(() => {
       value: cards.totalUsers?.value ?? 0,
       label: 'UTILISATEURS',
       detail: cards.totalUsers?.variation,
-      icon: '👥'
+      icon: 'usersg.svg'
     },
     {
       value: cards.totalStudents?.value ?? 0,
       label: 'ÉTUDIANTS',
       detail: cards.totalStudents?.variation,
-      icon: '🎓'
+      icon: 'student.svg'
     },
     {
       value: cards.totalProfessors?.value ?? 0,
       label: 'PROFESSEURS',
       detail: cards.totalProfessors?.variation,
-      icon: '👤'
+      icon: 'profile.svg'
     },
     {
       value: cards.pendingRequests?.value ?? 0,
       label: 'Demandes En Attente',
       detail: cards.pendingRequests?.variation,
-      icon: '⏱',
+      icon: 'attente.svg',
       warning: true
     }
   ]
 })
+const getIcon = (icon) => {
+  return new URL(`../../assets/icons/${icon}`, import.meta.url).href
+}
 
 /* RECENT REQUESTS*/
 /*const requests = computed(() => {
@@ -183,7 +186,9 @@ const approveRequest = (request) => {
           class="stat-card"
           :class="{ warning: stat.warning }"
         >
-          <div class="stat-icon">{{ stat.icon }}</div>
+          <div class="stat-icon">
+          <img :src="getIcon(stat.icon)" />
+          </div>
           <div class="stat-value">{{ stat.value }}</div>
           <div class="stat-label">{{ stat.label }}</div>
           <div v-if="stat.detail" class="stat-detail">
