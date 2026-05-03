@@ -14,7 +14,6 @@ router.post('/register', authLimiter, validationRules('register'), handleValidat
 
 router.post('/login', authLimiter, validationRules('login'), handleValidationErrors, authController.login);
 router.post('/refresh-token', verifyRefreshToken, authController.refreshToken);
-// Route pour la vérification de l'email
 router.get('/verify-email', authController.verifyEmail);
 
 

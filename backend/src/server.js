@@ -11,6 +11,10 @@ const logger = require('./logs/logger');
 
 
 const authRoutes = require('./routes/authRoutes');
+const professionalRoutes = require('./routes/professionalRoutes');
+const studentRoutes = require('./routes/studentRoutes');
+const professorRoutes = require('./routes/professorRoutes');
+const administratorRoutes = require('./routes/administratorRoutes');
 
 const app = express();
 
@@ -25,6 +29,10 @@ app.use(cookieParser());
 
 
 app.use('/api/auth', authRoutes);
+app.use('/api/professional', professionalRoutes);
+app.use('/api/student', studentRoutes);
+app.use('/api/professor', professorRoutes);
+app.use('/api/admin', administratorRoutes);
 
 
 app.use(notFound);

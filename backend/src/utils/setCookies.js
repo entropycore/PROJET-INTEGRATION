@@ -23,6 +23,16 @@ const setCookies = (res, accessToken, refreshToken) => {
   });
 };
 
+const setAccessTokenCookie = (res, accessToken) => {
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'strict',
+    path: '/',
+    maxAge: 15 * 60 * 1000,
+  });
+};
+
 // Effacer les deux cookies au logout
 const clearCookies = (res) => {
   res.clearCookie('accessToken', {
@@ -37,4 +47,4 @@ const clearCookies = (res) => {
   });
 };
 
-module.exports = { setCookies, clearCookies };
+module.exports = { setCookies, clearCookies ,setAccessTokenCookie};
