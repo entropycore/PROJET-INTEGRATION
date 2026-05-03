@@ -26,13 +26,13 @@ vi.mock('vue-router', () => ({
   useRoute: () => mockRoute,
 }))
 
-vi.mock('./services/authService', () => ({
+vi.mock('@/services/authService', () => ({
   login: loginMock,
   getMe: getMeMock,
   verifyEmail: verifyEmailMock,
 }))
 
-vi.mock('./services/requestAccessService', () => ({
+vi.mock('@/services/requestAccessService', () => ({
   requestAccess: requestAccessMock,
 }))
 
