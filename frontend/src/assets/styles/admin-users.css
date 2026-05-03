@@ -1,0 +1,340 @@
+.admin-users-page {
+    width: 100%;
+  max-width: none;
+  margin: 0;
+  }
+  
+  .admin-kicker {
+    margin: 0 0 0.4rem;
+    color: #a8aca8;
+    font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+    font-style: italic;
+  }
+  
+  .admin-dashboard h1 {
+    margin: 0;
+    color: #24363a;
+    font-size: clamp(1.6rem, 2.2vw, 2.1rem);
+    line-height: 1.1;
+    font-weight: 800;
+  }
+  
+  .admin-subtitle {
+    margin: 0.5rem 0 clamp(1.2rem, 2vw, 1.8rem);
+    color: #6b7471;
+    font-size: clamp(0.85rem, 1vw, 1rem);
+  }
+  
+
+  
+  /* card */
+  
+  .users-table-card {
+    background: #ffffff;
+    border: 1px solid #deded8;
+    border-radius: 0.7rem;
+    overflow: hidden;
+  }
+  
+  /* toolbar */
+  
+  .users-toolbar {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.9fr) 150px 150px auto auto;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eeeeea;
+  }
+  
+  .users-search {
+    height: 2.35rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    border: 1px solid #ddded8;
+    border-radius: 0.45rem;
+    padding: 0 0.8rem;
+    background: #ffffff;
+  }
+  
+  .users-search span {
+    color: #7a837f;
+    font-size: 0.9rem;
+  }
+  
+  .users-search input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: #24363a;
+    font-size: 0.85rem;
+  }
+  
+  .users-search input::placeholder {
+    color: #9a9f9d;
+  }
+  
+  .users-toolbar select {
+    height: 2.35rem;
+    border: 1px solid #ddded8;
+    border-radius: 0.45rem;
+    background: white;
+    color: #364542;
+    padding: 0 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  
+  .primary-action,
+  .secondary-action {
+    height: 2.35rem;
+    border-radius: 0.45rem;
+    padding: 0 1rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .primary-action {
+    border: 1px solid #2f5a60;
+    background: #2f5a60;
+    color: white;
+  }
+  
+  .secondary-action {
+    border: 1px solid #ddded8;
+    background: white;
+    color: #364542;
+  }
+  
+  /* STATES */
+  
+  .users-state {
+    padding: 2rem;
+    text-align: center;
+    color: #6b7471;
+    font-size: 0.9rem;
+  }
+  
+  .users-state.error {
+    color: #c75858;
+  }
+  
+  /* TABLE */
+  
+  .users-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .users-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+  }
+  
+  .users-table th {
+    text-align: left;
+    color: #53605d;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid #ddded8;
+    background: #fafaf8;
+  }
+  
+  .users-table td {
+    color: #465552;
+    font-size: 0.85rem;
+    padding: 1rem;
+    border-bottom: 1px solid #eeeeea;
+    vertical-align: middle;
+  }
+  
+  .users-table tbody tr:hover {
+    background: #fafaf8;
+  }
+  
+  /* USER CELL */
+  
+  .user-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 180px;
+  }
+  
+  .user-avatar,
+  .user-avatar-img {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  .user-avatar {
+    background: #2f5a60;
+    color: white;
+    display: grid;
+    place-items: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  
+  .user-avatar-img {
+    object-fit: cover;
+  }
+  
+  .user-cell strong {
+    color: #24363a;
+    font-size: 0.88rem;
+  }
+  
+  /* PILLS */
+  
+  .role-pill,
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 82px;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: capitalize;
+  }
+  
+  .role-pill.administrator {
+    background: #e8eeee;
+    color: #2f5a60;
+  }
+  
+  .role-pill.student {
+    background: #e8efec;
+    color: #285759;
+  }
+  
+  .role-pill.professor {
+    background: #ede4f6;
+    color: #7553a5;
+  }
+  
+  .role-pill.professional {
+    background: #f4e8d1;
+    color: #b87518;
+  }
+  
+  .status-pill.active {
+    background: #dfeee6;
+    color: #3d8060;
+  }
+  
+  .status-pill.pending {
+    background: #f4e8d1;
+    color: #b87518;
+  }
+  
+  .status-pill.suspended {
+    background: #f4e4e1;
+    color: #c75858;
+  }
+  
+  .status-pill.inactive {
+    background: #eeeeea;
+    color: #6b7471;
+  }
+  
+  /* ACTIONS */
+  
+  .actions-menu {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: nowrap;
+  }
+  
+  .actions-menu button {
+    min-height: 1.8rem;
+    border: 1px solid #ddded8;
+    border-radius: 0.35rem;
+    background: white;
+    color: #465552;
+    padding: 0 0.55rem;
+    font-size: 0.72rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .actions-menu button:hover {
+    background: #f4f5f2;
+  }
+  
+  .actions-menu button.danger {
+    border-color: #e9c7c7;
+    color: #c75858;
+  }
+  
+  .actions-menu button.danger:hover {
+    background: #f8eeee;
+  }
+  
+  /* PAGINATION */
+  
+  .users-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.95rem 1rem;
+    border-top: 1px solid #eeeeea;
+    color: #53605d;
+    font-size: 0.85rem;
+  }
+  
+  .users-pagination div {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .users-pagination button {
+    height: 2rem;
+    border: 1px solid #ddded8;
+    background: white;
+    color: #364542;
+    border-radius: 0.4rem;
+    padding: 0 0.8rem;
+    cursor: pointer;
+  }
+  
+  .users-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+  
+  /* RESPONSIVE PC / LAPTOP */
+  
+  @media (max-width: 1100px) {
+    .users-toolbar {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  
+    .primary-action,
+    .secondary-action {
+      width: 100%;
+    }
+  }
+  
+  @media (max-width: 760px) {
+    .users-toolbar {
+      grid-template-columns: 1fr;
+    }
+  
+    .users-pagination {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
