@@ -1,12 +1,10 @@
 'use strict';
 
-const { PrismaClient } = require('../generated/prisma');
+const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateTokens');
-
-const prisma = new PrismaClient();
 
 //  Fonction pour éviter de répéter le code du Role ID
 const getRoleId = (user) => {
@@ -97,6 +95,14 @@ exports.loginUser = async (email, password) => {
     throw new Error("EMAIL_NOT_VERIFIED");
   }
 
+  if (user.role === 'PROFESSIONAL' && user.accountStatus === 'PENDING') {
+    throw new Error("ACCOUNT_PENDING_APPROVAL");
+  }
+
+  if (user.role === 'PROFESSIONAL' && user.accountStatus === 'ACTIVE' && !user.professional?.isVerified) {
+    throw new Error("ACCOUNT_NOT_ACTIVE");
+  }
+
   if (user.accountStatus !== 'ACTIVE') {
     throw new Error("ACCOUNT_NOT_ACTIVE");
   }
@@ -126,6 +132,13 @@ exports.refreshUserToken = async (userId) => {
   });
 
   if (!user || user.accountStatus !== 'ACTIVE') throw new Error("ACCOUNT_INACTIVE");
+
+  if (
+    user.role === 'PROFESSIONAL' &&
+    (!user.professional || !user.professional.isEmailVerified || !user.professional.isVerified)
+  ) {
+    throw new Error("ACCOUNT_INACTIVE");
+  }
 
   const roleId = getRoleId(user); // Utilisation de la fonction helper
 
