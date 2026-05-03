@@ -1,7 +1,18 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import NotAuthorized from '@/views/NotAuthorized.vue'
 import { createTestingPinia } from '@pinia/testing'
+
+const { mockRouter } = vi.hoisted(() => ({
+  mockRouter: {
+    back: vi.fn(),
+    push: vi.fn(),
+  },
+}))
+
+vi.mock('vue-router', () => ({
+  useRouter: () => mockRouter,
+}))
 
 describe('NotAuthorized - Test UI', () => {
   let wrapper
