@@ -12,5 +12,11 @@ router.use(checkRoles('ADMINISTRATOR'));
 
 router.get('/dashboard', administratorController.getDashboard);
 router.get('/profile', administratorController.getProfile);
+router.get('/users', administratorController.listUsers);
+router.get('/users/:userId', administratorController.getUser);
+router.get('/professional-requests', administratorController.listProfessionalRequests);
+router.get('/professional-requests/:userId', administratorController.getProfessionalRequest);
+router.patch('/professional-requests/:userId/approve', administratorController.approveProfessionalRequest);
+router.patch('/professional-requests/:userId/reject', administratorController.rejectProfessionalRequest);
 
 module.exports = router;
