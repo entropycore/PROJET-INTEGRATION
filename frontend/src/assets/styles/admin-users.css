@@ -11,7 +11,7 @@
     font-style: italic;
   }
   
-  .admin-dashboard h1 {
+  .admin-users-page h1 {
     margin: 0;
     color: #24363a;
     font-size: clamp(1.6rem, 2.2vw, 2.1rem);
@@ -33,7 +33,7 @@
     background: #ffffff;
     border: 1px solid #deded8;
     border-radius: 0.7rem;
-    overflow: hidden;
+    overflow: visible;
   }
   
   /* toolbar */
@@ -127,7 +127,7 @@
   
   .users-table-wrapper {
     width: 100%;
-    overflow-x: auto;
+    overflow: visible;
   }
   
   .users-table {
@@ -250,35 +250,70 @@
   
   /* ACTIONS */
   
-  .actions-menu {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    flex-wrap: nowrap;
+  /* ACTIONS DROPDOWN */
+
+.actions-cell {
+    position: relative;
+    width: 80px;
   }
   
-  .actions-menu button {
-    min-height: 1.8rem;
-    border: 1px solid #ddded8;
-    border-radius: 0.35rem;
-    background: white;
+  .actions-dropdown {
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+  }
+  
+  .actions-trigger {
+    width: 2rem;
+    height: 2rem;
+    border: none;
+    border-radius: 0.45rem;
+    background: transparent;
     color: #465552;
-    padding: 0 0.55rem;
-    font-size: 0.72rem;
+    font-size: 1.4rem;
+    line-height: 1;
     cursor: pointer;
-    white-space: nowrap;
   }
   
-  .actions-menu button:hover {
+  .actions-trigger:hover {
+    background: #f0f2ef;
+  }
+  
+  .actions-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 2.25rem;
+    min-width: 170px;
+    background: #ffffff;
+    border: 1px solid #deded8;
+    border-radius: 0.55rem;
+    box-shadow: 0 14px 34px rgba(36, 54, 58, 0.14);
+    padding: 0.35rem;
+    z-index: 999;
+  }
+  
+  .actions-dropdown-menu button {
+    width: 100%;
+    min-height: 2.1rem;
+    border: none;
+    background: transparent;
+    color: #364542;
+    border-radius: 0.4rem;
+    padding: 0 0.75rem;
+    text-align: left;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  
+  .actions-dropdown-menu button:hover {
     background: #f4f5f2;
   }
   
-  .actions-menu button.danger {
-    border-color: #e9c7c7;
+  .actions-dropdown-menu button.danger {
     color: #c75858;
   }
   
-  .actions-menu button.danger:hover {
+  .actions-dropdown-menu button.danger:hover {
     background: #f8eeee;
   }
   

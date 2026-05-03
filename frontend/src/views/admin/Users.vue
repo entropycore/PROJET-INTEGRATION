@@ -3,8 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import {
   getAdminUsers,
   deleteUser,
-  resetUserPassword,
-  updateUserStatus,
+  resetUserPassword
 } from '../../services/adminService'
 
 import '../../assets/styles/admin-users.css'
@@ -236,14 +235,17 @@ const handleRejectUser = (user) => {
 
 const handleViewUser = (user) => {
   console.log('View user:', user)
+  openMenuId.value = null
 }
 
 const handleResetPassword = async (user) => {
   await resetUserPassword(user.id)
+  openMenuId.value = null
 }
 
 const handleDeleteUser = async (user) => {
   await deleteUser(user.id)
+  openMenuId.value = null
   fetchUsers()
 }
 </script>
@@ -354,29 +356,49 @@ const handleDeleteUser = async (user) => {
               <td>{{ formatDate(user.createdAt) }}</td>
               <td>{{ formatLastActive(user.lastLoginAt) }}</td>
 
-              <td>
-                <div class="actions-menu">
-                  <button type="button" @click="handleViewUser(user)">
-                    Voir
-                  </button>
+              <td class="actions-cell">
+  <div class="actions-dropdown">
+    <button
+      class="actions-trigger"
+      type="button"
+      aria-label="Actions utilisateur"
+      @click="toggleActionsMenu(user.id)"
+    >
+       <img src='../../assets/icons/menu.svg' />
+    </button>
 
-                  <button type="button" @click="handleSuspendUser(user)">
-                    Suspendre
-                  </button>
+    <div
+      v-if="openMenuId === user.id"
+      class="actions-dropdown-menu"
+    >
+      <button type="button" @click="handleViewUser(user)">
+        Voir
+      </button>
 
-                  <button type="button" @click="handleResetPassword(user)">
-                    Reset
-                  </button>
+      <button type="button" @click="handleEditUser(user)">
+        Modifier
+      </button>
 
-                  <button
-                    type="button"
-                    class="danger"
-                    @click="handleDeleteUser(user)"
-                  >
-                    Supprimer
-                  </button>
-                </div>
-              </td>
+      <template v-if="isPendingProfessional(user)">
+        <button type="button" @click="handleApproveUser(user)">
+          Accepter
+        </button>
+
+        <button type="button" class="danger" @click="handleRejectUser(user)">
+          Rejeter
+        </button>
+      </template>
+
+      <button type="button" @click="handleResetPassword(user)">
+        Reset password
+      </button>
+
+      <button type="button" class="danger" @click="handleDeleteUser(user)">
+        Supprimer
+      </button>
+    </div>
+  </div>
+</td>
             </tr>
           </tbody>
         </table>

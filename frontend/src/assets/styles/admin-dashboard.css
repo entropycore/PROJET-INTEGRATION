@@ -1,7 +1,7 @@
 .admin-dashboard {
-  width: min(100%, 1180px);
-  margin: 0 auto;
-  padding: 0 clamp(0.5rem, 1vw, 1rem);
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 
 /* HEADER */
