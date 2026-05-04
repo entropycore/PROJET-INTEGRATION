@@ -1,14 +1,13 @@
 'use strict';
 
-const { PrismaClient } = require('../generated/prisma');
+const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateTokens');
+const { hashToken } = require('../utils/tokenHash');
 
-const prisma = new PrismaClient();
-
-//  Fonction pour éviter de répéter le code du Role ID
+// Fonction pour éviter de répéter le code du Role ID
 const getRoleId = (user) => {
   const roles = {
     STUDENT: user.student?.id,
@@ -50,7 +49,7 @@ exports.registerProfessional = async (userData) => {
   });
 
   const verifyUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/verify-email?token=${emailToken}`;
-try {
+  try {
     await sendEmail(
       email, 
       "Vérifiez votre adresse email", 
@@ -64,7 +63,7 @@ try {
   return newUser;
 };
 
-//  Vérification d'email
+//  Vérification d'email 
 exports.verifyEmailToken = async (token) => {
   const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
@@ -76,14 +75,19 @@ exports.verifyEmailToken = async (token) => {
 
   await prisma.professional.update({
     where: { id: professional.id },
-    data: { isEmailVerified: true, emailVerifyToken: null, emailVerifyExpires: null }
+    data: {
+      isEmailVerified: true,
+      emailVerifyToken: null,
+      emailVerifyExpires: null,
+      emailVerifiedAt: new Date(),
+    }
   });
 
   return true;
 };
 
 // Login
-exports.loginUser = async (email, password) => {
+exports.loginUser = async (email, password, userAgent, ipAddress) => {
   const user = await prisma.user.findUnique({
     where: { email },
     include: { student: true, professor: true, administrator: true, professional: true }
@@ -93,24 +97,35 @@ exports.loginUser = async (email, password) => {
     throw new Error("INVALID_CREDENTIALS");
   }
 
-  if (user.role === 'PROFESSIONAL' && (!user.professional || !user.professional.isEmailVerified)) {
-    throw new Error("EMAIL_NOT_VERIFIED");
+  if (user.role === 'PROFESSIONAL') {
+    if (!user.professional || !user.professional.isEmailVerified) throw new Error("EMAIL_NOT_VERIFIED");
+    if (user.accountStatus === 'PENDING') throw new Error("ACCOUNT_PENDING_APPROVAL");
+    if (user.accountStatus === 'ACTIVE' && !user.professional.isVerified) throw new Error("ACCOUNT_NOT_ACTIVE");
   }
 
-  if (user.accountStatus !== 'ACTIVE') {
-    throw new Error("ACCOUNT_NOT_ACTIVE");
-  }
+  if (user.accountStatus !== 'ACTIVE') throw new Error("ACCOUNT_NOT_ACTIVE");
 
-  const roleId = getRoleId(user); // Utilisation de la fonction helper
+  const roleId = getRoleId(user);
 
   const accessToken = generateAccessToken({ userId: user.id, role: user.role, roleId });
   const refreshToken = generateRefreshToken({ userId: user.id });
+  
+  // Stocker le refresh token en BDD 
+  const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
+  await prisma.refreshTokenSession.create({
+    data: {
+      userId: user.id,
+      tokenHash: hashToken(refreshToken),
+      userAgent: userAgent || null,
+      ipAddress: ipAddress || null,
+      expiresAt: tokenExpiresAt
+    }
+  });
 
-  //  On ne retourne pas l'utilisateur entier (pour cacher le password)
   return { role: user.role, accessToken, refreshToken };
 };
 
-//  Récupérer les infos de l'utilisateur
+//  Récupérer les infos de l'utilisateur 
 exports.getUserById = async (userId) => {
   return await prisma.user.findUnique({
     where: { id: userId },
@@ -119,7 +134,20 @@ exports.getUserById = async (userId) => {
 };
 
 //  Renouveler le Token
-exports.refreshUserToken = async (userId) => {
+exports.refreshUserToken = async (userId, refreshToken) => {
+  // Vérifier que le token existe et n'est pas révoqué 
+  const session = await prisma.refreshTokenSession.findUnique({
+    where: { tokenHash: hashToken(refreshToken) }
+  });
+
+  if (!session || session.isRevoked || session.userId !== userId) {
+    throw new Error("INVALID_REFRESH_TOKEN");
+  }
+
+  if (new Date() > session.expiresAt) {
+    throw new Error("REFRESH_TOKEN_EXPIRED");
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     include: { student: true, professor: true, administrator: true, professional: true }
@@ -127,7 +155,41 @@ exports.refreshUserToken = async (userId) => {
 
   if (!user || user.accountStatus !== 'ACTIVE') throw new Error("ACCOUNT_INACTIVE");
 
-  const roleId = getRoleId(user); // Utilisation de la fonction helper
+  if (
+    user.role === 'PROFESSIONAL' &&
+    (!user.professional || !user.professional.isEmailVerified || !user.professional.isVerified)
+  ) {
+    throw new Error("ACCOUNT_INACTIVE");
+  }
 
-  return generateAccessToken({ userId: user.id, role: user.role, roleId });
+  const roleId = getRoleId(user);
+
+  // Générer JUSTE un NOUVEAU Access Token (On garde le même refresh token!)
+  const newAccessToken = generateAccessToken({ userId: user.id, role: user.role, roleId });
+
+  return newAccessToken; 
+};
+
+// Révoquer un token spécifique (logout d'une session)
+exports.revokeToken = async (userId, refreshToken) => {
+  if (!refreshToken) throw new Error("REFRESH_TOKEN_REQUIRED");
+
+  const session = await prisma.refreshTokenSession.findUnique({
+    where: { tokenHash: hashToken(refreshToken) }
+  });
+
+  if (!session || session.userId !== userId) throw new Error("INVALID_REFRESH_TOKEN");
+
+  return await prisma.refreshTokenSession.update({
+    where: { id: session.id },
+    data: { isRevoked: true, revokedAt: new Date() }
+  });
+};
+
+// Révoquer tous les tokens d'un utilisateur (logout everywhere)
+exports.revokeAllTokens = async (userId) => {
+  return await prisma.refreshTokenSession.updateMany({
+    where: { userId, isRevoked: false },
+    data: { isRevoked: true, revokedAt: new Date() }
+  });
 };
