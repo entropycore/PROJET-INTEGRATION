@@ -1,0 +1,56 @@
+name: Unit Tests CI
+
+on:
+  pull_request:
+    branches:
+      - frontend
+      - backend
+
+jobs:
+  frontend-unit-tests:
+    name: Frontend unit tests
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'frontend'
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install frontend dependencies
+        run: npm install
+
+      - name: Run frontend unit tests
+        run: npm test
+
+  backend-unit-tests:
+    name: Backend unit tests
+    runs-on: ubuntu-latest
+    if: github.base_ref == 'backend'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install backend dependencies
+        run: npm install
+
+      - name: Run backend unit tests
+        run: npm run test:unit
