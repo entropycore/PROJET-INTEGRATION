@@ -44,3 +44,4 @@ app.listen(PORT, () => {
   logger.info(`Serveur démarré sur le port ${PORT}`);
   console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
 });
+module.exports = app;//pour on puisse exporte 
