@@ -27,8 +27,22 @@ jobs:
             echo "branch=backend" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Créer la PR
+      - name: Check existing PR
+        id: existing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \ --base "${{ steps.target.outputs.branch }}" \ --head "${GITHUB_REF_NAME}" \ --title "Auto PR: ${GITHUB_REF_NAME}" \ --body "PR automatique"
+            PR_NUMBER= $(gh pr list \ --head "${GITHUB_REF_NAME}" \ --base "${{ steps.target.outputs.branch }}" \ --state open \ --json number \ --jq '.[0].number // empty')
+            echo "number= $PR_NUMBER" >> "$GITHUB_OUTPUT"
+          
+      - name: Créer la PR
+        if: steps.existing.outputs.number == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \ --base "${{ steps.target.outputs.branch }}" \ --head "${GITHUB_REF_NAME}" \ --title "Auto PR: ${GITHUB_REF_NAME}" → ${{ steps.target.outputs.branch }}" \ --body "PR automatique suite à un push sur ${GITHUB_REF_NAME}"
+
+      - name: PR already exists
+        if: steps.existing.outputs.number != ''
+        run: |
+          echo "PR already exists: #${{ steps.existing.outputs.number }}"
