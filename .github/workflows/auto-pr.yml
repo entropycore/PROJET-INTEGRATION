@@ -1,0 +1,34 @@
+name: Auto PR
+
+on:
+  push:
+    branches:
+      - 'front/**'
+      - 'back/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determiner la branche de base
+        id: target
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == front/* ]]; then
+            echo "branch=frontend" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_REF_NAME}" == back/* ]]; then
+            echo "branch=backend" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Créer la PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \ --base "${{ steps.target.outputs.branch }}" \ --head "${GITHUB_REF_NAME}" \ --title "Auto PR: ${GITHUB_REF_NAME}" \ --body "PR automatique"
