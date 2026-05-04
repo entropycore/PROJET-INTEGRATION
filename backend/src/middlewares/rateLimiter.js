@@ -2,10 +2,14 @@
 
 const rateLimit = require('express-rate-limit');
 
+// Désactiver le rate limiter en mode test car il bloque les testes
+const isTest = process.env.NODE_ENV === 'test';
+const bypass = (req, res, next) => next();
+
 // Limiteur général — toutes les routes
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // 100 requêtes max
+const globalLimiter = isTest ? bypass : rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: {
     success: false,
     message: 'Trop de requêtes, réessayez dans 15 minutes',
@@ -15,10 +19,9 @@ const globalLimiter = rateLimit({
 });
 
 // Limiteur strict — routes login/register
-// Protection contre brute force
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 5 tentatives max
+const authLimiter = isTest ? bypass : rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
   message: {
     success: false,
     message: 'Trop de tentatives de connexion, réessayez dans 15 minutes',
@@ -28,10 +31,9 @@ const authLimiter = rateLimit({
 });
 
 // Limiteur forgotPassword
-// Évite le spam d'emails
-const forgotPasswordLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 heure
-  max: 3, // 3 demandes max par heure
+const forgotPasswordLimiter = isTest ? bypass : rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
   message: {
     success: false,
     message: 'Trop de demandes de réinitialisation, réessayez dans 1 heure',
