@@ -5,8 +5,6 @@ import {
   getAdminUsers,
   deleteUser,
   resetUserPassword,
-  getProfessionalRequests,
-  getProfessionalRequestById,
   approveProfessionalRequest,
   rejectProfessionalRequest
 } from '../../services/adminService'
@@ -20,7 +18,7 @@ const loading = ref(false)
 const error = ref(null)
 
 const search = ref('')
-const selectedRole = ref('')
+const selectedRole = computed(() => route.query.role || '')
 const selectedStatus = ref('')
 
 const currentPage = ref(1)
@@ -86,7 +84,7 @@ const mockUsers = [
     accountStatus: 'SUSPENDED',
     emailVerified: false,
     createdAt: '2026-02-10T10:00:00.000Z',
-    lastLoginAt: '2026-04-28T15:20:00.000Z',
+    lastLoginAt: '2026-05-05T16:50:00.000Z',
   },
 ]
 
@@ -139,7 +137,15 @@ const fetchUsers = async () => {
 
 onMounted(fetchUsers)
 
-watch([selectedRole, selectedStatus], () => {
+watch(
+  () => route.query.role,
+  () => {
+    currentPage.value = 1
+    fetchUsers()
+  }
+)
+
+watch(selectedStatus, () => {
   currentPage.value = 1
   fetchUsers()
 })
@@ -170,18 +176,25 @@ const formatDate = (date) => {
 
 const formatLastActive = (date) => {
   if (!date) return 'Jamais'
-  return new Date(date).toLocaleString('fr-FR')
-}
 
-const roleLabel = (role) => {
-  const map = {
-    ADMINISTRATOR: 'Admin',
-    STUDENT: 'Student',
-    PROFESSOR: 'Professor',
-    PROFESSIONAL: 'Professional',
-  }
+  const now = new Date()
+  const past = new Date(date)
 
-  return map[role] || role
+  const diff = Math.floor((now - past) / 1000) // en secondes
+
+  if (diff < 60) return 'à l\'instant'
+
+  const minutes = Math.floor(diff / 60)
+  if (minutes < 60) return `il y a ${minutes} min`
+
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `il y a ${hours} h`
+
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `il y a ${days} j`
+
+  // fallback si c’est trop ancien
+  return past.toLocaleDateString('fr-FR')
 }
 
 const statusLabel = (status) => {
@@ -230,14 +243,24 @@ const handleEditUser = (user) => {
   openMenuId.value = null
 }
 
-const handleApproveUser = (user) => {
-  console.log('Accepter demande:', user)
-  openMenuId.value = null
+const handleApproveUser = async (user) => {
+  try {
+    await approveProfessionalRequest(user.id)
+    openMenuId.value = null
+    fetchUsers()
+  } catch (err) {
+    console.error('Erreur acceptation recruiter:', err)
+  }
 }
 
-const handleRejectUser = (user) => {
-  console.log('Rejeter demande:', user)
-  openMenuId.value = null
+const handleRejectUser = async (user) => {
+  try {
+    await rejectProfessionalRequest(user.id)
+    openMenuId.value = null
+    fetchUsers()
+  } catch (err) {
+    console.error('Erreur rejet recruiter:', err)
+  }
 }
 
 const handleViewUser = (user) => {
@@ -255,6 +278,40 @@ const handleDeleteUser = async (user) => {
   openMenuId.value = null
   fetchUsers()
 }
+
+const pageTitle = computed(() => {
+  switch (selectedRole.value) {
+    case 'STUDENT':
+      return 'Gestion des étudiants'
+    case 'PROFESSOR':
+      return 'Gestion des professeurs'
+    case 'PROFESSIONAL':
+      return 'Gestion des recruteurs'
+    default:
+      return 'Gestion des utilisateurs'
+  }
+})
+
+const dynamicColumns = computed(() => {
+  const columns = ['User', 'Email', 'Phone']
+
+  if (selectedRole.value === 'STUDENT') {
+    columns.push('Major', 'Level')
+  }
+
+  if (selectedRole.value === 'PROFESSOR') {
+    columns.push('Department', 'Specialty')
+  }
+
+  if (selectedRole.value === 'PROFESSIONAL') {
+    columns.push('Company', 'Job Title')
+  }
+
+  columns.push('Status', 'Registered', 'Last Active', 'Actions')
+
+  return columns
+})
+
 </script>
 
 <template>
@@ -262,7 +319,7 @@ const handleDeleteUser = async (user) => {
     <div class="users-page-header">
       <div>
         <p class="admin-kicker">USER MANAGEMENT</p>
-        <h1>Gestion des utilisateurs</h1>
+        <h1>{{ pageTitle }}</h1>
         <p class="admin-subtitle">Gérez les comptes, rôles et statuts des utilisateurs.</p>
       </div>
     </div>
@@ -277,14 +334,6 @@ const handleDeleteUser = async (user) => {
             placeholder="Search by name or email..."
           />
         </div>
-
-        <select v-model="selectedRole">
-          <option value="">All Roles</option>
-          <option value="ADMINISTRATOR">Admin</option>
-          <option value="STUDENT">Student</option>
-          <option value="PROFESSOR">Professor</option>
-          <option value="PROFESSIONAL">Professional</option>
-        </select>
 
         <select v-model="selectedStatus">
           <option value="">All Status</option>
@@ -315,14 +364,9 @@ const handleDeleteUser = async (user) => {
         <table class="users-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Registered</th>
-              <th>Last Active</th>
-              <th>Actions</th>
+              <th v-for="column in dynamicColumns" :key="column">
+                {{ column }}
+              </th>
             </tr>
           </thead>
 
@@ -348,11 +392,20 @@ const handleDeleteUser = async (user) => {
               <td>{{ user.email }}</td>
               <td>{{ user.phone || '—' }}</td>
 
-              <td>
-                <span :class="['role-pill', user.role?.toLowerCase()]">
-                  {{ roleLabel(user.role) }}
-                </span>
-              </td>
+              <template v-if="selectedRole === 'STUDENT'">
+                <td>{{ user.roleDetails?.major || '—' }}</td>
+                <td>{{ user.roleDetails?.level || '—' }}</td>
+              </template>
+
+              <template v-if="selectedRole === 'PROFESSOR'">
+                <td>{{ user.roleDetails?.department || '—' }}</td>
+                <td>{{ user.roleDetails?.specialty || '—' }}</td>
+              </template>
+
+              <template v-if="selectedRole === 'PROFESSIONAL'">
+                <td>{{ user.roleDetails?.company || '—' }}</td>
+                <td>{{ user.roleDetails?.jobTitle || '—' }}</td>
+              </template>
 
               <td>
                 <span :class="['status-pill', user.accountStatus?.toLowerCase()]">
@@ -378,31 +431,33 @@ const handleDeleteUser = async (user) => {
       v-if="openMenuId === user.id"
       class="actions-dropdown-menu"
     >
-      <button type="button" @click="handleViewUser(user)">
-        Voir
-      </button>
+    <button type="button" @click="handleViewUser(user)">
+  Voir
+</button>
 
-      <button type="button" @click="handleEditUser(user)">
-        Modifier
-      </button>
+<template v-if="isPendingProfessional(user)">
+  <button type="button" @click="handleApproveUser(user)">
+    Accepter
+  </button>
 
-      <template v-if="isPendingProfessional(user)">
-        <button type="button" @click="handleApproveUser(user)">
-          Accepter
-        </button>
+  <button type="button" class="danger" @click="handleRejectUser(user)">
+    Rejeter
+  </button>
+</template>
 
-        <button type="button" class="danger" @click="handleRejectUser(user)">
-          Rejeter
-        </button>
-      </template>
+<template v-else>
+  <button type="button" @click="handleEditUser(user)">
+    Modifier
+  </button>
 
-      <button type="button" @click="handleResetPassword(user)">
-        Reset password
-      </button>
+  <button type="button" @click="handleResetPassword(user)">
+    Reset password
+  </button>
 
-      <button type="button" class="danger" @click="handleDeleteUser(user)">
-        Supprimer
-      </button>
+  <button type="button" class="danger" @click="handleDeleteUser(user)">
+    Supprimer
+  </button>
+</template>
     </div>
   </div>
 </td>
