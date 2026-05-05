@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+
+import { computed ,ref} from 'vue'
 import { useAuthStore } from '../../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter , useRoute } from 'vue-router'
 import { logout } from '../../services/authService'
 import { sidebarConfig } from '../../config/sidebarConfig'
 
@@ -9,6 +10,11 @@ import '../../assets/styles/sidebar.css'
 
 const authStore = useAuthStore()
 const router = useRouter()
+//pour les routes enfqnts de gestions utilisateurs
+const route = useRoute()
+const isChildActive = (child) => {
+  return route.fullPath === child.path
+}
 
 const user = computed(() => authStore.user)
 
@@ -32,6 +38,11 @@ const handleLogout = async () => {
   authStore.clearAuthSession()
   router.push('/login')
 }
+const openDropdown = ref(null)
+
+const toggleDropdown = (label) => {
+  openDropdown.value = openDropdown.value === label ? null : label
+}
 </script>
 
 <template>
@@ -51,17 +62,49 @@ const handleLogout = async () => {
         <div v-for="section in sections" :key="section.section">
           <p class="sidebar-section">{{ section.section }}</p>
 
-          <RouterLink
-            v-for="item in section.items"
-            :key="item.path"
-            :to="item.path"
-             class="sidebar-link"
-            active-class="sidebar-link-active"
-            exact-active-class="sidebar-link-exact-active"
->
-            <img :src="getIcon(item.icon)" class="sidebar-icon" />
-            <span>{{ item.label }}</span>
-        </RouterLink>
+          <div v-for="item in section.items" :key="item.label">
+  <button
+    v-if="item.children"
+    type="button"
+    class="sidebar-link sidebar-dropdown-trigger"
+    @click="toggleDropdown(item.label)"
+  >
+    <span class="sidebar-link-left">
+      <img :src="getIcon(item.icon)" class="sidebar-icon" />
+      <span>{{ item.label }}</span>
+    </span>
+
+    <span class="sidebar-chevron">
+      {{ openDropdown === item.label ? '⌃' : '⌄' }}
+    </span>
+  </button>
+
+  <div
+    v-if="item.children && openDropdown === item.label"
+    class="sidebar-submenu"
+  >
+    <RouterLink
+      v-for="child in item.children"
+      :key="child.path"
+      :to="child.path"
+      class="sidebar-sublink"
+      :class="{ 'sidebar-sublink-active': isChildActive(child) }"
+    >
+      {{ child.label }}
+    </RouterLink>
+  </div>
+
+  <RouterLink
+    v-else-if="!item.children"
+    :to="item.path"
+    class="sidebar-link"
+    active-class="sidebar-link-active"
+    exact-active-class="sidebar-link-exact-active"
+  >
+    <img :src="getIcon(item.icon)" class="sidebar-icon" />
+    <span>{{ item.label }}</span>
+  </RouterLink>
+</div>
         </div>
       </nav>
     </div>
