@@ -8,9 +8,9 @@ export const sidebarConfig = {
         label: 'Gestion des utilisateurs',
         icon: 'users.svg',
         children: [
-          { label: 'Étudiants', path: '/admin/users?role=STUDENT' },
-          { label: 'Professeurs', path: '/admin/users?role=PROFESSOR' },
-          { label: 'Recruiters', path: '/admin/users?role=PROFESSIONAL' },
+          { label: 'Étudiants', path: '/admin/users?role=STUDENT', icon: 'student.svg' },
+          { label: 'Professeurs', path: '/admin/users?role=PROFESSOR', icon: 'profile.svg'},
+          { label: 'Recruiters', path: '/admin/users?role=PROFESSIONAL', icon: 'recruters.svg'},
         ],
          },
         { label: 'Validation en attente', path: '/admin/validations', icon: 'validation.svg' },
