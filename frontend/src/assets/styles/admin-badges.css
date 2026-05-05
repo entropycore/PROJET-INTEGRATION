@@ -227,7 +227,7 @@
 
 .modal {
   width: min(720px, 92vw);
-  background: #fbfaf7;
+  background: #ffffff;
   border-radius: 24px;
   padding: 28px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
@@ -275,7 +275,7 @@
   border: 1px solid #cfd8cc;
   border-radius: 14px;
   padding: 13px 16px;
-  background: #ffffff;
+  background: #f8f9f8;
   color: #0f2f3a;
   font-size: 1rem;
   outline: none;
