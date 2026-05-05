@@ -1,8 +1,8 @@
 'use strict';
 
 const request = require('supertest');
-const app = require('../../src/server');
-const { PrismaClient } = require('../../src/generated/prisma');
+const app = require('../../../src/server');
+const { PrismaClient } = require('../../../src/generated/prisma');
 const prisma = new PrismaClient();
 // ─── HELPERS ───────────────────────────────────────────────
 const saveCookies = (res) => (res.headers['set-cookie'] || []).join('; ');
