@@ -4,6 +4,11 @@ export const sidebarConfig = {
       section: 'TABLEAU DE BORD',
       items: [
         { label: 'Vue globale', path: '/admin', icon: 'dashboard.svg' },
+      ],
+    },
+    {
+      section: 'Gestion Utilisateurs',
+      items: [
         {
         label: 'Gestion des utilisateurs',
         icon: 'users.svg',
@@ -16,8 +21,8 @@ export const sidebarConfig = {
         { label: 'Validation en attente', path: '/admin/validations', icon: 'validation.svg' },
         { label: 'Signalements', path: '/admin/reports', icon: 'reports.svg' },
       ],
-    },
-    {
+     },
+      {
       section: 'RÉPERTOIRE',
       items: [
         { label: 'Explore Profiles', path: '/admin/profiles', icon: 'profiles.svg' },
@@ -26,6 +31,7 @@ export const sidebarConfig = {
     {
       section: 'SYSTÈME',
       items: [
+        { label: 'Système de badges', path: '/admin/Badges', icon: 'badge.svg' },
         { label: 'Notifications', path: '/admin/notifications', icon: 'notification.svg', danger: true },
       ],
     },

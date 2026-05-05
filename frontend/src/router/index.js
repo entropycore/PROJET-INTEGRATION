@@ -65,6 +65,11 @@ const router = createRouter({
       meta: { baseApi: '/api/professional' }
     },
     {
+      path: 'badges',
+      name: 'admin-badges',
+      component: () => import('../views/admin/Badges.vue'),
+    },
+    {
       path: 'profile',
       name: 'admin-profile',
       component: () => import('../views/Profile.vue'),
