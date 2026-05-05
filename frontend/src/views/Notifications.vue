@@ -154,7 +154,7 @@ const handleDelete = async (id) => {
 .page-header h1 {
   margin: 0;
   color: #0f2f3a;
-  font-size: clamp(2rem, 3vw, 2.7rem);
+  font-size: clamp(1.6rem, 2.2vw, 2.1rem);
   font-weight: 800;
   line-height: 1.1;
 }
