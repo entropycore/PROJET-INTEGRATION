@@ -4,7 +4,15 @@ export const sidebarConfig = {
       section: 'TABLEAU DE BORD',
       items: [
         { label: 'Vue globale', path: '/admin', icon: 'dashboard.svg' },
-        { label: 'Gestion des utilisateurs', path: '/admin/users', icon: 'users.svg'},
+        {
+        label: 'Gestion des utilisateurs',
+        icon: 'users.svg',
+        children: [
+          { label: 'Étudiants', path: '/admin/users?role=STUDENT' },
+          { label: 'Professeurs', path: '/admin/users?role=PROFESSOR' },
+          { label: 'Recruiters', path: '/admin/users?role=PROFESSIONAL' },
+        ],
+         },
         { label: 'Validation en attente', path: '/admin/validations', icon: 'validation.svg' },
         { label: 'Signalements', path: '/admin/reports', icon: 'reports.svg' },
       ],

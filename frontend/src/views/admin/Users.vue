@@ -1,12 +1,19 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   getAdminUsers,
   deleteUser,
-  resetUserPassword
+  resetUserPassword,
+  getProfessionalRequests,
+  getProfessionalRequestById,
+  approveProfessionalRequest,
+  rejectProfessionalRequest
 } from '../../services/adminService'
 
 import '../../assets/styles/admin-users.css'
+
+const route = useRoute()
 
 const users = ref([])
 const loading = ref(false)
