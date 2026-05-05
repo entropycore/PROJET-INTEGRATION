@@ -8,6 +8,15 @@ import { sidebarConfig } from '../../config/sidebarConfig'
 
 import '../../assets/styles/sidebar.css'
 
+const props = defineProps({
+  collapsed: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['toggle-sidebar'])
+
 const authStore = useAuthStore()
 const router = useRouter()
 //pour les routes enfqnts de gestions utilisateurs
@@ -46,15 +55,24 @@ const toggleDropdown = (label) => {
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside :class="['sidebar', { 'sidebar-collapsed': collapsed }]">
     <div>
       <!-- USER -->
       <div class="sidebar-user">
         <div class="sidebar-avatar">{{ userInitial }}</div>
-        <div>
+
+        <div class="sidebar-user-info">
           <h3>{{ user?.firstName }} {{ user?.lastName }}</h3>
           <p>{{ user?.role }}</p>
         </div>
+
+        <button
+          class="sidebar-collapse-btn"
+          type="button"
+          @click="emit('toggle-sidebar')"
+        >
+          <img :src="getIcon('curtain.svg')" alt="Collapse sidebar" />
+        </button>
       </div>
 
       <!-- NAV -->
@@ -71,7 +89,7 @@ const toggleDropdown = (label) => {
   >
     <span class="sidebar-link-left">
       <img :src="getIcon(item.icon)" class="sidebar-icon" />
-      <span>{{ item.label }}</span>
+      <span class="sidebar-label">{{ item.label }}</span>
     </span>
 
     <span class="sidebar-chevron">
@@ -83,15 +101,16 @@ const toggleDropdown = (label) => {
     v-if="item.children && openDropdown === item.label"
     class="sidebar-submenu"
   >
-    <RouterLink
-      v-for="child in item.children"
-      :key="child.path"
-      :to="child.path"
-      class="sidebar-sublink"
-      :class="{ 'sidebar-sublink-active': isChildActive(child) }"
-    >
-      {{ child.label }}
-    </RouterLink>
+  <RouterLink
+  v-for="child in item.children"
+  :key="child.path"
+  :to="child.path"
+  class="sidebar-sublink"
+  :class="{ 'sidebar-sublink-active': isChildActive(child) }"
+>
+  <img :src="getIcon(child.icon)" class="sidebar-icon" />
+  <span class="sidebar-label">{{ child.label }}</span>
+</RouterLink>
   </div>
 
   <RouterLink
@@ -102,7 +121,7 @@ const toggleDropdown = (label) => {
     exact-active-class="sidebar-link-exact-active"
   >
     <img :src="getIcon(item.icon)" class="sidebar-icon" />
-    <span>{{ item.label }}</span>
+    <span class="sidebar-label">{{ item.label }}</span>
   </RouterLink>
 </div>
         </div>
@@ -112,7 +131,7 @@ const toggleDropdown = (label) => {
     <!-- LOGOUT -->
     <button class="logout-btn" @click="handleLogout">
       <img :src="getIcon('logout.svg')" />
-      Déconnexion
+      <span class="sidebar-label">Déconnexion</span>
     </button>
   </aside>
 </template>
