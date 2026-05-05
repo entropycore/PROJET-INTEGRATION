@@ -13,7 +13,9 @@
     "test": "jest --forceExit --detectOpenHandles",
     "test:unit": "jest tests/unit --verbose",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage --forceExit"
+    "test:coverage": "jest --coverage --forceExit",
+    "test:integration": "jest tests/integration",
+    "test:sec": "jest tests/integration/middlewares tests/unit/middlewares"
 
   },
   "keywords": [],

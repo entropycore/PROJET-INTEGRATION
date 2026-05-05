@@ -85,4 +85,4 @@ describe('UNIT TEST: checkRoles Middleware (SCRUM-134)', () => {
       expect(next).not.toHaveBeenCalled();
     });
   });
-});
+}); 
