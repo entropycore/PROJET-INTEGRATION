@@ -49,6 +49,21 @@ const router = createRouter({
       component: () => import('../views/admin/Users.vue'),
     },
     {
+      path: 'users/create',
+      name: 'admin-user-create',
+      component: () => import('../views/admin/UserCreate.vue'),
+    },
+    {
+      path: 'users/:userId',
+      name: 'admin-user-details',
+      component: () => import('../views/admin/UserDetails.vue'),
+    },
+    {
+      path: 'users/:userId/edit',
+      name: 'admin-user-edit',
+      component: () => import('../views/admin/UserDetails.vue'),
+    },
+    {
       path: 'validations',
       name: 'admin-validations',
       component: () => import('../views/admin/Validations.vue'),

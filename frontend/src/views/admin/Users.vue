@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   getAdminUsers,
+  getAdminUserById,
   deleteUser,
   resetUserPassword,
   approveProfessionalRequest,
@@ -12,6 +13,7 @@ import {
 import '../../assets/styles/admin-users.css'
 
 const route = useRoute()
+const router = useRouter()
 
 const users = ref([])
 const loading = ref(false)
@@ -20,6 +22,10 @@ const error = ref(null)
 const search = ref('')
 const selectedRole = computed(() => route.query.role || '')
 const selectedStatus = ref('')
+
+const selectedUser = ref(null)
+const selectedProfessionalRequest = ref(null)
+const modalMode = ref(null)
 
 const currentPage = ref(1)
 const limit = ref(10)
@@ -221,7 +227,7 @@ const goToNextPage = () => {
 }
 
 const handleNewUser = () => {
-  console.log('Open create user modal')
+  router.push('/admin/users/create')
 }
 
 const handleExport = () => {
@@ -239,44 +245,57 @@ const isPendingProfessional = (user) => {
 }
 
 const handleEditUser = (user) => {
-  console.log('Modifier user:', user)
+  router.push(`/admin/users/${user.id}/edit`)
   openMenuId.value = null
 }
 
 const handleApproveUser = async (user) => {
   try {
     await approveProfessionalRequest(user.id)
-    openMenuId.value = null
-    fetchUsers()
+    await fetchUsers()
   } catch (err) {
     console.error('Erreur acceptation recruiter:', err)
+  } finally {
+    openMenuId.value = null
   }
 }
 
 const handleRejectUser = async (user) => {
   try {
     await rejectProfessionalRequest(user.id)
-    openMenuId.value = null
-    fetchUsers()
+    await fetchUsers()
   } catch (err) {
     console.error('Erreur rejet recruiter:', err)
+  } finally {
+    openMenuId.value = null
   }
 }
 
 const handleViewUser = (user) => {
-  console.log('View user:', user)
+  router.push(`/admin/users/${user.id}`)
   openMenuId.value = null
 }
 
+
 const handleResetPassword = async (user) => {
-  await resetUserPassword(user.id)
-  openMenuId.value = null
+  try {
+    await resetUserPassword(user.id)
+  } catch (err) {
+    console.error('Erreur reset password:', err)
+  } finally {
+    openMenuId.value = null
+  }
 }
 
 const handleDeleteUser = async (user) => {
-  await deleteUser(user.id)
-  openMenuId.value = null
-  fetchUsers()
+  try {
+    await deleteUser(user.id)
+    await fetchUsers()
+  } catch (err) {
+    console.error('Erreur suppression user:', err)
+  } finally {
+    openMenuId.value = null
+  }
 }
 
 const pageTitle = computed(() => {
