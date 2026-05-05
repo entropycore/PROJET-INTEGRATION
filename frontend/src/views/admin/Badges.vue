@@ -1,19 +1,23 @@
 <script setup>
 import { ref } from "vue";
 // import { onMounted } from "vue";
+import '../../assets/styles/admin-badges.css'
 
 /*
-  =====================================================
-  PARTIE BACKEND — À ACTIVER QUAND L’API SERA PRÊTE
-  =====================================================
+  BACKEND À ACTIVER QUAND L’API SERA PRÊTE
 
-  Quand le backend aura créé les routes :
+  APIs nécessaires :
   GET    /api/admin/badges
   POST   /api/admin/badges
   PUT    /api/admin/badges/:id
   DELETE /api/admin/badges/:id
 
-  Tu pourras décommenter les imports ci-dessous.
+  Quand le backend sera prêt :
+  - décommenter les imports
+  - remplacer les mock data par const badges = ref([])
+  - décommenter fetchBadges() + onMounted(fetchBadges)
+  - dans handleSaveBadge(), activer createBadge/updateBadge
+  - dans handleDeleteBadge(), activer deleteBadge
 */
 
 /*
@@ -25,50 +29,37 @@ import {
 } from "@/services/adminBadgesApi";
 */
 
-/*
-  Ces variables serviront pour afficher :
-  - un message de chargement
-  - une erreur si l’API ne répond pas
-*/
-
 const loading = ref(false);
 const error = ref(null);
-
-/*
-  =====================================================
-  MOCK DATA — DONNÉES TEMPORAIRES POUR LE FRONTEND
-  =====================================================
-
-  Pour le moment, on utilise ces données pour construire le design.
-  Quand le backend sera prêt, tu remplaceras cette liste par :
-
-  const badges = ref([]);
-
-  Puis tu activeras fetchBadges().
-*/
 
 const badges = ref([
   {
     id: 1,
     name: "Web Developer",
+    description: "Badge pour les étudiants actifs en développement web.",
     rule: "3 projets web validés (HTML, CSS, JS, PHP, Node.js)",
-    icon: "🌐",
+    iconUrl: "",
+    iconFallback: "🌐",
     tone: "blue",
     attributionCount: 89,
   },
   {
     id: 2,
     name: "DevOps Explorer",
+    description: "Badge lié aux outils DevOps.",
     rule: "Projet avec Docker + pipeline CI/CD + dépôt GitHub",
-    icon: "☁️",
+    iconUrl: "",
+    iconFallback: "☁️",
     tone: "cyan",
     attributionCount: 34,
   },
   {
     id: 3,
     name: "Hackathon Participant",
+    description: "Badge pour participation aux événements.",
     rule: "Participation à un hackathon avec attestation vérifiée",
-    icon: "👥",
+    iconUrl: "",
+    iconFallback: "👥",
     tone: "purple",
     attributionCount: 67,
   },
@@ -76,7 +67,8 @@ const badges = ref([
     id: 4,
     name: "Full Stack Developer",
     rule: "Projets frontend ET backend validés",
-    icon: "💠",
+    iconUrl: "",
+    iconFallback: "💠",
     tone: "green",
     attributionCount: 45,
   },
@@ -84,7 +76,8 @@ const badges = ref([
     id: 5,
     name: "Security Aware",
     rule: "Projet avec bonnes pratiques OWASP documentées",
-    icon: "🛡️",
+    iconUrl: "",
+    iconFallback: "🛡️",
     tone: "red",
     attributionCount: 22,
   },
@@ -92,24 +85,12 @@ const badges = ref([
     id: 6,
     name: "AI / Data",
     rule: "Projet en IA ou Data Science validé",
-    icon: "📊",
+    iconUrl: "",
+    iconFallback: "📊",
     tone: "orange",
     attributionCount: 18,
   },
 ]);
-
-/*
-  =====================================================
-  CHARGER LES BADGES DEPUIS LE BACKEND
-  =====================================================
-
-  Quand l’API sera prête :
-  1. Décommente fetchBadges()
-  2. Décommente onMounted(fetchBadges)
-  3. Remplace les mock data par const badges = ref([]);
-
-  Cette fonction va récupérer les badges depuis PostgreSQL via le backend.
-*/
 
 /*
 const fetchBadges = async () => {
@@ -118,9 +99,6 @@ const fetchBadges = async () => {
 
   try {
     const response = await getBadges();
-
-    // Le backend doit retourner data.items
-    // Exemple : { success: true, data: { items: [...] } }
     badges.value = response.items || [];
   } catch (e) {
     console.error("Erreur badges:", e);
@@ -133,96 +111,143 @@ const fetchBadges = async () => {
 onMounted(fetchBadges);
 */
 
-/*
-  =====================================================
-  ACTION : CRÉER UN NOUVEAU BADGE
-  =====================================================
+const showCreateModal = ref(false);
+const isEditMode = ref(false);
+const selectedBadgeId = ref(null);
 
-  Pour le moment, on affiche seulement un console.log.
-  Plus tard, ce bouton ouvrira une modal avec un formulaire.
+const newBadge = ref({
+  name: "",
+  description: "",
+  rule: "",
+  iconFile: null,
+  iconPreview: "",
+  tone: "blue",
+});
 
-  Quand le backend sera prêt :
-  - récupérer les données du formulaire
-  - appeler createBadge(formData)
-  - puis recharger la liste avec fetchBadges()
-*/
+const resetForm = () => {
+  newBadge.value = {
+    name: "",
+    description: "",
+    rule: "",
+    iconFile: null,
+    iconPreview: "",
+    tone: "blue",
+  };
+};
 
 const handleNewBadge = () => {
-  console.log("Ouvrir modal création badge");
+  isEditMode.value = false;
+  selectedBadgeId.value = null;
+  resetForm();
+  showCreateModal.value = true;
 };
 
-/*
-Exemple backend futur :
-
-const handleCreateBadge = async (formData) => {
-  try {
-    await createBadge(formData);
-    await fetchBadges(); // recharge les badges depuis le backend
-  } catch (e) {
-    console.error("Erreur création badge:", e);
-  }
+const closeCreateModal = () => {
+  showCreateModal.value = false;
+  isEditMode.value = false;
+  selectedBadgeId.value = null;
+  resetForm();
 };
-*/
 
-/*
-  =====================================================
-  ACTION : MODIFIER UN BADGE
-  =====================================================
+const handleIconUpload = (event) => {
+  const file = event.target.files?.[0];
 
-  Pour le moment, on affiche le badge dans la console.
-  Plus tard, ce bouton ouvrira une modal pré-remplie.
+  if (!file) return;
 
-  Quand le backend sera prêt :
-  - modifier les champs dans le formulaire
-  - appeler updateBadge(badge.id, formData)
-  - puis recharger la liste avec fetchBadges()
-*/
+  newBadge.value.iconFile = file;
+  newBadge.value.iconPreview = URL.createObjectURL(file);
+};
 
 const handleEditBadge = (badge) => {
-  console.log("Ouvrir modal modification badge:", badge);
+  isEditMode.value = true;
+  selectedBadgeId.value = badge.id;
+  showCreateModal.value = true;
+
+  newBadge.value = {
+    name: badge.name,
+    description: badge.description || "",
+    rule: badge.rule,
+    iconFile: null,
+    iconPreview: badge.iconUrl || "",
+    tone: badge.tone || "blue",
+  };
 };
 
-/*
-Exemple backend futur :
-
-const handleUpdateBadge = async (badgeId, formData) => {
-  try {
-    await updateBadge(badgeId, formData);
-    await fetchBadges();
-  } catch (e) {
-    console.error("Erreur modification badge:", e);
+const handleSaveBadge = async () => {
+  if (!newBadge.value.name || !newBadge.value.rule) {
+    alert("Veuillez remplir au moins le nom et la règle d’attribution.");
+    return;
   }
+
+  /*
+    BACKEND À ACTIVER PLUS TARD :
+
+    const formData = new FormData();
+
+    formData.append("name", newBadge.value.name);
+    formData.append("description", newBadge.value.description);
+    formData.append("rule", newBadge.value.rule);
+    formData.append("tone", newBadge.value.tone);
+
+    if (newBadge.value.iconFile) {
+      formData.append("icon", newBadge.value.iconFile);
+    }
+
+    if (isEditMode.value) {
+      await updateBadge(selectedBadgeId.value, formData);
+    } else {
+      await createBadge(formData);
+    }
+
+    await fetchBadges();
+    closeCreateModal();
+    return;
+  */
+
+  if (isEditMode.value) {
+    badges.value = badges.value.map((badge) =>
+      badge.id === selectedBadgeId.value
+        ? {
+            ...badge,
+            name: newBadge.value.name,
+            description: newBadge.value.description,
+            rule: newBadge.value.rule,
+            iconUrl: newBadge.value.iconPreview,
+            tone: newBadge.value.tone,
+          }
+        : badge
+    );
+  } else {
+    badges.value.unshift({
+      id: Date.now(),
+      name: newBadge.value.name,
+      description: newBadge.value.description,
+      rule: newBadge.value.rule,
+      iconUrl: newBadge.value.iconPreview,
+      iconFallback: "🏅",
+      tone: newBadge.value.tone,
+      attributionCount: 0,
+    });
+  }
+
+  closeCreateModal();
 };
-*/
 
-/*
-  =====================================================
-  ACTION : SUPPRIMER UN BADGE
-  =====================================================
-
-  Pour l’instant, cette action n’est pas affichée dans l’UI.
-  Tu peux l’ajouter plus tard si tu veux un bouton supprimer.
-
-  Quand le backend sera prêt :
-  - demander confirmation
-  - appeler deleteBadge(id)
-  - puis recharger la liste
-*/
-
-/*
 const handleDeleteBadge = async (id) => {
   const confirmed = confirm("Voulez-vous vraiment supprimer ce badge ?");
 
   if (!confirmed) return;
 
-  try {
+  /*
+    BACKEND À ACTIVER PLUS TARD :
+
     await deleteBadge(id);
     await fetchBadges();
-  } catch (e) {
-    console.error("Erreur suppression badge:", e);
-  }
+    return;
+  */
+
+  badges.value = badges.value.filter((badge) => badge.id !== id);
 };
-*/
 </script>
 
 <template>
@@ -248,28 +273,43 @@ const handleDeleteBadge = async (id) => {
     </div>
 
     <div v-else class="badges-grid">
-      <article
-        v-for="badge in badges"
-        :key="badge.id"
-        class="badge-card"
-      >
+      <article v-for="badge in badges" :key="badge.id" class="badge-card">
         <div class="card-top">
           <div class="badge-identity">
             <div class="badge-icon" :class="badge.tone">
-              {{ badge.icon }}
+              <img
+                v-if="badge.iconUrl"
+                :src="badge.iconUrl"
+                alt="Icône badge"
+              />
+              <span v-else>{{ badge.iconFallback }}</span>
             </div>
 
             <h3>{{ badge.name }}</h3>
           </div>
 
-          <button
-            class="edit-btn"
-            title="Modifier ce badge"
-            @click="handleEditBadge(badge)"
-          >
-            ✎
-          </button>
+          <div class="card-actions">
+            <button
+              class="edit-btn"
+              title="Modifier ce badge"
+              @click="handleEditBadge(badge)"
+            >
+              ✎
+            </button>
+
+            <button
+              class="delete-btn"
+              title="Supprimer ce badge"
+              @click="handleDeleteBadge(badge.id)"
+            >
+              🗑
+            </button>
+          </div>
         </div>
+
+        <p class="description">
+          {{ badge.description }}
+        </p>
 
         <p class="rule">
           <strong>Règle :</strong> {{ badge.rule }}
@@ -282,208 +322,68 @@ const handleDeleteBadge = async (id) => {
         </p>
       </article>
     </div>
+
+    <div v-if="showCreateModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2>{{ isEditMode ? "Modifier le badge" : "Nouveau badge" }}</h2>
+
+          <button class="close-btn" @click="closeCreateModal">
+            ×
+          </button>
+        </div>
+
+        <div class="form-group">
+          <label>Importer l’icône</label>
+
+          <input
+            type="file"
+            accept=".svg,.png,.jpg,.jpeg"
+            @change="handleIconUpload"
+          />
+
+          <div v-if="newBadge.iconPreview" class="icon-preview">
+            <img :src="newBadge.iconPreview" alt="Aperçu icône" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nom du badge</label>
+          <input
+            v-model="newBadge.name"
+            type="text"
+            placeholder="Ex : Web Developer"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <input
+            v-model="newBadge.description"
+            type="text"
+            placeholder="Courte description du badge"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Règle d’attribution</label>
+          <textarea
+            v-model="newBadge.rule"
+            rows="4"
+            placeholder="Décrivez les critères..."
+          ></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="cancel-btn" @click="closeCreateModal">
+            Annuler
+          </button>
+
+          <button class="create-btn" @click="handleSaveBadge">
+            {{ isEditMode ? "Enregistrer" : "+ Créer" }}
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
-
-<style scoped>
-.badges-page {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.page-header span {
-  display: block;
-  margin-bottom: 6px;
-  color: #8b8f8c;
-  font-size: 0.8rem;
-  font-style: italic;
-  letter-spacing: 0.04em;
-}
-
-.page-header h1 {
-  margin: 0;
-  color: #0f2f3a;
-  font-size: clamp(2rem, 3vw, 2.7rem);
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.page-header p {
-  margin-top: 8px;
-  color: #8aa0a3;
-  font-size: 1.05rem;
-  font-style: italic;
-}
-
-.primary-btn {
-  border: none;
-  border-radius: 12px;
-  padding: 14px 24px;
-  background: #2f5d62;
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.primary-btn:hover {
-  background: #274f53;
-  transform: translateY(-1px);
-}
-
-.state-box {
-  padding: 22px;
-  border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid #dfe3dd;
-  color: #6b7280;
-}
-
-.error {
-  color: #dc2626;
-}
-
-.badges-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(260px, 1fr));
-  gap: 24px;
-}
-
-.badge-card {
-  padding: 28px;
-  background: #ffffff;
-  border: 1px solid #dfe3dd;
-  border-radius: 18px;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.035);
-  transition: 0.2s ease;
-}
-
-.badge-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.06);
-}
-
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-}
-
-.badge-identity {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.badge-icon {
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 1.65rem;
-}
-
-.badge-icon.blue {
-  background: #eef6ff;
-}
-
-.badge-icon.cyan {
-  background: #e9f7f7;
-}
-
-.badge-icon.purple {
-  background: #f3eafa;
-}
-
-.badge-icon.green {
-  background: #eef8ef;
-}
-
-.badge-icon.red {
-  background: #fdecec;
-}
-
-.badge-icon.orange {
-  background: #fff0e6;
-}
-
-.badge-card h3 {
-  margin: 0;
-  color: #0f2f3a;
-  font-size: 1.2rem;
-  font-weight: 800;
-}
-
-.edit-btn {
-  width: 58px;
-  height: 44px;
-  border: 1px solid #cfd8cc;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #2f5d62;
-  font-size: 1.2rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.edit-btn:hover {
-  background: #e8efed;
-}
-
-.rule {
-  margin: 22px 0 0;
-  min-height: 52px;
-  color: #6b8a91;
-  line-height: 1.45;
-  font-size: 0.98rem;
-}
-
-.rule strong {
-  color: #5d7f86;
-}
-
-.divider {
-  height: 1px;
-  margin: 18px 0 14px;
-  background: #dfe3dd;
-}
-
-.count {
-  margin: 0;
-  color: #8aa0a3;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-@media (max-width: 1100px) {
-  .badges-grid {
-    grid-template-columns: repeat(2, minmax(260px, 1fr));
-  }
-}
-
-@media (max-width: 700px) {
-  .page-header {
-    flex-direction: column;
-  }
-
-  .primary-btn {
-    width: 100%;
-  }
-
-  .badges-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
