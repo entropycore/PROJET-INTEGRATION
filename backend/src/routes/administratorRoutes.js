@@ -12,6 +12,14 @@ router.use(checkRoles('ADMINISTRATOR'));
 
 router.get('/dashboard', administratorController.getDashboard);
 router.get('/profile', administratorController.getProfile);
+router.get('/users', administratorController.listUsers);
+router.post('/users', administratorController.createUser);
+router.get('/users/:userId', administratorController.getUserById);
+router.put('/users/:userId', administratorController.updateUser);
+router.patch('/users/:userId/status', administratorController.updateUserStatus);
+router.patch('/users/:userId/role', administratorController.updateUserRole);
+router.patch('/users/:userId/reset-password', administratorController.resetUserPassword);
+router.delete('/users/:userId', administratorController.deleteUser);
 router.get('/professional-requests', administratorController.listProfessionalRequests);
 router.get('/professional-requests/:userId', administratorController.getProfessionalRequest);
 router.patch('/professional-requests/:userId/approve', administratorController.approveProfessionalRequest);
