@@ -8,9 +8,17 @@ defineProps({
     type: String,
     default: "ALL",
   },
+  selectedStatus: {
+    type: String,
+    default: "ALL",
+  },
 });
 
-const emit = defineEmits(["update:search", "update:selectedType"]);
+const emit = defineEmits([
+  "update:search",
+  "update:selectedType",
+  "update:selectedStatus",
+]);
 </script>
 
 <template>
@@ -32,13 +40,24 @@ const emit = defineEmits(["update:search", "update:selectedType"]);
       <option value="CERTIFICATE">Certificats</option>
       <option value="ACTIVITY">Activités</option>
     </select>
+
+    <select
+      :value="selectedStatus"
+      @change="emit('update:selectedStatus', $event.target.value)"
+    >
+      <option value="ALL">Tous les statuts</option>
+      <option value="PENDING">En attente</option>
+      <option value="APPROVED">Approuvé</option>
+      <option value="REJECTED">Refusé</option>
+      <option value="CHANGES_REQUESTED">Correction demandée</option>
+    </select>
   </div>
 </template>
 
 <style scoped>
 .toolbar {
   display: grid;
-  grid-template-columns: 1fr 220px;
+  grid-template-columns: 1fr 220px 220px;
   gap: 14px;
   margin-bottom: 20px;
 }
@@ -59,7 +78,7 @@ select:focus {
   border-color: #2f5d62;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .toolbar {
     grid-template-columns: 1fr;
   }
