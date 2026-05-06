@@ -6,6 +6,7 @@ import {
   updateAdminUser,
   updateUserStatus,
   resetUserPassword,
+  approveProfessionalRequest,
   deleteUser
 } from '../../services/adminService'
 
@@ -18,6 +19,8 @@ const loading = ref(false)
 const saving = ref(false)
 const error = ref(null)
 const user = ref(null)
+const temporaryPassword = ref(null)
+const passwordCopied = ref(false)
 
 const isEditMode = computed(() => route.path.endsWith('/edit'))
 
@@ -114,20 +117,6 @@ const fillForm = (data) => {
   }
 }
 
-/*const fetchUser = async () => {
-  loading.value = true
-  error.value = null
-
-  try {
-    const res = await getAdminUserById(route.params.userId)
-    user.value = res.data.data
-    fillForm(res.data.data)
-  } catch (err) {
-    error.value = "Impossible de charger l'utilisateur."
-  } finally {
-    loading.value = false
-  }
-}*/
 const fetchUser = async () => {
   loading.value = true
   error.value = null
@@ -137,8 +126,7 @@ const fetchUser = async () => {
     user.value = res.data.data
     fillForm(res.data.data)
   } catch (err) {
-    user.value = mockProfessorDetails
-    fillForm(mockProfessorDetails)
+    error.value = "Impossible de charger l'utilisateur."
   } finally {
     loading.value = false
   }
@@ -161,55 +149,29 @@ const cancelEdit = () => {
   router.push(`/admin/users/${route.params.userId}`)
 }
 
-/*const saveUser = async () => {
-  saving.value = true
-  error.value = null
-
-  try {
-    await updateAdminUser(route.params.userId, form.value)
-
-    if (form.value.accountStatus !== user.value.accountStatus) {
-      await updateUserStatus(route.params.userId, form.value.accountStatus)
-    }
-
-    await fetchUser()
-    router.push(`/admin/users/${route.params.userId}`)
-  } catch (err) {
-    error.value = "Erreur lors de la sauvegarde."
-  } finally {
-    saving.value = false
-  }
-}*/
 const saveUser = async () => {
   saving.value = true
   error.value = null
 
+  const oldStatus = user.value.accountStatus
+  const newStatus = form.value.accountStatus
+
   try {
     await updateAdminUser(route.params.userId, form.value)
 
-    user.value = {
-      ...user.value,
-      ...form.value,
-      roleDetails: {
-        [user.value.role.toLowerCase()]: {
-          ...form.value
-        }
-      }
-    }
-
+    if (newStatus !== oldStatus) {
+  if (
+    user.value.role === 'PROFESSIONAL' && oldStatus === 'PENDING' && newStatus === 'ACTIVE'
+  ) {
+    await approveProfessionalRequest(route.params.userId)
+  } else {
+    await updateUserStatus(route.params.userId, newStatus)
+  }
+}
+    await fetchUser()
     router.push(`/admin/users/${route.params.userId}`)
   } catch (err) {
-    user.value = {
-      ...user.value,
-      ...form.value,
-      roleDetails: {
-        [user.value.role.toLowerCase()]: {
-          ...form.value
-        }
-      }
-    }
-
-    router.push(`/admin/users/${route.params.userId}`)
+    error.value = err.response?.data?.message || 'Erreur lors de la sauvegarde.'
   } finally {
     saving.value = false
   }
@@ -218,10 +180,22 @@ const saveUser = async () => {
 const handleResetPassword = async () => {
   try {
     const res = await resetUserPassword(route.params.userId)
-    alert(`Mot de passe temporaire : ${res.data.data.temporaryPassword}`)
+    temporaryPassword.value = res.data.data.temporaryPassword
+    passwordCopied.value = false
   } catch (err) {
-    alert('Erreur reset password.')
+    error.value = err.response?.data?.message || 'Erreur lors de la réinitialisation du mot de passe.'
   }
+}
+
+const copyTemporaryPassword = async () => {
+  if (!temporaryPassword.value) return
+  await navigator.clipboard.writeText(temporaryPassword.value)
+  passwordCopied.value = true
+}
+
+const closePasswordModal = () => {
+  temporaryPassword.value = null
+  passwordCopied.value = false
 }
 
 const handleDelete = async () => {
@@ -235,74 +209,7 @@ const handleDelete = async () => {
     alert('Erreur suppression utilisateur.')
   }
 }
-const mockUserDetails = {
-  id: route.params.userId,
-  firstName: 'Sara',
-  lastName: 'Bensaid',
-  fullName: 'Sara Bensaid',
-  email: 'sara.bensaid@accenture.com',
-  phone: '0600000000',
-  profilePicture: null,
-  role: 'PROFESSIONAL',
-  accountStatus: 'PENDING',
-  createdAt: '2026-05-02T10:00:00.000Z',
-  lastLoginAt: null,
-  emailVerified: true,
-  roleDetails: {
-    professional: {
-      company: 'Accenture Maroc',
-      jobTitle: 'Recruiter',
-      sector: 'IT',
-      bio: 'Responsable recrutement.'
-    }
-  }
-}
-const mockStudentDetails = {
-  id: route.params.userId,
-  firstName: 'Youssef',
-  lastName: 'Amrani',
-  fullName: 'Youssef Amrani',
-  email: 'youssef.amrani@etu.uae.ac.ma',
-  phone: '0612345678',
-  profilePicture: null,
-  role: 'STUDENT',
-  accountStatus: 'ACTIVE',
-  createdAt: '2026-03-15T09:20:00.000Z',
-  lastLoginAt: '2026-05-05T14:10:00.000Z',
-  emailVerified: true,
-  roleDetails: {
-    student: {
-      apogeeCode: 'A123456',
-      cne: 'CNE789456',
-      major: 'Génie Informatique',
-      level: 'M2',
-      city: 'Tanger',
-      linkedinUrl: 'https://linkedin.com/in/youssef-amrani'
-    }
-  }
-}
-const mockProfessorDetails = {
-  id: route.params.userId,
-  firstName: 'Fatima',
-  lastName: 'Zahra',
-  fullName: 'Fatima Zahra',
-  email: 'fatima.zahra@ensat.ac.ma',
-  phone: '0654321987',
-  profilePicture: null,
-  role: 'PROFESSOR',
-  accountStatus: 'ACTIVE',
-  createdAt: '2025-11-20T08:00:00.000Z',
-  lastLoginAt: '2026-05-04T11:30:00.000Z',
-  emailVerified: true,
-  roleDetails: {
-    professor: {
-      employeeId: 'ENSAT-PR-102',
-      grade: 'Professeur Assistant',
-      specialty: 'Intelligence Artificielle',
-      department: 'Informatique'
-    }
-  }
-}
+
 </script>
 
 <template>
@@ -470,5 +377,29 @@ const mockProfessorDetails = {
 </div>
       </div>
     </template>
+
+    <div v-if="temporaryPassword" class="admin-modal-backdrop">
+      <section class="admin-modal">
+        <h2>Mot de passe réinitialisé</h2>
+
+        <p class="admin-modal-text">
+          Mot de passe temporaire généré :
+        </p>
+
+        <div class="temporary-password-box">
+          {{ temporaryPassword }}
+        </div>
+
+        <div class="admin-modal-actions">
+          <button class="secondary-btn" type="button" @click="copyTemporaryPassword">
+            {{ passwordCopied ? 'Copié' : 'Copier' }}
+          </button>
+
+          <button class="primary-btn" type="button" @click="closePasswordModal">
+            Fermer
+          </button>
+        </div>
+      </section>
+    </div>
   </section>
 </template>

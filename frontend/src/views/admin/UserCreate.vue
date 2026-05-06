@@ -1,15 +1,23 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter ,useRoute} from 'vue-router'
 import { createAdminUser } from '../../services/adminService'
+import eyeIcon from '../../assets/icon.png'
+import eyeOffIcon from '../../assets/Button.png'
 
 import '../../assets/styles/admin-user-details.css'
 
 const router = useRouter()
+const route = useRoute()
+
+const defaultRole = route.query.role || 'STUDENT'
 
 const saving = ref(false)
 const error = ref(null)
 const temporaryPassword = ref(null)
+const createdUser = ref(null)
+const showPassword = ref(false)
+const passwordCopied = ref(false)
 
 const form = ref({
   firstName: '',
@@ -17,8 +25,9 @@ const form = ref({
   email: '',
   phone: '',
   profilePicture: '',
-  role: 'STUDENT',
+  role: defaultRole,
   accountStatus: 'ACTIVE',
+  password: '',
 
   apogeeCode: '',
   cne: '',
@@ -50,22 +59,55 @@ const pageTitle = computed(() => {
   return map[form.value.role] || 'Créer un utilisateur'
 })
 
+const fallbackRole = computed(() => {
+  return route.query.role || form.value.role || 'STUDENT'
+})
+
 const goBack = () => {
-  router.push('/admin/users')
+  router.push({
+    path: '/admin/users',
+    query: { role: fallbackRole.value },
+  })
+}
+
+const getPasswordIcon = () => {
+  return showPassword.value ? eyeOffIcon : eyeIcon
+}
+
+const copyTemporaryPassword = async () => {
+  if (!temporaryPassword.value) return
+
+  await navigator.clipboard.writeText(temporaryPassword.value)
+  passwordCopied.value = true
+}
+
+const continueToCreatedUser = () => {
+  if (!createdUser.value) return
+
+  router.push({
+    path: `/admin/users/${createdUser.value.id}`,
+    query: { role: createdUser.value.role },
+  })
 }
 
 const submitCreate = async () => {
   saving.value = true
   error.value = null
   temporaryPassword.value = null
+  createdUser.value = null
+  passwordCopied.value = false
 
   try {
     const res = await createAdminUser(form.value)
 
     temporaryPassword.value = res.data.data.temporaryPassword
+    createdUser.value = res.data.data.user
 
-    const createdUser = res.data.data.user
-    router.push(`/admin/users/${createdUser.id}`)
+    if (temporaryPassword.value) return
+
+    router.push({ path: `/admin/users/${createdUser.value.id}`,
+      query: { role: createdUser.value.role },
+    })
   } catch (err) {
     error.value = "Erreur lors de la création de l'utilisateur."
   } finally {
@@ -189,6 +231,52 @@ const submitCreate = async () => {
           <label>Employee ID <input v-model="form.employeeId" /></label>
           <label>Département <input v-model="form.department" /></label>
           <label>Niveau admin <input v-model="form.adminLevel" /></label>
+        </div>
+      </section>
+      <section class="details-card security-card">
+  <h2>Mot de passe</h2>
+
+  <p class="security-text">
+    Si vous laissez ce champ vide, un mot de passe temporaire sera généré automatiquement.
+  </p>
+
+  <div class="form-grid">
+    <label class="full-width">
+      Mot de passe initial
+      <div class="password-input-wrapper">
+        <input
+          v-model="form.password"
+          :type="showPassword ? 'text' : 'password'"
+          placeholder="Laisser vide pour générer automatiquement"
+        />
+        <button type="button" class="password-toggle" @click="showPassword = !showPassword">
+          <img :src="getPasswordIcon()" alt="" />
+        </button>
+      </div>
+    </label>
+  </div>
+</section>
+    </div>
+
+    <div v-if="temporaryPassword" class="admin-modal-backdrop">
+      <section class="admin-modal">
+        <h2>Utilisateur créé</h2>
+        <p class="admin-modal-text">
+          Mot de passe temporaire généré :
+        </p>
+
+        <div class="temporary-password-box">
+          {{ temporaryPassword }}
+        </div>
+
+        <div class="admin-modal-actions">
+          <button class="secondary-btn" type="button" @click="copyTemporaryPassword">
+            {{ passwordCopied ? 'Copié' : 'Copier' }}
+          </button>
+
+          <button class="primary-btn" type="button" @click="continueToCreatedUser">
+            Continuer
+          </button>
         </div>
       </section>
     </div>
