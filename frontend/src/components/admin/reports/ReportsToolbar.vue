@@ -101,7 +101,7 @@ select {
   padding: 0 14px;
   background: #ffffff;
   color: #0f2f3a;
-  font-weight: 700;
+  font-weight: 100;
   outline: none;
   cursor: pointer;
 }

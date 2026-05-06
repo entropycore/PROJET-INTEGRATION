@@ -32,7 +32,7 @@ const formatDate = (date) => {
 <template>
   <div class="reports-table">
     <div class="table-head">
-      <span>Motif</span>
+      <span>Signalement</span>
       <span>Type</span>
       <span>Signalé par</span>
       <span>Statut</span>
