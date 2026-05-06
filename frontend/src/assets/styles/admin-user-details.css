@@ -70,9 +70,20 @@
     border-radius: 0.45rem;
     padding: 0 1rem;
     font-weight: 700;
+    font-size: 0.9rem;
     cursor: pointer;
   }
+  .primary-btn:hover {
+    opacity: 0.9;
+  }
   
+  .secondary-btn:hover {
+    background: #f1f2ef;
+  }
+  
+  .danger-btn:hover {
+    background: #fff5f5;
+  }
   .primary-btn {
     border: 1px solid #2f5a60;
     background: #2f5a60;
@@ -133,13 +144,15 @@
   .form-grid input,
   .form-grid select,
   .form-grid textarea {
-    min-height: 2.45rem;
+    height: 2.45rem;
     border: 1px solid #ddded8;
     border-radius: 0.45rem;
     padding: 0 0.75rem;
     background: white;
     color: #24363a;
     font-size: 0.9rem;
+    line-height: 2.45rem;
+    appearance: auto;
   }
   
   .form-grid textarea {
@@ -201,6 +214,32 @@
     }
   
     .form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .security-card {
+    max-width: 620px;
+  }
+  
+  .security-text {
+    margin: 0 0 1rem;
+    color: #6b7471;
+    font-size: 1rem;
+  }
+  .details-two-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  
+  .security-card,
+  .meta-card {
+    max-width: none;
+  }
+  
+  @media (max-width: 850px) {
+    .details-two-columns {
       grid-template-columns: 1fr;
     }
   }
