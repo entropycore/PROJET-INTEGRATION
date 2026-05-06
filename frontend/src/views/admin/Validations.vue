@@ -7,9 +7,7 @@ import ValidationToolbar from "@/components/admin/validations/ValidationToolbar.
 import ValidationsTable from "@/components/admin/validations/ValidationsTable.vue";
 import ValidationDetailsModal from "@/components/admin/validations/ValidationDetailsModal.vue";
 
-/*
-  BACKEND À ACTIVER QUAND L’API SERA PRÊTE
-
+/*BACKEND À ACTIVER QUAND L’API SERA PRÊTE
 import {
   getPendingValidations,
   getPendingValidationsCount,
@@ -19,16 +17,15 @@ import {
   requestValidationChanges,
 } from "@/services/adminValidationsApi";
 */
-
 const loading = ref(false);
 const error = ref(null);
-
 const search = ref("");
 const selectedType = ref("ALL");
-
 const showDetailsModal = ref(false);
 const selectedValidation = ref(null);
+const selectedStatus = ref("ALL");
 
+//a remplacer stats apres par vrai data de backend
 const stats = ref({
   count: 9,
   projects: 3,
@@ -39,19 +36,40 @@ const stats = ref({
 
 const validations = ref([
   {
-    id: 1,
-    targetType: "PROJECT",
-    targetId: 12,
-    title: "Plateforme de gestion de projets",
-    student: {
-      id: 3,
-      fullName: "Yassine K.",
-      email: "yassine.k@ensa.ma",
-    },
-    status: "PENDING",
-    submittedAt: "2026-05-02T12:30:00.000Z",
-    description: "Application web de gestion d'équipe avec Vue et Express.",
+  id: 1,
+  targetType: "PROJECT",
+  targetId: 12,
+  title: "Plateforme de gestion de projets",
+  student: {
+    id: 3,
+    fullName: "Yassine K.",
+    email: "yassine.k@ensa.ma",
+    profilePicture: "",
+    field: "Génie informatique",
+    level: "2ème année",
+    city: "Tanger",
   },
+  status: "PENDING",
+  submittedAt: "2026-05-02T12:30:00.000Z",
+  content: {
+    title: "Plateforme de gestion de projets",
+    description: "Application complète pour gérer des projets en équipe.",
+    files: [
+      {
+        id: 1,
+        name: "cahier_charges.pdf",
+        size: "1.2 Mo",
+        url: "#",
+      },
+    ],
+  },
+  targetDetails: {
+    technologies: ["Vue.js", "Node.js", "PostgreSQL"],
+    visibility: "PUBLIC",
+    createdAt: "2026-05-01T10:00:00.000Z",
+  },
+},
+//les files a verifier et les data a importer de plus a partir de backend
   {
     id: 2,
     targetType: "INTERNSHIP",
@@ -96,9 +114,7 @@ const validations = ref([
   },
 ]);
 
-/*
-  BACKEND PLUS TARD :
-
+/* BACKEND PLUS TARD :
 const fetchValidations = async () => {
   loading.value = true;
   error.value = null;
@@ -133,13 +149,16 @@ const filteredValidations = computed(() => {
       selectedType.value === "ALL" ||
       validation.targetType === selectedType.value;
 
-    return matchSearch && matchType;
+    const matchStatus =
+      selectedStatus.value === "ALL" ||
+      validation.status === selectedStatus.value;
+
+    return matchSearch && matchType && matchStatus;
   });
 });
 
 const handleView = async (validation) => {
-  /*
-    BACKEND PLUS TARD :
+  /* BACKEND PLUS TARD :
     selectedValidation.value = await getValidationDetails(validation.id);
   */
 
@@ -151,52 +170,48 @@ const closeDetailsModal = () => {
   showDetailsModal.value = false;
   selectedValidation.value = null;
 };
-
-const removeFromList = (id) => {
-  validations.value = validations.value.filter((item) => item.id !== id);
+//fct pour updater le statut de validations
+const updateValidationStatus = (id, status) => {
+  validations.value = validations.value.map((validation) =>
+    validation.id === id
+      ? { ...validation, status }
+      : validation
+  );
+  if (selectedValidation.value?.id === id) {
+    selectedValidation.value = {
+      ...selectedValidation.value,
+      status,
+    };
+  }
 };
 
 const handleApprove = async (validation) => {
   if (!confirm("Voulez-vous approuver cette validation ?")) return;
-
-  /*
-    BACKEND PLUS TARD :
+  /*BACKEND PLUS TARD :
     await approveValidation(validation.id);
     await fetchValidations();
-    return;
-  */
-
-  removeFromList(validation.id);
+    return;*/
+  updateValidationStatus(validation.id, "APPROVED");
 };
 
 const handleReject = async (validation) => {
   const comment = prompt("Motif du refus :");
-
   if (!comment) return;
-
-  /*
-    BACKEND PLUS TARD :
+  /*BACKEND PLUS TARD :
     await rejectValidation(validation.id, { comment });
     await fetchValidations();
-    return;
-  */
-
-  removeFromList(validation.id);
+    return; */
+  updateValidationStatus(validation.id, "REJECTED");
 };
 
 const handleRequestChanges = async (validation) => {
   const comment = prompt("Quelle correction demander à l’étudiant ?");
-
   if (!comment) return;
-
-  /*
-    BACKEND PLUS TARD :
+  /*BACKEND PLUS TARD :
     await requestValidationChanges(validation.id, { comment });
     await fetchValidations();
-    return;
-  */
-
-  removeFromList(validation.id);
+    return; */
+  updateValidationStatus(validation.id, "CHANGES_REQUESTED");
 };
 </script>
 
@@ -216,7 +231,8 @@ const handleRequestChanges = async (validation) => {
       <ValidationToolbar
         v-model:search="search"
         v-model:selected-type="selectedType"
-      />
+        v-model:selected-status="selectedStatus"
+        />
 
       <div v-if="loading" class="state-box">
         Chargement des validations...
