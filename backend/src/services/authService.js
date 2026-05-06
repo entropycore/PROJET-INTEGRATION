@@ -3,9 +3,14 @@
 const prisma = require('../config/prisma');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateTokens');
 const { hashToken } = require('../utils/tokenHash');
+
+const PASSWORD_RESET_EXPIRES = '1h';
+const PASSWORD_RESET_SECRET = process.env.EMAIL_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET;
+const isStructureMissingError = (err) => err?.code === 'P2021' || err?.code === 'P2022';
 
 // Fonction pour éviter de répéter le code du Role ID
 const getRoleId = (user) => {
@@ -82,6 +87,94 @@ exports.verifyEmailToken = async (token) => {
       emailVerifiedAt: new Date(),
     }
   });
+
+  return true;
+};
+
+// Demande de reinitialisation de mot de passe
+exports.requestPasswordReset = async (email) => {
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+    },
+  });
+
+  // On ne revele jamais si l'email existe ou non.
+  if (!user) {
+    return false;
+  }
+
+  const resetToken = jwt.sign(
+    {
+      userId: user.id,
+      email: user.email,
+      purpose: 'password-reset',
+    },
+    PASSWORD_RESET_SECRET,
+    { expiresIn: PASSWORD_RESET_EXPIRES }
+  );
+
+  const resetUrl = `${
+    process.env.CLIENT_URL || 'http://localhost:5173'
+  }/reset-password?token=${encodeURIComponent(resetToken)}`;
+
+  try {
+    await sendEmail(
+      user.email,
+      'Reinitialisation du mot de passe',
+      `Bonjour ${user.firstName},\n\nVous avez demande une reinitialisation de mot de passe.\n\nCliquez ici pour definir un nouveau mot de passe :\n${resetUrl}\n\nSi vous n'etes pas a l'origine de cette demande, vous pouvez ignorer cet email.`
+    );
+  } catch (err) {
+    throw new Error('EMAIL_SEND_FAILED');
+  }
+
+  return true;
+};
+
+// Reinitialisation de mot de passe
+exports.resetPassword = async (token, newPassword) => {
+  let decoded;
+
+  try {
+    decoded = jwt.verify(token, PASSWORD_RESET_SECRET);
+  } catch (err) {
+    throw new Error('INVALID_RESET_TOKEN');
+  }
+
+  if (decoded.purpose !== 'password-reset' || !decoded.userId || !decoded.email) {
+    throw new Error('INVALID_RESET_TOKEN');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.userId },
+    select: { id: true, email: true },
+  });
+
+  if (!user || user.email !== decoded.email) {
+    throw new Error('INVALID_RESET_TOKEN');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { passwordHash },
+  });
+
+  try {
+    await prisma.refreshTokenSession.updateMany({
+      where: { userId: user.id, isRevoked: false },
+      data: { isRevoked: true, revokedAt: new Date() },
+    });
+  } catch (err) {
+    if (!isStructureMissingError(err)) {
+      throw err;
+    }
+  }
 
   return true;
 };
