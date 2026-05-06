@@ -213,6 +213,23 @@ const handleRequestChanges = async (validation) => {
     return; */
   updateValidationStatus(validation.id, "CHANGES_REQUESTED");
 };
+/* a remplacer le code en dessus lorsque le backend est pret
+const handleRequestChanges = async (validation) => {
+  const comment = prompt("Quelle correction demander à l’étudiant ?");
+
+  if (!comment) return;
+
+  try {
+    await requestValidationChanges(validation.id, { comment });
+
+    await fetchValidations();
+
+    closeDetailsModal();
+  } catch (e) {
+    console.error("Erreur demande correction:", e);
+    alert("Impossible d’envoyer la demande de correction.");
+  }
+};*/
 </script>
 
 <template>
@@ -258,6 +275,7 @@ const handleRequestChanges = async (validation) => {
       @close="closeDetailsModal"
       @approve="handleApprove"
       @reject="handleReject"
+      @request-changes="handleRequestChanges"
     />
   </section>
 </template>
