@@ -378,7 +378,14 @@ const mockProfessorDetails = {
               Téléphone
               <input v-model="form.phone" :disabled="!isEditMode" />
             </label>
-
+            <label class="full-width">
+             Photo de profil URL
+             <input
+               v-model="form.profilePicture"
+               :disabled="!isEditMode"
+               placeholder="https://..."
+             />
+            </label>
             <label>
               Rôle
               <input v-model="form.role" disabled />
@@ -428,25 +435,39 @@ const mockProfessorDetails = {
             <label>Niveau admin <input v-model="form.adminLevel" :disabled="!isEditMode" /></label>
           </div>
         </section>
+        
+<div class="details-two-columns">
+  <section class="details-card security-card">
+    <h2>Mot de passe</h2>
 
-        <section class="details-card meta-card">
-          <h2>Métadonnées</h2>
+    <p class="security-text">
+      Générer un nouveau mot de passe temporaire pour cet utilisateur.
+    </p>
 
-          <div class="meta-row">
-            <span>Date de création</span>
-            <strong>{{ formatDate(user.createdAt) }}</strong>
-          </div>
+    <button class="danger-btn" type="button" @click="handleResetPassword">
+      Réinitialiser le mot de passe
+    </button>
+  </section>
 
-          <div class="meta-row">
-            <span>Dernière connexion</span>
-            <strong>{{ formatDate(user.lastLoginAt) }}</strong>
-          </div>
+  <section class="details-card meta-card">
+    <h2>Métadonnées</h2>
 
-          <div class="meta-row">
-            <span>Email vérifié</span>
-            <strong>{{ user.emailVerified ? 'Oui' : 'Non' }}</strong>
-          </div>
-        </section>
+    <div class="meta-row">
+      <span>Date de création</span>
+      <strong>{{ formatDate(user.createdAt) }}</strong>
+    </div>
+
+    <div class="meta-row">
+      <span>Dernière connexion</span>
+      <strong>{{ formatDate(user.lastLoginAt) }}</strong>
+    </div>
+
+    <div class="meta-row">
+      <span>Email vérifié</span>
+      <strong>{{ user.emailVerified ? 'Oui' : 'Non' }}</strong>
+    </div>
+  </section>
+</div>
       </div>
     </template>
   </section>
