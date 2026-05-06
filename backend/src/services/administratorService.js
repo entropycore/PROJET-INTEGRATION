@@ -856,9 +856,17 @@ exports.deleteUser = async (userId, currentUserId) => {
 
   await getUserOrThrow(userId);
 
-  await prisma.user.delete({
-    where: { id: userId },
-  });
+  try {
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+  } catch (err) {
+    if (err?.code === 'P2003') {
+      throw new Error('USER_DELETE_BLOCKED_BY_RELATED_DATA');
+    }
+
+    throw err;
+  }
 
   return {
     deleted: true,
