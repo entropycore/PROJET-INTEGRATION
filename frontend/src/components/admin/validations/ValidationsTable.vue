@@ -14,6 +14,12 @@ const typeLabels = {
   CERTIFICATE: "Certificat",
   ACTIVITY: "Activité",
 };
+const statusLabels = {
+  PENDING: "En attente",
+  APPROVED: "Approuvé",
+  REJECTED: "Refusé",
+  CHANGES_REQUESTED: "Correction demandée",
+};
 
 const formatDate = (date) => {
   return new Date(date).toLocaleString("fr-FR", {
@@ -53,8 +59,8 @@ const formatDate = (date) => {
         {{ typeLabels[validation.targetType] }}
       </span>
 
-      <span class="status-badge">
-        En attente
+      <span class="status-badge" :class="validation.status.toLowerCase()">
+      {{ statusLabels[validation.status] || validation.status }}
       </span>
 
       <span class="date-cell">
@@ -84,7 +90,7 @@ const formatDate = (date) => {
           title="Demander correction"
           @click="emit('request-changes', validation)"
         >
-          …
+        ✎
         </button>
       </div>
     </div>
@@ -144,23 +150,43 @@ const formatDate = (date) => {
   font-weight: 800;
 }
 
+.status-badge.pending {
+  background: #fff7ed;
+  color: #ea580c;
+}
+
+.status-badge.approved {
+  background: #e8f5f1;
+  color: #2f5d62;
+}
+
+.status-badge.rejected {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.status-badge.changes_requested {
+  background: #fff7ed;
+  color: #d97706;
+}
+
 .type-badge.project {
-  background: #eef6ff;
-  color: #2563eb;
+  background: #e8f5f1;
+  color: #2f5d62;
 }
 
 .type-badge.internship {
-  background: #eef8ef;
-  color: #15803d;
+  background: #e8f5f1;
+  color: #194f54;
 }
 
 .type-badge.certificate {
-  background: #f3eafa;
-  color: #7e22ce;
+  background: #fff4e6;
+  color: #ed8f5d;
 }
 
 .type-badge.activity {
-  background: #fff0e6;
+  background: #fff4e6;
   color: #ea580c;
 }
 
