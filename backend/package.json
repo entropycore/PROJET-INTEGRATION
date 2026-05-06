@@ -16,6 +16,7 @@
     "test:coverage": "jest --coverage --forceExit",
     "test:integration": "jest tests/integration",
     "test:sec": "jest tests/integration/middlewares tests/unit/middlewares"
+    "security:scan": "bash scripts/zap-scan.sh"
 
   },
   "keywords": [],
