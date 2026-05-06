@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed,onMounted } from "vue";
 import { useRoute } from "vue-router";
 
 /*
@@ -103,6 +103,18 @@ const handleDelete = async (id) => {
 
   notifications.value = notifications.value.filter((n) => n.id !== id);
 };
+//filtrage
+const selectedType = ref("ALL");
+
+const filteredNotifications = computed(() => {
+  if (selectedType.value === "ALL") {
+    return notifications.value;
+  }
+
+  return notifications.value.filter(
+    (notification) => notification.type === selectedType.value
+  );
+});
 </script>
 
 <template>
@@ -114,8 +126,9 @@ const handleDelete = async (id) => {
     </header>
 
     <NotificationToolbar
-      :unread-count="unreadCount"
-      @read-all="handleReadAll"
+    :unread-count="unreadCount"
+    v-model:selected-type="selectedType"
+    @read-all="handleReadAll"
     />
 
     <div v-if="loading" class="state-box">
@@ -128,7 +141,7 @@ const handleDelete = async (id) => {
 
     <NotificationsList
       v-else
-      :notifications="notifications"
+      :notifications="filteredNotifications"
       @read="handleRead"
       @delete="handleDelete"
     />
