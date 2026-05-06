@@ -90,8 +90,24 @@ const handleAdminError = (res, err) => {
     return error(res, 409, 'Vous ne pouvez pas modifier le role de votre propre compte administrateur.');
   }
 
+  if (err.message === 'USER_DELETE_BLOCKED_BY_RELATED_DATA') {
+    return error(
+      res,
+      409,
+      'La suppression est impossible car ce compte est encore lie a des donnees metier.'
+    );
+  }
+
   if (err.code === 'P2002') {
     return error(res, 409, 'Une valeur unique existe deja en base.');
+  }
+
+  if (err.code === 'P2003') {
+    return error(
+      res,
+      409,
+      'La suppression est impossible car ce compte est encore lie a des donnees metier.'
+    );
   }
 
   return null;
