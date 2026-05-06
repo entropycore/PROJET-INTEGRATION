@@ -266,7 +266,7 @@ const handleRequestChanges = async (validation) => {
 .validations-page {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 10px;
 }
 
 .page-header span {

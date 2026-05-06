@@ -9,44 +9,34 @@ defineProps({
 
 <template>
   <div class="stats-grid">
-    <article class="stat-card">
-      <div class="stat-icon main">☑</div>
-      <div>
-        <strong>{{ stats.count }}</strong>
-        <p>Total en attente</p>
-      </div>
+    <article class="stat-card total">
+      <span>Total en attente</span>
+      <strong>{{ stats.count }}</strong>
+      <p>Validations à traiter</p>
     </article>
 
-    <article class="stat-card">
-      <div class="stat-icon blue">⌘</div>
-      <div>
-        <strong>{{ stats.projects }}</strong>
-        <p>Projets</p>
-      </div>
+    <article class="stat-card project">
+      <span>Projets</span>
+      <strong>{{ stats.projects }}</strong>
+      <p>À valider</p>
     </article>
 
-    <article class="stat-card">
-      <div class="stat-icon green">▣</div>
-      <div>
-        <strong>{{ stats.internships }}</strong>
-        <p>Stages</p>
-      </div>
+    <article class="stat-card internship">
+      <span>Stages</span>
+      <strong>{{ stats.internships }}</strong>
+      <p>Soumis cette semaine</p>
     </article>
 
-    <article class="stat-card">
-      <div class="stat-icon purple">▤</div>
-      <div>
-        <strong>{{ stats.certificates }}</strong>
-        <p>Certificats</p>
-      </div>
+    <article class="stat-card certificate">
+      <span>Certificats</span>
+      <strong>{{ stats.certificates }}</strong>
+      <p>En attente</p>
     </article>
 
-    <article class="stat-card">
-      <div class="stat-icon orange">✦</div>
-      <div>
-        <strong>{{ stats.activities }}</strong>
-        <p>Activités</p>
-      </div>
+    <article class="stat-card activity">
+      <span>Activités</span>
+      <strong>{{ stats.activities }}</strong>
+      <p>À vérifier</p>
     </article>
   </div>
 </template>
@@ -59,60 +49,63 @@ defineProps({
 }
 
 .stat-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 22px;
+  position: relative;
+  padding: 20px 24px;
   background: #ffffff;
   border: 1px solid #dfe3dd;
   border-radius: 18px;
   box-shadow: 0 8px 22px rgba(15, 23, 42, 0.035);
+  overflow: hidden;
 }
 
-.stat-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
+.stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: #2f5d62;
+}
+
+.stat-card span {
+  display: block;
+  color: #8aa0a3;
+  font-size: 0.85rem;
   font-weight: 800;
-}
-
-.main {
-  background: #e8efed;
-  color: #2f5d62;
-}
-
-.blue {
-  background: #eef6ff;
-  color: #2563eb;
-}
-
-.green {
-  background: #eef8ef;
-  color: #15803d;
-}
-
-.purple {
-  background: #f3eafa;
-  color: #7e22ce;
-}
-
-.orange {
-  background: #fff0e6;
-  color: #ea580c;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .stat-card strong {
   display: block;
+  margin-top: 14px;
   color: #0f2f3a;
-  font-size: 1.6rem;
+  font-size: 2.2rem;
   font-weight: 800;
+  line-height: 1;
 }
 
 .stat-card p {
-  margin: 4px 0 0;
-  color: #5f6f70;
+  margin: 10px 0 0;
+  color: #4f7d68;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.stat-card.total::before,
+.stat-card.project::before {
+  background: #2f5d62;
+}
+
+.stat-card.internship::before {
+  background: #8bbf9f;
+}
+
+.stat-card.certificate::before {
+  background: #d89a2b;
+}
+
+.stat-card.activity::before {
+  background: #ea7a2f;
 }
 
 @media (max-width: 1100px) {
