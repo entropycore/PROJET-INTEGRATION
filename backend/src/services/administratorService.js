@@ -210,6 +210,24 @@ const buildPagination = (page, limit, total) => ({
   totalPages: Math.max(1, Math.ceil(total / limit)),
 });
 
+const buildProfessionalProfileData = (payload, accountStatus) => {
+  const isPendingApproval = accountStatus === 'PENDING';
+  const now = new Date();
+
+  return {
+    company: payload.company || null,
+    jobTitle: payload.jobTitle || null,
+    sector: payload.sector || null,
+    bio: payload.bio || null,
+    // An admin-created professional does not go through the public email verification flow.
+    isEmailVerified: true,
+    emailVerifiedAt: now,
+    // Pending accounts still require explicit admin approval before activation.
+    isVerified: !isPendingApproval,
+    approvedAt: isPendingApproval ? null : now,
+  };
+};
+
 const ensureValidRole = (role) => {
   if (!USER_ROLES.includes(role)) {
     throw new Error('INVALID_ROLE');
@@ -267,26 +285,9 @@ const buildRoleCreateData = (role, payload, accountStatus) => {
       };
 
     case 'PROFESSIONAL': {
-      const activatedByAdmin = accountStatus === 'ACTIVE';
-
       return {
         professional: {
-          create: {
-            company: payload.company || null,
-            jobTitle: payload.jobTitle || null,
-            sector: payload.sector || null,
-            bio: payload.bio || null,
-            isEmailVerified:
-              typeof payload.isEmailVerified === 'boolean'
-                ? payload.isEmailVerified
-                : activatedByAdmin,
-            isVerified:
-              typeof payload.isVerified === 'boolean'
-                ? payload.isVerified
-                : activatedByAdmin,
-            emailVerifiedAt: activatedByAdmin ? new Date() : null,
-            approvedAt: activatedByAdmin ? new Date() : null,
-          },
+          create: buildProfessionalProfileData(payload, accountStatus),
         },
       };
     }
@@ -519,25 +520,10 @@ const createProfileForRole = async (tx, userId, role, payload, accountStatus) =>
       return;
 
     case 'PROFESSIONAL': {
-      const activatedByAdmin = accountStatus === 'ACTIVE';
-
       await tx.professional.create({
         data: {
           userId,
-          company: payload.company || null,
-          jobTitle: payload.jobTitle || null,
-          sector: payload.sector || null,
-          bio: payload.bio || null,
-          isEmailVerified:
-            typeof payload.isEmailVerified === 'boolean'
-              ? payload.isEmailVerified
-              : activatedByAdmin,
-          isVerified:
-            typeof payload.isVerified === 'boolean'
-              ? payload.isVerified
-              : activatedByAdmin,
-          emailVerifiedAt: activatedByAdmin ? new Date() : null,
-          approvedAt: activatedByAdmin ? new Date() : null,
+          ...buildProfessionalProfileData(payload, accountStatus),
         },
       });
       return;
