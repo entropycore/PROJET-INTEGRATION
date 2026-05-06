@@ -63,7 +63,7 @@ select {
   padding: 10px 14px;
   background: #f9fafb;
   color: #0f2f3a;
-  font-weight: 700;
+  font-weight: 100;
   cursor: pointer;
   outline: none;
 }

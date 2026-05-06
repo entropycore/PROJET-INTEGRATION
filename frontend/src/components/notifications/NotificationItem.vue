@@ -57,12 +57,6 @@ const formatDate = (date) => {
         ✓
       </button>
 
-      <button
-        class="icon-btn view"
-        title="Voir"
-      >
-        👁
-      </button>
 
       <button
         class="icon-btn delete"
