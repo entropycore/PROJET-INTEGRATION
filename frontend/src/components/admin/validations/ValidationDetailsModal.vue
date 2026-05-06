@@ -295,7 +295,7 @@ const content = props.validation.content || props.validation;
   width: min(880px, 94vw);
   max-height: 92vh;
   overflow-y: auto;
-  background: #fbfaf7;
+  background: #fefdfb;
   border-radius: 24px;
   padding: 26px;
   box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
@@ -353,7 +353,7 @@ const content = props.validation.content || props.validation;
   background: #fff4e6;
   color: #ea580c;
 }
-
+  
 .modal-body {
   display: grid;
   grid-template-columns: 280px 1fr;
