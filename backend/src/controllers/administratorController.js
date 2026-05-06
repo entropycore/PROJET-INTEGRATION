@@ -86,6 +86,10 @@ const handleAdminError = (res, err) => {
     return error(res, 409, 'Vous ne pouvez pas supprimer votre propre compte administrateur.');
   }
 
+  if (err.message === 'CANNOT_CHANGE_OWN_ROLE') {
+    return error(res, 409, 'Vous ne pouvez pas modifier le role de votre propre compte administrateur.');
+  }
+
   if (err.code === 'P2002') {
     return error(res, 409, 'Une valeur unique existe deja en base.');
   }
@@ -207,7 +211,12 @@ exports.updateUserRole = async (req, res, next) => {
       return error(res, 400, 'Le role fourni est invalide.');
     }
 
-    const user = await administratorService.updateUserRole(req.params.userId, role, req.body);
+    const user = await administratorService.updateUserRole(
+      req.params.userId,
+      role,
+      req.body,
+      req.user.userId
+    );
     return success(res, 200, 'Role utilisateur mis a jour.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
