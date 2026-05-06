@@ -795,9 +795,13 @@ exports.updateUserStatus = async (userId, status, administratorId, reason) => {
   return exports.getUserById(userId);
 };
 
-exports.updateUserRole = async (userId, role, payload = {}) => {
+exports.updateUserRole = async (userId, role, payload = {}, currentUserId = null) => {
   const targetRole = String(role || '').toUpperCase();
   ensureValidRole(targetRole);
+
+  if (currentUserId && userId === currentUserId) {
+    throw new Error('CANNOT_CHANGE_OWN_ROLE');
+  }
 
   const user = await getUserOrThrow(userId);
 
