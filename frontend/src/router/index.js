@@ -83,7 +83,7 @@ const router = createRouter({
       path: 'notifications',
       name: 'admin-notifications',
       component: () => import('../views/Notifications.vue'),
-      meta: { baseApi: '/api/professional' }
+      meta: { baseApi: '/api/admin' }
     },
     {
       path: 'badges',
@@ -91,9 +91,9 @@ const router = createRouter({
       component: () => import('../views/admin/Badges.vue'),
     },
     {
-  path: 'settings',
-  name: 'admin-settings',
-  component: () => import('../views/Settings.vue'),
+    path: 'settings',
+    name: 'admin-settings',
+    component: () => import('../views/Settings.vue'),
     },
     {
       path: 'profile',
@@ -108,9 +108,72 @@ const router = createRouter({
   ],
 },
         {
-            path: '/student',
-            component: StudentDashboard,
-            meta: { requiresAuth: true, roles: ['STUDENT'] },
+        path: '/student',
+        component: DashboardLayout,
+        meta: { role: 'STUDENT' },
+        children: [
+            {
+            path: '',
+            name: 'Studentdashboard',
+            component: () => import('@/views/student/dashboard.vue'),
+            },
+            {
+            path: 'profile',
+            name: 'StudentProfile',
+            component: () => import('@/views/student/Profile.vue'),
+            },
+            {
+            path: 'projects',
+            name: 'StudentProjects',
+            component: () => import('@/views/student/Projects.vue'),
+            },
+            {
+            path: 'stages',
+            name: 'Studentstages',
+            component: () => import('@/views/student/stages.vue'),
+            },
+            {
+            path: 'activities',
+            name: 'StudentActivities',
+            component: () => import('@/views/student/Activities.vue'),
+            },
+            {
+            path: 'competances',
+            name: 'Studentcompetances',
+            component: () => import('@/views/student/competances.vue'),
+            },
+            {
+            path: 'portfolio',
+            name: 'StudentPortfolio',
+            component: () => import('@/views/student/Portfolio.vue'),
+            },
+            {
+            path: 'github',
+            name: 'StudentGithub',
+            component: () => import('@/views/student/Github.vue'),
+            },
+            {
+            path: 'recommendations',
+            name: 'StudentRecommendations',
+            component: () => import('@/views/student/Recommendations.vue'),
+            },
+            {
+            path: 'recommendation-letters',
+            name: 'StudentRecommendationLetters',
+            component: () => import('@/views/student/RecommendationLetters.vue'),
+            },
+            {
+            path: 'comments',
+            name: 'StudentComments',
+            component: () => import('@/views/student/comments.vue'),
+            },
+            {
+            path: "notifications",
+            name: "student-notifications",
+            component: () => import("../views/Notifications.vue"),
+            meta: { baseApi: "/api/student" },
+            }
+        ],
         },
         {
             path: '/professor',
