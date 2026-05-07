@@ -33,6 +33,7 @@ export const sidebarConfig = {
       items: [
         { label: 'Système de badges', path: '/admin/Badges', icon: 'badge.svg' },
         { label: 'Notifications', path: '/admin/notifications', icon: 'notification.svg', danger: true },
+        { label: 'Paramètres ', path: '/admin/settings', icon: 'settings.svg' },
       ],
     },
   ],
