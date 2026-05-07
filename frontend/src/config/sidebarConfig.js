@@ -39,14 +39,49 @@ export const sidebarConfig = {
   ],
 
   STUDENT: [
-    {
-      section: 'TABLEAU DE BORD',
-      items: [
-        { label: 'Vue globale', path: '/student', icon: 'dashboard.svg' },
-        { label: 'Mon portfolio', path: '/student/portfolio', icon: 'portfolio.svg' },
-      ],
-    },
-  ],
+  {
+    section: 'TABLEAU DE BORD',
+    items: [
+      { label: "Vue d'ensemble", path: '/student', icon: 'dashboard.svg' },
+      { label: 'Mon profil', path: '/student/profile', icon: 'profile.svg' },
+    ],
+  },
+
+  {
+    section: 'ACADÉMIQUE',
+    items: [
+      { label: 'Mes projets', path: '/student/projects', icon: 'projects.svg' },
+      { label: 'Stages', path: '/student/stages', icon: 'internship.svg' },
+      { label: 'Activités parascolaires', path: '/student/activities', icon: 'activity.svg' },
+      { label: 'Compétences', path: '/student/competances', icon: 'skills.svg' },
+    ],
+  },
+
+  {
+    section: 'PORTFOLIO',
+    items: [
+      { label: 'Portfolio public', path: '/student/portfolio', icon: 'portfolio.svg' },
+      { label: 'Mon GitHub', path: '/student/github', icon: 'github.svg' },
+    ],
+  },
+
+  {
+    section: 'INTERACTIONS',
+    items: [
+      { label: 'Recommandations', path: '/student/recommendations', icon: 'recommendation.svg' },
+      { label: 'Lettres de reco.', path: '/student/recommendation-letters', icon: 'letter.svg' },
+      { label: 'Commentaires', path: '/student/comments', icon: 'comments.svg' },
+    ],
+  },
+
+  {
+    section: 'SYSTÈME',
+    items: [
+      { label: 'Notifications', path: '/student/notifications', icon: 'notification.svg' },
+      { label: 'Paramètres', path: '/student/settings', icon: 'settings.svg' },
+    ],
+  },
+],
 
   PROFESSOR: [
     {
