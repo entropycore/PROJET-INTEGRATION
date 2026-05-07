@@ -23,6 +23,11 @@
   object-fit: contain;
   flex-shrink: 0;
 }
+.topbar-brand-logo {
+  height: 34px;
+  width: auto;
+  object-fit: contain;
+}
 
 .role {
   font-size: 13px;
@@ -78,4 +83,21 @@
   font-weight: 800;
   text-decoration: none;
   flex-shrink: 0;
+}
+
+.logo-text {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #0f2f3a;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+/* partie "encia" */
+
+.logo-text span {
+  color: #2f5d62;
+  font-weight: 500;
 }

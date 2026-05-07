@@ -40,7 +40,8 @@ const avatarLetter = computed(() => {
 <template>
   <header class="topbar">
     <div class="topbar-left">
-      <AppLogo class="topbar-logo" />
+      <img src="../../assets/logo.png" alt="Logo Credencia" style="height: 37px;" />
+      <span class="logo-text">Cred<span>encia</span></span>
     </div>
 
     <div class="topbar-right">
