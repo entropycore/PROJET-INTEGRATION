@@ -147,7 +147,7 @@ const actions = computed(() => {
     {
       title: `${urgent.pendingAccessRequests ?? 0} demandes en attente`,
       text: 'pour rejoindre la plateforme',
-      path: '/admin/users',
+      path: '/admin/users?role=PROFESSIONAL',
       tone: 'orange'
     },
     {
