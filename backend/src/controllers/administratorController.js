@@ -12,6 +12,15 @@ const VALID_VALIDATION_TYPES = new Set([
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ]);
+const VALID_NOTIFICATION_TYPES = new Set([
+  'ACCESS_REQUEST',
+  'CERTIFICATE_VALIDATION',
+  'RECOMMENDATION_LETTER_VALIDATION',
+  'COMMENT_VALIDATION',
+  'RECOMMENDATION_VALIDATION',
+  'REPORT',
+  'SYSTEM',
+]);
 const VALID_REPORT_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED']);
 const VALID_REPORT_TARGET_TYPES = new Set([
   'PORTFOLIO',
@@ -23,7 +32,7 @@ const VALID_REPORT_TARGET_TYPES = new Set([
   'OTHER',
 ]);
 
-const parseEmailVerifiedFilter = (value) => {
+const parseBooleanFilter = (value) => {
   if (typeof value === 'undefined') return undefined;
   if (value === 'true') return true;
   if (value === 'false') return false;
@@ -63,6 +72,10 @@ const handleAdminError = (res, err) => {
 
   if (err.message === 'REPORT_NOT_FOUND') {
     return error(res, 404, 'Signalement introuvable.');
+  }
+
+  if (err.message === 'INVALID_NOTIFICATION_TYPE') {
+    return error(res, 400, 'Le type de notification est invalide.');
   }
 
   if (err.message === 'UNSUPPORTED_DASHBOARD_ITEM_TYPE') {
@@ -269,6 +282,35 @@ exports.rejectValidationItem = async (req, res, next) => {
     );
 
     return success(res, 200, 'Validation rejetee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.listNotifications = async (req, res, next) => {
+  try {
+    const type = normalizeItemType(req.query.type);
+    const isRead = parseBooleanFilter(req.query.isRead);
+
+    if (type && !VALID_NOTIFICATION_TYPES.has(type)) {
+      return error(res, 400, 'Le filtre type est invalide.');
+    }
+
+    if (isRead === null) {
+      return error(res, 400, "Le filtre isRead doit valoir 'true' ou 'false'.");
+    }
+
+    const data = await administratorService.listNotifications({
+      administratorId: req.user.roleId,
+      type,
+      isRead,
+      search: req.query.search?.trim(),
+      page: parsePositiveInt(req.query.page, 1),
+      limit: parsePositiveInt(req.query.limit, 10),
+    });
+
+    return success(res, 200, 'Notifications recuperees.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -526,7 +568,7 @@ exports.deleteUser = async (req, res, next) => {
 exports.listProfessionalRequests = async (req, res, next) => {
   try {
     const status = normalizeStatus(req.query.status || 'PENDING');
-    const emailVerified = parseEmailVerifiedFilter(req.query.emailVerified);
+    const emailVerified = parseBooleanFilter(req.query.emailVerified);
 
     if (!VALID_ACCOUNT_STATUSES.has(status)) {
       return error(res, 400, 'Le filtre status est invalide.');
