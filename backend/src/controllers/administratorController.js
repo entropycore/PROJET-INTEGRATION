@@ -42,6 +42,14 @@ const handleAdminError = (res, err) => {
     return error(res, 400, "Le type d'element du dashboard n'est pas supporte.");
   }
 
+  if (err.message === 'UNSUPPORTED_DASHBOARD_ACTION_TYPE') {
+    return error(res, 400, "L'action demandee n'est pas supportee pour ce type d'element.");
+  }
+
+  if (err.message === 'DASHBOARD_ITEM_INVALID_STATE') {
+    return error(res, 409, "Cet element du dashboard ne peut pas etre traite dans son etat actuel.");
+  }
+
   if (err.message === 'EMAIL_NOT_VERIFIED') {
     return error(res, 409, "L'email du professionnel doit etre verifie avant approbation.");
   }
@@ -138,6 +146,38 @@ exports.getDashboardItemDetail = async (req, res, next) => {
     );
 
     return success(res, 200, 'Element du dashboard recupere.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.approveDashboardItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.approveDashboardItem(
+      req.params.itemType,
+      req.params.itemId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Element du dashboard approuve.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.rejectDashboardItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.rejectDashboardItem(
+      req.params.itemType,
+      req.params.itemId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Element du dashboard rejete.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);

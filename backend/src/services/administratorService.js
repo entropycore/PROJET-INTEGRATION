@@ -913,6 +913,60 @@ const getProfessionalRequestsList = async (where, skip, take) =>
     []
   );
 
+const approveCertificateRequest = async (certificateId, administratorId, comment = null) => {
+  const certificate = await getCertificateRequestOrThrow(certificateId);
+
+  if (certificate.validationStatus !== 'PENDING') {
+    throw new Error('DASHBOARD_ITEM_INVALID_STATE');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.certificate.update({
+      where: { id: certificateId },
+      data: { validationStatus: 'APPROVED' },
+    });
+
+    await tx.certificateValidation.create({
+      data: {
+        certificateId,
+        administratorId,
+        decision: 'APPROVED',
+        comment,
+      },
+    });
+  });
+
+  const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
+  return mapCertificateRequestDetail(updatedCertificate);
+};
+
+const rejectCertificateRequest = async (certificateId, administratorId, comment = null) => {
+  const certificate = await getCertificateRequestOrThrow(certificateId);
+
+  if (certificate.validationStatus !== 'PENDING') {
+    throw new Error('DASHBOARD_ITEM_INVALID_STATE');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.certificate.update({
+      where: { id: certificateId },
+      data: { validationStatus: 'REJECTED' },
+    });
+
+    await tx.certificateValidation.create({
+      data: {
+        certificateId,
+        administratorId,
+        decision: 'REJECTED',
+        comment,
+      },
+    });
+  });
+
+  const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
+  return mapCertificateRequestDetail(updatedCertificate);
+};
+
 exports.getDashboardData = async () => {
   const [
     totalUsers,
@@ -1354,5 +1408,54 @@ exports.getDashboardItemDetail = async (itemType, itemId) => {
 
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ITEM_TYPE');
+  }
+};
+
+exports.approveDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
+  const normalizedType = String(itemType || '')
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, '_');
+
+  switch (normalizedType) {
+    case 'ACCESS_REQUEST':
+      return exports.approveProfessionalRequest(itemId, administratorId);
+
+    case 'CERTIFICATE_VALIDATION':
+      return approveCertificateRequest(
+        itemId,
+        administratorId,
+        typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+      );
+
+    default:
+      throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
+  }
+};
+
+exports.rejectDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
+  const normalizedType = String(itemType || '')
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, '_');
+
+  const normalizedComment =
+    typeof payload.comment === 'string'
+      ? payload.comment.trim() || null
+      : typeof payload.rejectionReason === 'string'
+        ? payload.rejectionReason.trim() || null
+        : typeof payload.reason === 'string'
+          ? payload.reason.trim() || null
+          : null;
+
+  switch (normalizedType) {
+    case 'ACCESS_REQUEST':
+      return exports.rejectProfessionalRequest(itemId, administratorId, normalizedComment);
+
+    case 'CERTIFICATE_VALIDATION':
+      return rejectCertificateRequest(itemId, administratorId, normalizedComment);
+
+    default:
+      throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
   }
 };
