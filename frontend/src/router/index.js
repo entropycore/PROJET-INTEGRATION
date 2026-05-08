@@ -128,6 +128,16 @@ const router = createRouter({
             component: () => import('@/views/student/Projects/Projects.vue'),
             },
             {
+              path: 'projects/:id',
+              name: 'StudentProjectDetails',
+              component: () => import('@/views/student/Projects/ProjectsDetails.vue'),
+            },
+            {
+              path: 'projects/:id/edit',
+              name: 'StudentProjectEdit',
+              component: () => import('@/views/student/Projects/ProjectEdit.vue'),
+            },
+            {
             path: 'stages',
             name: 'Studentstages',
             component: () => import('@/views/student/stages.vue'),
