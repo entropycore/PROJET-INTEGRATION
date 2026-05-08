@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -46,8 +46,7 @@ services:
     command: npm run dev     
     ports:
       - "${BACKEND_PORT:-3000}:3000"
-    mem_limit: 512m
-    cpus: 0.75
+    
     networks:
       - credencia_net
 
@@ -69,8 +68,7 @@ services:
       - ./frontend:/app 
       - frontend_node_modules:/app/node_modules
     command: npm run dev -- --host
-    mem_limit: 512m
-    cpus: 0.75
+    
     networks:
       - credencia_net
 
