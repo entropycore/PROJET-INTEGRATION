@@ -193,7 +193,7 @@ const submitProject = (projectId) => {
           </div>
 
           <div class="project-meta">
-            Créé le {{ formatDate(project.createdAt) }}
+            {{ formatDate(project.createdAt) }}
           </div>
 
           <div class="project-actions">
