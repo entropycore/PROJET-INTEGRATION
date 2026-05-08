@@ -5,6 +5,13 @@ const { success, error } = require('../utils/apiResponse');
 
 const VALID_ACCOUNT_STATUSES = new Set(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING']);
 const VALID_USER_ROLES = new Set(['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL']);
+const VALID_VALIDATION_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED']);
+const VALID_VALIDATION_TYPES = new Set([
+  'CERTIFICATE_VALIDATION',
+  'RECOMMENDATION_LETTER_VALIDATION',
+  'COMMENT_VALIDATION',
+  'RECOMMENDATION_VALIDATION',
+]);
 
 const parseEmailVerifiedFilter = (value) => {
   if (typeof value === 'undefined') return undefined;
@@ -20,6 +27,8 @@ const parsePositiveInt = (value, fallback) => {
 
 const normalizeRole = (value) => (typeof value === 'string' ? value.toUpperCase() : value);
 const normalizeStatus = (value) => (typeof value === 'string' ? value.toUpperCase() : value);
+const normalizeItemType = (value) =>
+  typeof value === 'string' ? value.trim().toUpperCase().replace(/-/g, '_') : value;
 
 const handleAdminError = (res, err) => {
   if (err.message === 'REQUEST_NOT_FOUND') {
@@ -38,8 +47,16 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Element du dashboard introuvable.');
   }
 
+  if (err.message === 'VALIDATION_ITEM_NOT_FOUND') {
+    return error(res, 404, 'Element de validation introuvable.');
+  }
+
   if (err.message === 'UNSUPPORTED_DASHBOARD_ITEM_TYPE') {
     return error(res, 400, "Le type d'element du dashboard n'est pas supporte.");
+  }
+
+  if (err.message === 'UNSUPPORTED_VALIDATION_TYPE') {
+    return error(res, 400, "Le type de validation n'est pas supporte.");
   }
 
   if (err.message === 'UNSUPPORTED_DASHBOARD_ACTION_TYPE') {
@@ -48,6 +65,10 @@ const handleAdminError = (res, err) => {
 
   if (err.message === 'DASHBOARD_ITEM_INVALID_STATE') {
     return error(res, 409, "Cet element du dashboard ne peut pas etre traite dans son etat actuel.");
+  }
+
+  if (err.message === 'VALIDATION_ITEM_INVALID_STATE') {
+    return error(res, 409, 'Cette validation ne peut pas etre traitee dans son etat actuel.');
   }
 
   if (err.message === 'EMAIL_NOT_VERIFIED') {
@@ -146,6 +167,82 @@ exports.getDashboardItemDetail = async (req, res, next) => {
     );
 
     return success(res, 200, 'Element du dashboard recupere.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.listValidationItems = async (req, res, next) => {
+  try {
+    const type = normalizeItemType(req.query.type);
+    const status = normalizeStatus(req.query.status || 'PENDING');
+
+    if (type && !VALID_VALIDATION_TYPES.has(type)) {
+      return error(res, 400, 'Le filtre type est invalide.');
+    }
+
+    if (status && !VALID_VALIDATION_STATUSES.has(status)) {
+      return error(res, 400, 'Le filtre status est invalide.');
+    }
+
+    const data = await administratorService.listValidationItems({
+      type,
+      status,
+      search: req.query.search?.trim(),
+      page: parsePositiveInt(req.query.page, 1),
+      limit: parsePositiveInt(req.query.limit, 10),
+    });
+
+    return success(res, 200, 'Validations recuperees.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getValidationItemDetail = async (req, res, next) => {
+  try {
+    const item = await administratorService.getValidationItemDetail(
+      req.params.itemType,
+      req.params.itemId
+    );
+
+    return success(res, 200, 'Element de validation recupere.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.approveValidationItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.approveValidationItem(
+      req.params.itemType,
+      req.params.itemId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Validation approuvee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.rejectValidationItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.rejectValidationItem(
+      req.params.itemType,
+      req.params.itemId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Validation rejetee.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
