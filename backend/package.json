@@ -15,7 +15,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --forceExit",
     "test:integration": "jest tests/integration",
-    "test:sec": "jest tests/integration/middlewares tests/unit/middlewares"
+    "test:sec": "jest tests/integration/middlewares tests/unit/middlewares",
     "security:scan": "bash scripts/zap-scan.sh"
 
   },
