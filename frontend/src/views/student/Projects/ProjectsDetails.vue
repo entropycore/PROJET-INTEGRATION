@@ -120,16 +120,44 @@ onMounted(fetchProject)
 
       <div class="project-details-layout">
         <div class="project-main-column">
-          <section class="details-card cover-card">
-            <img
-              :src="
-                project.coverImage ||
-                'https://placehold.co/1200x500'
-              "
-              alt="cover"
-              class="project-cover-image"
-            />
-          </section>
+            <section
+  v-if="project.screenshots?.length"
+  class="details-card"
+>
+  <div class="section-title">
+    <span class="material-icons-round">
+      image
+    </span>
+
+    Captures d'écran
+  </div>
+
+  <div class="screenshots-grid">
+    <div
+      v-for="screenshot in project.screenshots" :key="screenshot.id" class="screenshot-card"
+    >
+      <img
+        v-if="screenshot.imageUrl" :src="screenshot.imageUrl" :alt="screenshot.title"
+      />
+
+      <div v-else class="screenshot-placeholder" >
+        {{ screenshot.title }}
+      </div>
+    </div>
+
+    <button
+      v-if="canEditProject"
+      type="button"
+      class="screenshot-add-card"
+    >
+      <span class="material-icons-round">
+        add
+      </span>
+
+      Ajouter
+    </button>
+  </div>
+</section>
 
           <section class="details-card">
             <div class="section-title">
