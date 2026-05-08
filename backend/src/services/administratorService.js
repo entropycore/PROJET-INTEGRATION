@@ -12,6 +12,15 @@ const VALIDATION_ITEM_TYPES = [
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ];
+const NOTIFICATION_TYPES = [
+  'ACCESS_REQUEST',
+  'CERTIFICATE_VALIDATION',
+  'RECOMMENDATION_LETTER_VALIDATION',
+  'COMMENT_VALIDATION',
+  'RECOMMENDATION_VALIDATION',
+  'REPORT',
+  'SYSTEM',
+];
 const REPORT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
 const REPORT_TARGET_TYPES = ['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'];
 const BCRYPT_ROUNDS = 10;
@@ -134,6 +143,19 @@ const reportSelect = {
       },
     },
   },
+};
+
+const notificationSelect = {
+  id: true,
+  administratorId: true,
+  type: true,
+  title: true,
+  message: true,
+  relatedType: true,
+  relatedId: true,
+  isRead: true,
+  createdAt: true,
+  readAt: true,
 };
 
 const recommendationLetterValidationSelect = {
@@ -738,6 +760,12 @@ const ensureValidValidationType = (type) => {
   }
 };
 
+const ensureValidNotificationType = (type) => {
+  if (!NOTIFICATION_TYPES.includes(type)) {
+    throw new Error('INVALID_NOTIFICATION_TYPE');
+  }
+};
+
 const ensureValidReportStatus = (status) => {
   if (!REPORT_STATUSES.includes(status)) {
     throw new Error('INVALID_REPORT_STATUS');
@@ -787,6 +815,59 @@ const matchesValidationSearch = (item, search) => {
 
   return haystacks.some((value) => value.includes(normalizedSearch));
 };
+
+const getNotificationTone = (type) => {
+  switch (type) {
+    case 'ACCESS_REQUEST':
+      return 'orange';
+    case 'REPORT':
+      return 'red';
+    case 'SYSTEM':
+      return 'blue';
+    default:
+      return 'green';
+  }
+};
+
+const getNotificationLink = (type) => {
+  switch (type) {
+    case 'ACCESS_REQUEST':
+      return '/admin/dashboard';
+    case 'REPORT':
+      return '/admin/reports';
+    case 'CERTIFICATE_VALIDATION':
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+    case 'COMMENT_VALIDATION':
+    case 'RECOMMENDATION_VALIDATION':
+      return '/admin/validations';
+    default:
+      return '/admin/notifications';
+  }
+};
+
+const mapNotificationItem = (notification) => ({
+  id: notification.id,
+  type: notification.type,
+  title: notification.title,
+  message: notification.message,
+  isRead: notification.isRead,
+  createdAt: notification.createdAt,
+  readAt: notification.readAt,
+  tone: getNotificationTone(notification.type),
+  link: getNotificationLink(notification.type),
+  target:
+    notification.relatedId && (notification.relatedType || notification.type)
+      ? {
+          itemType: notification.relatedType || notification.type,
+          itemId: notification.relatedId,
+        }
+      : null,
+  raw: {
+    administratorId: notification.administratorId,
+    relatedType: notification.relatedType,
+    relatedId: notification.relatedId,
+  },
+});
 
 const buildProfessionalProfileData = (payload, accountStatus) => {
   const isPendingApproval = accountStatus === 'PENDING';
@@ -2219,6 +2300,103 @@ exports.rejectValidationItem = async (
     default:
       throw new Error('UNSUPPORTED_VALIDATION_TYPE');
   }
+};
+
+exports.listNotifications = async ({
+  administratorId,
+  type,
+  isRead,
+  page = 1,
+  limit = 10,
+  search,
+} = {}) => {
+  const normalizedType = type ? normalizeValidationType(type) : null;
+
+  if (normalizedType) {
+    ensureValidNotificationType(normalizedType);
+  }
+
+  const { skip, page: safePage, limit: safeLimit } = normalizePagination(page, limit);
+  const normalizedSearch = String(search || '').trim();
+
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [{ administratorId: null }];
+
+  const where = {
+    ...(normalizedType ? { type: normalizedType } : {}),
+    ...(typeof isRead === 'boolean' ? { isRead } : {}),
+    ...(scopeConditions.length || normalizedSearch
+      ? {
+          AND: [
+            ...scopeConditions,
+            ...(normalizedSearch
+              ? [
+                  {
+                    OR: [
+                      { title: { contains: normalizedSearch, mode: 'insensitive' } },
+                      { message: { contains: normalizedSearch, mode: 'insensitive' } },
+                      { relatedType: { contains: normalizedSearch, mode: 'insensitive' } },
+                    ],
+                  },
+                ]
+              : []),
+          ],
+        }
+      : {}),
+  };
+
+  const [total, unreadCount, allCount, notifications] = await Promise.all([
+    safeCount(() => prisma.notification.count({ where })),
+    safeCount(() =>
+      prisma.notification.count({
+        where: {
+          ...(scopeConditions.length
+            ? {
+                AND: scopeConditions,
+              }
+            : {}),
+          isRead: false,
+        },
+      })
+    ),
+    safeCount(() =>
+      prisma.notification.count({
+        where: scopeConditions.length
+          ? {
+              AND: scopeConditions,
+            }
+          : undefined,
+      })
+    ),
+    safeReadWithFallback(
+      () =>
+        prisma.notification.findMany({
+          where,
+          orderBy: [{ createdAt: 'desc' }],
+          skip,
+          take: safeLimit,
+          select: notificationSelect,
+        }),
+      null,
+      []
+    ),
+  ]);
+
+  return {
+    filters: {
+      type: normalizedType,
+      isRead: typeof isRead === 'boolean' ? isRead : null,
+      search: normalizedSearch || null,
+    },
+    summary: {
+      total: allCount,
+      unread: unreadCount,
+      read: Math.max(0, allCount - unreadCount),
+    },
+    items: notifications.map(mapNotificationItem),
+    pagination: buildPagination(safePage, safeLimit, total),
+  };
 };
 
 exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit = 10, search } = {}) => {
