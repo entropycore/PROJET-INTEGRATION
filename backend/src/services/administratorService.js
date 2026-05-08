@@ -42,6 +42,31 @@ const professionalRequestSelect = {
   },
 };
 
+const professionalRequestLegacySelect = {
+  id: true,
+  role: true,
+  lastName: true,
+  firstName: true,
+  email: true,
+  phone: true,
+  profilePicture: true,
+  accountStatus: true,
+  createdAt: true,
+  lastLoginAt: true,
+  professional: {
+    select: {
+      id: true,
+      company: true,
+      jobTitle: true,
+      sector: true,
+      bio: true,
+      isVerified: true,
+      isEmailVerified: true,
+      emailVerifyExpires: true,
+    },
+  },
+};
+
 const userSelect = {
   id: true,
   lastName: true,
@@ -124,7 +149,50 @@ const safeAggregateCount = async (runner) => {
   }
 };
 
+const safeReadWithFallback = async (primaryRunner, fallbackRunner, defaultValue) => {
+  try {
+    return await primaryRunner();
+  } catch (err) {
+    if (!isStructureMissingError(err)) {
+      throw err;
+    }
+
+    if (!fallbackRunner) {
+      return defaultValue;
+    }
+
+    try {
+      return await fallbackRunner();
+    } catch (fallbackErr) {
+      if (isStructureMissingError(fallbackErr)) {
+        return defaultValue;
+      }
+
+      throw fallbackErr;
+    }
+  }
+};
+
 const formatFullName = (user) => `${user.firstName} ${user.lastName}`.trim();
+
+const normalizeProfessionalData = (professional) => {
+  if (!professional) {
+    return null;
+  }
+
+  return {
+    emailVerifiedAt: null,
+    approvedAt: null,
+    approvedByAdministratorId: null,
+    rejectedAt: null,
+    rejectedByAdministratorId: null,
+    rejectionReason: null,
+    suspendedAt: null,
+    suspendedByAdministratorId: null,
+    suspensionReason: null,
+    ...professional,
+  };
+};
 
 const getEmailVerifiedValue = (user) => {
   if (user.role === 'PROFESSIONAL') {
@@ -151,27 +219,31 @@ const mapUserSummary = (user) => ({
     student: user.student,
     professor: user.professor,
     administrator: user.administrator,
-    professional: user.professional,
+    professional: normalizeProfessionalData(user.professional),
   },
 });
 
-const mapProfessionalRequest = (user) => ({
-  id: user.id,
-  requesterName: formatFullName(user),
-  firstName: user.firstName,
-  lastName: user.lastName,
-  email: user.email,
-  phone: user.phone,
-  profilePicture: user.profilePicture,
-  accountStatus: user.accountStatus,
-  createdAt: user.createdAt,
-  lastLoginAt: user.lastLoginAt,
-  organization: user.professional?.company || null,
-  type: 'ACCESS_REQUEST',
-  label: "Demande d'acces",
-  tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
-  professional: user.professional,
-});
+const mapProfessionalRequest = (user) => {
+  const professional = normalizeProfessionalData(user.professional);
+
+  return {
+    id: user.id,
+    requesterName: formatFullName(user),
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    profilePicture: user.profilePicture,
+    accountStatus: user.accountStatus,
+    createdAt: user.createdAt,
+    lastLoginAt: user.lastLoginAt,
+    organization: professional?.company || null,
+    type: 'ACCESS_REQUEST',
+    label: "Demande d'acces",
+    tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
+    professional,
+  };
+};
 
 const buildUserSearch = (search) => {
   if (!search) {
@@ -368,10 +440,19 @@ const getUserOrThrow = async (userId) => {
 };
 
 const getProfessionalRequestOrThrow = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: professionalRequestSelect,
-  });
+  const user = await safeReadWithFallback(
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: professionalRequestLegacySelect,
+      }),
+    null
+  );
 
   if (!user || user.role !== 'PROFESSIONAL' || !user.professional) {
     throw new Error('REQUEST_NOT_FOUND');
@@ -539,52 +620,86 @@ const buildTemporaryPassword = () => {
   return `Temp${suffix}Aa!1`;
 };
 
-exports.getDashboardData = async () => {
+const getPendingValidationCounts = async () => {
   const [
-    totalUsers,
-    totalStudents,
-    totalProfessors,
-    pendingRequests,
     pendingProjects,
     pendingInternships,
     pendingCertificates,
     pendingLetters,
     pendingComments,
     pendingRecommendations,
-    recentRequests,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { role: 'STUDENT' } }),
-    prisma.user.count({ where: { role: 'PROFESSOR' } }),
-    prisma.user.count({
-      where: {
-        role: 'PROFESSIONAL',
-        accountStatus: 'PENDING',
-      },
-    }),
     safeCount(() => prisma.project.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.internship.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.certificate.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.recommendationLetter.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.comment.count({ where: { status: 'PENDING' } })),
     safeCount(() => prisma.recommendation.count({ where: { status: 'PENDING' } })),
-    prisma.user.findMany({
-      where: {
-        role: 'PROFESSIONAL',
-      },
-      orderBy: [{ createdAt: 'desc' }],
-      take: 5,
-      select: professionalRequestSelect,
-    }),
   ]);
 
-  const pendingValidations =
-    pendingProjects +
-    pendingInternships +
-    pendingCertificates +
-    pendingLetters +
-    pendingComments +
-    pendingRecommendations;
+  return {
+    pendingProjects,
+    pendingInternships,
+    pendingCertificates,
+    pendingLetters,
+    pendingComments,
+    pendingRecommendations,
+    total:
+      pendingProjects +
+      pendingInternships +
+      pendingCertificates +
+      pendingLetters +
+      pendingComments +
+      pendingRecommendations,
+  };
+};
+
+const getRecentProfessionalRequests = async () =>
+  safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 5,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 5,
+        select: professionalRequestLegacySelect,
+      }),
+    []
+  );
+
+exports.getDashboardData = async () => {
+  const [
+    totalUsers,
+    totalStudents,
+    totalProfessors,
+    pendingRequests,
+    pendingValidationCounts,
+    recentRequests,
+  ] = await Promise.all([
+    safeCount(() => prisma.user.count()),
+    safeCount(() => prisma.user.count({ where: { role: 'STUDENT' } })),
+    safeCount(() => prisma.user.count({ where: { role: 'PROFESSOR' } })),
+    safeCount(() =>
+      prisma.user.count({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+      })
+    ),
+    getPendingValidationCounts(),
+    getRecentProfessionalRequests(),
+  ]);
 
   return {
     summaryCards: {
@@ -595,7 +710,7 @@ exports.getDashboardData = async () => {
     },
     urgentActions: {
       pendingAccessRequests: pendingRequests,
-      pendingValidations,
+      pendingValidations: pendingValidationCounts.total,
       reports: 0,
     },
     recentRequests: recentRequests.map(mapProfessionalRequest),
