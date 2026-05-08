@@ -67,6 +67,32 @@ const professionalRequestLegacySelect = {
   },
 };
 
+const recentCertificateSelect = {
+  id: true,
+  validationStatus: true,
+  submittedAt: true,
+  documentUrl: true,
+  activity: {
+    select: {
+      id: true,
+      title: true,
+      organization: true,
+      student: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 const userSelect = {
   id: true,
   lastName: true,
@@ -228,20 +254,48 @@ const mapProfessionalRequest = (user) => {
 
   return {
     id: user.id,
-    requesterName: formatFullName(user),
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    phone: user.phone,
-    profilePicture: user.profilePicture,
-    accountStatus: user.accountStatus,
-    createdAt: user.createdAt,
-    lastLoginAt: user.lastLoginAt,
-    organization: professional?.company || null,
     type: 'ACCESS_REQUEST',
     label: "Demande d'acces",
+    requesterName: formatFullName(user),
+    email: user.email,
+    organization: professional?.company || null,
+    createdAt: user.createdAt,
     tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
-    professional,
+    status: user.accountStatus,
+    raw: {
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      profilePicture: user.profilePicture,
+      lastLoginAt: user.lastLoginAt,
+      accountStatus: user.accountStatus,
+      professional,
+    },
+  };
+};
+
+const mapCertificateRequest = (certificate) => {
+  const requester = certificate.activity?.student?.user;
+
+  return {
+    id: certificate.id,
+    type: 'CERTIFICATE_VALIDATION',
+    label: 'Certificate validation',
+    requesterName: requester ? formatFullName(requester) : 'Etudiant inconnu',
+    email: requester?.email || null,
+    organization: certificate.activity?.organization || null,
+    createdAt: certificate.submittedAt,
+    tone: 'green',
+    status: certificate.validationStatus,
+    raw: {
+      certificateId: certificate.id,
+      documentUrl: certificate.documentUrl,
+      submittedAt: certificate.submittedAt,
+      activityId: certificate.activity?.id || null,
+      activityTitle: certificate.activity?.title || null,
+      studentId: certificate.activity?.student?.id || null,
+    },
   };
 };
 
@@ -660,6 +714,7 @@ const getRecentProfessionalRequests = async () =>
       prisma.user.findMany({
         where: {
           role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
         },
         orderBy: [{ createdAt: 'desc' }],
         take: 5,
@@ -669,6 +724,7 @@ const getRecentProfessionalRequests = async () =>
       prisma.user.findMany({
         where: {
           role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
         },
         orderBy: [{ createdAt: 'desc' }],
         take: 5,
@@ -676,6 +732,32 @@ const getRecentProfessionalRequests = async () =>
       }),
     []
   );
+
+const getRecentCertificateRequests = async () =>
+  safeReadWithFallback(
+    () =>
+      prisma.certificate.findMany({
+        where: {
+          validationStatus: 'PENDING',
+        },
+        orderBy: [{ submittedAt: 'desc' }],
+        take: 5,
+        select: recentCertificateSelect,
+      }),
+    null,
+    []
+  );
+
+const getRecentDashboardRequests = async () => {
+  const [professionalRequests, certificateRequests] = await Promise.all([
+    getRecentProfessionalRequests(),
+    getRecentCertificateRequests(),
+  ]);
+
+  return [...professionalRequests.map(mapProfessionalRequest), ...certificateRequests.map(mapCertificateRequest)]
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .slice(0, 5);
+};
 
 exports.getDashboardData = async () => {
   const [
@@ -698,7 +780,7 @@ exports.getDashboardData = async () => {
       })
     ),
     getPendingValidationCounts(),
-    getRecentProfessionalRequests(),
+    getRecentDashboardRequests(),
   ]);
 
   return {
@@ -713,7 +795,7 @@ exports.getDashboardData = async () => {
       pendingValidations: pendingValidationCounts.total,
       reports: 0,
     },
-    recentRequests: recentRequests.map(mapProfessionalRequest),
+    recentRequests,
   };
 };
 
