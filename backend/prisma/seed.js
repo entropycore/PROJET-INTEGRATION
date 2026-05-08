@@ -30,7 +30,7 @@ async function main() {
     data: {
       lastName: 'Zaaboul',
       firstName: 'Mohamed',
-      email: 'etudiant@credencia.ma',
+      email: 'etudiant@credencia.ma', //neaveau mot de passe pour les tests : Temp567c7e1aAa!1  pour supabase
       passwordHash: passwordHash,
       accountStatus: 'ACTIVE',
       role: 'STUDENT',
