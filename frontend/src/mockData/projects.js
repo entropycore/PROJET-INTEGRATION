@@ -22,6 +22,57 @@ export const mockProjects = [
   
       validationComment:
         'Excellent travail, architecture propre et documentation claire.',
+        githubUrl: 'https://github.com/...',
+demoUrl: 'https://...',
+documentationUrl: 'https://...',
+portfolioUrl: 'https://...',
+
+coverImage: '/images/mock/project-cover.png',
+
+attachments: [
+  {
+    id: 1,
+    name: 'Rapport du projet.pdf',
+    type: 'PDF',
+    url: '#'
+  },
+  {
+    id: 2,
+    name: 'Certificat de participation.png',
+    type: 'IMAGE',
+    url: '#'
+  }
+],
+
+validationHistory: [
+  {
+    id: 1,
+    status: 'DRAFT',
+    title: 'Projet créé',
+    comment: 'Le projet a été enregistré comme brouillon.',
+    actorName: 'Mohamed Zaaboul',
+    actorRole: 'Étudiant',
+    createdAt: '2026-03-12'
+  },
+  {
+    id: 2,
+    status: 'PENDING',
+    title: 'Projet soumis',
+    comment: 'Projet envoyé pour validation académique.',
+    actorName: 'Mohamed Zaaboul',
+    actorRole: 'Étudiant',
+    createdAt: '2026-03-14'
+  },
+  {
+    id: 3,
+    status: 'APPROVED',
+    title: 'Projet validé',
+    comment: 'Excellent travail, architecture propre et documentation claire.',
+    actorName: 'Pr. Moussaoui',
+    actorRole: 'Validateur académique',
+    createdAt: '2026-03-18'
+  }
+]
     },
   
     {
@@ -81,7 +132,7 @@ export const mockProjects = [
       title: 'Hackathon Green Campus',
   
       description:
-        'Prototype d’une plateforme de suivi énergétique intelligente pour les établissements universitaires.',
+        'Prototype d\'une plateforme de suivi énergétique intelligente pour les établissements universitaires.',
   
       type: 'Hackathon',
   
