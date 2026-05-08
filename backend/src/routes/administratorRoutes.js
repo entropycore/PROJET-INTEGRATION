@@ -12,6 +12,8 @@ router.use(checkRoles('ADMINISTRATOR'));
 
 router.get('/dashboard', administratorController.getDashboard);
 router.get('/dashboard-items/:itemType/:itemId', administratorController.getDashboardItemDetail);
+router.patch('/dashboard-items/:itemType/:itemId/approve', administratorController.approveDashboardItem);
+router.patch('/dashboard-items/:itemType/:itemId/reject', administratorController.rejectDashboardItem);
 router.get('/profile', administratorController.getProfile);
 router.get('/users', administratorController.listUsers);
 router.post('/users', administratorController.createUser);
