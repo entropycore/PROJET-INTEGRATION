@@ -26,8 +26,30 @@ export const studentStages = [
       'Connexion progressive aux APIs backend',
     ],
     reportUrl: '/mock/reports/stage-capgemini.pdf',
-    images: [],
-    validationHistory: [],
+    images: [
+  {
+    id: 1,
+    title: 'Interface principale',
+    url: '/mock/stages/stage-capgemini-1.png',
+  },
+  {
+    id: 2,
+    title: 'Tableau de bord',
+    url: '/mock/stages/stage-capgemini-2.png',
+  },
+],
+    validationHistory: [
+  {
+    status: 'PENDING',
+    comment: 'Stage soumis pour validation.',
+    createdAt: '2026-07-25',
+  },
+  {
+    status: 'APPROVED',
+    comment: 'Stage validé par l’encadrant.',
+    createdAt: '2026-07-28',
+  },
+],
     createdAt: '2026-06-01',
     updatedAt: '2026-07-28',
   },
@@ -55,7 +77,13 @@ export const studentStages = [
     ],
     reportUrl: '/mock/reports/stage-orange.pdf',
     images: [],
-    validationHistory: [],
+    validationHistory: [
+  {
+    status: 'PENDING',
+    comment: 'Stage soumis, en attente de validation.',
+    createdAt: '2026-05-02',
+  },
+],
     createdAt: '2026-02-01',
     updatedAt: '2026-05-02',
   },
