@@ -74,6 +74,10 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Signalement introuvable.');
   }
 
+  if (err.message === 'NOTIFICATION_NOT_FOUND') {
+    return error(res, 404, 'Notification introuvable.');
+  }
+
   if (err.message === 'INVALID_NOTIFICATION_TYPE') {
     return error(res, 400, 'Le type de notification est invalide.');
   }
@@ -311,6 +315,31 @@ exports.listNotifications = async (req, res, next) => {
     });
 
     return success(res, 200, 'Notifications recuperees.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.markNotificationAsRead = async (req, res, next) => {
+  try {
+    const notification = await administratorService.markNotificationAsRead(
+      req.params.notificationId,
+      req.user.roleId
+    );
+
+    return success(res, 200, 'Notification marquee comme lue.', notification);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.markAllNotificationsAsRead = async (req, res, next) => {
+  try {
+    const result = await administratorService.markAllNotificationsAsRead(req.user.roleId);
+
+    return success(res, 200, 'Toutes les notifications ont ete marquees comme lues.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
