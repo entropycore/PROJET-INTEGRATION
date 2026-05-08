@@ -128,9 +128,24 @@ const router = createRouter({
             component: () => import('@/views/student/Projects.vue'),
             },
             {
-            path: 'stages',
-            name: 'Studentstages',
-            component: () => import('@/views/student/stages.vue'),
+            path: '/student/stages',
+            name: 'student-stages',
+            component: () => import('@/views/student/stages/StagesView.vue'),
+            },
+            {
+            path: '/student/stages/create',
+            name: 'student-stage-create',
+            component: () => import('@/views/student/stages/StageFormView.vue'),
+            },
+            {
+            path: '/student/stages/:id',
+            name: 'student-stage-details',
+            component: () => import('@/views/student/stages/StageDetailsView.vue'),
+            },
+            {
+            path: '/student/stages/:id/edit',
+            name: 'student-stage-edit',
+            component: () => import('@/views/student/stages/StageFormView.vue'),
             },
             {
             path: 'activities',
