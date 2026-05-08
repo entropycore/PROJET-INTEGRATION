@@ -12,6 +12,8 @@ const VALIDATION_ITEM_TYPES = [
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ];
+const REPORT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
+const REPORT_TARGET_TYPES = ['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'];
 const BCRYPT_ROUNDS = 10;
 
 const professionalRequestSelect = {
@@ -93,6 +95,41 @@ const recentCertificateSelect = {
               email: true,
             },
           },
+        },
+      },
+    },
+  },
+};
+
+const reportSelect = {
+  id: true,
+  targetType: true,
+  targetId: true,
+  reason: true,
+  description: true,
+  status: true,
+  createdAt: true,
+  reviewedAt: true,
+  resolutionNote: true,
+  reporterUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  reviewedByAdministrator: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
         },
       },
     },
@@ -627,6 +664,34 @@ const mapRecommendationValidationItem = (recommendation) => {
   };
 };
 
+const mapReportItem = (report) => {
+  const reporter = report.reporterUser;
+  const reviewer = report.reviewedByAdministrator?.user || null;
+
+  return {
+    id: report.id,
+    type: 'REPORT',
+    label: 'Report',
+    requesterName: reporter ? formatFullName(reporter) : 'Utilisateur inconnu',
+    email: reporter?.email || null,
+    organization: null,
+    createdAt: report.createdAt,
+    tone: 'red',
+    status: report.status,
+    raw: {
+      targetType: report.targetType,
+      targetId: report.targetId,
+      reason: report.reason,
+      description: report.description,
+      reviewedAt: report.reviewedAt,
+      resolutionNote: report.resolutionNote,
+      reporterUser: reporter,
+      reviewerName: reviewer ? formatFullName(reviewer) : null,
+      reviewerUser: reviewer,
+    },
+  };
+};
+
 const buildUserSearch = (search) => {
   if (!search) {
     return undefined;
@@ -673,6 +738,18 @@ const ensureValidValidationType = (type) => {
   }
 };
 
+const ensureValidReportStatus = (status) => {
+  if (!REPORT_STATUSES.includes(status)) {
+    throw new Error('INVALID_REPORT_STATUS');
+  }
+};
+
+const ensureValidReportTargetType = (targetType) => {
+  if (!REPORT_TARGET_TYPES.includes(targetType)) {
+    throw new Error('UNSUPPORTED_REPORT_TARGET_TYPE');
+  }
+};
+
 const paginateItems = (items, page = 1, limit = 10) => {
   const { page: safePage, limit: safeLimit, skip } = normalizePagination(page, limit);
 
@@ -701,6 +778,9 @@ const matchesValidationSearch = (item, search) => {
     item.raw?.portfolioTitle,
     item.raw?.authorName,
     item.raw?.studentName,
+    item.raw?.reason,
+    item.raw?.description,
+    item.raw?.targetType,
   ]
     .filter(Boolean)
     .map((value) => String(value).toLowerCase());
@@ -953,6 +1033,24 @@ const getValidationCertificateOrThrow = async (certificateId) => {
 
     throw err;
   }
+};
+
+const getReportOrThrow = async (reportId) => {
+  const report = await safeReadWithFallback(
+    () =>
+      prisma.report.findUnique({
+        where: { id: reportId },
+        select: reportSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!report) {
+    throw new Error('REPORT_NOT_FOUND');
+  }
+
+  return report;
 };
 
 const getRecommendationLetterValidationOrThrow = async (letterId) => {
@@ -1234,15 +1332,32 @@ const getRecentCertificateRequests = async () =>
     []
   );
 
+const getRecentReportItems = async () =>
+  safeReadWithFallback(
+    () =>
+      prisma.report.findMany({
+        where: {
+          status: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 5,
+        select: reportSelect,
+      }),
+    null,
+    []
+  );
+
 const getRecentDashboardRequests = async () => {
-  const [professionalRequests, certificateRequests] = await Promise.all([
+  const [professionalRequests, certificateRequests, reportItems] = await Promise.all([
     getRecentProfessionalRequests(),
     getRecentCertificateRequests(),
+    getRecentReportItems(),
   ]);
 
   return [
     ...professionalRequests.map(mapDashboardAccessRequest),
     ...certificateRequests.map(mapDashboardCertificateRequest),
+    ...reportItems.map(mapReportItem),
   ]
     .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
     .slice(0, 5);
@@ -1316,6 +1431,22 @@ const loadRecommendationValidationItems = async (status) =>
         orderBy: [{ createdAt: 'desc' }],
         take: 100,
         select: recommendationValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadReportItems = async (status, targetType) =>
+  safeReadWithFallback(
+    () =>
+      prisma.report.findMany({
+        where: {
+          ...(status ? { status } : {}),
+          ...(targetType ? { targetType } : {}),
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: reportSelect,
       }),
     null,
     []
@@ -1514,6 +1645,7 @@ exports.getDashboardData = async () => {
     totalProfessors,
     pendingRequests,
     pendingValidationCounts,
+    pendingReports,
     recentRequests,
   ] = await Promise.all([
     safeCount(() => prisma.user.count()),
@@ -1528,6 +1660,7 @@ exports.getDashboardData = async () => {
       })
     ),
     getPendingValidationCounts(),
+    safeCount(() => prisma.report.count({ where: { status: 'PENDING' } })),
     getRecentDashboardRequests(),
   ]);
 
@@ -1541,7 +1674,7 @@ exports.getDashboardData = async () => {
     urgentActions: {
       pendingAccessRequests: pendingRequests,
       pendingValidations: pendingValidationCounts.total,
-      reports: 0,
+      reports: pendingReports,
     },
     recentRequests,
   };
@@ -2088,6 +2221,76 @@ exports.rejectValidationItem = async (
   }
 };
 
+exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit = 10, search } = {}) => {
+  const normalizedTargetType = targetType
+    ? String(targetType).trim().toUpperCase().replace(/-/g, '_')
+    : null;
+
+  ensureValidReportStatus(status);
+
+  if (normalizedTargetType) {
+    ensureValidReportTargetType(normalizedTargetType);
+  }
+
+  const reports = await loadReportItems(status, normalizedTargetType);
+  const filteredReports = reports
+    .map(mapReportItem)
+    .filter((item) => matchesValidationSearch(item, search));
+
+  const paginated = paginateItems(filteredReports, page, limit);
+
+  return {
+    filters: {
+      status,
+      targetType: normalizedTargetType,
+      search: search || null,
+    },
+    ...paginated,
+  };
+};
+
+exports.getReportById = async (reportId) => mapReportItem(await getReportOrThrow(reportId));
+
+exports.approveReport = async (reportId, administratorId, resolutionNote = null) => {
+  const report = await getReportOrThrow(reportId);
+
+  if (report.status !== 'PENDING') {
+    throw new Error('REPORT_INVALID_STATE');
+  }
+
+  await prisma.report.update({
+    where: { id: reportId },
+    data: {
+      status: 'APPROVED',
+      reviewedByAdministratorId: administratorId,
+      reviewedAt: new Date(),
+      resolutionNote,
+    },
+  });
+
+  return exports.getReportById(reportId);
+};
+
+exports.rejectReport = async (reportId, administratorId, resolutionNote = null) => {
+  const report = await getReportOrThrow(reportId);
+
+  if (report.status !== 'PENDING') {
+    throw new Error('REPORT_INVALID_STATE');
+  }
+
+  await prisma.report.update({
+    where: { id: reportId },
+    data: {
+      status: 'REJECTED',
+      reviewedByAdministratorId: administratorId,
+      reviewedAt: new Date(),
+      resolutionNote,
+    },
+  });
+
+  return exports.getReportById(reportId);
+};
+
 exports.getDashboardItemDetail = async (itemType, itemId) => {
   const normalizedType = String(itemType || '')
     .trim()
@@ -2104,6 +2307,9 @@ exports.getDashboardItemDetail = async (itemType, itemId) => {
       const certificate = await getCertificateRequestOrThrow(itemId);
       return mapCertificateRequestDetail(certificate);
     }
+
+    case 'REPORT':
+      return exports.getReportById(itemId);
 
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ITEM_TYPE');
@@ -2125,6 +2331,17 @@ exports.approveDashboardItem = async (itemType, itemId, administratorId, payload
         itemId,
         administratorId,
         typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+      );
+
+    case 'REPORT':
+      return exports.approveReport(
+        itemId,
+        administratorId,
+        typeof payload.resolutionNote === 'string'
+          ? payload.resolutionNote.trim() || null
+          : typeof payload.comment === 'string'
+            ? payload.comment.trim() || null
+            : null
       );
 
     default:
@@ -2153,6 +2370,9 @@ exports.rejectDashboardItem = async (itemType, itemId, administratorId, payload 
 
     case 'CERTIFICATE_VALIDATION':
       return rejectCertificateRequest(itemId, administratorId, normalizedComment);
+
+    case 'REPORT':
+      return exports.rejectReport(itemId, administratorId, normalizedComment);
 
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
