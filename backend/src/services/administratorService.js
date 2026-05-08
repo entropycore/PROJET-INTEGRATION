@@ -6,6 +6,12 @@ const prisma = require('../config/prisma');
 
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
 const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
+const VALIDATION_ITEM_TYPES = [
+  'CERTIFICATE_VALIDATION',
+  'RECOMMENDATION_LETTER_VALIDATION',
+  'COMMENT_VALIDATION',
+  'RECOMMENDATION_VALIDATION',
+];
 const BCRYPT_ROUNDS = 10;
 
 const professionalRequestSelect = {
@@ -89,6 +95,161 @@ const recentCertificateSelect = {
           },
         },
       },
+    },
+  },
+};
+
+const recommendationLetterValidationSelect = {
+  id: true,
+  validationStatus: true,
+  createdAt: true,
+  validatedAt: true,
+  rejectionReason: true,
+  title: true,
+  content: true,
+  type: true,
+  documentUrl: true,
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+        },
+      },
+    },
+  },
+  authorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  validatorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  },
+};
+
+const commentValidationSelect = {
+  id: true,
+  status: true,
+  createdAt: true,
+  validatedAt: true,
+  rejectionReason: true,
+  targetType: true,
+  targetId: true,
+  content: true,
+  authorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  validatorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  },
+  portfolio: {
+    select: {
+      id: true,
+      title: true,
+      publicSlug: true,
+      student: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const recommendationValidationSelect = {
+  id: true,
+  status: true,
+  createdAt: true,
+  validatedAt: true,
+  rejectionReason: true,
+  title: true,
+  content: true,
+  organization: true,
+  authorJobTitle: true,
+  recommendationType: true,
+  authorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  validatorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  },
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+  },
+  portfolio: {
+    select: {
+      id: true,
+      title: true,
+      publicSlug: true,
     },
   },
 };
@@ -373,6 +534,99 @@ const mapCertificateRequestDetail = (certificate) => {
   };
 };
 
+const mapRecommendationLetterValidationItem = (letter) => {
+  const studentUser = letter.student?.user;
+  const authorUser = letter.authorUser;
+
+  return {
+    id: letter.id,
+    type: 'RECOMMENDATION_LETTER_VALIDATION',
+    label: 'Recommendation letter validation',
+    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
+    email: studentUser?.email || null,
+    organization: null,
+    createdAt: letter.createdAt,
+    tone: 'green',
+    status: letter.validationStatus,
+    raw: {
+      title: letter.title,
+      content: letter.content,
+      letterType: letter.type,
+      documentUrl: letter.documentUrl,
+      validatedAt: letter.validatedAt,
+      rejectionReason: letter.rejectionReason,
+      authorName: authorUser ? formatFullName(authorUser) : null,
+      authorUser,
+      studentName: studentUser ? formatFullName(studentUser) : null,
+      student: letter.student,
+      validatorUser: letter.validatorUser,
+    },
+  };
+};
+
+const mapCommentValidationItem = (comment) => {
+  const authorUser = comment.authorUser;
+  const studentUser = comment.portfolio?.student?.user;
+
+  return {
+    id: comment.id,
+    type: 'COMMENT_VALIDATION',
+    label: 'Comment validation',
+    requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
+    email: authorUser?.email || null,
+    organization: null,
+    createdAt: comment.createdAt,
+    tone: 'green',
+    status: comment.status,
+    raw: {
+      title: comment.portfolio?.title || null,
+      content: comment.content,
+      targetType: comment.targetType,
+      targetId: comment.targetId,
+      validatedAt: comment.validatedAt,
+      rejectionReason: comment.rejectionReason,
+      authorName: authorUser ? formatFullName(authorUser) : null,
+      authorUser,
+      studentName: studentUser ? formatFullName(studentUser) : null,
+      portfolioTitle: comment.portfolio?.title || null,
+      portfolio: comment.portfolio,
+      validatorUser: comment.validatorUser,
+    },
+  };
+};
+
+const mapRecommendationValidationItem = (recommendation) => {
+  const authorUser = recommendation.authorUser;
+  const studentUser = recommendation.student?.user;
+
+  return {
+    id: recommendation.id,
+    type: 'RECOMMENDATION_VALIDATION',
+    label: 'Recommendation validation',
+    requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
+    email: authorUser?.email || null,
+    organization: recommendation.organization || null,
+    createdAt: recommendation.createdAt,
+    tone: 'green',
+    status: recommendation.status,
+    raw: {
+      title: recommendation.title,
+      content: recommendation.content,
+      authorJobTitle: recommendation.authorJobTitle,
+      recommendationType: recommendation.recommendationType,
+      validatedAt: recommendation.validatedAt,
+      rejectionReason: recommendation.rejectionReason,
+      authorName: authorUser ? formatFullName(authorUser) : null,
+      authorUser,
+      studentName: studentUser ? formatFullName(studentUser) : null,
+      student: recommendation.student,
+      portfolioTitle: recommendation.portfolio?.title || null,
+      portfolio: recommendation.portfolio,
+      validatorUser: recommendation.validatorUser,
+    },
+  };
+};
+
 const buildUserSearch = (search) => {
   if (!search) {
     return undefined;
@@ -409,6 +663,50 @@ const buildPagination = (page, limit, total) => ({
   total,
   totalPages: Math.max(1, Math.ceil(total / limit)),
 });
+
+const normalizeValidationType = (value) =>
+  typeof value === 'string' ? value.trim().toUpperCase().replace(/-/g, '_') : value;
+
+const ensureValidValidationType = (type) => {
+  if (!VALIDATION_ITEM_TYPES.includes(type)) {
+    throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+const paginateItems = (items, page = 1, limit = 10) => {
+  const { page: safePage, limit: safeLimit, skip } = normalizePagination(page, limit);
+
+  return {
+    items: items.slice(skip, skip + safeLimit),
+    pagination: buildPagination(safePage, safeLimit, items.length),
+  };
+};
+
+const normalizeSearch = (value) => String(value || '').trim().toLowerCase();
+
+const matchesValidationSearch = (item, search) => {
+  const normalizedSearch = normalizeSearch(search);
+
+  if (!normalizedSearch) {
+    return true;
+  }
+
+  const haystacks = [
+    item.requesterName,
+    item.email,
+    item.label,
+    item.organization,
+    item.raw?.title,
+    item.raw?.activityTitle,
+    item.raw?.portfolioTitle,
+    item.raw?.authorName,
+    item.raw?.studentName,
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+
+  return haystacks.some((value) => value.includes(normalizedSearch));
+};
 
 const buildProfessionalProfileData = (payload, accountStatus) => {
   const isPendingApproval = accountStatus === 'PENDING';
@@ -645,6 +943,72 @@ const getCertificateRequestOrThrow = async (certificateId) => {
   return certificate;
 };
 
+const getValidationCertificateOrThrow = async (certificateId) => {
+  try {
+    return await getCertificateRequestOrThrow(certificateId);
+  } catch (err) {
+    if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+      throw new Error('VALIDATION_ITEM_NOT_FOUND');
+    }
+
+    throw err;
+  }
+};
+
+const getRecommendationLetterValidationOrThrow = async (letterId) => {
+  const letter = await safeReadWithFallback(
+    () =>
+      prisma.recommendationLetter.findUnique({
+        where: { id: letterId },
+        select: recommendationLetterValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!letter) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return letter;
+};
+
+const getCommentValidationOrThrow = async (commentId) => {
+  const comment = await safeReadWithFallback(
+    () =>
+      prisma.comment.findUnique({
+        where: { id: commentId },
+        select: commentValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!comment) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return comment;
+};
+
+const getRecommendationValidationOrThrow = async (recommendationId) => {
+  const recommendation = await safeReadWithFallback(
+    () =>
+      prisma.recommendation.findUnique({
+        where: { id: recommendationId },
+        select: recommendationValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!recommendation) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return recommendation;
+};
+
 const deleteCurrentProfile = async (tx, user) => {
   if (user.student) {
     await tx.student.delete({ where: { userId: user.id } });
@@ -806,15 +1170,11 @@ const buildTemporaryPassword = () => {
 
 const getPendingValidationCounts = async () => {
   const [
-    pendingProjects,
-    pendingInternships,
     pendingCertificates,
     pendingLetters,
     pendingComments,
     pendingRecommendations,
   ] = await Promise.all([
-    safeCount(() => prisma.project.count({ where: { validationStatus: 'PENDING' } })),
-    safeCount(() => prisma.internship.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.certificate.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.recommendationLetter.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.comment.count({ where: { status: 'PENDING' } })),
@@ -822,15 +1182,11 @@ const getPendingValidationCounts = async () => {
   ]);
 
   return {
-    pendingProjects,
-    pendingInternships,
     pendingCertificates,
     pendingLetters,
     pendingComments,
     pendingRecommendations,
     total:
-      pendingProjects +
-      pendingInternships +
       pendingCertificates +
       pendingLetters +
       pendingComments +
@@ -913,11 +1269,63 @@ const getProfessionalRequestsList = async (where, skip, take) =>
     []
   );
 
+const loadCertificateValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.certificate.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ submittedAt: 'desc' }],
+        take: 100,
+        select: certificateDetailSelect,
+      }),
+    null,
+    []
+  );
+
+const loadRecommendationLetterValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.recommendationLetter.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: recommendationLetterValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadCommentValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.comment.findMany({
+        where: { status },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: commentValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadRecommendationValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.recommendation.findMany({
+        where: { status },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: recommendationValidationSelect,
+      }),
+    null,
+    []
+  );
+
 const approveCertificateRequest = async (certificateId, administratorId, comment = null) => {
   const certificate = await getCertificateRequestOrThrow(certificateId);
 
   if (certificate.validationStatus !== 'PENDING') {
-    throw new Error('DASHBOARD_ITEM_INVALID_STATE');
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
   }
 
   await prisma.$transaction(async (tx) => {
@@ -944,7 +1352,7 @@ const rejectCertificateRequest = async (certificateId, administratorId, comment 
   const certificate = await getCertificateRequestOrThrow(certificateId);
 
   if (certificate.validationStatus !== 'PENDING') {
-    throw new Error('DASHBOARD_ITEM_INVALID_STATE');
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
   }
 
   await prisma.$transaction(async (tx) => {
@@ -965,6 +1373,138 @@ const rejectCertificateRequest = async (certificateId, administratorId, comment 
 
   const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
   return mapCertificateRequestDetail(updatedCertificate);
+};
+
+const approveRecommendationLetterValidation = async (letterId, actorUserId) => {
+  const letter = await getRecommendationLetterValidationOrThrow(letterId);
+
+  if (letter.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendationLetter.update({
+    where: { id: letterId },
+    data: {
+      validationStatus: 'APPROVED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: null,
+    },
+  });
+
+  return mapRecommendationLetterValidationItem(
+    await getRecommendationLetterValidationOrThrow(letterId)
+  );
+};
+
+const rejectRecommendationLetterValidation = async (letterId, actorUserId, rejectionReason = null) => {
+  const letter = await getRecommendationLetterValidationOrThrow(letterId);
+
+  if (letter.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendationLetter.update({
+    where: { id: letterId },
+    data: {
+      validationStatus: 'REJECTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason,
+    },
+  });
+
+  return mapRecommendationLetterValidationItem(
+    await getRecommendationLetterValidationOrThrow(letterId)
+  );
+};
+
+const approveCommentValidation = async (commentId, actorUserId) => {
+  const comment = await getCommentValidationOrThrow(commentId);
+
+  if (comment.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      status: 'APPROVED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: null,
+    },
+  });
+
+  return mapCommentValidationItem(await getCommentValidationOrThrow(commentId));
+};
+
+const rejectCommentValidation = async (commentId, actorUserId, rejectionReason = null) => {
+  const comment = await getCommentValidationOrThrow(commentId);
+
+  if (comment.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      status: 'REJECTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason,
+    },
+  });
+
+  return mapCommentValidationItem(await getCommentValidationOrThrow(commentId));
+};
+
+const approveRecommendationValidation = async (recommendationId, actorUserId) => {
+  const recommendation = await getRecommendationValidationOrThrow(recommendationId);
+
+  if (recommendation.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: 'APPROVED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: null,
+    },
+  });
+
+  return mapRecommendationValidationItem(
+    await getRecommendationValidationOrThrow(recommendationId)
+  );
+};
+
+const rejectRecommendationValidation = async (
+  recommendationId,
+  actorUserId,
+  rejectionReason = null
+) => {
+  const recommendation = await getRecommendationValidationOrThrow(recommendationId);
+
+  if (recommendation.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: 'REJECTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason,
+    },
+  });
+
+  return mapRecommendationValidationItem(
+    await getRecommendationValidationOrThrow(recommendationId)
+  );
 };
 
 exports.getDashboardData = async () => {
@@ -1387,6 +1927,165 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
   });
 
   return exports.getProfessionalRequest(userId);
+};
+
+exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
+  const normalizedType = type ? normalizeValidationType(type) : null;
+
+  if (normalizedType) {
+    ensureValidValidationType(normalizedType);
+  }
+
+  const loaders = [];
+
+  if (!normalizedType || normalizedType === 'CERTIFICATE_VALIDATION') {
+    loaders.push(loadCertificateValidationItems(status).then((items) => items.map(mapCertificateRequestDetail)));
+  }
+
+  if (!normalizedType || normalizedType === 'RECOMMENDATION_LETTER_VALIDATION') {
+    loaders.push(
+      loadRecommendationLetterValidationItems(status).then((items) =>
+        items.map(mapRecommendationLetterValidationItem)
+      )
+    );
+  }
+
+  if (!normalizedType || normalizedType === 'COMMENT_VALIDATION') {
+    loaders.push(loadCommentValidationItems(status).then((items) => items.map(mapCommentValidationItem)));
+  }
+
+  if (!normalizedType || normalizedType === 'RECOMMENDATION_VALIDATION') {
+    loaders.push(
+      loadRecommendationValidationItems(status).then((items) =>
+        items.map(mapRecommendationValidationItem)
+      )
+    );
+  }
+
+  const mergedItems = (await Promise.all(loaders))
+    .flat()
+    .filter((item) => matchesValidationSearch(item, search))
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+
+  const paginated = paginateItems(mergedItems, page, limit);
+
+  return {
+    filters: {
+      type: normalizedType,
+      status,
+      search: search || null,
+    },
+    ...paginated,
+  };
+};
+
+exports.getValidationItemDetail = async (itemType, itemId) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      return mapCertificateRequestDetail(await getValidationCertificateOrThrow(itemId));
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return mapRecommendationLetterValidationItem(
+        await getRecommendationLetterValidationOrThrow(itemId)
+      );
+
+    case 'COMMENT_VALIDATION':
+      return mapCommentValidationItem(await getCommentValidationOrThrow(itemId));
+
+    case 'RECOMMENDATION_VALIDATION':
+      return mapRecommendationValidationItem(await getRecommendationValidationOrThrow(itemId));
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.approveValidationItem = async (
+  itemType,
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      try {
+        return await approveCertificateRequest(
+          itemId,
+          administratorId,
+          typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+        );
+      } catch (err) {
+        if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+          throw new Error('VALIDATION_ITEM_NOT_FOUND');
+        }
+
+        throw err;
+      }
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return approveRecommendationLetterValidation(itemId, actorUserId);
+
+    case 'COMMENT_VALIDATION':
+      return approveCommentValidation(itemId, actorUserId);
+
+    case 'RECOMMENDATION_VALIDATION':
+      return approveRecommendationValidation(itemId, actorUserId);
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.rejectValidationItem = async (
+  itemType,
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  const normalizedReason =
+    typeof payload.comment === 'string'
+      ? payload.comment.trim() || null
+      : typeof payload.rejectionReason === 'string'
+        ? payload.rejectionReason.trim() || null
+        : typeof payload.reason === 'string'
+          ? payload.reason.trim() || null
+          : null;
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      try {
+        return await rejectCertificateRequest(itemId, administratorId, normalizedReason);
+      } catch (err) {
+        if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+          throw new Error('VALIDATION_ITEM_NOT_FOUND');
+        }
+
+        throw err;
+      }
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return rejectRecommendationLetterValidation(itemId, actorUserId, normalizedReason);
+
+    case 'COMMENT_VALIDATION':
+      return rejectCommentValidation(itemId, actorUserId, normalizedReason);
+
+    case 'RECOMMENDATION_VALIDATION':
+      return rejectRecommendationValidation(itemId, actorUserId, normalizedReason);
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
 };
 
 exports.getDashboardItemDetail = async (itemType, itemId) => {
