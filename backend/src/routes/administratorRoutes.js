@@ -11,6 +11,7 @@ router.use(authMiddleware);
 router.use(checkRoles('ADMINISTRATOR'));
 
 router.get('/dashboard', administratorController.getDashboard);
+router.get('/dashboard-items/:itemType/:itemId', administratorController.getDashboardItemDetail);
 router.get('/profile', administratorController.getProfile);
 router.get('/users', administratorController.listUsers);
 router.post('/users', administratorController.createUser);

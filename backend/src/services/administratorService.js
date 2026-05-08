@@ -249,7 +249,29 @@ const mapUserSummary = (user) => ({
   },
 });
 
-const mapProfessionalRequest = (user) => {
+const mapProfessionalRequestDetail = (user) => {
+  const professional = normalizeProfessionalData(user.professional);
+
+  return {
+    id: user.id,
+    requesterName: formatFullName(user),
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    profilePicture: user.profilePicture,
+    accountStatus: user.accountStatus,
+    createdAt: user.createdAt,
+    lastLoginAt: user.lastLoginAt,
+    organization: professional?.company || null,
+    type: 'ACCESS_REQUEST',
+    label: "Demande d'acces",
+    tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
+    professional,
+  };
+};
+
+const mapDashboardAccessRequest = (user) => {
   const professional = normalizeProfessionalData(user.professional);
 
   return {
@@ -275,7 +297,7 @@ const mapProfessionalRequest = (user) => {
   };
 };
 
-const mapCertificateRequest = (certificate) => {
+const mapDashboardCertificateRequest = (certificate) => {
   const requester = certificate.activity?.student?.user;
 
   return {
@@ -295,6 +317,58 @@ const mapCertificateRequest = (certificate) => {
       activityId: certificate.activity?.id || null,
       activityTitle: certificate.activity?.title || null,
       studentId: certificate.activity?.student?.id || null,
+    },
+  };
+};
+
+const mapCertificateRequestDetail = (certificate) => {
+  const requester = certificate.activity?.student?.user;
+
+  return {
+    id: certificate.id,
+    type: 'CERTIFICATE_VALIDATION',
+    label: 'Certificate validation',
+    requesterName: requester ? formatFullName(requester) : 'Etudiant inconnu',
+    email: requester?.email || null,
+    organization: certificate.activity?.organization || null,
+    createdAt: certificate.submittedAt,
+    tone: 'green',
+    status: certificate.validationStatus,
+    raw: {
+      certificateId: certificate.id,
+      documentUrl: certificate.documentUrl,
+      submittedAt: certificate.submittedAt,
+      activity: certificate.activity
+        ? {
+            id: certificate.activity.id,
+            title: certificate.activity.title,
+            description: certificate.activity.description || null,
+            type: certificate.activity.type || null,
+            organization: certificate.activity.organization || null,
+            startDate: certificate.activity.startDate || null,
+            endDate: certificate.activity.endDate || null,
+          }
+        : null,
+      student: certificate.activity?.student
+        ? {
+            id: certificate.activity.student.id,
+            apogeeCode: certificate.activity.student.apogeeCode || null,
+            cne: certificate.activity.student.cne || null,
+            major: certificate.activity.student.major,
+            level: certificate.activity.student.level,
+            city: certificate.activity.student.city || null,
+            user: requester
+              ? {
+                  id: requester.id,
+                  firstName: requester.firstName,
+                  lastName: requester.lastName,
+                  email: requester.email,
+                  phone: requester.phone || null,
+                  profilePicture: requester.profilePicture || null,
+                }
+              : null,
+          }
+        : null,
     },
   };
 };
@@ -493,6 +567,44 @@ const getUserOrThrow = async (userId) => {
   return user;
 };
 
+const certificateDetailSelect = {
+  id: true,
+  validationStatus: true,
+  submittedAt: true,
+  documentUrl: true,
+  activity: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      type: true,
+      organization: true,
+      startDate: true,
+      endDate: true,
+      student: {
+        select: {
+          id: true,
+          apogeeCode: true,
+          cne: true,
+          major: true,
+          level: true,
+          city: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              profilePicture: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 const getProfessionalRequestOrThrow = async (userId) => {
   const user = await safeReadWithFallback(
     () =>
@@ -513,6 +625,24 @@ const getProfessionalRequestOrThrow = async (userId) => {
   }
 
   return user;
+};
+
+const getCertificateRequestOrThrow = async (certificateId) => {
+  const certificate = await safeReadWithFallback(
+    () =>
+      prisma.certificate.findUnique({
+        where: { id: certificateId },
+        select: certificateDetailSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!certificate) {
+    throw new Error('DASHBOARD_ITEM_NOT_FOUND');
+  }
+
+  return certificate;
 };
 
 const deleteCurrentProfile = async (tx, user) => {
@@ -754,10 +884,34 @@ const getRecentDashboardRequests = async () => {
     getRecentCertificateRequests(),
   ]);
 
-  return [...professionalRequests.map(mapProfessionalRequest), ...certificateRequests.map(mapCertificateRequest)]
+  return [
+    ...professionalRequests.map(mapDashboardAccessRequest),
+    ...certificateRequests.map(mapDashboardCertificateRequest),
+  ]
     .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
     .slice(0, 5);
 };
+
+const getProfessionalRequestsList = async (where, skip, take) =>
+  safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip,
+        take,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip,
+        take,
+        select: professionalRequestLegacySelect,
+      }),
+    []
+  );
 
 exports.getDashboardData = async () => {
   const [
@@ -1094,25 +1248,19 @@ exports.listProfessionalRequests = async ({ status, emailVerified, page = 1, lim
   };
 
   const [total, requests] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      orderBy: [{ createdAt: 'desc' }],
-      skip,
-      take: safeLimit,
-      select: professionalRequestSelect,
-    }),
+    safeCount(() => prisma.user.count({ where })),
+    getProfessionalRequestsList(where, skip, safeLimit),
   ]);
 
   return {
-    items: requests.map(mapProfessionalRequest),
+    items: requests.map(mapProfessionalRequestDetail),
     pagination: buildPagination(safePage, safeLimit, total),
   };
 };
 
 exports.getProfessionalRequest = async (userId) => {
   const request = await getProfessionalRequestOrThrow(userId);
-  return mapProfessionalRequest(request);
+  return mapProfessionalRequestDetail(request);
 };
 
 exports.approveProfessionalRequest = async (userId, administratorId) => {
@@ -1185,4 +1333,26 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
   });
 
   return exports.getProfessionalRequest(userId);
+};
+
+exports.getDashboardItemDetail = async (itemType, itemId) => {
+  const normalizedType = String(itemType || '')
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, '_');
+
+  switch (normalizedType) {
+    case 'ACCESS_REQUEST': {
+      const request = await getProfessionalRequestOrThrow(itemId);
+      return mapProfessionalRequestDetail(request);
+    }
+
+    case 'CERTIFICATE_VALIDATION': {
+      const certificate = await getCertificateRequestOrThrow(itemId);
+      return mapCertificateRequestDetail(certificate);
+    }
+
+    default:
+      throw new Error('UNSUPPORTED_DASHBOARD_ITEM_TYPE');
+  }
 };
