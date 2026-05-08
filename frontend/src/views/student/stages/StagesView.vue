@@ -41,18 +41,17 @@ const goToCreate = () => {
 <template>
   <section class="stages-page">
     <div class="page-header">
-      <div>
-        <h1>Stages</h1>
-        <p>
-          Gérez vos expériences de stage, vos rapports et vos demandes de validation.
-        </p>
-      </div>
+  <div>
+    <span class="page-label">STAGE</span>
+    <h1>Mes stages</h1>
+    <p>Faites valider vos expériences de stage</p>
+  </div>
 
-      <button class="add-btn" @click="goToCreate">
-        <span>+</span>
-        Ajouter un stage
-      </button>
-    </div>
+  <button class="add-btn" @click="goToCreate">
+    <span class="material-icons-round">add</span>
+    Ajouter un stage
+  </button>
+</div>
 
     <StageFilters
       v-model:search="search"
@@ -78,54 +77,63 @@ const goToCreate = () => {
 
 <style scoped>
 .stages-page {
-  padding: 8px 0 32px;
+  padding: 0;
 }
 
 .page-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 30px;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
 }
 
-h1 {
-  font-size: 44px;
-  line-height: 1;
+.page-label {
+  display: inline-block;
+      margin: 0 0 0.4rem;
+    color: #a8aca8;
+    font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+    font-style: italic;
+}
+
+
+.page-header h1 {
+  font-size: 32px;
+  line-height: 1.15;
   color: #28363d;
-  margin-bottom: 12px;
+  margin: 0 0 4px;
+  font-weight: 700;
 }
 
-p {
+.page-header p {
   color: #6d9197;
-  font-size: 17px;
+  font-size: 14px;
   font-style: italic;
+  margin: 0;
 }
 
 .add-btn {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: #2f575d;
-  color: white;
+  color: #ffffff;
   border: none;
-  padding: 15px 24px;
   border-radius: 9px;
-  font-size: 15px;
-  font-weight: 600;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 6px 14px rgba(47, 87, 93, 0.14);
+  box-shadow: 0 6px 14px rgba(47, 87, 93, 0.16);
 }
 
-.add-btn span {
-  width: 21px;
-  height: 21px;
-  border: 2px solid white;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: 17px;
-  line-height: 1;
+.add-btn .material-icons-round {
+  font-size: 20px;
+  color: #ffffff;
+}
+
+.add-btn:hover {
+  background: #26494d;
 }
 
 .stages-grid {

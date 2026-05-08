@@ -25,6 +25,12 @@ const submitValidation = () => {
 
   console.log('Soumettre validation :', props.stage.id)
 }
+//fct pour modifier que si le porjet nest pas encore valide
+const canEditStage = () => {
+  return ['DRAFT', 'PENDING', 'CORRECTION_REQUIRED'].includes(
+    props.stage.validationStatus,
+  )
+}
 </script>
 
 <template>
@@ -146,6 +152,7 @@ const submitValidation = () => {
       </button>
 
       <button
+        v-if="canEditStage()"
         class="action-btn"
         @click="goToEdit"
       >
