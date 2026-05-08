@@ -34,6 +34,14 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Profil administrateur introuvable.');
   }
 
+  if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+    return error(res, 404, 'Element du dashboard introuvable.');
+  }
+
+  if (err.message === 'UNSUPPORTED_DASHBOARD_ITEM_TYPE') {
+    return error(res, 400, "Le type d'element du dashboard n'est pas supporte.");
+  }
+
   if (err.message === 'EMAIL_NOT_VERIFIED') {
     return error(res, 409, "L'email du professionnel doit etre verifie avant approbation.");
   }
@@ -118,6 +126,20 @@ exports.getDashboard = async (req, res, next) => {
     const dashboard = await administratorService.getDashboardData();
     return success(res, 200, 'Tableau de bord administrateur charge.', dashboard);
   } catch (err) {
+    next(err);
+  }
+};
+
+exports.getDashboardItemDetail = async (req, res, next) => {
+  try {
+    const item = await administratorService.getDashboardItemDetail(
+      req.params.itemType,
+      req.params.itemId
+    );
+
+    return success(res, 200, 'Element du dashboard recupere.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
     next(err);
   }
 };
