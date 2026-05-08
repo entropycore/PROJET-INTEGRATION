@@ -1139,6 +1139,35 @@ const getReportOrThrow = async (reportId) => {
   return report;
 };
 
+const getNotificationOrThrow = async (notificationId, administratorId = null) => {
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [];
+
+  const notification = await safeReadWithFallback(
+    () =>
+      prisma.notification.findFirst({
+        where: {
+          id: notificationId,
+          ...(scopeConditions.length
+            ? {
+                AND: scopeConditions,
+              }
+            : {}),
+        },
+        select: notificationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!notification) {
+    throw new Error('NOTIFICATION_NOT_FOUND');
+  }
+
+  return notification;
+};
+
 const getRecommendationLetterValidationOrThrow = async (letterId) => {
   const letter = await safeReadWithFallback(
     () =>
@@ -2568,6 +2597,67 @@ exports.listNotifications = async ({
     items: notifications.map(mapNotificationItem),
     pagination: buildPagination(safePage, safeLimit, total),
   };
+};
+
+exports.markNotificationAsRead = async (notificationId, administratorId) => {
+  await getNotificationOrThrow(notificationId, administratorId);
+
+  try {
+    await prisma.notification.update({
+      where: { id: notificationId },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('NOTIFICATION_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  return mapNotificationItem(await getNotificationOrThrow(notificationId, administratorId));
+};
+
+exports.markAllNotificationsAsRead = async (administratorId) => {
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [{ administratorId: null }];
+
+  const now = new Date();
+
+  try {
+    const result = await prisma.notification.updateMany({
+      where: {
+        isRead: false,
+        ...(scopeConditions.length
+          ? {
+              AND: scopeConditions,
+            }
+          : {}),
+      },
+      data: {
+        isRead: true,
+        readAt: now,
+      },
+    });
+
+    return {
+      updatedCount: result.count,
+      readAt: now,
+    };
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      return {
+        updatedCount: 0,
+        readAt: now,
+      };
+    }
+
+    throw err;
+  }
 };
 
 exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit = 10, search } = {}) => {
