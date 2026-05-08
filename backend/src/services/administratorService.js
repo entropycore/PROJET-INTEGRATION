@@ -3,6 +3,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const prisma = require('../config/prisma');
+const notificationService = require('./notificationService');
 
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
 const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
@@ -816,8 +817,10 @@ const matchesValidationSearch = (item, search) => {
   return haystacks.some((value) => value.includes(normalizedSearch));
 };
 
-const getNotificationTone = (type) => {
-  switch (type) {
+const getNotificationTone = (type, relatedType = null) => {
+  const effectiveType = relatedType || type;
+
+  switch (effectiveType) {
     case 'ACCESS_REQUEST':
       return 'orange';
     case 'REPORT':
@@ -829,8 +832,10 @@ const getNotificationTone = (type) => {
   }
 };
 
-const getNotificationLink = (type) => {
-  switch (type) {
+const getNotificationLink = (type, relatedType = null) => {
+  const effectiveType = relatedType || type;
+
+  switch (effectiveType) {
     case 'ACCESS_REQUEST':
       return '/admin/dashboard';
     case 'REPORT':
@@ -853,8 +858,8 @@ const mapNotificationItem = (notification) => ({
   isRead: notification.isRead,
   createdAt: notification.createdAt,
   readAt: notification.readAt,
-  tone: getNotificationTone(notification.type),
-  link: getNotificationLink(notification.type),
+  tone: getNotificationTone(notification.type, notification.relatedType),
+  link: getNotificationLink(notification.type, notification.relatedType),
   target:
     notification.relatedId && (notification.relatedType || notification.type)
       ? {
@@ -1444,6 +1449,74 @@ const getRecentDashboardRequests = async () => {
     .slice(0, 5);
 };
 
+const syncPendingAccessRequestNotifications = async () => {
+  const requests = await safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: professionalRequestLegacySelect,
+      }),
+    []
+  );
+
+  await Promise.all(
+    requests.map((request) =>
+      notificationService.ensurePendingItemNotification(mapDashboardAccessRequest(request))
+    )
+  );
+};
+
+const syncPendingValidationNotifications = async () => {
+  const [certificates, letters, comments, recommendations] = await Promise.all([
+    loadCertificateValidationItems('PENDING'),
+    loadRecommendationLetterValidationItems('PENDING'),
+    loadCommentValidationItems('PENDING'),
+    loadRecommendationValidationItems('PENDING'),
+  ]);
+
+  const items = [
+    ...certificates.map(mapDashboardCertificateRequest),
+    ...letters.map(mapRecommendationLetterValidationItem),
+    ...comments.map(mapCommentValidationItem),
+    ...recommendations.map(mapRecommendationValidationItem),
+  ];
+
+  await Promise.all(items.map((item) => notificationService.ensurePendingItemNotification(item)));
+};
+
+const syncPendingReportNotifications = async () => {
+  const reports = await loadReportItems('PENDING', null);
+
+  await Promise.all(
+    reports.map((report) =>
+      notificationService.ensurePendingItemNotification(mapReportItem(report))
+    )
+  );
+};
+
+const syncAdminNotifications = async () => {
+  await Promise.all([
+    syncPendingAccessRequestNotifications(),
+    syncPendingValidationNotifications(),
+    syncPendingReportNotifications(),
+  ]);
+};
+
 const getProfessionalRequestsList = async (where, skip, take) =>
   safeReadWithFallback(
     () =>
@@ -1557,6 +1630,16 @@ const approveCertificateRequest = async (certificateId, administratorId, comment
   });
 
   const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `La validation du certificat de ${
+      updatedCertificate.activity?.student?.user
+        ? formatFullName(updatedCertificate.activity.student.user)
+        : 'un etudiant'
+    } a ete approuvee.`,
+    relatedType: 'CERTIFICATE_VALIDATION',
+    relatedId: certificateId,
+  });
   return mapCertificateRequestDetail(updatedCertificate);
 };
 
@@ -1584,6 +1667,16 @@ const rejectCertificateRequest = async (certificateId, administratorId, comment 
   });
 
   const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `La validation du certificat de ${
+      updatedCertificate.activity?.student?.user
+        ? formatFullName(updatedCertificate.activity.student.user)
+        : 'un etudiant'
+    } a ete rejetee.`,
+    relatedType: 'CERTIFICATE_VALIDATION',
+    relatedId: certificateId,
+  });
   return mapCertificateRequestDetail(updatedCertificate);
 };
 
@@ -1604,9 +1697,17 @@ const approveRecommendationLetterValidation = async (letterId, actorUserId) => {
     },
   });
 
-  return mapRecommendationLetterValidationItem(
-    await getRecommendationLetterValidationOrThrow(letterId)
-  );
+  const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `La lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    } a ete approuvee.`,
+    relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
+    relatedId: letterId,
+  });
+
+  return mapRecommendationLetterValidationItem(updatedLetter);
 };
 
 const rejectRecommendationLetterValidation = async (letterId, actorUserId, rejectionReason = null) => {
@@ -1626,9 +1727,17 @@ const rejectRecommendationLetterValidation = async (letterId, actorUserId, rejec
     },
   });
 
-  return mapRecommendationLetterValidationItem(
-    await getRecommendationLetterValidationOrThrow(letterId)
-  );
+  const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `La lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    } a ete rejetee.`,
+    relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
+    relatedId: letterId,
+  });
+
+  return mapRecommendationLetterValidationItem(updatedLetter);
 };
 
 const approveCommentValidation = async (commentId, actorUserId) => {
@@ -1648,7 +1757,17 @@ const approveCommentValidation = async (commentId, actorUserId) => {
     },
   });
 
-  return mapCommentValidationItem(await getCommentValidationOrThrow(commentId));
+  const updatedComment = await getCommentValidationOrThrow(commentId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `Le commentaire de ${
+      updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
+    } a ete approuve.`,
+    relatedType: 'COMMENT_VALIDATION',
+    relatedId: commentId,
+  });
+
+  return mapCommentValidationItem(updatedComment);
 };
 
 const rejectCommentValidation = async (commentId, actorUserId, rejectionReason = null) => {
@@ -1668,7 +1787,17 @@ const rejectCommentValidation = async (commentId, actorUserId, rejectionReason =
     },
   });
 
-  return mapCommentValidationItem(await getCommentValidationOrThrow(commentId));
+  const updatedComment = await getCommentValidationOrThrow(commentId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `Le commentaire de ${
+      updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
+    } a ete rejete.`,
+    relatedType: 'COMMENT_VALIDATION',
+    relatedId: commentId,
+  });
+
+  return mapCommentValidationItem(updatedComment);
 };
 
 const approveRecommendationValidation = async (recommendationId, actorUserId) => {
@@ -1688,9 +1817,19 @@ const approveRecommendationValidation = async (recommendationId, actorUserId) =>
     },
   });
 
-  return mapRecommendationValidationItem(
-    await getRecommendationValidationOrThrow(recommendationId)
-  );
+  const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `La recommandation de ${
+      updatedRecommendation.authorUser
+        ? formatFullName(updatedRecommendation.authorUser)
+        : 'un utilisateur'
+    } a ete approuvee.`,
+    relatedType: 'RECOMMENDATION_VALIDATION',
+    relatedId: recommendationId,
+  });
+
+  return mapRecommendationValidationItem(updatedRecommendation);
 };
 
 const rejectRecommendationValidation = async (
@@ -1714,12 +1853,24 @@ const rejectRecommendationValidation = async (
     },
   });
 
-  return mapRecommendationValidationItem(
-    await getRecommendationValidationOrThrow(recommendationId)
-  );
+  const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `La recommandation de ${
+      updatedRecommendation.authorUser
+        ? formatFullName(updatedRecommendation.authorUser)
+        : 'un utilisateur'
+    } a ete rejetee.`,
+    relatedType: 'RECOMMENDATION_VALIDATION',
+    relatedId: recommendationId,
+  });
+
+  return mapRecommendationValidationItem(updatedRecommendation);
 };
 
 exports.getDashboardData = async () => {
+  await syncAdminNotifications();
+
   const [
     totalUsers,
     totalStudents,
@@ -2108,7 +2259,15 @@ exports.approveProfessionalRequest = async (userId, administratorId) => {
     });
   });
 
-  return exports.getProfessionalRequest(userId);
+  const updatedRequest = await exports.getProfessionalRequest(userId);
+  await notificationService.createAdminActionNotification({
+    title: "Demande d'acces approuvee",
+    message: `La demande d'acces de ${updatedRequest.requesterName} a ete approuvee.`,
+    relatedType: 'ACCESS_REQUEST',
+    relatedId: userId,
+  });
+
+  return updatedRequest;
 };
 
 exports.rejectProfessionalRequest = async (userId, administratorId, rejectionReason) => {
@@ -2140,10 +2299,20 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
     });
   });
 
-  return exports.getProfessionalRequest(userId);
+  const updatedRequest = await exports.getProfessionalRequest(userId);
+  await notificationService.createAdminActionNotification({
+    title: "Demande d'acces rejetee",
+    message: `La demande d'acces de ${updatedRequest.requesterName} a ete rejetee.`,
+    relatedType: 'ACCESS_REQUEST',
+    relatedId: userId,
+  });
+
+  return updatedRequest;
 };
 
 exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
+  await syncPendingValidationNotifications();
+
   const normalizedType = type ? normalizeValidationType(type) : null;
 
   if (normalizedType) {
@@ -2310,6 +2479,8 @@ exports.listNotifications = async ({
   limit = 10,
   search,
 } = {}) => {
+  await syncAdminNotifications();
+
   const normalizedType = type ? normalizeValidationType(type) : null;
 
   if (normalizedType) {
@@ -2400,6 +2571,8 @@ exports.listNotifications = async ({
 };
 
 exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit = 10, search } = {}) => {
+  await syncPendingReportNotifications();
+
   const normalizedTargetType = targetType
     ? String(targetType).trim().toUpperCase().replace(/-/g, '_')
     : null;
@@ -2446,7 +2619,15 @@ exports.approveReport = async (reportId, administratorId, resolutionNote = null)
     },
   });
 
-  return exports.getReportById(reportId);
+  const updatedReport = await exports.getReportById(reportId);
+  await notificationService.createAdminActionNotification({
+    title: 'Signalement approuve',
+    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete approuve.`,
+    relatedType: 'REPORT',
+    relatedId: reportId,
+  });
+
+  return updatedReport;
 };
 
 exports.rejectReport = async (reportId, administratorId, resolutionNote = null) => {
@@ -2466,7 +2647,15 @@ exports.rejectReport = async (reportId, administratorId, resolutionNote = null) 
     },
   });
 
-  return exports.getReportById(reportId);
+  const updatedReport = await exports.getReportById(reportId);
+  await notificationService.createAdminActionNotification({
+    title: 'Signalement rejete',
+    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete rejete.`,
+    relatedType: 'REPORT',
+    relatedId: reportId,
+  });
+
+  return updatedReport;
 };
 
 exports.getDashboardItemDetail = async (itemType, itemId) => {
