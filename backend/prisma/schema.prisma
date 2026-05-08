@@ -93,6 +93,16 @@ enum ReportTargetType {
   OTHER
 }
 
+enum NotificationType {
+  ACCESS_REQUEST
+  CERTIFICATE_VALIDATION
+  RECOMMENDATION_LETTER_VALIDATION
+  COMMENT_VALIDATION
+  RECOMMENDATION_VALIDATION
+  REPORT
+  SYSTEM
+}
+
 
 
 model User {
@@ -203,6 +213,7 @@ model Administrator {
   rejectedProfessionals Professional[] @relation("ProfessionalRejectedBy")
   suspendedProfessionals Professional[] @relation("ProfessionalSuspendedBy")
   reviewedReports Report[]
+  notifications Notification[]
 
   @@map("administrators")
 }
@@ -576,4 +587,24 @@ model Report {
   @@index([reviewedByAdministratorId])
   @@index([createdAt])
   @@map("reports")
+}
+
+model Notification {
+  id              String           @id @default(uuid()) @map("id_notification")
+  administratorId String?          @map("administrator_id")
+  administrator   Administrator?   @relation(fields: [administratorId], references: [id], onDelete: SetNull)
+  type            NotificationType
+  title           String           @db.VarChar(200)
+  message         String           @db.Text
+  relatedType     String?          @map("related_type") @db.VarChar(100)
+  relatedId       String?          @map("related_id")
+  isRead          Boolean          @default(false) @map("is_read")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  readAt          DateTime?        @map("read_at")
+
+  @@index([administratorId])
+  @@index([type])
+  @@index([isRead, createdAt])
+  @@index([relatedType, relatedId])
+  @@map("notifications")
 }
