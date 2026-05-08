@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const sendEmail = require('../utils/sendEmail');
 const { generateAccessToken, generateRefreshToken } = require('../utils/generateTokens');
 const { hashToken } = require('../utils/tokenHash');
+const notificationService = require('./notificationService');
 
 const PASSWORD_RESET_EXPIRES = '1h';
 const PASSWORD_RESET_SECRET = process.env.EMAIL_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET;
@@ -64,6 +65,12 @@ exports.registerProfessional = async (userData) => {
     await prisma.user.delete({ where: { id: newUser.id } });
     throw new Error("EMAIL_SEND_FAILED");
   }
+
+  await notificationService.createAccessRequestNotification({
+    id: newUser.id,
+    firstName,
+    lastName,
+  });
 
   return newUser;
 };
