@@ -115,7 +115,7 @@ const router = createRouter({
             {
             path: '',
             name: 'Studentdashboard',
-            component: () => import('@/views/student/dashboard.vue'),
+            component: () => import('@/views/student/Dashboard.vue'),
             },
             {
             path: 'profile',
