@@ -12,6 +12,16 @@ const VALID_VALIDATION_TYPES = new Set([
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ]);
+const VALID_REPORT_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED']);
+const VALID_REPORT_TARGET_TYPES = new Set([
+  'PORTFOLIO',
+  'COMMENT',
+  'RECOMMENDATION',
+  'PROJECT',
+  'INTERNSHIP',
+  'USER',
+  'OTHER',
+]);
 
 const parseEmailVerifiedFilter = (value) => {
   if (typeof value === 'undefined') return undefined;
@@ -51,12 +61,24 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Element de validation introuvable.');
   }
 
+  if (err.message === 'REPORT_NOT_FOUND') {
+    return error(res, 404, 'Signalement introuvable.');
+  }
+
   if (err.message === 'UNSUPPORTED_DASHBOARD_ITEM_TYPE') {
     return error(res, 400, "Le type d'element du dashboard n'est pas supporte.");
   }
 
   if (err.message === 'UNSUPPORTED_VALIDATION_TYPE') {
     return error(res, 400, "Le type de validation n'est pas supporte.");
+  }
+
+  if (err.message === 'UNSUPPORTED_REPORT_TARGET_TYPE') {
+    return error(res, 400, "Le type de cible du signalement n'est pas supporte.");
+  }
+
+  if (err.message === 'INVALID_REPORT_STATUS') {
+    return error(res, 400, 'Le status du signalement est invalide.');
   }
 
   if (err.message === 'UNSUPPORTED_DASHBOARD_ACTION_TYPE') {
@@ -69,6 +91,10 @@ const handleAdminError = (res, err) => {
 
   if (err.message === 'VALIDATION_ITEM_INVALID_STATE') {
     return error(res, 409, 'Cette validation ne peut pas etre traitee dans son etat actuel.');
+  }
+
+  if (err.message === 'REPORT_INVALID_STATE') {
+    return error(res, 409, 'Ce signalement ne peut pas etre traite dans son etat actuel.');
   }
 
   if (err.message === 'EMAIL_NOT_VERIFIED') {
@@ -243,6 +269,84 @@ exports.rejectValidationItem = async (req, res, next) => {
     );
 
     return success(res, 200, 'Validation rejetee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.listReports = async (req, res, next) => {
+  try {
+    const status = normalizeStatus(req.query.status || 'PENDING');
+    const targetType = normalizeItemType(req.query.targetType);
+
+    if (status && !VALID_REPORT_STATUSES.has(status)) {
+      return error(res, 400, 'Le filtre status est invalide.');
+    }
+
+    if (targetType && !VALID_REPORT_TARGET_TYPES.has(targetType)) {
+      return error(res, 400, 'Le filtre targetType est invalide.');
+    }
+
+    const data = await administratorService.listReports({
+      status,
+      targetType,
+      search: req.query.search?.trim(),
+      page: parsePositiveInt(req.query.page, 1),
+      limit: parsePositiveInt(req.query.limit, 10),
+    });
+
+    return success(res, 200, 'Signalements recuperes.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getReportById = async (req, res, next) => {
+  try {
+    const report = await administratorService.getReportById(req.params.reportId);
+    return success(res, 200, 'Signalement recupere.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.approveReport = async (req, res, next) => {
+  try {
+    const report = await administratorService.approveReport(
+      req.params.reportId,
+      req.user.roleId,
+      typeof req.body?.resolutionNote === 'string'
+        ? req.body.resolutionNote.trim() || null
+        : typeof req.body?.comment === 'string'
+          ? req.body.comment.trim() || null
+          : null
+    );
+
+    return success(res, 200, 'Signalement approuve.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.rejectReport = async (req, res, next) => {
+  try {
+    const report = await administratorService.rejectReport(
+      req.params.reportId,
+      req.user.roleId,
+      typeof req.body?.resolutionNote === 'string'
+        ? req.body.resolutionNote.trim() || null
+        : typeof req.body?.reason === 'string'
+          ? req.body.reason.trim() || null
+          : typeof req.body?.comment === 'string'
+            ? req.body.comment.trim() || null
+            : null
+    );
+
+    return success(res, 200, 'Signalement rejete.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
