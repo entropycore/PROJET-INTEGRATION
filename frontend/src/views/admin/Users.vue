@@ -49,23 +49,21 @@ const fetchUsers = async () => {
     users.value = res.data.data.items
     pagination.value = res.data.data.pagination
   } catch (err) {
-    console.error('Erreur chargement users:', {
-      status: err.response?.status,
-      data: err.response?.data,
-      err,
-    })
+  console.error('Erreur chargement users:', {
+    status: err.response?.status,
+    data: err.response?.data,
+    err,
+  })
 
-    error.value =
-      err.response?.data?.message ||
-      'Erreur lors du chargement des utilisateurs.'
+  error.value = null
 
-    users.value = []
-    pagination.value = {
-      page: 1,
-      limit: limit.value,
-      total: 0,
-      totalPages: 1,
-    }
+  users.value = []
+  pagination.value = {
+    page: 1,
+    limit: limit.value,
+    total: 0,
+    totalPages: 1,
+  }
   } finally {
     loading.value = false
   }
