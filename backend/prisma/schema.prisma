@@ -77,6 +77,22 @@ enum PortfolioStatus {
   ARCHIVED
 }
 
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReportTargetType {
+  PORTFOLIO
+  COMMENT
+  RECOMMENDATION
+  PROJECT
+  INTERNSHIP
+  USER
+  OTHER
+}
+
 
 
 model User {
@@ -104,6 +120,7 @@ model User {
   commentsValidated Comment[] @relation("CommentValidator")
   recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
+  reportsAuthored Report[] @relation("ReportAuthor")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -185,6 +202,7 @@ model Administrator {
   approvedProfessionals Professional[] @relation("ProfessionalApprovedBy")
   rejectedProfessionals Professional[] @relation("ProfessionalRejectedBy")
   suspendedProfessionals Professional[] @relation("ProfessionalSuspendedBy")
+  reviewedReports Report[]
 
   @@map("administrators")
 }
@@ -535,4 +553,27 @@ model Recommendation {
   @@index([validatorUserId])
   @@index([status])
   @@map("recommendations")
+}
+
+model Report {
+  id                          String          @id @default(uuid()) @map("id_report")
+  reporterUserId              String?         @map("reporter_user_id")
+  reporterUser                User?           @relation("ReportAuthor", fields: [reporterUserId], references: [id], onDelete: SetNull)
+  reviewedByAdministratorId   String?         @map("reviewed_by_administrator_id")
+  reviewedByAdministrator     Administrator?  @relation(fields: [reviewedByAdministratorId], references: [id], onDelete: SetNull)
+  targetType                  ReportTargetType @map("target_type")
+  targetId                    String?         @map("target_id")
+  reason                      String          @db.VarChar(200)
+  description                 String?         @db.Text
+  status                      ReportStatus    @default(PENDING)
+  createdAt                   DateTime        @default(now()) @map("created_at")
+  reviewedAt                  DateTime?       @map("reviewed_at")
+  resolutionNote              String?         @map("resolution_note") @db.Text
+
+  @@index([status])
+  @@index([targetType, targetId])
+  @@index([reporterUserId])
+  @@index([reviewedByAdministratorId])
+  @@index([createdAt])
+  @@map("reports")
 }
