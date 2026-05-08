@@ -87,4 +87,31 @@ export const studentStages = [
     createdAt: '2026-05-01',
     updatedAt: '2026-05-10',
   },
+  {
+    id: '4',
+    title: 'Application Mobile Flutter',
+    company: 'Freelance',
+    duration: '1 mois',
+    startDate: '2026-05-01',
+    endDate: '2026-05-31',
+    supervisor: {
+      fullName: 'À définir',
+      department: 'Non défini',
+    },
+    technologies: ['Flutter', 'Dart', 'Firebase'],
+    validationStatus: 'DRAFT',
+    visibility: 'PRIVATE',
+    description:
+      'Développement d’une application mobile de gestion des tâches pour les étudiants.',
+    missions: [
+      'Création des interfaces mobiles',
+      'Gestion des tâches',
+      'Connexion avec Firebase',
+    ],
+    reportUrl: '',
+    images: [],
+    validationHistory: [],
+    createdAt: '2026-05-01',
+    updatedAt: '2026-05-10',
+  },
 ]

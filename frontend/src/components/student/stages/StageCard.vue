@@ -22,6 +22,7 @@ const goToEdit = () => {
 const submitValidation = () => {
   // BACKEND PLUS TARD :
   // submitStudentStageValidation(props.stage.id)
+
   console.log('Soumettre validation :', props.stage.id)
 }
 </script>
@@ -29,18 +30,21 @@ const submitValidation = () => {
 <template>
   <article class="stage-card">
     <div class="card-top">
-      <StageValidationBadge :status="stage.validationStatus" />
+      <h3>{{ stage.title }}</h3>
 
-      <div class="company-icon">
-        🏢
-      </div>
+      <StageValidationBadge
+        :status="stage.validationStatus"
+      />
     </div>
 
-    <h3>{{ stage.title }}</h3>
-
     <div class="company">
-      <span>💼</span>
-      <strong>{{ stage.company }}</strong>
+      <span class="material-icons-round">
+        business_center
+      </span>
+
+      <strong>
+        {{ stage.company }}
+      </strong>
     </div>
 
     <p class="description">
@@ -52,30 +56,69 @@ const submitValidation = () => {
     <div class="info-grid">
       <div class="info-item">
         <span>Durée</span>
-        <strong>📅 {{ stage.duration }}</strong>
+
+        <strong>
+          <span class="material-icons-round small-icon">
+            schedule
+          </span>
+
+          {{ stage.duration }}
+        </strong>
       </div>
 
       <div class="info-item">
         <span>Période</span>
-        <strong>📅 {{ stage.startDate }} → {{ stage.endDate }}</strong>
+
+        <strong>
+          <span class="material-icons-round small-icon">
+            calendar_month
+          </span>
+
+          {{ stage.startDate }}
+          →
+          {{ stage.endDate }}
+        </strong>
       </div>
 
       <div class="info-item">
         <span>Encadrant</span>
-        <strong>👤 {{ stage.supervisor.fullName }}</strong>
+
+        <strong>
+          <span class="material-icons-round small-icon">
+            person
+          </span>
+
+          {{ stage.supervisor.fullName }}
+        </strong>
       </div>
 
       <div class="info-item">
         <span>Visibilité</span>
+
         <strong>
-          {{ stage.visibility === 'PUBLIC' ? '🌐 Publique' : '🔒 Privée' }}
+          <span class="material-icons-round small-icon">
+            {{
+              stage.visibility === 'PUBLIC'
+                ? 'public'
+                : 'lock'
+            }}
+          </span>
+
+          {{
+            stage.visibility === 'PUBLIC'
+              ? 'Publique'
+              : 'Privée'
+          }}
         </strong>
       </div>
     </div>
 
     <div class="technologies-box">
       <div class="tech-title">
-        <span>&lt;/&gt;</span>
+        <span class="material-icons-round">
+          code
+        </span>
+
         Technologies
       </div>
 
@@ -91,12 +134,26 @@ const submitValidation = () => {
     </div>
 
     <div class="actions">
-      <button class="action-btn" @click="goToDetails">
-        👁 Détails
+      <button
+        class="action-btn"
+        @click="goToDetails"
+      >
+        <span class="material-icons-round">
+          visibility
+        </span>
+
+        Détails
       </button>
 
-      <button class="action-btn" @click="goToEdit">
-        ✎ Modifier
+      <button
+        class="action-btn"
+        @click="goToEdit"
+      >
+        <span class="material-icons-round">
+          edit
+        </span>
+
+        Modifier
       </button>
 
       <button
@@ -104,7 +161,11 @@ const submitValidation = () => {
         class="submit-btn"
         @click="submitValidation"
       >
-        ➤ Se mettre pour validation
+        <span class="material-icons-round">
+          send
+        </span>
+
+        Soumettre
       </button>
     </div>
   </article>
@@ -119,7 +180,10 @@ const submitValidation = () => {
   min-height: 430px;
   display: flex;
   flex-direction: column;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 }
 
 .stage-card:hover {
@@ -131,27 +195,16 @@ const submitValidation = () => {
 .card-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 18px;
-}
-
-.company-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 16px;
-  background: #f1f4f3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 
 h3 {
   color: #28363d;
   font-size: 20px;
-  line-height: 1.3;
+  line-height: 1.35;
   font-weight: 700;
-  margin-bottom: 12px;
 }
 
 .company {
@@ -197,7 +250,7 @@ h3 {
   min-width: 0;
 }
 
-.info-item span {
+.info-item span:first-child {
   display: block;
   color: #99aead;
   font-size: 12px;
@@ -205,7 +258,9 @@ h3 {
 }
 
 .info-item strong {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: #28363d;
   font-size: 13px;
   font-weight: 600;
@@ -231,7 +286,8 @@ h3 {
   margin-bottom: 11px;
 }
 
-.tech-title span {
+.tech-title .material-icons-round {
+  font-size: 17px;
   color: #2f575d;
 }
 
@@ -253,17 +309,29 @@ h3 {
 .actions {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  margin-top: auto;
 }
 
 .action-btn,
 .submit-btn {
-  border-radius: 9px;
-  padding: 10px 14px;
-  font-size: 13px;
+  flex: 0 1 120px;
+  max-width: 120px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border-radius: 10px;
+  padding: 0 10px;
+
+  font-size: 12.5px;
   font-weight: 600;
+
   cursor: pointer;
-  min-height: 40px;
+  transition: 0.2s ease;
+  white-space: nowrap;
 }
 
 .action-btn {
@@ -280,11 +348,29 @@ h3 {
   background: #2f575d;
   border: 1px solid #2f575d;
   color: #ffffff;
-  flex: 1;
 }
 
 .submit-btn:hover {
   background: #26494d;
+}
+
+.action-btn .material-icons-round,
+.submit-btn .material-icons-round {
+  font-size: 16px;
+}
+
+.action-btn .material-icons-round {
+  color: #2f575d;
+}
+
+.submit-btn .material-icons-round {
+  color: #ffffff;
+}
+
+.company .material-icons-round,
+.small-icon {
+  font-size: 16px;
+  color: #2f575d;
 }
 
 @media (max-width: 760px) {
@@ -298,6 +384,13 @@ h3 {
 
   .actions {
     flex-direction: column;
+  }
+
+  .action-btn,
+  .submit-btn {
+    max-width: 100%;
+    width: 100%;
+    flex-basis: auto;
   }
 }
 </style>
