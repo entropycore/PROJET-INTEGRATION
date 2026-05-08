@@ -15,6 +15,8 @@ router.get('/dashboard-items/:itemType/:itemId', administratorController.getDash
 router.patch('/dashboard-items/:itemType/:itemId/approve', administratorController.approveDashboardItem);
 router.patch('/dashboard-items/:itemType/:itemId/reject', administratorController.rejectDashboardItem);
 router.get('/notifications', administratorController.listNotifications);
+router.patch('/notifications/read-all', administratorController.markAllNotificationsAsRead);
+router.patch('/notifications/:notificationId/read', administratorController.markNotificationAsRead);
 router.get('/validations', administratorController.listValidationItems);
 router.get('/validations/:itemType/:itemId', administratorController.getValidationItemDetail);
 router.patch('/validations/:itemType/:itemId/approve', administratorController.approveValidationItem);
