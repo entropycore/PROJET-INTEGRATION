@@ -222,7 +222,18 @@ exports.loginUser = async (email, password, userAgent, ipAddress) => {
 exports.getUserById = async (userId) => {
   return await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, lastName: true, firstName: true, email: true, role: true }
+    select: {
+      id: true,
+      lastName: true,
+      firstName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+      accountStatus: true,
+      role: true,
+      createdAt: true,
+      lastLoginAt: true,
+    }
   });
 };
 
