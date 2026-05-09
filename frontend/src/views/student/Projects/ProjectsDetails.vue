@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute,useRouter } from 'vue-router'
 
 import { getStudentProjectById } from '@/services/studentProjectsApis'
 import { mockProjects } from '@/mockData/projects'
@@ -8,6 +8,7 @@ import { mockProjects } from '@/mockData/projects'
 import '@/assets/styles/student-project-details.css'
 
 const route = useRoute()
+const router = useRouter()
 
 const project = ref(null)
 const isLoading = ref(false)
@@ -100,6 +101,18 @@ const sortedValidationHistory = computed(() => {
     return new Date(b.createdAt) - new Date(a.createdAt)
   })
 })
+const handleDeleteProject = () => {
+  const confirmed = confirm(
+    'Supprimer définitivement ce projet ?',
+  )
+
+  if (!confirmed) return
+
+  console.log('Projet supprimé')
+
+  router.push('/student/projects')
+}
+
 onMounted(fetchProject)
 </script>
 
@@ -392,6 +405,27 @@ onMounted(fetchProject)
               </div>
             </div>
           </section>
+          <section
+  v-if="['DRAFT', 'CHANGES_REQUESTED', 'REJECTED'].includes(project.validationStatus)"
+  class="details-card delete-project-card"
+>
+  <div class="delete-project-content">
+    <h3>Suppression du projet</h3>
+
+    <p>
+      Cette action est irréversible. Le projet, les captures
+      d’écran et les pièces jointes seront supprimés.
+    </p>
+
+    <button
+      type="button"
+      class="delete-project-button"
+      @click="handleDeleteProject"
+    >
+      Supprimer le projet
+    </button>
+  </div>
+</section>
         </aside>
       </div>
     </template>
