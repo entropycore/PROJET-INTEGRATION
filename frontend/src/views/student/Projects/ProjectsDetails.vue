@@ -26,13 +26,6 @@ const canEditProject = computed(() => {
   )
 })
 
-const canSubmitProject = computed(() => {
-  return project.value?.validationStatus === 'DRAFT'
-})
-const canResubmitProject = computed(() => {
-  return project.value?.validationStatus === 'CHANGES_REQUESTED'
-})
-
 const projectStatusMessage = computed(() => {
   const messages = {
     DRAFT: {
@@ -65,12 +58,6 @@ const projectStatusMessage = computed(() => {
   return messages[project.value?.validationStatus] || messages.DRAFT
 })
 
-const sortedValidationHistory = computed(() => {
-  return [...(project.value?.validationHistory || [])].sort((a, b) => {
-    return new Date(b.createdAt) - new Date(a.createdAt)
-  })
-})
-
 const fetchProject = async () => {
   isLoading.value = true
 
@@ -88,6 +75,17 @@ const fetchProject = async () => {
   }
 }
 
+const displayScreenshots = computed(() => {
+  const screenshots = project.value?.screenshots || []
+  const placeholders = [
+    { id: 'placeholder-1', title: 'Capture 1', imageUrl: null },
+    { id: 'placeholder-2', title: 'Capture 2', imageUrl: null },
+    { id: 'placeholder-3', title: 'Capture 3', imageUrl: null },
+  ]
+
+  return [...screenshots, ...placeholders].slice(0, 3)
+})
+
 const formatDate = (date) => {
   if (!date) return '—'
 
@@ -97,7 +95,11 @@ const formatDate = (date) => {
     year: 'numeric',
   }).format(new Date(date))
 }
-
+const sortedValidationHistory = computed(() => {
+  return [...(project.value?.validationHistory || [])].sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt)
+  })
+})
 onMounted(fetchProject)
 </script>
 
@@ -128,62 +130,64 @@ onMounted(fetchProject)
              <h1 class="project-title">
                {{ project.title }}
              </h1>
-
              <span class="project-type-badge">
                {{ project.type }}
              </span>
            </div>
-           <p v-if="project.validatorName" class="project-header-validator" >
-                 Validé par   
-                 <strong>{{ project.validatorName }}</strong>
-               </p>
+           <p v-if="project.validationStatus === 'APPROVED' && project.validatorName" class="project-header-validator"> Validé par <strong>{{ project.validatorName }}</strong></p>
+
+           <p v-else-if="project.validationStatus === 'PENDING'" class="project-header-validator pending" > En attente de validation
+           </p>
+
+           <p v-else-if="project.validationStatus === 'CHANGES_REQUESTED'" class="project-header-validator pending" > Corrections demandées par
+             <strong>{{ project.validatorName || 'le validateur' }}</strong>
+           </p>
+           <p v-else-if="project.validationStatus === 'REJECTED'" class="project-header-validator rejected" >
+             Refusé par
+             <strong>{{ project.validatorName || 'le validateur' }}</strong>
+           </p>
+           
+           <p v-else class="project-header-validator muted" >
+             Brouillon non soumis
+           </p>
            <div class="project-header-meta">
            </div>
         </div>
 
         <div class="project-header-actions">
-          <RouterLink
-            v-if="canEditProject"
-            :to="`/student/projects/${project.id}/edit`"
-            class="secondary-action"
-          >
-            <span class="material-icons-round">
-              edit
-            </span>
 
-            Modifier
-          </RouterLink>
-
-          <button v-if="canSubmitProject || canResubmitProject">
-            <span class="material-icons-round">
-              send
-            </span>
-            {{ canResubmitProject ? 'Resoumettre' : 'Soumettre' }}
-          </button>
+<RouterLink
+  v-if="canEditProject"
+  :to="`/student/projects/${project.id}/edit`"
+  class="secondary-action"
+>
+  <span class="material-icons-round">edit</span>
+  Modifier
+</RouterLink>
         </div>
       </div>
 
       <div class="project-details-layout">
         <div class="project-main-column">
           <section class="details-card project-about-card">
-  <h2 class="section-title">À propos du projet</h2>
+            <h2 class="section-title">À propos du projet</h2>
 
-  <p class="project-full-description">
-    {{ project.description }}
-  </p>
+            <p class="project-full-description">
+              {{ project.description }}
+            </p>
 
-  <div class="project-about-meta">
-    <div>
-      <span>Rôle</span>
-      <strong>{{ project.role || 'Non précisé' }}</strong>
-    </div>
+            <div class="project-about-meta">
+              <div>
+                <span>Rôle</span>
+                <strong>{{ project.role || 'Non précisé' }}</strong>
+              </div>
 
-    <div>
-      <span>Équipe</span>
-      <strong>{{ project.teamSize || 'Non précisé' }}</strong>
-    </div>
-  </div>
-</section>
+              <div>
+                <span>Équipe</span>
+                <strong>{{ project.teamSize || 'Non précisé' }}</strong>
+              </div>
+            </div>
+          </section>
 
           <section class="details-card">
             <h2 class="section-title">Technologies utilisées</h2>
@@ -220,6 +224,10 @@ onMounted(fetchProject)
               <span class="material-icons-round"> open_in_new</span>
                 Documentation
               </a>
+              <p v-if="!project.githubUrl && !project.demoUrl &&!project.documentationUrl && !project.portfolioUrl"
+                class="empty-section-message">
+               Aucun lien ajouté pour ce projet.
+              </p>
             </div>
           </section>
 
@@ -231,7 +239,6 @@ onMounted(fetchProject)
                   <span class="material-icons-round">
                     description
                   </span>
-
                   <div>
                     <strong>
                       {{ attachment.name }}
@@ -247,6 +254,8 @@ onMounted(fetchProject)
                   Télécharger
                 </button>
               </div>
+              <p v-if="!project.attachments?.length"  class="empty-section-message" > Aucune pièce jointe ajoutée.
+              </p>
             </div>
           </section>
 
@@ -256,11 +265,7 @@ onMounted(fetchProject)
             </div>
 
             <div class="timeline-list">
-              <div
-                v-for="item in sortedValidationHistory"
-                :key="item.id"
-                class="timeline-item"
-              >
+              <div v-for="item in sortedValidationHistory"  :key="item.id"  class="timeline-item"  >
                 <div class="timeline-dot"></div>
 
                 <div class="timeline-content">
@@ -279,6 +284,9 @@ onMounted(fetchProject)
                     </small>
                 </div>
               </div>
+              <p v-if="!sortedValidationHistory.length"  class="empty-section-message">
+                  Aucun historique de validation disponible.
+                </p>
             </div>
           </section>
         </div>
@@ -292,21 +300,17 @@ onMounted(fetchProject)
 
               Validation
             </div>
-            <section
-  class="details-card project-status-card"
-  :class="project.validationStatus.toLowerCase().replace('_', '-')"
->
-  <div class="status-card-icon">
-    <span class="material-icons-round">
-      {{ projectStatusMessage.icon }}
-    </span>
-  </div>
-
-  <div>
-    <h3>{{ projectStatusMessage.title }}</h3>
-    <p>{{ projectStatusMessage.text }}</p>
-  </div>
-</section>
+            <section class="details-card project-status-card" :class="project.validationStatus.toLowerCase().replace('_', '-')" >
+              <div class="status-card-icon">
+               <span class="material-icons-round">
+                {{ projectStatusMessage.icon }}
+               </span>
+              </div>
+              <div>
+                <h3>{{ projectStatusMessage.title }}</h3>
+                <p>{{ projectStatusMessage.text }}</p>
+              </div>
+            </section>
             <div class="validator-card">
               <div class="validator-avatar">
                 {{ project.validatorName?.charAt(0)}}
@@ -316,56 +320,41 @@ onMounted(fetchProject)
                 <strong>
                   {{project.validatorName ||'Non assigné'  }}
                 </strong>
-
                 <p>
                   Validateur académique
                 </p>
               </div>
             </div>
 
-            <div
-              v-if=" project.validationComment"
-              class="validation-comment"
-            >
+            <div  v-if=" project.validationComment"  class="validation-comment" >
               “{{ project.validationComment }}”
             </div>
           </section>
-          <section
-  v-if="project.screenshots?.length"
-  class="details-card"
->
+          <section class="details-card">
   <div class="section-title">
-    <span class="material-icons-round">
-      image
-    </span>
-
     Captures d'écran
   </div>
 
   <div class="screenshots-grid">
-    <div
-    v-for="(screenshot, index) in project.screenshots" :key="screenshot.id" class="screenshot-card"
+    <button
+      v-for="(screenshot, index) in displayScreenshots"
+      :key="screenshot.id"
+      type="button"
+      class="screenshot-card"
     >
       <img
-        v-if="screenshot.imageUrl" :src="screenshot.imageUrl" :alt="screenshot.title"
+        v-if="screenshot.imageUrl"
+        :src="screenshot.imageUrl"
+        :alt="screenshot.title"
       />
 
       <div
-        v-else class="screenshot-placeholder" :class="`variant-${(index % 3) + 1}`" >
+        v-else
+        class="screenshot-placeholder"
+        :class="`variant-${(index % 3) + 1}`"
+      >
         {{ screenshot.title }}
       </div>
-    </div>
-
-    <button
-      v-if="canEditProject"
-      type="button"
-      class="screenshot-add-card"
-    >
-      <span class="material-icons-round">
-        add
-      </span>
-
-      Ajouter
     </button>
   </div>
 </section>
