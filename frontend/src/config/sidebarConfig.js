@@ -54,6 +54,7 @@ export const sidebarConfig = {
       { label: 'Stages', path: '/student/stages', icon: 'internship.svg' },
       { label: 'Activités parascolaires', path: '/student/activities', icon: 'activity.svg' },
       { label: 'Compétences', path: '/student/competances', icon: 'skills.svg' },
+      { label: 'Mes Badges ', path: '/student/badges', icon: 'badges.svg' },
     ],
   },
 
