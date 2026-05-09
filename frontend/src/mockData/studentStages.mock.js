@@ -142,4 +142,43 @@ export const studentStages = [
     createdAt: '2026-05-01',
     updatedAt: '2026-05-10',
   },
+  {
+  id: '5',
+  title: 'Stage Full Stack Laravel Vue.js',
+  company: 'Tech Solutions Maroc',
+  duration: '2 mois',
+  startDate: '2026-03-01',
+  endDate: '2026-04-30',
+  supervisor: {
+    fullName: 'Pr. Nadia Benali',
+    department: 'Génie Informatique',
+  },
+  technologies: ['Laravel', 'Vue.js', 'MySQL', 'REST API'],
+  validationStatus: 'CORRECTION_REQUIRED',
+  visibility: 'PRIVATE',
+  description:
+    'Développement d’une application web de gestion interne avec interface utilisateur moderne et APIs REST.',
+  missions: [
+    'Développement des modules frontend avec Vue.js',
+    'Création des APIs REST avec Laravel',
+    'Correction des retours après revue académique',
+  ],
+  reportUrl: '/mock/reports/stage-laravel-vue.pdf',
+  images: [],
+  validationHistory: [
+    {
+      status: 'PENDING',
+      comment: 'Stage soumis pour validation.',
+      createdAt: '2026-04-25',
+    },
+    {
+      status: 'CORRECTION_REQUIRED',
+      comment:
+        'Correction demandée : merci de compléter la description des missions et d’ajouter plus de détails sur les technologies utilisées.',
+      createdAt: '2026-04-28',
+    },
+  ],
+  createdAt: '2026-03-01',
+  updatedAt: '2026-04-28',
+}
 ]
