@@ -1,5 +1,6 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import StageImagesModal from '@/components/student/stages/StageImagesModal.vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { stages } from '@/mockData/studentStages.store'
@@ -73,6 +74,24 @@ const getTimelineIcon = (status) => {
   }
 
   return icons[status] || 'history'
+}
+//pour la boite modal des images
+const showImagesModal = ref(false)
+
+const visibleImages = computed(() => {
+  return stage.value?.images?.slice(0, 4) || []
+})
+
+const hasMoreImages = computed(() => {
+  return stage.value?.images?.length > 4
+})
+
+const openImagesModal = () => {
+  showImagesModal.value = true
+}
+
+const closeImagesModal = () => {
+  showImagesModal.value = false
 }
 
 const goBack = () => {
@@ -152,33 +171,37 @@ const goToEdit = () => {
         <!-- IMAGES -->
 
         <div class="content-card">
-          <h2>
-            <span class="material-icons-round">image</span>
-            Captures d’écran
-          </h2>
+  <div class="section-header">
+    <h2>
+      <span class="material-icons-round">image</span>
+      Captures d’écran
+    </h2>
 
-          <div v-if="stage.images?.length" class="screens-grid">
-            <div
-              v-for="image in stage.images"
-              :key="image.id"
-              class="screen-card"
-            >
-              <img :src="image.url" :alt="image.title" />
+    <button
+      v-if="hasMoreImages"
+      class="view-all-btn"
+      @click="openImagesModal"
+    >
+      Voir toutes les images
+    </button>
+  </div>
 
-              <span>{{ image.title }}</span>
-            </div>
-          </div>
+  <div v-if="stage.images?.length" class="screens-grid">
+    <div
+      v-for="image in visibleImages"
+      :key="image.id"
+      class="screen-card"
+    >
+      <img :src="image.url" :alt="image.title" />
+      <span>{{ image.title }}</span>
+    </div>
+  </div>
 
-          <div v-else class="empty-screens">
-            <span class="material-icons-round">
-              image_not_supported
-            </span>
-
-            <p>
-              Aucune capture d’écran ajoutée pour ce stage.
-            </p>
-          </div>
-        </div>
+  <div v-else class="empty-screens">
+    <span class="material-icons-round">image_not_supported</span>
+    <p>Aucune capture d’écran ajoutée pour ce stage.</p>
+  </div>
+</div>
 
         <!-- MISSIONS -->
 
@@ -364,6 +387,12 @@ const goToEdit = () => {
         </div>
       </aside>
     </div>
+    <!-- modal de image -->
+    <StageImagesModal
+      v-if="showImagesModal"
+      :images="stage.images"
+      @close="closeImagesModal"
+    />
   </section>
 </template>
 
@@ -833,6 +862,32 @@ h3 .material-icons-round {
   line-height: 1.6;
 
   margin: 0;
+}
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+.view-all-btn {
+  border: 1px solid #c4cdc1;
+  background: #ffffff;
+  color: #2f575d;
+  border-radius: 0.625rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.view-all-btn:hover {
+  background: #f8f9f8;
 }
 
 @media (max-width: 1000px) {
