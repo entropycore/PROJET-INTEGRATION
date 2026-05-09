@@ -9,6 +9,8 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['delete-stage', 'submit-validation'])
+
 const router = useRouter()
 
 const goToDetails = () => {
@@ -19,17 +21,30 @@ const goToEdit = () => {
   router.push(`/student/stages/${props.stage.id}/edit`)
 }
 
-const submitValidation = () => {
-  // BACKEND PLUS TARD :
-  // submitStudentStageValidation(props.stage.id)
-
-  console.log('Soumettre validation :', props.stage.id)
-}
-//fct pour modifier que si le porjet nest pas encore valide
 const canEditStage = () => {
   return ['DRAFT', 'PENDING', 'CORRECTION_REQUIRED'].includes(
     props.stage.validationStatus,
   )
+}
+
+const canSubmitValidation = () => {
+  return ['DRAFT', 'CORRECTION_REQUIRED'].includes(
+    props.stage.validationStatus,
+  )
+}
+
+const submitButtonLabel = () => {
+  return props.stage.validationStatus === 'CORRECTION_REQUIRED'
+    ? 'Resoumettre'
+    : 'Soumettre'
+}
+
+const submitValidation = () => {
+  emit('submit-validation', props.stage.id)
+}
+
+const deleteCurrentStage = () => {
+  emit('delete-stage', props.stage.id)
 }
 </script>
 
@@ -38,19 +53,12 @@ const canEditStage = () => {
     <div class="card-top">
       <h3>{{ stage.title }}</h3>
 
-      <StageValidationBadge
-        :status="stage.validationStatus"
-      />
+      <StageValidationBadge :status="stage.validationStatus" />
     </div>
 
     <div class="company">
-      <span class="material-icons-round">
-        business_center
-      </span>
-
-      <strong>
-        {{ stage.company }}
-      </strong>
+      <span class="material-icons-round">business_center</span>
+      <strong>{{ stage.company }}</strong>
     </div>
 
     <p class="description">
@@ -62,69 +70,42 @@ const canEditStage = () => {
     <div class="info-grid">
       <div class="info-item">
         <span>Durée</span>
-
         <strong>
-          <span class="material-icons-round small-icon">
-            schedule
-          </span>
-
+          <span class="material-icons-round small-icon">schedule</span>
           {{ stage.duration }}
         </strong>
       </div>
 
       <div class="info-item">
         <span>Période</span>
-
         <strong>
-          <span class="material-icons-round small-icon">
-            calendar_month
-          </span>
-
-          {{ stage.startDate }}
-          →
-          {{ stage.endDate }}
+          <span class="material-icons-round small-icon">calendar_month</span>
+          {{ stage.startDate }} → {{ stage.endDate }}
         </strong>
       </div>
 
       <div class="info-item">
         <span>Encadrant</span>
-
         <strong>
-          <span class="material-icons-round small-icon">
-            person
-          </span>
-
+          <span class="material-icons-round small-icon">person</span>
           {{ stage.supervisor.fullName }}
         </strong>
       </div>
 
       <div class="info-item">
         <span>Visibilité</span>
-
         <strong>
           <span class="material-icons-round small-icon">
-            {{
-              stage.visibility === 'PUBLIC'
-                ? 'public'
-                : 'lock'
-            }}
+            {{ stage.visibility === 'PUBLIC' ? 'public' : 'lock' }}
           </span>
-
-          {{
-            stage.visibility === 'PUBLIC'
-              ? 'Publique'
-              : 'Privée'
-          }}
+          {{ stage.visibility === 'PUBLIC' ? 'Publique' : 'Privée' }}
         </strong>
       </div>
     </div>
 
     <div class="technologies-box">
       <div class="tech-title">
-        <span class="material-icons-round">
-          code
-        </span>
-
+        <span class="material-icons-round">code</span>
         Technologies
       </div>
 
@@ -140,14 +121,8 @@ const canEditStage = () => {
     </div>
 
     <div class="actions">
-      <button
-        class="action-btn"
-        @click="goToDetails"
-      >
-        <span class="material-icons-round">
-          visibility
-        </span>
-
+      <button class="action-btn" @click="goToDetails">
+        <span class="material-icons-round">visibility</span>
         Détails
       </button>
 
@@ -156,23 +131,21 @@ const canEditStage = () => {
         class="action-btn"
         @click="goToEdit"
       >
-        <span class="material-icons-round">
-          edit
-        </span>
-
+        <span class="material-icons-round">edit</span>
         Modifier
       </button>
 
       <button
-        v-if="stage.validationStatus === 'DRAFT'"
+        v-if="canSubmitValidation()"
         class="submit-btn"
         @click="submitValidation"
       >
-        <span class="material-icons-round">
-          send
-        </span>
+        <span class="material-icons-round">send</span>
+        {{ submitButtonLabel() }}
+      </button>
 
-        Soumettre
+      <button class="delete-btn" @click="deleteCurrentStage">
+        <span class="material-icons-round">delete</span>
       </button>
     </div>
   </article>
@@ -182,9 +155,9 @@ const canEditStage = () => {
 .stage-card {
   background: #ffffff;
   border: 1px solid #dee1dd;
-  border-radius: 16px;
-  padding: 22px;
-  min-height: 430px;
+  border-radius: 1rem;
+  padding: 1.375rem;
+  min-height: 26.875rem;
   display: flex;
   flex-direction: column;
   transition:
@@ -195,21 +168,21 @@ const canEditStage = () => {
 
 .stage-card:hover {
   border-color: #c4cdc1;
-  box-shadow: 0 10px 24px rgba(47, 87, 93, 0.08);
-  transform: translateY(-2px);
+  box-shadow: 0 0.625rem 1.5rem rgba(47, 87, 93, 0.08);
+  transform: translateY(-0.125rem);
 }
 
 .card-top {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 14px;
-  margin-bottom: 14px;
+  gap: 0.875rem;
+  margin-bottom: 0.875rem;
 }
 
 h3 {
   color: #28363d;
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1.35;
   font-weight: 700;
 }
@@ -217,22 +190,22 @@ h3 {
 .company {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   color: #2f575d;
-  margin-bottom: 14px;
+  margin-bottom: 0.875rem;
 }
 
 .company strong {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: #2f575d;
   font-weight: 700;
 }
 
 .description {
   color: #526f75;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.6;
-  margin-bottom: 14px;
+  margin-bottom: 0.875rem;
 
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -243,14 +216,14 @@ h3 {
 .separator {
   height: 1px;
   background: #edf0ee;
-  margin-bottom: 14px;
+  margin-bottom: 0.875rem;
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 13px 18px;
-  margin-bottom: 16px;
+  gap: 0.8125rem 1.125rem;
+  margin-bottom: 1rem;
 }
 
 .info-item {
@@ -260,81 +233,81 @@ h3 {
 .info-item span:first-child {
   display: block;
   color: #99aead;
-  font-size: 12px;
-  margin-bottom: 5px;
+  font-size: 0.75rem;
+  margin-bottom: 0.3125rem;
 }
 
 .info-item strong {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   color: #28363d;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   line-height: 1.35;
 }
 
 .technologies-box {
   border: 1px solid #dee1dd;
-  border-radius: 12px;
-  padding: 13px;
+  border-radius: 0.75rem;
+  padding: 0.8125rem;
   background: #ffffff;
   margin-top: auto;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .tech-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   color: #28363d;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 700;
-  margin-bottom: 11px;
+  margin-bottom: 0.6875rem;
 }
 
 .tech-title .material-icons-round {
-  font-size: 17px;
+  font-size: 1.0625rem;
   color: #2f575d;
 }
 
 .tech-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 7px;
+  gap: 0.4375rem;
 }
 
 .tech-tag {
   background: #edf2f0;
   color: #2f575d;
-  padding: 6px 11px;
+  padding: 0.375rem 0.6875rem;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
 .actions {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 0.6rem;
   margin-top: auto;
 }
 
 .action-btn,
-.submit-btn {
-  flex: 0 1 120px;
-  max-width: 120px;
-  height: 42px;
+.submit-btn,
+.delete-btn {
+  height: 2.55rem;
 
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 0.4rem;
 
-  border-radius: 10px;
-  padding: 0 10px;
+  border-radius: 0.625rem;
+  padding: 0 0.85rem;
 
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 700;
 
   cursor: pointer;
   transition: 0.2s ease;
@@ -342,28 +315,44 @@ h3 {
 }
 
 .action-btn {
+  min-width: 6rem;
   background: #ffffff;
   color: #2f575d;
   border: 1px solid #c4cdc1;
+}
+
+.submit-btn {
+  min-width: 6.8rem;
+  background: #2f575d;
+  border: 1px solid #2f575d;
+  color: #ffffff;
+}
+
+.delete-btn {
+  width: 2.55rem;
+  min-width: 2.55rem;
+  padding: 0;
+  background: #ffffff;
+  color: #c62828;
+  border: 1px solid #efc9c9;
 }
 
 .action-btn:hover {
   background: #f8f9f8;
 }
 
-.submit-btn {
-  background: #2f575d;
-  border: 1px solid #2f575d;
-  color: #ffffff;
-}
-
 .submit-btn:hover {
   background: #26494d;
 }
 
+.delete-btn:hover {
+  background: #fdecea;
+}
+
 .action-btn .material-icons-round,
-.submit-btn .material-icons-round {
-  font-size: 16px;
+.submit-btn .material-icons-round,
+.delete-btn .material-icons-round {
+  font-size: 1rem;
 }
 
 .action-btn .material-icons-round {
@@ -374,9 +363,13 @@ h3 {
   color: #ffffff;
 }
 
+.delete-btn .material-icons-round {
+  color: #c62828;
+}
+
 .company .material-icons-round,
 .small-icon {
-  font-size: 16px;
+  font-size: 1rem;
   color: #2f575d;
 }
 
@@ -390,14 +383,12 @@ h3 {
   }
 
   .actions {
-    flex-direction: column;
+    flex-wrap: wrap;
   }
 
   .action-btn,
   .submit-btn {
-    max-width: 100%;
-    width: 100%;
-    flex-basis: auto;
+    flex: 1;
   }
 }
 </style>
