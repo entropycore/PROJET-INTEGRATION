@@ -30,6 +30,12 @@ const canSubmitProject = computed(() => {
   return project.value?.validationStatus === 'DRAFT'
 })
 
+const sortedValidationHistory = computed(() => {
+  return [...(project.value?.validationHistory || [])].sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt)
+  })
+})
+
 const fetchProject = async () => {
   isLoading.value = true
 
@@ -134,13 +140,14 @@ onMounted(fetchProject)
 
   <div class="screenshots-grid">
     <div
-      v-for="screenshot in project.screenshots" :key="screenshot.id" class="screenshot-card"
+    v-for="(screenshot, index) in project.screenshots" :key="screenshot.id" class="screenshot-card"
     >
       <img
         v-if="screenshot.imageUrl" :src="screenshot.imageUrl" :alt="screenshot.title"
       />
 
-      <div v-else class="screenshot-placeholder" >
+      <div
+        v-else class="screenshot-placeholder" :class="`variant-${(index % 3) + 1}`" >
         {{ screenshot.title }}
       </div>
     </div>
@@ -297,38 +304,26 @@ onMounted(fetchProject)
 
             <div class="timeline-list">
               <div
-                v-for="item in project.validationHistory"
+                v-for="item in sortedValidationHistory"
                 :key="item.id"
                 class="timeline-item"
               >
                 <div class="timeline-dot"></div>
 
                 <div class="timeline-content">
-                  <div
-                    class="timeline-header"
-                  >
-                    <strong>
-                      {{ item.title }}
-                    </strong>
+                    <div class="timeline-header">
+                      <strong>{{ item.title }}</strong>
 
-                    <span>
-                      {{
-                        formatDate(
-                          item.createdAt,
-                        )
-                      }}
-                    </span>
-                  </div>
+                      <span class="timeline-date">
+                        {{ formatDate(item.createdAt) }}
+                      </span>
+                    </div>
 
-                  <p>
-                    {{ item.comment }}
-                  </p>
+                    <p>{{ item.comment }}</p>
 
-                  <small>
-                    {{ item.actorName }}
-                    —
-                    {{ item.actorRole }}
-                  </small>
+                    <small>
+                     {{ item.actorName }} — {{ item.actorRole }}
+                    </small>
                 </div>
               </div>
             </div>
@@ -347,18 +342,12 @@ onMounted(fetchProject)
 
             <div class="validator-card">
               <div class="validator-avatar">
-                {{
-                  project.validatorName
-                    ?.charAt(0)
-                }}
+                {{ project.validatorName?.charAt(0)}}
               </div>
 
               <div>
                 <strong>
-                  {{
-                    project.validatorName ||
-                    'Non assigné'
-                  }}
+                  {{project.validatorName ||'Non assigné'  }}
                 </strong>
 
                 <p>
@@ -368,14 +357,10 @@ onMounted(fetchProject)
             </div>
 
             <div
-              v-if="
-                project.validationComment
-              "
+              v-if=" project.validationComment"
               class="validation-comment"
             >
-              “{{
-                project.validationComment
-              }}”
+              “{{ project.validationComment }}”
             </div>
           </section>
 
@@ -399,11 +384,7 @@ onMounted(fetchProject)
               <div class="details-info-row">
                 <span>Créé le</span>
                 <strong>
-                  {{
-                    formatDate(
-                      project.createdAt,
-                    )
-                  }}
+                  {{ formatDate(  project.createdAt,   )  }}
                 </strong>
               </div>
 
@@ -411,12 +392,7 @@ onMounted(fetchProject)
                 <span>Statut</span>
 
                 <strong>
-                  {{
-                    statusLabels[
-                      project
-                        .validationStatus
-                    ]
-                  }}
+                  {{ statusLabels[project.validationStatus  ]}}
                 </strong>
               </div>
             </div>
