@@ -168,6 +168,11 @@ const router = createRouter({
             component: () => import('@/views/student/competances.vue'),
             },
             {
+            path: 'badges',
+            name: 'Studentbadges',
+            component: () => import('@/views/student/Badges.vue'),
+            },
+            {
             path: 'portfolio',
             name: 'StudentPortfolio',
             component: () => import('@/views/student/Portfolio.vue'),

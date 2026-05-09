@@ -1,0 +1,1 @@
+<template> a voir pour expliquer la regle de badges</template>
