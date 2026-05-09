@@ -231,7 +231,7 @@ const handleSubmitValidation = (payload) => {
 }
 
 .page-header {
-  margin-bottom: 1.35rem;
+  margin-bottom: 5rem;
 }
 
 h1 {
