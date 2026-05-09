@@ -33,6 +33,12 @@ const canSubmitValidation = () => {
   )
 }
 
+const canDeleteStage = () => {
+  return ['DRAFT', 'CORRECTION_REQUIRED', 'REJECTED'].includes(
+    props.stage.validationStatus,
+  )
+}
+
 const submitButtonLabel = () => {
   return props.stage.validationStatus === 'CORRECTION_REQUIRED'
     ? 'Resoumettre'
@@ -134,7 +140,13 @@ const deleteCurrentStage = () => {
         <span class="material-icons-round">edit</span>
         Modifier
       </button>
-
+      <button
+        v-if="canDeleteStage()"
+        class="delete-btn"
+        @click="deleteCurrentStage"
+      >
+        <span class="material-icons-round">delete</span>
+      </button>
       <button
         v-if="canSubmitValidation()"
         class="submit-btn"
@@ -144,9 +156,6 @@ const deleteCurrentStage = () => {
         {{ submitButtonLabel() }}
       </button>
 
-      <button class="delete-btn" @click="deleteCurrentStage">
-        <span class="material-icons-round">delete</span>
-      </button>
     </div>
   </article>
 </template>
