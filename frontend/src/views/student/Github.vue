@@ -16,11 +16,30 @@ const githubData = ref(null)
 const importedRepos = ref([])
 
 const mockGithubData = {
-  connected: false,
-  username: null,
-  totalContributions: 0,
-  languages: [],
-  repositories: [],
+  connected: true,
+  username: 'Rime-seria',
+  totalContributions: 73,
+  languages: ['Vue', 'JavaScript', 'CSS'],
+  repositories: [
+    {
+      id: 1,
+      name: 'PROJET-INTEGRATION',
+      description: 'Plateforme Credencia de portfolios numériques certifiés.',
+      language: 'Vue',
+      updatedAt: '18 avr. 2026',
+      htmlUrl: 'https://github.com/Rime-seria/PROJET-INTEGRATION',
+      isImported: false,
+    },
+    {
+      id: 2,
+      name: 'testingPR',
+      description: 'Dépôt de test pour les workflows GitHub Actions.',
+      language: 'JavaScript',
+      updatedAt: '20 avr. 2026',
+      htmlUrl: 'https://github.com/Rime-seria/testingPR',
+      isImported: true,
+    },
+  ],
 }
 
 const isConnected = computed(() => githubData.value?.connected)
