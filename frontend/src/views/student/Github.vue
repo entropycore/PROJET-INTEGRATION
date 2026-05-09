@@ -123,21 +123,7 @@ const fetchGithubStats = async () => {
     isLoading.value = false
   }
 }
-const contributionCells = computed(() => {
-  const backendCalendar = githubData.value?.contributionCalendar
 
-  if (backendCalendar?.length) {
-    return backendCalendar.map((day) => ({
-      date: day.date,
-      level: Math.min(day.count || 0, 4),
-    }))
-  }
-
-  return Array.from({ length: 371 }, (_, index) => ({
-    date: null,
-    level: [0, 1, 0, 2, 0, 3, 1, 0, 4, 2, 0][index % 11],
-  }))
-})
 const handleConnectGithub = async () => {
   isConnecting.value = true
   errorMessage.value = ''
@@ -331,35 +317,15 @@ onMounted(fetchGithubStats)
   <section class="github-content-card">
   <div class="github-card-title-row">
     <h3>Calendrier d'activité</h3>
-
-    <div class="github-legend">
-      <span>Moins</span>
-      <i></i>
-      <i class="l1"></i>
-      <i class="l2"></i>
-      <i class="l3"></i>
-      <i class="l4"></i>
-      <span>Plus</span>
-    </div>
   </div>
 
-  <div class="github-calendar-months">
-    <span>Mai</span>
-    <span>Juin</span>
-    <span>Juil</span>
-    <span>Août</span>
-    <span>Sept</span>
-    <span>Oct</span>
-    <span>Nov</span>
-    <span>Déc</span>
-    <span>Janv</span>
-    <span>Fév</span>
-    <span>Mars</span>
-    <span>Avr</span>
-  </div>
-
-  <div class="github-calendar-grid">
-    <span v-for="(cell, index) in contributionCells" :key="index" class="github-calendar-cell" :class="`level-${cell.level}`"></span>
+  <div class="github-chart-wrap">
+    <img
+      v-if="githubData.username"
+      :src="`https://ghchart.rshah.org/2F575D/${githubData.username}`"
+      alt="Calendrier des contributions GitHub"
+      class="github-contribution-chart"
+    />
   </div>
 </section>
 
