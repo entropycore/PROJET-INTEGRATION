@@ -90,6 +90,7 @@ model User {
   profilePicture  String?       @map("profile_picture")
   accountStatus   AccountStatus @default(PENDING) @map("account_status")
   role            UserRole
+  preferences     Json          @default("{\"schema_version\": 1}")
   createdAt       DateTime      @default(now()) @map("created_at")
   lastLoginAt     DateTime?     @map("last_login_at")
 
@@ -536,4 +537,24 @@ model Recommendation {
   @@index([validatorUserId])
   @@index([status])
   @@map("recommendations")
+}
+
+model SystemSettings {
+  id                       String   @id @default(uuid()) @map("id_system_settings")
+  
+  // Branding & Établissement
+  institutionName          String   @default("ENSA Tanger") @map("institution_name") @db.VarChar(150)
+  emailDomain              String   @default("@ensa.ac.ma") @map("email_domain") @db.VarChar(100)
+  
+  // Règles de Gouvernance
+  requireProjectValidation Boolean  @default(true) @map("require_project_validation")
+  enableGithubSync         Boolean  @default(true) @map("enable_github_sync")
+  allowProRegistration     Boolean  @default(true) @map("allow_pro_registration")
+  
+  // Poids du Score (Stocké en JSON )
+  scoreWeights             Json     @default("{\"projects\": 30, \"internships\": 25, \"github\": 10, \"recos\": 20, \"certs\": 15}") @map("score_weights")
+  
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }
