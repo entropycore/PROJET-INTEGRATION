@@ -15,6 +15,7 @@ const animatedStats = ref([])
 const displayScore = ref(0)
 const scoreProgress = ref(0)
 
+//pour l'animation de cercle de score de credibilite
 const ringRadius = 54
 const ringTotal = 2 * Math.PI * ringRadius
 
