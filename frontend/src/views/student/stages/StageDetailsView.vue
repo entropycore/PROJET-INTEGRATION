@@ -2,13 +2,13 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { studentStages } from '@/mockData/studentStages.mock'
+import { stages } from '@/mockData/studentStages.store'
 
 const route = useRoute()
 const router = useRouter()
 
 const stage = computed(() => {
-  return studentStages.find((item) => item.id === route.params.id)
+  return stages.value.find((item) => item.id === route.params.id)
 })
 
 const canEditStage = computed(() => {
