@@ -133,18 +133,11 @@ onMounted(fetchProject)
                {{ project.type }}
              </span>
            </div>
-           <p
-                 v-if="project.validatorName"
-                 class="project-header-validator"
-               >
+           <p v-if="project.validatorName" class="project-header-validator" >
                  Validé par   
                  <strong>{{ project.validatorName }}</strong>
                </p>
            <div class="project-header-meta">
-
-             <span class="project-date">
-               {{ formatDate(project.createdAt) }}
-             </span>
            </div>
         </div>
 
