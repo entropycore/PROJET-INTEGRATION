@@ -89,13 +89,28 @@ onMounted(fetchProject)
             Retour aux projets
           </RouterLink>
 
-          <h1>
-            {{ project.title }}
-          </h1>
+          <div class="project-title-row">
+             <h1 class="project-title">
+               {{ project.title }}
+             </h1>
 
-          <p class="project-short-description">
-            {{ project.description }}
-          </p>
+             <span class="project-type-badge">
+               {{ project.type }}
+             </span>
+           </div>
+           <p
+                 v-if="project.validatorName"
+                 class="project-header-validator"
+               >
+                 Validé par   
+                 <strong>{{ project.validatorName }}</strong>
+               </p>
+           <div class="project-header-meta">
+
+             <span class="project-date">
+               {{ formatDate(project.createdAt) }}
+             </span>
+           </div>
         </div>
 
         <div class="project-header-actions">
