@@ -71,6 +71,12 @@ const submitValidation = () => {
   // Envoyer les données puis PATCH submit-validation
   emit('submit-validation', buildPayload())
 }
+//style button
+const submitButtonLabel = () => {
+  return props.initialStage?.validationStatus === 'CORRECTION_REQUIRED'
+    ? 'Resoumettre pour validation'
+    : 'Soumettre validation'
+}
 </script>
 
 <template>
@@ -78,17 +84,29 @@ const submitValidation = () => {
     <div class="form-grid">
       <div class="form-group">
         <label>Titre du stage</label>
-        <input v-model="form.title" type="text" placeholder="Ex : Développement Frontend Vue.js" />
+        <input
+          v-model="form.title"
+          type="text"
+          placeholder="Ex : Développement Frontend Vue.js"
+        />
       </div>
 
       <div class="form-group">
         <label>Entreprise</label>
-        <input v-model="form.company" type="text" placeholder="Ex : Capgemini Maroc" />
+        <input
+          v-model="form.company"
+          type="text"
+          placeholder="Ex : Capgemini Maroc"
+        />
       </div>
 
       <div class="form-group">
         <label>Durée</label>
-        <input v-model="form.duration" type="text" placeholder="Ex : 2 mois" />
+        <input
+          v-model="form.duration"
+          type="text"
+          placeholder="Ex : 2 mois"
+        />
       </div>
 
       <div class="form-group">
@@ -129,12 +147,20 @@ const submitValidation = () => {
     <div class="form-grid">
       <div class="form-group">
         <label>Encadrant</label>
-        <input v-model="form.supervisorName" type="text" placeholder="Nom complet" />
+        <input
+          v-model="form.supervisorName"
+          type="text"
+          placeholder="Nom complet"
+        />
       </div>
 
       <div class="form-group">
         <label>Département encadrant</label>
-        <input v-model="form.supervisorDepartment" type="text" placeholder="Génie Informatique" />
+        <input
+          v-model="form.supervisorDepartment"
+          type="text"
+          placeholder="Génie Informatique"
+        />
       </div>
     </div>
 
@@ -150,23 +176,37 @@ const submitValidation = () => {
     <div class="form-grid">
       <div class="form-group">
         <label>Rapport PDF</label>
-        <input type="file" accept="application/pdf" @change="handleReportUpload" />
+        <input
+          type="file"
+          accept="application/pdf"
+          @change="handleReportUpload"
+        />
       </div>
 
       <div class="form-group">
         <label>Images optionnelles</label>
-        <input type="file" multiple accept="image/*" @change="handleImagesUpload" />
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          @change="handleImagesUpload"
+        />
       </div>
     </div>
 
     <div class="form-actions">
-      <button type="button" class="btn btn-secondary" @click="saveDraft">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        @click="saveDraft"
+      >
         Sauvegarder brouillon
       </button>
 
       <button type="submit" class="btn btn-primary">
-        Soumettre validation
-      </button>
+      <span class="material-icons-round">send</span>
+      {{ submitButtonLabel() }}
+     </button>
     </div>
   </form>
 </template>
@@ -175,44 +215,69 @@ const submitValidation = () => {
 .stage-form {
   background: #ffffff;
   border: 1px solid #dee1dd;
-  border-radius: 14px;
-  padding: 22px;
+  border-radius: 0.875rem;
+  padding: 1.35rem;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 1rem;
 }
 
 .form-group {
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 label {
   display: block;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #6d9197;
-  margin-bottom: 6px;
+  color: #2f575d;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.55rem;
 }
 
 input,
 select,
 textarea {
   width: 100%;
-  padding: 10px 12px;
   border: 1px solid #c4cdc1;
-  border-radius: 8px;
+  border-radius: 0.7rem;
   background: #f8f9f8;
-  font-size: 13.5px;
   color: #28363d;
+  font-size: 0.95rem;
   outline: none;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+input,
+select {
+  height: 3rem;
+  padding: 0 1rem;
 }
 
 textarea {
-  min-height: 110px;
+  min-height: 7.5rem;
+  padding: 0.9rem 1rem;
+  line-height: 1.7;
   resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8ba0a3;
+  font-size: 0.9rem;
+}
+
+input[type='file'] {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 1rem;
+  height: auto;
+  min-height: 3rem;
 }
 
 input:focus,
@@ -220,34 +285,59 @@ select:focus,
 textarea:focus {
   border-color: #2f575d;
   background: #ffffff;
+  box-shadow: 0 0 0 0.18rem rgba(47, 87, 93, 0.08);
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  padding-top: 16px;
+  gap: 0.75rem;
+  padding-top: 1rem;
   border-top: 1px solid #dee1dd;
 }
 
 .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  min-height: 3rem;
+  padding: 0 1.35rem;
+
+  border-radius: 0.75rem;
   border: 1px solid transparent;
-  border-radius: 8px;
-  padding: 10px 16px;
-  font-size: 13.5px;
-  font-weight: 500;
+
+  font-size: 0.95rem;
+  font-weight: 700;
+
   cursor: pointer;
+  transition: 0.2s ease;
 }
 
 .btn-primary {
   background: #2f575d;
-  color: white;
+  color: #ffffff;
+  border-color: #2f575d;
+}
+
+.btn-primary:hover {
+  background: #26494d;
+}
+
+.btn-primary .material-icons-round {
+  color: #ffffff;
+  font-size: 1.1rem;
 }
 
 .btn-secondary {
-  background: white;
+  background: #ffffff;
   color: #2f575d;
   border-color: #c4cdc1;
+}
+
+.btn-secondary:hover {
+  background: #f8f9f8;
 }
 
 @media (max-width: 800px) {
@@ -257,6 +347,10 @@ textarea:focus {
 
   .form-actions {
     flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
   }
 }
 </style>
