@@ -29,6 +29,41 @@ const canEditProject = computed(() => {
 const canSubmitProject = computed(() => {
   return project.value?.validationStatus === 'DRAFT'
 })
+const canResubmitProject = computed(() => {
+  return project.value?.validationStatus === 'CHANGES_REQUESTED'
+})
+
+const projectStatusMessage = computed(() => {
+  const messages = {
+    DRAFT: {
+      title: 'Projet en brouillon',
+      text: 'Vous pouvez encore modifier ce projet avant de le soumettre à la validation.',
+      icon: 'edit_note',
+    },
+    PENDING: {
+      title: 'Validation en cours',
+      text: 'Ce projet a été soumis. Il n\'est plus modifiable pendant son évaluation.',
+      icon: 'schedule',
+    },
+    APPROVED: {
+      title: 'Projet validé',
+      text: 'Ce projet est validé et peut être utilisé dans votre portfolio académique.',
+      icon: 'verified',
+    },
+    REJECTED: {
+      title: 'Projet refusé',
+      text: 'Ce projet a été refusé. Vous pouvez consulter le commentaire du validateur.',
+      icon: 'cancel',
+    },
+    CHANGES_REQUESTED: {
+      title: 'Corrections demandées',
+      text: 'Des modifications sont attendues. Vous pouvez corriger le projet puis le resoumettre.',
+      icon: 'rate_review',
+    },
+  }
+
+  return messages[project.value?.validationStatus] || messages.DRAFT
+})
 
 const sortedValidationHistory = computed(() => {
   return [...(project.value?.validationHistory || [])].sort((a, b) => {
@@ -126,83 +161,39 @@ onMounted(fetchProject)
             Modifier
           </RouterLink>
 
-          <button
-            v-if="canSubmitProject"
-            class="primary-action"
-          >
+          <button v-if="canSubmitProject || canResubmitProject">
             <span class="material-icons-round">
               send
             </span>
-
-            Soumettre
+            {{ canResubmitProject ? 'Resoumettre' : 'Soumettre' }}
           </button>
         </div>
       </div>
 
       <div class="project-details-layout">
         <div class="project-main-column">
-            <section
-  v-if="project.screenshots?.length"
-  class="details-card"
->
-  <div class="section-title">
-    <span class="material-icons-round">
-      image
-    </span>
+          <section class="details-card project-about-card">
+  <h2 class="section-title">À propos du projet</h2>
 
-    Captures d'écran
-  </div>
+  <p class="project-full-description">
+    {{ project.description }}
+  </p>
 
-  <div class="screenshots-grid">
-    <div
-    v-for="(screenshot, index) in project.screenshots" :key="screenshot.id" class="screenshot-card"
-    >
-      <img
-        v-if="screenshot.imageUrl" :src="screenshot.imageUrl" :alt="screenshot.title"
-      />
-
-      <div
-        v-else class="screenshot-placeholder" :class="`variant-${(index % 3) + 1}`" >
-        {{ screenshot.title }}
-      </div>
+  <div class="project-about-meta">
+    <div>
+      <span>Rôle</span>
+      <strong>{{ project.role || 'Non précisé' }}</strong>
     </div>
 
-    <button
-      v-if="canEditProject"
-      type="button"
-      class="screenshot-add-card"
-    >
-      <span class="material-icons-round">
-        add
-      </span>
-
-      Ajouter
-    </button>
+    <div>
+      <span>Équipe</span>
+      <strong>{{ project.teamSize || 'Non précisé' }}</strong>
+    </div>
   </div>
 </section>
 
           <section class="details-card">
-            <div class="section-title">
-              <span class="material-icons-round">
-                description
-              </span>
-
-              Description complète
-            </div>
-
-            <p class="project-full-description">
-              {{ project.description }}
-            </p>
-          </section>
-
-          <section class="details-card">
-            <div class="section-title">
-              <span class="material-icons-round">
-                code
-              </span>
-
-              Technologies utilisées
-            </div>
+            <h2 class="section-title">Technologies utilisées</h2>
 
             <div class="project-tech-list">
               <span
@@ -216,73 +207,33 @@ onMounted(fetchProject)
           </section>
 
           <section class="details-card">
-            <div class="section-title">
-              <span class="material-icons-round">
-                link
-              </span>
-
-              Liens du projet
-            </div>
+            <h2 class="section-title">Liens du projet</h2>
 
             <div class="project-links-list">
-              <a
-                v-if="project.githubUrl"
-                :href="project.githubUrl"
-                target="_blank"
-                class="project-link-item"
-              >
-                <span class="material-icons-round">
-                  terminal
-                </span>
-
+              <a v-if="project.githubUrl" :href="project.githubUrl" target="_blank" class="project-link-item" >
+                <span class="material-icons-round"> open_in_new</span>
                 GitHub Repository
               </a>
 
-              <a
-                v-if="project.demoUrl"
-                :href="project.demoUrl"
-                target="_blank"
-                class="project-link-item"
-              >
-                <span class="material-icons-round">
-                  language
-                </span>
-
+              <a v-if="project.demoUrl" :href="project.demoUrl" target="_blank" class="project-link-item" >
+                <span class="material-icons-round"> open_in_new</span>
                 Demo du projet
               </a>
 
-              <a
-                v-if="project.documentationUrl"
-                :href="
-                  project.documentationUrl
-                "
+              <a v-if="project.documentationUrl" :href="project.documentationUrl "
                 target="_blank"
                 class="project-link-item"
               >
-                <span class="material-icons-round">
-                  article
-                </span>
-
+              <span class="material-icons-round"> open_in_new</span>
                 Documentation
               </a>
             </div>
           </section>
 
           <section class="details-card">
-            <div class="section-title">
-              <span class="material-icons-round">
-                attach_file
-              </span>
-
-              Pièces jointes
-            </div>
-
+            <h2 class="section-title">Pièces jointes</h2>
             <div class="attachments-list">
-              <div
-                v-for="attachment in project.attachments"
-                :key="attachment.id"
-                class="attachment-card"
-              >
+              <div v-for="attachment in project.attachments" :key="attachment.id" class="attachment-card"  >
                 <div class="attachment-left">
                   <span class="material-icons-round">
                     description
@@ -299,9 +250,7 @@ onMounted(fetchProject)
                   </div>
                 </div>
 
-                <button
-                  class="secondary-action"
-                >
+                <button class="secondary-action" >
                   Télécharger
                 </button>
               </div>
@@ -310,11 +259,7 @@ onMounted(fetchProject)
 
           <section class="details-card">
             <div class="section-title">
-              <span class="material-icons-round">
-                timeline
-              </span>
-
-              Historique de validation
+              <h2 class="section-title">Historique de validation</h2>
             </div>
 
             <div class="timeline-list">
@@ -354,7 +299,21 @@ onMounted(fetchProject)
 
               Validation
             </div>
+            <section
+  class="details-card project-status-card"
+  :class="project.validationStatus.toLowerCase().replace('_', '-')"
+>
+  <div class="status-card-icon">
+    <span class="material-icons-round">
+      {{ projectStatusMessage.icon }}
+    </span>
+  </div>
 
+  <div>
+    <h3>{{ projectStatusMessage.title }}</h3>
+    <p>{{ projectStatusMessage.text }}</p>
+  </div>
+</section>
             <div class="validator-card">
               <div class="validator-avatar">
                 {{ project.validatorName?.charAt(0)}}
@@ -378,6 +337,45 @@ onMounted(fetchProject)
               “{{ project.validationComment }}”
             </div>
           </section>
+          <section
+  v-if="project.screenshots?.length"
+  class="details-card"
+>
+  <div class="section-title">
+    <span class="material-icons-round">
+      image
+    </span>
+
+    Captures d'écran
+  </div>
+
+  <div class="screenshots-grid">
+    <div
+    v-for="(screenshot, index) in project.screenshots" :key="screenshot.id" class="screenshot-card"
+    >
+      <img
+        v-if="screenshot.imageUrl" :src="screenshot.imageUrl" :alt="screenshot.title"
+      />
+
+      <div
+        v-else class="screenshot-placeholder" :class="`variant-${(index % 3) + 1}`" >
+        {{ screenshot.title }}
+      </div>
+    </div>
+
+    <button
+      v-if="canEditProject"
+      type="button"
+      class="screenshot-add-card"
+    >
+      <span class="material-icons-round">
+        add
+      </span>
+
+      Ajouter
+    </button>
+  </div>
+</section>
 
           <section class="details-card">
             <div class="section-title">
