@@ -216,7 +216,12 @@
 }
 
 .screenshot-card {
-  border: 0.1px solid #eeeeea;
+  border: 0.1px solid #eeeeea;padding: 0;
+  cursor: default;
+  background: transparent;
+}
+.screenshot-card.is-editable {
+  cursor: pointer;
 }
 
 .screenshot-card img {
@@ -248,7 +253,10 @@
 .screenshot-placeholder.variant-3 {
   background: linear-gradient(135deg, #24363a, #2f5a60);
 }
-
+.screenshot-card.is-editable:hover {
+  outline: 2px solid #6d9197;
+  outline-offset: 2px;
+}
 .screenshot-add-card {
   display: flex;
   align-items: center;
@@ -264,10 +272,6 @@
 .screenshot-add-card:hover {
   border-color: #6d9197;
   color: #2f5a60;
-}
-
-.project-sidebar .screenshot-card:nth-child(3) {
-  grid-column: 1 / -1;
 }
 
 .screenshot-file-input {
@@ -647,7 +651,17 @@
   background: #ececea;
   color: #7b8481;
 }
+.project-header-validator.pending {
+  color: #b87518;
+}
 
+.project-header-validator.rejected {
+  color: #c75858;
+}
+
+.project-header-validator.muted {
+  color: #7d8784;
+}
 .project-status-card.changes-requested .status-card-icon {
   background: #fff1dc;
   color: #b87518;
@@ -702,4 +716,15 @@
 .project-main-column .details-card,
 .project-sidebar .details-card {
   background: #ffffff;
+}
+.empty-section-message {
+  min-height: 3.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: #8a9691;
+  font-size: 0.86rem;
+  font-weight: 500;
+  text-align: center;
 }
