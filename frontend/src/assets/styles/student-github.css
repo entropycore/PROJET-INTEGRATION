@@ -1,0 +1,420 @@
+.student-github-page {
+    padding: 2rem;
+    color: #24363a;
+  }
+  
+  .github-page-header {
+    margin-bottom: 1.8rem;
+  }
+  
+  .page-kicker {
+    display: block;
+    margin-bottom: 0.35rem;
+    color: #9a9d98;
+    font-size: 0.78rem;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  
+  .github-page-header h1 {
+    margin: 0;
+    color: #24363a;
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.05;
+  }
+  
+  .github-page-header p {
+    margin: 0.6rem 0 0;
+    color: #5f6b67;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  
+  .github-state-card,
+  .github-connect-hero,
+  .github-benefits-card,
+  .github-account-card,
+  .github-card,
+  .github-stat-card {
+    border: 1px solid #deded8;
+    border-radius: 0.9rem;
+    background: #ffffff;
+  }
+  
+  .github-state-card {
+    padding: 2rem;
+    color: #6b7471;
+    font-weight: 700;
+    text-align: center;
+  }
+  
+  .github-connect-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    padding: 2.3rem;
+    background:
+      linear-gradient(
+        90deg,
+        #ffffff 0%,
+        #ffffff 55%,
+        #f7f8f5 100%
+      );
+  }
+  
+  .github-connect-hero::after {
+    content: '';
+    position: absolute;
+    right: -95px;
+    top: 50%;
+    width: 460px;
+    height: 460px;
+    background-image: url('../icons/github-octocat.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.04;
+    filter: grayscale(1) blur(0.5px);
+    transform: translateY(-50%) rotate(-8deg);
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  .github-connect-hero > * {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .github-connect-content {
+    max-width: 590px;
+  }
+  
+  .github-small-icon,
+  .benefit-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background: #e6f0ea;
+    color: #2f5a60;
+  }
+  
+  .github-small-icon {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 1.15rem;
+  }
+  
+  .github-connect-content h2 {
+    margin: 0 0 0.8rem;
+    color: #24363a;
+    font-size: clamp(1.55rem, 2vw, 2rem);
+    font-weight: 800;
+    line-height: 1.15;
+  }
+  
+  .github-connect-content p {
+    margin: 0;
+    color: #5f6b67;
+    font-size: 0.98rem;
+    line-height: 1.75;
+  }
+  
+  .primary-action,
+  .secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.6rem;
+    padding: 0 1.1rem;
+    border-radius: 0.6rem;
+    font-size: 0.88rem;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.2s ease;
+  }
+  
+  .primary-action {
+    margin-top: 1.4rem;
+    border: 1px solid #2f5a60;
+    background: #2f5a60;
+    color: #ffffff;
+  }
+  
+  .primary-action:hover {
+    background: #24484d;
+    border-color: #24484d;
+    transform: translateY(-1px);
+  }
+  
+  .secondary-action {
+    border: 1px solid #ddded8;
+    background: #ffffff;
+    color: #24363a;
+  }
+  
+  .secondary-action:hover {
+    background: #f7f7f4;
+    border-color: #c4cdc1;
+  }
+  
+  .primary-action:disabled,
+  .secondary-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .github-inline-error {
+    max-width: 520px;
+    margin-top: 1rem !important;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid #f0d9d6;
+    border-radius: 0.7rem;
+    background: rgba(199, 88, 88, 0.045);
+    color: #b14f4f !important;
+    font-size: 0.86rem !important;
+    font-weight: 700;
+  }
+  
+  .github-benefits-card {
+    margin-top: 1rem;
+    padding: 1.7rem;
+  }
+  
+  .github-benefits-card h2 {
+    margin: 0 0 1.3rem;
+    color: #24363a;
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+  
+  .github-benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2rem;
+  }
+  
+  .github-benefit-item {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+  }
+  
+  .benefit-icon {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 auto;
+  }
+  
+  .github-benefit-item h3 {
+    margin: 0 0 0.35rem;
+    color: #24363a;
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+  
+  .github-benefit-item p {
+    margin: 0;
+    color: #5f6b67;
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  
+  .github-account-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    padding: 1.4rem;
+  }
+  
+  .github-account-card h2,
+  .github-card h2 {
+    margin: 0;
+    color: #24363a;
+    font-size: 1.1rem;
+    font-weight: 800;
+  }
+  
+  .github-user-row {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    margin-top: 1rem;
+  }
+  
+  .github-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2f5a60, #6d9981);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 800;
+  }
+  
+  .github-user-row strong {
+    display: block;
+    color: #24363a;
+    font-size: 0.95rem;
+  }
+  
+  .github-user-row p {
+    margin: 0.25rem 0 0;
+    color: #6b7471;
+    font-size: 0.88rem;
+  }
+  
+  .github-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  
+  .github-stat-card {
+    padding: 1.3rem;
+    border-top: 3px solid #2f5a60;
+  }
+  
+  .github-stat-card span {
+    display: block;
+    margin-bottom: 0.8rem;
+    color: #9a9d98;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  
+  .github-stat-card strong {
+    color: #24363a;
+    font-size: 2rem;
+    line-height: 1;
+  }
+  
+  .github-card {
+    margin-top: 1rem;
+    padding: 1.4rem;
+  }
+  
+  .github-card-header {
+    margin-bottom: 1rem;
+  }
+  
+  .github-card-header p {
+    margin: 0.45rem 0 0;
+    color: #5f6b67;
+    font-size: 0.92rem;
+    line-height: 1.6;
+  }
+  
+  .github-languages-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    margin-top: 1rem;
+  }
+  
+  .github-language-pill,
+  .repo-meta span {
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid #e0e2de;
+    background: #f7f7f4;
+    color: #53605d;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  
+  .github-repositories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .github-repository-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid #eeeeea;
+    border-radius: 0.75rem;
+    background: #fafaf8;
+  }
+  
+  .github-repository-card h3 {
+    margin: 0 0 0.45rem;
+    color: #24363a;
+    font-size: 1rem;
+    font-weight: 800;
+  }
+  
+  .github-repository-card p {
+    margin: 0;
+    color: #5f6b67;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  
+  .repo-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  
+  .github-empty-message {
+    margin: 0;
+    padding: 1.4rem 0;
+    text-align: center;
+    color: #8a9691;
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 1000px) {
+    .github-benefits-grid,
+    .github-stats-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .github-account-card,
+    .github-repository-card {
+      flex-direction: column;
+    }
+  }
+  
+  @media (max-width: 760px) {
+    .student-github-page {
+      padding: 1.2rem;
+    }
+  
+    .github-connect-hero {
+      padding: 1.5rem;
+    }
+  
+    .github-connect-hero::after {
+      right: -140px;
+      width: 330px;
+      height: 330px;
+    }
+  }
+  .github-logo-icon {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    opacity: 0.92;
+  }
