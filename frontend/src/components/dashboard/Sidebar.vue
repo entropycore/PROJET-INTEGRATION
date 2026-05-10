@@ -1,14 +1,29 @@
 <script setup>
-import { computed } from 'vue'
+
+import { computed ,ref} from 'vue'
 import { useAuthStore } from '../../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter , useRoute } from 'vue-router'
 import { logout } from '../../services/authService'
 import { sidebarConfig } from '../../config/sidebarConfig'
 
 import '../../assets/styles/sidebar.css'
 
+const props = defineProps({
+  collapsed: {
+    type: Boolean,
+    default: false
+  }
+})
+
+const emit = defineEmits(['toggle-sidebar'])
+
 const authStore = useAuthStore()
 const router = useRouter()
+//pour les routes enfqnts de gestions utilisateurs
+const route = useRoute()
+const isChildActive = (child) => {
+  return route.fullPath === child.path
+}
 
 const user = computed(() => authStore.user)
 
@@ -32,18 +47,32 @@ const handleLogout = async () => {
   authStore.clearAuthSession()
   router.push('/login')
 }
+const openDropdown = ref(null)
+
+const toggleDropdown = (label) => {
+  openDropdown.value = openDropdown.value === label ? null : label
+}
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside :class="['sidebar', { 'sidebar-collapsed': collapsed }]">
     <div>
       <!-- USER -->
       <div class="sidebar-user">
         <div class="sidebar-avatar">{{ userInitial }}</div>
-        <div>
+
+        <div class="sidebar-user-info">
           <h3>{{ user?.firstName }} {{ user?.lastName }}</h3>
           <p>{{ user?.role }}</p>
         </div>
+
+        <button
+          class="sidebar-collapse-btn"
+          type="button"
+          @click="emit('toggle-sidebar')"
+        >
+          <img :src="getIcon('curtain.svg')" alt="Collapse sidebar" />
+        </button>
       </div>
 
       <!-- NAV -->
@@ -51,17 +80,50 @@ const handleLogout = async () => {
         <div v-for="section in sections" :key="section.section">
           <p class="sidebar-section">{{ section.section }}</p>
 
-          <RouterLink
-            v-for="item in section.items"
-            :key="item.path"
-            :to="item.path"
-             class="sidebar-link"
-            active-class="sidebar-link-active"
-            exact-active-class="sidebar-link-exact-active"
+          <div v-for="item in section.items" :key="item.label">
+  <button
+    v-if="item.children"
+    type="button"
+    class="sidebar-link sidebar-dropdown-trigger"
+    @click="toggleDropdown(item.label)"
+  >
+    <span class="sidebar-link-left">
+      <img :src="getIcon(item.icon)" class="sidebar-icon" />
+      <span class="sidebar-label">{{ item.label }}</span>
+    </span>
+
+    <span class="sidebar-chevron">
+      {{ openDropdown === item.label ? '⌃' : '⌄' }}
+    </span>
+  </button>
+
+  <div
+    v-if="item.children && openDropdown === item.label"
+    class="sidebar-submenu"
+  >
+  <RouterLink
+  v-for="child in item.children"
+  :key="child.path"
+  :to="child.path"
+  class="sidebar-sublink"
+  :class="{ 'sidebar-sublink-active': isChildActive(child) }"
 >
-            <img :src="getIcon(item.icon)" class="sidebar-icon" />
-            <span>{{ item.label }}</span>
-        </RouterLink>
+  <img :src="getIcon(child.icon)" class="sidebar-icon" />
+  <span class="sidebar-label">{{ child.label }}</span>
+</RouterLink>
+  </div>
+
+  <RouterLink
+    v-else-if="!item.children"
+    :to="item.path"
+    class="sidebar-link"
+    active-class="sidebar-link-active"
+    exact-active-class="sidebar-link-exact-active"
+  >
+    <img :src="getIcon(item.icon)" class="sidebar-icon" />
+    <span class="sidebar-label">{{ item.label }}</span>
+  </RouterLink>
+</div>
         </div>
       </nav>
     </div>
@@ -69,7 +131,7 @@ const handleLogout = async () => {
     <!-- LOGOUT -->
     <button class="logout-btn" @click="handleLogout">
       <img :src="getIcon('logout.svg')" />
-      Déconnexion
+      <span class="sidebar-label">Déconnexion</span>
     </button>
   </aside>
 </template>

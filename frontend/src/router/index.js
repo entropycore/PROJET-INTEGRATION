@@ -1,22 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import { getMe } from '../services/authService'
+
+/* Imports des vues principales */
 import LoginView from '../views/LoginView.vue'
 import RequestAccessView from '../views/RequestAccessView.vue'
 import VerifyEmailView from '../views/VerifyEmailView.vue'
+import LandingView from '../views/LandingView.vue' // Ajout de la Landing Page
+
+/* Imports des tableaux de bord par rôle */
 import AdminDashboard from '../views/admin/Dashboard.vue'
 import StudentDashboard from '../views/student/Dashboard.vue'
 import ProfessorDashboard from '../views/professor/Dashboard.vue'
 import ProfessionalDashboard from '../views/professional/Dashboard.vue'
 import DashboardLayout from '../layouts/DashboardLayout.vue'
 
-import { useAuthStore } from '../stores/auth'
-import { getMe } from '../services/authService'
-
 const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-          path: '/',
-          redirect: '/login',
+            /* Changement : La Landing Page est maintenant la racine */
+            path: '/',
+            name: 'landing',
+            component: LandingView,
         },
         {
             path: '/login',
@@ -49,6 +55,21 @@ const router = createRouter({
       component: () => import('../views/admin/Users.vue'),
     },
     {
+      path: 'users/create',
+      name: 'admin-user-create',
+      component: () => import('../views/admin/UserCreate.vue'),
+    },
+    {
+      path: 'users/:userId',
+      name: 'admin-user-details',
+      component: () => import('../views/admin/UserDetails.vue'),
+    },
+    {
+      path: 'users/:userId/edit',
+      name: 'admin-user-edit',
+      component: () => import('../views/admin/UserDetails.vue'),
+    },
+    {
       path: 'validations',
       name: 'admin-validations',
       component: () => import('../views/admin/Validations.vue'),
@@ -62,6 +83,12 @@ const router = createRouter({
       path: 'notifications',
       name: 'admin-notifications',
       component: () => import('../views/Notifications.vue'),
+      meta: { baseApi: '/api/professional' }
+    },
+    {
+      path: 'badges',
+      name: 'admin-badges',
+      component: () => import('../views/admin/Badges.vue'),
     },
     {
       path: 'profile',
@@ -97,31 +124,43 @@ const router = createRouter({
         }
     ]
 })
+
 router.beforeEach(async (to) => {
-    const authStore = useAuthStore()//condition de verification de connexion
+    const authStore = useAuthStore()
 
+    /* Vérification de la session si nécessaire */
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-      try {
-        const meResponse = await getMe()
-        authStore.setAuthSession(meResponse.data.data)
-      } catch {
-        authStore.clearAuthSession()
-      }
+        try {
+            const meResponse = await getMe()
+            authStore.setAuthSession(meResponse.data.data)
+        } catch {
+            authStore.clearAuthSession()
+        }
     }
 
+    /* Redirection si l'accès nécessite une authentification */
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-      return {
-        path: '/login',
-        query: { error: 'unauthorized' },
-      }
+        return {
+            path: '/login',
+            query: { error: 'unauthorized' },
+        }
     }
+
+    /* Changement : Rediriger l'utilisateur vers son dashboard s'il est déjà connecté */
+    if (authStore.isAuthenticated && (to.name === 'landing' || to.name === 'login')) {
+        const role = authStore.user?.role
+        if (role === 'ADMINISTRATOR') return { name: 'admin-dashboard' }
+        if (role === 'STUDENT') return { path: '/student' }
+        if (role === 'PROFESSOR') return { path: '/professor' }
+        if (role === 'PROFESSIONAL') return { path: '/professional' }
+    }
+
+    /* Vérification des permissions par rôle */
     if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
-    return {
-      path: '/403',
+        return { path: '/403' }
     }
-}
+
     return true
 })
-  
 
 export default router
