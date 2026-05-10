@@ -11,16 +11,14 @@ const handleProfessorError = (res, err) => {
   return null;
 };
 
-exports.getDashboard = (req, res) => {
-  return success(
-    res,
-    200,
-    'Acces autorise a l espace professeur',
-    {
-      area: 'professor',
-      user: req.user,
-    }
-  );
+exports.getDashboard = async (req, res, next) => {
+  try {
+    const dashboard = await professorService.getProfessorDashboard(req.user.userId);
+    return success(res, 200, 'Tableau de bord professeur charge.', dashboard);
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
 };
 
 exports.getProfile = async (req, res, next) => {
