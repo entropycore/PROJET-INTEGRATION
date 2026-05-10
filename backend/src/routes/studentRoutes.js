@@ -13,6 +13,7 @@ router.use(checkRoles('STUDENT'));
 router.get('/dashboard', studentController.getDashboard);
 router.get('/profile', studentController.getProfile);
 router.get('/activities', studentController.getActivities);
+router.get('/skills', studentController.getSkillsByCategory);
 
 
 module.exports = router;
