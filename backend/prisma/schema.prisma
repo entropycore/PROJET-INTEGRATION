@@ -7,7 +7,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  //directUrl = env("DIRECT_URL")
 }
 
 
@@ -77,6 +77,32 @@ enum PortfolioStatus {
   ARCHIVED
 }
 
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReportTargetType {
+  PORTFOLIO
+  COMMENT
+  RECOMMENDATION
+  PROJECT
+  INTERNSHIP
+  USER
+  OTHER
+}
+
+enum NotificationType {
+  ACCESS_REQUEST
+  CERTIFICATE_VALIDATION
+  RECOMMENDATION_LETTER_VALIDATION
+  COMMENT_VALIDATION
+  RECOMMENDATION_VALIDATION
+  REPORT
+  SYSTEM
+}
+
 
 
 model User {
@@ -104,6 +130,7 @@ model User {
   commentsValidated Comment[] @relation("CommentValidator")
   recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
+  reportsAuthored Report[] @relation("ReportAuthor")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -185,6 +212,8 @@ model Administrator {
   approvedProfessionals Professional[] @relation("ProfessionalApprovedBy")
   rejectedProfessionals Professional[] @relation("ProfessionalRejectedBy")
   suspendedProfessionals Professional[] @relation("ProfessionalSuspendedBy")
+  reviewedReports Report[]
+  notifications Notification[]
 
   @@map("administrators")
 }
@@ -535,4 +564,47 @@ model Recommendation {
   @@index([validatorUserId])
   @@index([status])
   @@map("recommendations")
+}
+
+model Report {
+  id                          String          @id @default(uuid()) @map("id_report")
+  reporterUserId              String?         @map("reporter_user_id")
+  reporterUser                User?           @relation("ReportAuthor", fields: [reporterUserId], references: [id], onDelete: SetNull)
+  reviewedByAdministratorId   String?         @map("reviewed_by_administrator_id")
+  reviewedByAdministrator     Administrator?  @relation(fields: [reviewedByAdministratorId], references: [id], onDelete: SetNull)
+  targetType                  ReportTargetType @map("target_type")
+  targetId                    String?         @map("target_id")
+  reason                      String          @db.VarChar(200)
+  description                 String?         @db.Text
+  status                      ReportStatus    @default(PENDING)
+  createdAt                   DateTime        @default(now()) @map("created_at")
+  reviewedAt                  DateTime?       @map("reviewed_at")
+  resolutionNote              String?         @map("resolution_note") @db.Text
+
+  @@index([status])
+  @@index([targetType, targetId])
+  @@index([reporterUserId])
+  @@index([reviewedByAdministratorId])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model Notification {
+  id              String           @id @default(uuid()) @map("id_notification")
+  administratorId String?          @map("administrator_id")
+  administrator   Administrator?   @relation(fields: [administratorId], references: [id], onDelete: SetNull)
+  type            NotificationType
+  title           String           @db.VarChar(200)
+  message         String           @db.Text
+  relatedType     String?          @map("related_type") @db.VarChar(100)
+  relatedId       String?          @map("related_id")
+  isRead          Boolean          @default(false) @map("is_read")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  readAt          DateTime?        @map("read_at")
+
+  @@index([administratorId])
+  @@index([type])
+  @@index([isRead, createdAt])
+  @@index([relatedType, relatedId])
+  @@map("notifications")
 }
