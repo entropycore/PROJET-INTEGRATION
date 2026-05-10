@@ -77,7 +77,7 @@ const router = createRouter({
     {
       path: 'profiles',
       name: 'admin-profiles',
-      component: () => import('../views/Profiles.vue'),
+      component: () => import('../views/profiles.vue'),
     },
     {
       path: 'notifications',
@@ -115,7 +115,7 @@ const router = createRouter({
             {
             path: '',
             name: 'Studentdashboard',
-            component: () => import('@/views/student/dashboard.vue'),
+            component: () => import('@/views/student/Dashboard.vue'),
             },
             {
             path: 'profile',

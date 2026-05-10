@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { getDashboard, getProfile } from '../services/dashboardService'
+import { getDashboard, getProfile } from '../services/DashboardService'
 import { logout } from '../services/authService'
 
 const props = defineProps({
