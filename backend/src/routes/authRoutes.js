@@ -31,6 +31,6 @@ router.get('/verify-email', authController.verifyEmail);
 
 
 router.get('/me', authMiddleware, authController.getMe);
-router.post('/logout', authMiddleware, authController.logout);//j ai supprimer aauthMiddleware car notre but et de supprimer cookie et pâs de verifier token
+router.post('/logout', authController.logout);
 
 module.exports = router;
