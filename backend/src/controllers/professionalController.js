@@ -11,16 +11,14 @@ const handleProfessionalError = (res, err) => {
   return null;
 };
 
-exports.getDashboard = (req, res) => {
-  return success(
-    res,
-    200,
-    'Acces autorise a l espace professionnel',
-    {
-      area: 'professional',
-      user: req.user,
-    }
-  );
+exports.getDashboard = async (req, res, next) => {
+  try {
+    const dashboard = await professionalService.getProfessionalDashboard(req.user.userId);
+    return success(res, 200, 'Tableau de bord professionnel charge.', dashboard);
+  } catch (err) {
+    if (handleProfessionalError(res, err)) return;
+    next(err);
+  }
 };
 
 exports.getProfile = async (req, res, next) => {

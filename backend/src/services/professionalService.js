@@ -118,6 +118,22 @@ const mapProfessionalProfile = (professional) => ({
   },
 });
 
+const inferProfessionalState = (professional) => {
+  if (professional.user.accountStatus === 'SUSPENDED' || professional.suspendedAt) {
+    return 'SUSPENDED';
+  }
+
+  if (professional.rejectedAt || professional.user.accountStatus === 'INACTIVE') {
+    return 'REJECTED';
+  }
+
+  if (professional.isVerified || professional.approvedAt || professional.user.accountStatus === 'ACTIVE') {
+    return 'APPROVED';
+  }
+
+  return 'PENDING';
+};
+
 const getProfessionalOrThrow = async (userId) => {
   const professional = await prisma.professional.findUnique({
     where: { userId },
@@ -133,3 +149,105 @@ const getProfessionalOrThrow = async (userId) => {
 
 exports.getProfessionalProfile = async (userId) =>
   mapProfessionalProfile(await getProfessionalOrThrow(userId));
+
+exports.getProfessionalDashboard = async (userId) => {
+  const professional = await getProfessionalOrThrow(userId);
+
+  const completionFields = [
+    professional.company,
+    professional.jobTitle,
+    professional.sector,
+    professional.bio,
+    professional.user.phone,
+  ];
+  const completedFields = completionFields.filter((value) => Boolean(String(value || '').trim())).length;
+  const profileCompletion = Math.round((completedFields / completionFields.length) * 100);
+  const currentState = inferProfessionalState(professional);
+
+  const timeline = [
+    {
+      type: 'ACCOUNT_CREATED',
+      label: 'Compte cree',
+      date: professional.user.createdAt,
+      actor: null,
+      details: null,
+    },
+    professional.emailVerifiedAt
+      ? {
+          type: 'EMAIL_VERIFIED',
+          label: 'Email verifie',
+          date: professional.emailVerifiedAt,
+          actor: null,
+          details: null,
+        }
+      : null,
+    professional.approvedAt
+      ? {
+          type: 'ACCOUNT_APPROVED',
+          label: 'Compte approuve',
+          date: professional.approvedAt,
+          actor: mapAdministratorSummary(professional.approvedByAdministrator),
+          details: null,
+        }
+      : null,
+    professional.rejectedAt
+      ? {
+          type: 'ACCOUNT_REJECTED',
+          label: 'Compte rejete',
+          date: professional.rejectedAt,
+          actor: mapAdministratorSummary(professional.rejectedByAdministrator),
+          details: professional.rejectionReason,
+        }
+      : null,
+    professional.suspendedAt
+      ? {
+          type: 'ACCOUNT_SUSPENDED',
+          label: 'Compte suspendu',
+          date: professional.suspendedAt,
+          actor: mapAdministratorSummary(professional.suspendedByAdministrator),
+          details: professional.suspensionReason,
+        }
+      : null,
+  ]
+    .filter(Boolean)
+    .sort((left, right) => new Date(right.date).getTime() - new Date(left.date).getTime());
+
+  return {
+    profileSnapshot: {
+      id: professional.user.id,
+      fullName: formatFullName(professional.user),
+      email: professional.user.email,
+      profilePicture: professional.user.profilePicture,
+      company: professional.company,
+      jobTitle: professional.jobTitle,
+      sector: professional.sector,
+      accountStatus: professional.user.accountStatus,
+      currentState,
+      lastLoginAt: professional.user.lastLoginAt,
+    },
+    summaryCards: {
+      profileCompletion: { value: profileCompletion, label: 'Profil complet (%)' },
+      emailVerified: { value: professional.isEmailVerified ? 1 : 0, label: 'Email verifie' },
+      adminVerified: { value: professional.isVerified ? 1 : 0, label: 'Validation admin' },
+      accountSuspended: {
+        value: professional.user.accountStatus === 'SUSPENDED' || professional.suspendedAt ? 1 : 0,
+        label: 'Compte suspendu',
+      },
+    },
+    accountOverview: {
+      currentState,
+      isEmailVerified: professional.isEmailVerified,
+      emailVerifiedAt: professional.emailVerifiedAt,
+      isVerified: professional.isVerified,
+      approvedAt: professional.approvedAt,
+      approvedByAdministrator: mapAdministratorSummary(professional.approvedByAdministrator),
+      rejectedAt: professional.rejectedAt,
+      rejectedByAdministrator: mapAdministratorSummary(professional.rejectedByAdministrator),
+      rejectionReason: professional.rejectionReason,
+      suspendedAt: professional.suspendedAt,
+      suspendedByAdministrator: mapAdministratorSummary(professional.suspendedByAdministrator),
+      suspensionReason: professional.suspensionReason,
+    },
+    timeline,
+  };
+};
