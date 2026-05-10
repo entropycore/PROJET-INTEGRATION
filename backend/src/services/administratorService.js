@@ -2124,6 +2124,152 @@ const rejectRecommendationValidation = async (
   return mapRecommendationValidationItem(updatedRecommendation);
 };
 
+const requestCertificateValidationChanges = async (
+  certificateId,
+  administratorId,
+  comment = null
+) => {
+  const certificate = await getValidationCertificateOrThrow(certificateId);
+
+  if (certificate.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.certificate.update({
+      where: { id: certificateId },
+      data: { validationStatus: 'CHANGES_REQUESTED' },
+    });
+
+    await tx.certificateValidation.create({
+      data: {
+        certificateId,
+        administratorId,
+        decision: 'CHANGES_REQUESTED',
+        comment,
+      },
+    });
+  });
+
+  const updatedCertificate = await getValidationCertificateOrThrow(certificateId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour le certificat de ${
+      updatedCertificate.activity?.student?.user
+        ? formatFullName(updatedCertificate.activity.student.user)
+        : 'un etudiant'
+    }.`,
+    relatedType: 'CERTIFICATE_VALIDATION',
+    relatedId: certificateId,
+  });
+
+  return mapCertificateRequestDetail(updatedCertificate);
+};
+
+const requestRecommendationLetterValidationChanges = async (
+  letterId,
+  actorUserId,
+  comment = null
+) => {
+  const letter = await getRecommendationLetterValidationOrThrow(letterId);
+
+  if (letter.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendationLetter.update({
+    where: { id: letterId },
+    data: {
+      validationStatus: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: comment,
+    },
+  });
+
+  const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour la lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    }.`,
+    relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
+    relatedId: letterId,
+  });
+
+  return mapRecommendationLetterValidationItem(updatedLetter);
+};
+
+const requestCommentValidationChanges = async (
+  commentId,
+  actorUserId,
+  commentText = null
+) => {
+  const comment = await getCommentValidationOrThrow(commentId);
+
+  if (comment.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      status: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: commentText,
+    },
+  });
+
+  const updatedComment = await getCommentValidationOrThrow(commentId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour le commentaire de ${
+      updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
+    }.`,
+    relatedType: 'COMMENT_VALIDATION',
+    relatedId: commentId,
+  });
+
+  return mapCommentValidationItem(updatedComment);
+};
+
+const requestRecommendationValidationChanges = async (
+  recommendationId,
+  actorUserId,
+  comment = null
+) => {
+  const recommendation = await getRecommendationValidationOrThrow(recommendationId);
+
+  if (recommendation.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: comment,
+    },
+  });
+
+  const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour la recommandation de ${
+      updatedRecommendation.authorUser
+        ? formatFullName(updatedRecommendation.authorUser)
+        : 'un utilisateur'
+    }.`,
+    relatedType: 'RECOMMENDATION_VALIDATION',
+    relatedId: recommendationId,
+  });
+
+  return mapRecommendationValidationItem(updatedRecommendation);
+};
+
 exports.getDashboardData = async () => {
   await syncAdminNotifications();
 
@@ -2747,6 +2893,81 @@ exports.rejectValidationItem = async (
     default:
       throw new Error('UNSUPPORTED_VALIDATION_TYPE');
   }
+};
+
+exports.requestValidationChangesItem = async (
+  itemType,
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  const normalizedComment =
+    typeof payload.comment === 'string'
+      ? payload.comment.trim() || null
+      : typeof payload.rejectionReason === 'string'
+        ? payload.rejectionReason.trim() || null
+        : typeof payload.reason === 'string'
+          ? payload.reason.trim() || null
+          : null;
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      return requestCertificateValidationChanges(itemId, administratorId, normalizedComment);
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return requestRecommendationLetterValidationChanges(itemId, actorUserId, normalizedComment);
+
+    case 'COMMENT_VALIDATION':
+      return requestCommentValidationChanges(itemId, actorUserId, normalizedComment);
+
+    case 'RECOMMENDATION_VALIDATION':
+      return requestRecommendationValidationChanges(itemId, actorUserId, normalizedComment);
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.approveLegacyValidationItem = async (
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  return exports.approveValidationItem(itemType, itemId, actorUserId, administratorId, payload);
+};
+
+exports.rejectLegacyValidationItem = async (
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  return exports.rejectValidationItem(itemType, itemId, actorUserId, administratorId, payload);
+};
+
+exports.requestLegacyValidationChanges = async (
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  const updatedItem = await exports.requestValidationChangesItem(
+    itemType,
+    itemId,
+    actorUserId,
+    administratorId,
+    payload
+  );
+
+  return mapValidationItemToLegacyShape(updatedItem);
 };
 
 exports.listNotifications = async ({
