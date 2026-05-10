@@ -15,6 +15,7 @@ const professionalRoutes = require('./routes/professionalRoutes');
 const studentRoutes = require('./routes/studentRoutes');
 const professorRoutes = require('./routes/professorRoutes');
 const administratorRoutes = require('./routes/administratorRoutes');
+const reportRoutes = require('./routes/reportRoutes');
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/professional', professionalRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/professor', professorRoutes);
 app.use('/api/admin', administratorRoutes);
+app.use('/api/reports', reportRoutes);
 
 
 app.use(notFound);
