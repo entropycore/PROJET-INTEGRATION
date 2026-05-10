@@ -6,6 +6,10 @@ import AdminDashboard from '../views/admin/Dashboard.vue'
 import StudentDashboard from '../views/student/Dashboard.vue'
 import ProfessorDashboard from '../views/professor/Dashboard.vue'
 import ProfessionalDashboard from '../views/professional/Dashboard.vue'
+
+// 👇 1. ZEDNA L-IMPORT DYAL GITHUB HNA
+import GithubView from '../views/student/GithubView.vue'
+
 import { useAuthStore } from '../stores/auth'
 import { getMe } from '../services/authService'
 
@@ -34,11 +38,18 @@ const router = createRouter({
         {
             path: '/admin',
             component: AdminDashboard,
-            meta: { requiresAuth: true, roles: ['ADMINISTRATOR'] },//c'est pour verifier que l'user est connecté et verifier son role thanks to beforeEach below
+            meta: { requiresAuth: true, roles: ['ADMINISTRATOR'] },
         },
         {
             path: '/student',
             component: StudentDashboard,
+            meta: { requiresAuth: true, roles: ['STUDENT'] },
+        },
+        // 👇 2. ZEDNA L-ROUTE DYAL GITHUB HNA (M-7miya b-Role STUDENT)
+        {
+            path: '/student/github',
+            name: 'student-github',
+            component: GithubView,
             meta: { requiresAuth: true, roles: ['STUDENT'] },
         },
         {
@@ -58,8 +69,9 @@ const router = createRouter({
         }
     ]
 })
+
 router.beforeEach(async (to) => {
-    const authStore = useAuthStore()//condition de verification de connexion
+    const authStore = useAuthStore()
 
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
       try {
@@ -76,13 +88,13 @@ router.beforeEach(async (to) => {
         query: { error: 'unauthorized' },
       }
     }
+    
     if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
-    return {
-      path: '/403',
+      return {
+        path: '/403',
+      }
     }
-}
     return true
 })
-  
 
 export default router
