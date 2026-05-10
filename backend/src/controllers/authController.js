@@ -1,6 +1,7 @@
 'use strict';
 
 const authService = require('../services/authService');
+const jwt = require('jsonwebtoken');
 const { setCookies, clearCookies, setAccessTokenCookie } = require('../utils/setCookies');
 
 // Inscription
@@ -138,9 +139,14 @@ exports.logout = async (req, res, next) => {
   try {
     const refreshTokenCookie = req.cookies?.refreshToken;
 
-    // Révoquer la session spécifique dans la DB si le token est présent
+    // Révoquer la session spécifique quand un refresh token valide est encore présent.
     if (refreshTokenCookie) {
-      await authService.revokeToken(req.user.userId, refreshTokenCookie);
+      try {
+        const decoded = jwt.verify(refreshTokenCookie, process.env.REFRESH_TOKEN_SECRET);
+        await authService.revokeToken(decoded.userId, refreshTokenCookie);
+      } catch (err) {
+        // Si le refresh token est invalide ou expiré, on ignore l'erreur et on vide quand même les cookies.
+      }
     }
 
     // Effacer les cookies du navigateur
