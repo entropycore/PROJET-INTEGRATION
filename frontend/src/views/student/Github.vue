@@ -11,94 +11,6 @@ const errorMessage = ref('')
 const githubData = ref(null)
 const importedRepos = ref([])
 
-const mockGithubData = {
-  connected: true,
-
-  username: 'Rime-seria',
-
-  profileUrl: 'https://github.com/Rime-seria',
-
-  publicRepos: 12,
-
-  totalContributions: 284,
-
-  languages: [
-    'Vue.js',
-    'JavaScript',
-    'Node.js',
-    'Express',
-    'PostgreSQL',
-    'Prisma',
-    'Docker',
-  ],
-
-  repositories: [
-    {
-      id: 1,
-      name: 'PROJET-INTEGRATION',
-
-      description:
-        'Plateforme académique de portfolios numériques adaptatifs et certifiés.',
-
-      url: 'https://github.com/Rime-seria/PROJET-INTEGRATION',
-
-      language: 'Vue.js',
-
-      updatedAt: '2026-05-07T14:25:00Z',
-
-      isImported: false,
-    },
-
-    {
-      id: 2,
-      name: 'credencia-backend',
-
-      description:
-        'Backend Express + Prisma de la plateforme Credencia.',
-
-      url: 'https://github.com/Rime-seria/credencia-backend',
-
-      language: 'Node.js',
-
-      updatedAt: '2026-05-05T20:10:00Z',
-
-      isImported: true,
-    },
-
-    {
-      id: 3,
-      name: 'testingPR',
-
-      description:
-        'Tests GitHub Actions et workflows CI/CD.',
-
-      url: 'https://github.com/Rime-seria/testingPR',
-
-      language: 'JavaScript',
-
-      updatedAt: '2026-05-01T09:18:00Z',
-
-      isImported: false,
-    },
-
-    {
-      id: 4,
-      name: 'portfolio-ui',
-
-      description:
-        'Expérimentations UI/UX pour les dashboards étudiants.',
-
-      url: 'https://github.com/Rime-seria/portfolio-ui',
-
-      language: 'CSS',
-
-      updatedAt: '2026-04-28T11:00:00Z',
-
-      isImported: false,
-    },
-  ],
-}
-
 const isConnected = computed(() => githubData.value?.connected)
 const repositories = computed(() => githubData.value?.repositories || [])
 const languagesCount = computed(() => githubData.value?.languages?.length || 0)
@@ -115,10 +27,10 @@ const fetchGithubStats = async () => {
   isLoading.value = true
 
   try {
-    githubData.value = mockGithubData
+    const response = await getGithubStats()
+    githubData.value = response.data.data
   } catch (error) {
     console.error('Erreur récupération GitHub:', error)
-    githubData.value = mockGithubData
   } finally {
     isLoading.value = false
   }
@@ -320,12 +232,7 @@ onMounted(fetchGithubStats)
   </div>
 
   <div class="github-chart-wrap">
-    <img
-      v-if="githubData.username"
-      :src="`https://ghchart.rshah.org/2F575D/${githubData.username}`"
-      alt="Calendrier des contributions GitHub"
-      class="github-contribution-chart"
-    />
+    <img v-if="githubData.username"  :src="`https://ghchart.rshah.org/2F575D/${githubData.username}`"  alt="Calendrier des contributions GitHub"  class="github-contribution-chart" />
   </div>
 </section>
 
