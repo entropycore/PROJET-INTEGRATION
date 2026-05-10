@@ -7,7 +7,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
- //directUrl = env("DIRECT_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 
@@ -172,6 +172,7 @@ model Student {
   bio             String?   @db.Text
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
+  githubAccessToken String? @map("github_access_token") @db.Text
   academicPaths   AcademicPath[]
   studentSkills   StudentSkill[]
   projects        Project[]
