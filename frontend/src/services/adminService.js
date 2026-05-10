@@ -28,7 +28,7 @@ export const updateUserStatus = (id, status) => {
   return api.patch(`/admin/users/${id}/status`, { status })
 }
 
-// chnage role
+// change role
 export const updateUserRole = (id, role) => {
   return api.patch(`/admin/users/${id}/role`, { role })
 }
@@ -41,4 +41,22 @@ export const resetUserPassword = (id) => {
 // delete user
 export const deleteUser = (id) => {
   return api.delete(`/admin/users/${id}`)
+}
+
+export const getProfessionalRequests = (params = {}) => {
+  return api.get('/admin/professional-requests', { params })
+}
+
+export const getProfessionalRequestById = (userId) => {
+  return api.get(`/admin/professional-requests/${userId}`)
+}
+
+export const approveProfessionalRequest = (userId) => {
+  return api.patch(`/admin/professional-requests/${userId}/approve`)
+}
+
+export const rejectProfessionalRequest = (userId, rejectionReason = null) => {
+  return api.patch(`/admin/professional-requests/${userId}/reject`, {
+    rejectionReason,
+  })
 }

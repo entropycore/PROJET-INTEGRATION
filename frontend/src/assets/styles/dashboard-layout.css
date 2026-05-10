@@ -37,4 +37,5 @@ body {
   overflow-y: auto;
   padding: 28px 24px;
   background: #fafaf8;
+  transition: all 0.25s ease;
 }

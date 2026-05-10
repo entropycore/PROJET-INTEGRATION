@@ -4,12 +4,25 @@ export const sidebarConfig = {
       section: 'TABLEAU DE BORD',
       items: [
         { label: 'Vue globale', path: '/admin', icon: 'dashboard.svg' },
-        { label: 'Gestion des utilisateurs', path: '/admin/users', icon: 'users.svg'},
-        { label: 'Validation en attente', path: '/admin/validations', icon: 'validation.svg' },
-        { label: 'Signalements', path: '/admin/reports', icon: 'reports.svg' },
       ],
     },
     {
+      section: 'Gestion Utilisateurs',
+      items: [
+        {
+        label: 'Gestion des utilisateurs',
+        icon: 'users.svg',
+        children: [
+          { label: 'Étudiants', path: '/admin/users?role=STUDENT', icon: 'student.svg' },
+          { label: 'Professeurs', path: '/admin/users?role=PROFESSOR', icon: 'profile.svg'},
+          { label: 'Recruiters', path: '/admin/users?role=PROFESSIONAL', icon: 'recruters.svg'},
+        ],
+         },
+        { label: 'Validation en attente', path: '/admin/validations', icon: 'validation.svg' },
+        { label: 'Signalements', path: '/admin/reports', icon: 'reports.svg' },
+      ],
+     },
+      {
       section: 'RÉPERTOIRE',
       items: [
         { label: 'Explore Profiles', path: '/admin/profiles', icon: 'profiles.svg' },
@@ -18,6 +31,7 @@ export const sidebarConfig = {
     {
       section: 'SYSTÈME',
       items: [
+        { label: 'Système de badges', path: '/admin/Badges', icon: 'badge.svg' },
         { label: 'Notifications', path: '/admin/notifications', icon: 'notification.svg', danger: true },
       ],
     },
