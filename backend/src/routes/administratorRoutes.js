@@ -17,6 +17,15 @@ router.patch('/dashboard-items/:itemType/:itemId/reject', administratorControlle
 router.get('/notifications', administratorController.listNotifications);
 router.patch('/notifications/read-all', administratorController.markAllNotificationsAsRead);
 router.patch('/notifications/:notificationId/read', administratorController.markNotificationAsRead);
+router.get('/validations/pending', administratorController.listPendingValidationsLegacy);
+router.get('/validations/pending-count', administratorController.getPendingValidationCountsLegacy);
+router.get('/validations/:validationId', administratorController.getLegacyValidationDetail);
+router.patch('/validations/:validationId/approve', administratorController.approveLegacyValidationItem);
+router.patch('/validations/:validationId/reject', administratorController.rejectLegacyValidationItem);
+router.patch(
+  '/validations/:validationId/request-changes',
+  administratorController.requestLegacyValidationChanges
+);
 router.get('/validations', administratorController.listValidationItems);
 router.get('/validations/:itemType/:itemId', administratorController.getValidationItemDetail);
 router.patch('/validations/:itemType/:itemId/approve', administratorController.approveValidationItem);
