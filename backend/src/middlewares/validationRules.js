@@ -84,6 +84,34 @@ register: [
         'Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'
       ),
   ],
+
+  createReport: [
+    body('targetType')
+      .trim()
+      .notEmpty()
+      .withMessage('Type de cible obligatoire')
+      .isIn(['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'])
+      .withMessage('Type de cible invalide'),
+
+    body('targetId')
+      .optional({ values: 'falsy' })
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage('Identifiant de cible invalide'),
+
+    body('reason')
+      .trim()
+      .notEmpty()
+      .withMessage('Motif obligatoire')
+      .isLength({ min: 3, max: 200 })
+      .withMessage('Motif entre 3 et 200 caractÃ¨res'),
+
+    body('description')
+      .optional({ values: 'falsy' })
+      .trim()
+      .isLength({ max: 2000 })
+      .withMessage('Description trop longue'),
+  ],
 };
 
 // ── FONCTION PRINCIPALE ──
