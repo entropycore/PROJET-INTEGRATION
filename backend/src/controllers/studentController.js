@@ -1,6 +1,15 @@
 'use strict';
 
-const { success } = require('../utils/apiResponse');
+const studentService = require('../services/studentService');
+const { success, error } = require('../utils/apiResponse');
+
+const handleStudentError = (res, err) => {
+  if (err.message === 'STUDENT_PROFILE_NOT_FOUND') {
+    return error(res, 404, 'Profil etudiant introuvable.');
+  }
+
+  return null;
+};
 
 exports.getDashboard = (req, res) => {
   return success(
@@ -14,13 +23,12 @@ exports.getDashboard = (req, res) => {
   );
 };
 
-exports.getProfile = (req, res) => {
-  return success(
-    res,
-    200,
-    'Profil etudiant accessible',
-    {
-      user: req.user,
-    }
-  );
+exports.getProfile = async (req, res, next) => {
+  try {
+    const profile = await studentService.getStudentProfile(req.user.userId);
+    return success(res, 200, 'Profil etudiant charge.', profile);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
 };
