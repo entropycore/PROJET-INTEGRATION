@@ -12,5 +12,7 @@ router.use(checkRoles('STUDENT'));
 
 router.get('/dashboard', studentController.getDashboard);
 router.get('/profile', studentController.getProfile);
+router.get('/activities', studentController.getActivities);
+
 
 module.exports = router;
