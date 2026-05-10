@@ -687,6 +687,193 @@ const mapRecommendationValidationItem = (recommendation) => {
   };
 };
 
+const extractFileNameFromUrl = (url, fallbackName) => {
+  if (!url) {
+    return fallbackName;
+  }
+
+  try {
+    const pathname = new URL(url).pathname;
+    const fileName = pathname.split('/').filter(Boolean).pop();
+    return fileName || fallbackName;
+  } catch (_) {
+    const fileName = String(url).split('/').filter(Boolean).pop();
+    return fileName || fallbackName;
+  }
+};
+
+const buildLegacyValidationStudent = (student, user, fallbackName, fallbackEmail = null) => ({
+  id: student?.id || null,
+  fullName: user ? formatFullName(user) : fallbackName || 'Utilisateur inconnu',
+  email: user?.email || fallbackEmail || null,
+  profilePicture: user?.profilePicture || null,
+  field: student?.major || null,
+  level: student?.level || null,
+  city: student?.city || null,
+});
+
+const buildLegacyValidationFiles = (url, fallbackName) =>
+  url
+    ? [
+        {
+          id: url,
+          name: extractFileNameFromUrl(url, fallbackName),
+          size: null,
+          url,
+        },
+      ]
+    : [];
+
+const mapValidationItemToLegacyShape = (item) => {
+  switch (item.type) {
+    case 'CERTIFICATE_VALIDATION': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const activity = item.raw?.activity || null;
+      const certificateId = item.raw?.certificateId || item.id;
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'CERTIFICATE',
+        targetId: certificateId,
+        title: activity?.title || 'Certificat',
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.raw?.submittedAt || item.createdAt,
+        description: activity?.description || 'Certificat soumis pour validation.',
+        content: {
+          title: activity?.title || 'Certificat',
+          description: activity?.description || null,
+          files: buildLegacyValidationFiles(item.raw?.documentUrl, 'certificat'),
+        },
+        targetDetails: {
+          issuer: activity?.organization || null,
+          issueDate: activity?.startDate || null,
+          expirationDate: activity?.endDate || null,
+          credentialUrl: item.raw?.documentUrl || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'RECOMMENDATION_LETTER_VALIDATION': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Lettre de recommandation';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: item.raw?.content || null,
+        content: {
+          title,
+          description: item.raw?.content || null,
+          files: buildLegacyValidationFiles(item.raw?.documentUrl, 'recommendation-letter'),
+        },
+        targetDetails: {
+          organization: null,
+          role: item.raw?.authorName || null,
+          description: item.raw?.content || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'COMMENT_VALIDATION': {
+      const student = item.raw?.portfolio?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Commentaire';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.raw?.targetId || item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: item.raw?.content || null,
+        content: {
+          title,
+          description: item.raw?.content || null,
+          files: [],
+        },
+        targetDetails: {
+          organization: null,
+          role: item.requesterName || null,
+          description: item.raw?.content || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'RECOMMENDATION_VALIDATION': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Recommendation';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: item.raw?.content || null,
+        content: {
+          title,
+          description: item.raw?.content || null,
+          files: [],
+        },
+        targetDetails: {
+          organization: item.raw?.organization || item.organization || null,
+          role: item.raw?.authorJobTitle || null,
+          description: item.raw?.content || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    default:
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.id,
+        title: item.label,
+        student: {
+          id: null,
+          fullName: item.requesterName,
+          email: item.email,
+          profilePicture: null,
+          field: null,
+          level: null,
+          city: null,
+        },
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: null,
+        content: {
+          title: item.label,
+          description: null,
+          files: [],
+        },
+        targetDetails: {},
+        raw: item.raw,
+      };
+  }
+};
+
 const mapReportItem = (report) => {
   const reporter = report.reporterUser;
   const reviewer = report.reviewedByAdministrator?.user || null;
@@ -1407,6 +1594,14 @@ const getPendingValidationCounts = async () => {
   };
 };
 
+const mapLegacyPendingValidationCounts = (counts) => ({
+  count: counts.total,
+  projects: 0,
+  internships: 0,
+  certificates: counts.pendingCertificates,
+  activities: counts.pendingLetters + counts.pendingComments + counts.pendingRecommendations,
+});
+
 const getRecentProfessionalRequests = async () =>
   safeReadWithFallback(
     () =>
@@ -1618,6 +1813,38 @@ const loadRecommendationValidationItems = async (status) =>
     null,
     []
   );
+
+const resolveValidationItemTypeById = async (itemId) => {
+  const [certificate, letter, comment, recommendation] = await Promise.all([
+    safeReadWithFallback(
+      () => prisma.certificate.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.recommendationLetter.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.comment.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.recommendation.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+  ]);
+
+  if (certificate) return 'CERTIFICATE_VALIDATION';
+  if (letter) return 'RECOMMENDATION_LETTER_VALIDATION';
+  if (comment) return 'COMMENT_VALIDATION';
+  if (recommendation) return 'RECOMMENDATION_VALIDATION';
+
+  throw new Error('VALIDATION_ITEM_NOT_FOUND');
+};
 
 const loadReportItems = async (status, targetType) =>
   safeReadWithFallback(
@@ -2391,6 +2618,23 @@ exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit
   };
 };
 
+exports.listPendingValidationsLegacy = async ({ page = 1, limit = 10, search } = {}) => {
+  const data = await exports.listValidationItems({
+    status: 'PENDING',
+    page,
+    limit,
+    search,
+  });
+
+  return {
+    ...data,
+    items: data.items.map(mapValidationItemToLegacyShape),
+  };
+};
+
+exports.getPendingValidationCountsLegacy = async () =>
+  mapLegacyPendingValidationCounts(await getPendingValidationCounts());
+
 exports.getValidationItemDetail = async (itemType, itemId) => {
   const normalizedType = normalizeValidationType(itemType);
   ensureValidValidationType(normalizedType);
@@ -2413,6 +2657,11 @@ exports.getValidationItemDetail = async (itemType, itemId) => {
     default:
       throw new Error('UNSUPPORTED_VALIDATION_TYPE');
   }
+};
+
+exports.getLegacyValidationDetail = async (itemId) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  return mapValidationItemToLegacyShape(await exports.getValidationItemDetail(itemType, itemId));
 };
 
 exports.approveValidationItem = async (
