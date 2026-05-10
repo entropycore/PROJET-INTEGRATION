@@ -4,10 +4,6 @@ const request = require('supertest');
 const app     = require('../../../src/server');
 const jwt     = require('jsonwebtoken');
 
-// ══════════════════════════════════════════════════════
-// INTEGRATION TEST - verifyRefreshToken.js
-// Route testée : POST /api/auth/refresh-token
-// ══════════════════════════════════════════════════════
 describe('MIDDLEWARE - verifyRefreshToken', () => {
 
   // ─── CAS 1 : Sans refresh token ───────────────────
