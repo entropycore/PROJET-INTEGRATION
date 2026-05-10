@@ -1,6 +1,7 @@
 'use strict';
 
-const { success } = require('../utils/apiResponse');
+const { success, error } = require('../utils/apiResponse');
+const fs = require('fs');
 const prisma = require('../config/prisma');
 
 
@@ -105,6 +106,94 @@ exports.getSkillsByCategory = async (req, res, next) => {
       categories: Object.values(groupedSkills),
     });
   } catch (err) {
+    next(err);
+  }
+};
+exports.createActivity = async (req, res, next) => {
+  try {
+    const {
+      type,
+      title,
+      description,
+      organization,
+      startDate,
+      endDate,
+      visibility,
+    } = req.body;
+
+    if (!type || !title) {
+      if (req.file) fs.unlinkSync(req.file.path);
+      return error(res, 400, 'Le type et le titre de l activite sont obligatoires');
+    }
+
+    if (!req.file) {
+      return error(res, 400, 'L attestation de participation est obligatoire');
+    }
+
+    const allowedTypes = [
+      'CLUB',
+      'EVENT',
+      'HACKATHON',
+      'COMPETITION',
+      'ASSOCIATIVE_ENGAGEMENT',
+      'CONFERENCE',
+    ];
+
+    const allowedVisibilities = ['PUBLIC', 'PRIVATE', 'TEACHERS', 'SHARED_LINK'];
+
+    if (!allowedTypes.includes(type)) {
+      fs.unlinkSync(req.file.path);
+      return error(res, 400, 'Type d activite invalide');
+    }
+
+    if (visibility && !allowedVisibilities.includes(visibility)) {
+      fs.unlinkSync(req.file.path);
+      return error(res, 400, 'Visibilite invalide');
+    }
+
+    const documentUrl = `/uploads/attestations/${req.file.filename}`;
+
+    const activity = await prisma.extracurricularActivity.create({
+      data: {
+        studentId: req.user.roleId,
+        type,
+        title,
+        description: description || null,
+        organization: organization || null,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        visibility: visibility || 'PRIVATE',
+        certificates: {
+          create: {
+            documentUrl,
+          },
+        },
+      },
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        description: true,
+        organization: true,
+        startDate: true,
+        endDate: true,
+        visibility: true,
+        certificates: {
+          select: {
+            id: true,
+            documentUrl: true,
+            validationStatus: true,
+            submittedAt: true,
+          },
+        },
+      },
+    });
+
+    return success(res, 201, 'Activite creee avec attestation de participation', {
+      activity,
+    });
+  } catch (err) {
+    if (req.file) fs.unlinkSync(req.file.path);
     next(err);
   }
 };

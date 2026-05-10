@@ -1,6 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const path = require('path');
+
 
 
 const corsOptions = require('./middlewares/corsOptions');
@@ -26,6 +28,8 @@ app.use(redirectHttps);
 
 app.use(express.json());
 app.use(cookieParser());
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 
 
 app.use('/api/auth', authRoutes);

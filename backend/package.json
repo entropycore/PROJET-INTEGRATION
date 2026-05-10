@@ -9,12 +9,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-
     "test": "jest --forceExit --detectOpenHandles",
     "test:unit": "jest tests/unit --verbose",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --forceExit"
-
   },
   "keywords": [],
   "author": "",
@@ -31,17 +29,20 @@
     "express-validator": "^7.3.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
     "winston": "^3.19.0"
   },
   "devDependencies": {
-    "prisma": "^6.19.3",
     "jest": "^29.0.0",
+    "prisma": "^6.19.3",
     "supertest": "^6.0.0"
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
     "coverageThreshold": {
       "global": {
         "lines": 70,
