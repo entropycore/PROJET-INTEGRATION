@@ -185,3 +185,17 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: frontend/Dockerfile
+  github-actions-lint:
+    name: GitHub Actions lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Lint GitHub Actions workflows
+        uses: raven-actions/actionlint@v2
