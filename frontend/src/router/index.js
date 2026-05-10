@@ -6,6 +6,8 @@ import AdminDashboard from '../views/admin/Dashboard.vue'
 import StudentDashboard from '../views/student/Dashboard.vue'
 import ProfessorDashboard from '../views/professor/Dashboard.vue'
 import ProfessionalDashboard from '../views/professional/Dashboard.vue'
+import DashboardLayout from '../layouts/DashboardLayout.vue'
+
 import { useAuthStore } from '../stores/auth'
 import { getMe } from '../services/authService'
 
@@ -32,10 +34,47 @@ const router = createRouter({
             component: VerifyEmailView,
         },
         {
-            path: '/admin',
-            component: AdminDashboard,
-            meta: { requiresAuth: true, roles: ['ADMINISTRATOR'] },//c'est pour verifier que l'user est connecté et verifier son role thanks to beforeEach below
-        },
+  path: '/admin',
+  component: DashboardLayout,
+  meta: { requiresAuth: true, roles: ['ADMINISTRATOR'] },
+  children: [
+    {
+      path: '',
+      name: 'admin-dashboard',
+      component: AdminDashboard,
+    },
+    {
+      path: 'users',
+      name: 'admin-users',
+      component: () => import('../views/admin/Users.vue'),
+    },
+    {
+      path: 'validations',
+      name: 'admin-validations',
+      component: () => import('../views/admin/Validations.vue'),
+    },
+    {
+      path: 'profiles',
+      name: 'admin-profiles',
+      component: () => import('../views/Profiles.vue'),
+    },
+    {
+      path: 'notifications',
+      name: 'admin-notifications',
+      component: () => import('../views/Notifications.vue'),
+    },
+    {
+      path: 'profile',
+      name: 'admin-profile',
+      component: () => import('../views/Profile.vue'),
+    },
+    {
+        path: 'reports',
+        name: 'admin-reports',
+        component: () => import('../views/admin/Reports.vue'),
+        }
+  ],
+},
         {
             path: '/student',
             component: StudentDashboard,
