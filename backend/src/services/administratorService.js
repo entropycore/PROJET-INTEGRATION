@@ -23,6 +23,7 @@ const NOTIFICATION_TYPES = [
   'REPORT',
   'SYSTEM',
 ];
+const LEGACY_NOTIFICATION_TYPES = ['INFO', 'VALIDATION', 'ALERT'];
 const REPORT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
 const REPORT_TARGET_TYPES = ['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'];
 const BCRYPT_ROUNDS = 10;
@@ -982,8 +983,28 @@ const ensureValidLegacyValidationType = (type) => {
 };
 
 const ensureValidNotificationType = (type) => {
-  if (!NOTIFICATION_TYPES.includes(type)) {
+  if (!NOTIFICATION_TYPES.includes(type) && !LEGACY_NOTIFICATION_TYPES.includes(type)) {
     throw new Error('INVALID_NOTIFICATION_TYPE');
+  }
+};
+
+const getNotificationFilterByType = (type) => {
+  switch (type) {
+    case 'INFO':
+      return { in: ['ACCESS_REQUEST', 'SYSTEM'] };
+    case 'VALIDATION':
+      return {
+        in: [
+          'CERTIFICATE_VALIDATION',
+          'RECOMMENDATION_LETTER_VALIDATION',
+          'COMMENT_VALIDATION',
+          'RECOMMENDATION_VALIDATION',
+        ],
+      };
+    case 'ALERT':
+      return { in: ['REPORT'] };
+    default:
+      return type;
   }
 };
 
@@ -1130,11 +1151,27 @@ const getNotificationLink = (type, relatedType = null) => {
   }
 };
 
+const getLegacyNotificationType = (type, relatedType = null) => {
+  const effectiveType = relatedType || type;
+
+  switch (effectiveType) {
+    case 'REPORT':
+      return 'ALERT';
+    case 'ACCESS_REQUEST':
+    case 'SYSTEM':
+      return 'INFO';
+    default:
+      return 'VALIDATION';
+  }
+};
+
 const mapNotificationItem = (notification) => ({
   id: notification.id,
-  type: notification.type,
+  type: getLegacyNotificationType(notification.type, notification.relatedType),
+  notificationType: notification.type,
   title: notification.title,
   message: notification.message,
+  read: notification.isRead,
   isRead: notification.isRead,
   createdAt: notification.createdAt,
   readAt: notification.readAt,
@@ -1149,6 +1186,7 @@ const mapNotificationItem = (notification) => ({
       : null,
   raw: {
     administratorId: notification.administratorId,
+    notificationType: notification.type,
     relatedType: notification.relatedType,
     relatedId: notification.relatedId,
   },
@@ -3129,7 +3167,7 @@ exports.listNotifications = async ({
     : [{ administratorId: null }];
 
   const where = {
-    ...(normalizedType ? { type: normalizedType } : {}),
+    ...(normalizedType ? { type: getNotificationFilterByType(normalizedType) } : {}),
     ...(typeof isRead === 'boolean' ? { isRead } : {}),
     ...(scopeConditions.length || normalizedSearch
       ? {
@@ -3204,6 +3242,25 @@ exports.listNotifications = async ({
   };
 };
 
+exports.getUnreadNotificationsCount = async (administratorId) => {
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [{ administratorId: null }];
+
+  return safeCount(() =>
+    prisma.notification.count({
+      where: {
+        isRead: false,
+        ...(scopeConditions.length
+          ? {
+              AND: scopeConditions,
+            }
+          : {}),
+      },
+    })
+  );
+};
+
 exports.markNotificationAsRead = async (notificationId, administratorId) => {
   await getNotificationOrThrow(notificationId, administratorId);
 
@@ -3224,6 +3281,27 @@ exports.markNotificationAsRead = async (notificationId, administratorId) => {
   }
 
   return mapNotificationItem(await getNotificationOrThrow(notificationId, administratorId));
+};
+
+exports.deleteNotification = async (notificationId, administratorId) => {
+  await getNotificationOrThrow(notificationId, administratorId);
+
+  try {
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+  } catch (err) {
+    if (isStructureMissingError(err) || err?.code === 'P2025') {
+      throw new Error('NOTIFICATION_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  return {
+    id: notificationId,
+    deleted: true,
+  };
 };
 
 exports.markAllNotificationsAsRead = async (administratorId) => {
