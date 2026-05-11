@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 
 
 const corsOptions = require('./middlewares/corsOptions');
+const { globalLimiter } = require('./middlewares/rateLimiter');
 const securityHeaders = require('./middlewares/securityHeaders');
 const redirectHttps = require('./middlewares/redirectHttps');
 const { handleErrors, notFound } = require('./middlewares/handleErrors');
@@ -23,6 +24,7 @@ const app = express();
 
 app.use(securityHeaders);
 app.use(corsOptions);
+app.use(globalLimiter);
 app.use(redirectHttps);
 
 
