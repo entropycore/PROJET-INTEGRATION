@@ -977,37 +977,48 @@ const ensureValidReportTargetType = (targetType) => {
 };
 
 const deleteReportTargetRecord = async (tx, report) => {
-  if (!report?.targetId) {
-    throw new Error('REPORT_TARGET_NOT_FOUND');
-  }
-
   try {
     switch (report.targetType) {
       case 'PORTFOLIO':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
         await tx.portfolio.delete({
           where: { id: report.targetId },
         });
         return;
 
       case 'COMMENT':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
         await tx.comment.delete({
           where: { id: report.targetId },
         });
         return;
 
       case 'RECOMMENDATION':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
         await tx.recommendation.delete({
           where: { id: report.targetId },
         });
         return;
 
       case 'PROJECT':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
         await tx.project.delete({
           where: { id: report.targetId },
         });
         return;
 
       case 'INTERNSHIP':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
         await tx.internship.delete({
           where: { id: report.targetId },
         });
