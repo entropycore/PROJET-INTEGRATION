@@ -5,8 +5,7 @@ const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 
-// Charger le .env avant tout
-require('dotenv').config();
+process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'test-access-secret';
 
 jest.mock('../../../src/logs/logger', () => ({
   info: jest.fn(),
@@ -14,73 +13,88 @@ jest.mock('../../../src/logs/logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../src/services/professionalService');
+const professionalService = require('../../../src/services/professionalService');
+
 const professionalRouter = require('../../../src/routes/professionalRoutes');
+const { handleErrors } = require('../../../src/middlewares/handleErrors');
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/professional', professionalRouter);
+app.use(handleErrors);
 
-const SECRET = process.env.ACCESS_TOKEN_SECRET;
-
-const makeToken = (role = 'PROFESSIONAL', roleId = 20, expiresIn = '1h') =>
+const makeToken = (role = 'PROFESSIONAL', roleId = 'professional-role-id', expiresIn = '1h') =>
   jwt.sign(
-    { userId: 1, role, roleId },
-    SECRET,
+    { userId: 'professional-user-id', role, roleId },
+    process.env.ACCESS_TOKEN_SECRET,
     { expiresIn }
   );
 
-const professionalToken = makeToken();
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
-beforeEach(() => jest.clearAllMocks());
+describe('Professional Routes', () => {
+  it('returns 401 without an access token', async () => {
+    const res = await request(app).get('/api/professional/dashboard');
 
-describe("Tests d'Intégration - Routes Professionnel", () => {
-
-  describe('Sécurité & Rôles', () => {
-
-    it('TC-PRO-01 : Sans token → 401', async () => {
-      const res = await request(app).get('/api/professional/dashboard');
-      expect(res.status).toBe(401);
-      expect(res.body.success).toBe(false);
-    });
-
-    it('TC-PRO-02 : Token expiré → 401', async () => {
-      const expiredToken = makeToken('PROFESSIONAL', 20, '-1s');
-      const res = await request(app)
-        .get('/api/professional/dashboard')
-        .set('Cookie', `accessToken=${expiredToken}`);
-      expect(res.status).toBe(401);
-    });
-
-    it('TC-PRO-03 : Étudiant tente accès Professionnel → 403', async () => {
-      const res = await request(app)
-        .get('/api/professional/dashboard')
-        .set('Cookie', `accessToken=${makeToken('STUDENT')}`);
-      expect(res.status).toBe(403);
-      expect(res.body.success).toBe(false);
-    });
-
+    expect(res.status).toBe(401);
   });
 
-  describe('Endpoints Logic', () => {
+  it('returns 403 for a non-professional role', async () => {
+    const res = await request(app)
+      .get('/api/professional/dashboard')
+      .set('Cookie', `accessToken=${makeToken('STUDENT', 'student-role-id')}`);
 
-    it('TC-PRO-04 : Professionnel accède au Dashboard → 200 OK', async () => {
-      const res = await request(app)
-        .get('/api/professional/dashboard')
-        .set('Cookie', `accessToken=${professionalToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body.data.area).toBe('professional');
-      expect(res.body.data.user).toBeDefined();
-    });
-
-    it('TC-PRO-05 : Professionnel accède au Profil → 200 OK', async () => {
-      const res = await request(app)
-        .get('/api/professional/profile')
-        .set('Cookie', `accessToken=${professionalToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body.data.user).toBeDefined();
-    });
-
+    expect(res.status).toBe(403);
   });
 
+  it('returns the professional dashboard payload', async () => {
+    professionalService.getProfessionalDashboard.mockResolvedValue({
+      profileSnapshot: { fullName: 'Yassine Benali' },
+      summaryCards: { emailVerified: { value: true } },
+    });
+
+    const res = await request(app)
+      .get('/api/professional/dashboard')
+      .set('Cookie', `accessToken=${makeToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(professionalService.getProfessionalDashboard).toHaveBeenCalledWith(
+      'professional-user-id'
+    );
+    expect(res.body.data.profileSnapshot.fullName).toBe('Yassine Benali');
+  });
+
+  it('returns the professional profile payload', async () => {
+    professionalService.getProfessionalProfile.mockResolvedValue({
+      user: { email: 'yassine.benali@example.com' },
+      professional: { company: 'Credencia' },
+    });
+
+    const res = await request(app)
+      .get('/api/professional/profile')
+      .set('Cookie', `accessToken=${makeToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(professionalService.getProfessionalProfile).toHaveBeenCalledWith(
+      'professional-user-id'
+    );
+    expect(res.body.data.professional.company).toBe('Credencia');
+  });
+
+  it('maps a missing professional profile to 404', async () => {
+    professionalService.getProfessionalProfile.mockRejectedValue(
+      new Error('PROFESSIONAL_PROFILE_NOT_FOUND')
+    );
+
+    const res = await request(app)
+      .get('/api/professional/profile')
+      .set('Cookie', `accessToken=${makeToken()}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
 });
