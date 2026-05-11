@@ -3,9 +3,27 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const prisma = require('../config/prisma');
+const notificationService = require('./notificationService');
 
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
 const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
+const VALIDATION_ITEM_TYPES = [
+  'CERTIFICATE_VALIDATION',
+  'RECOMMENDATION_LETTER_VALIDATION',
+  'COMMENT_VALIDATION',
+  'RECOMMENDATION_VALIDATION',
+];
+const NOTIFICATION_TYPES = [
+  'ACCESS_REQUEST',
+  'CERTIFICATE_VALIDATION',
+  'RECOMMENDATION_LETTER_VALIDATION',
+  'COMMENT_VALIDATION',
+  'RECOMMENDATION_VALIDATION',
+  'REPORT',
+  'SYSTEM',
+];
+const REPORT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
+const REPORT_TARGET_TYPES = ['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'];
 const BCRYPT_ROUNDS = 10;
 
 const professionalRequestSelect = {
@@ -38,6 +56,260 @@ const professionalRequestSelect = {
       suspendedAt: true,
       suspendedByAdministratorId: true,
       suspensionReason: true,
+    },
+  },
+};
+
+const professionalRequestLegacySelect = {
+  id: true,
+  role: true,
+  lastName: true,
+  firstName: true,
+  email: true,
+  phone: true,
+  profilePicture: true,
+  accountStatus: true,
+  createdAt: true,
+  lastLoginAt: true,
+  professional: {
+    select: {
+      id: true,
+      company: true,
+      jobTitle: true,
+      sector: true,
+      bio: true,
+      isVerified: true,
+      isEmailVerified: true,
+      emailVerifyExpires: true,
+    },
+  },
+};
+
+const recentCertificateSelect = {
+  id: true,
+  validationStatus: true,
+  submittedAt: true,
+  documentUrl: true,
+  activity: {
+    select: {
+      id: true,
+      title: true,
+      organization: true,
+      student: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const reportSelect = {
+  id: true,
+  targetType: true,
+  targetId: true,
+  reason: true,
+  description: true,
+  status: true,
+  createdAt: true,
+  reviewedAt: true,
+  resolutionNote: true,
+  reporterUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  reviewedByAdministrator: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+  },
+};
+
+const notificationSelect = {
+  id: true,
+  administratorId: true,
+  type: true,
+  title: true,
+  message: true,
+  relatedType: true,
+  relatedId: true,
+  isRead: true,
+  createdAt: true,
+  readAt: true,
+};
+
+const recommendationLetterValidationSelect = {
+  id: true,
+  validationStatus: true,
+  createdAt: true,
+  validatedAt: true,
+  rejectionReason: true,
+  title: true,
+  content: true,
+  type: true,
+  documentUrl: true,
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+        },
+      },
+    },
+  },
+  authorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  validatorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  },
+};
+
+const commentValidationSelect = {
+  id: true,
+  status: true,
+  createdAt: true,
+  validatedAt: true,
+  rejectionReason: true,
+  targetType: true,
+  targetId: true,
+  content: true,
+  authorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  validatorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  },
+  portfolio: {
+    select: {
+      id: true,
+      title: true,
+      publicSlug: true,
+      student: {
+        select: {
+          id: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
+const recommendationValidationSelect = {
+  id: true,
+  status: true,
+  createdAt: true,
+  validatedAt: true,
+  rejectionReason: true,
+  title: true,
+  content: true,
+  organization: true,
+  authorJobTitle: true,
+  recommendationType: true,
+  authorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+  validatorUser: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+    },
+  },
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+  },
+  portfolio: {
+    select: {
+      id: true,
+      title: true,
+      publicSlug: true,
     },
   },
 };
@@ -124,7 +396,50 @@ const safeAggregateCount = async (runner) => {
   }
 };
 
+const safeReadWithFallback = async (primaryRunner, fallbackRunner, defaultValue) => {
+  try {
+    return await primaryRunner();
+  } catch (err) {
+    if (!isStructureMissingError(err)) {
+      throw err;
+    }
+
+    if (!fallbackRunner) {
+      return defaultValue;
+    }
+
+    try {
+      return await fallbackRunner();
+    } catch (fallbackErr) {
+      if (isStructureMissingError(fallbackErr)) {
+        return defaultValue;
+      }
+
+      throw fallbackErr;
+    }
+  }
+};
+
 const formatFullName = (user) => `${user.firstName} ${user.lastName}`.trim();
+
+const normalizeProfessionalData = (professional) => {
+  if (!professional) {
+    return null;
+  }
+
+  return {
+    emailVerifiedAt: null,
+    approvedAt: null,
+    approvedByAdministratorId: null,
+    rejectedAt: null,
+    rejectedByAdministratorId: null,
+    rejectionReason: null,
+    suspendedAt: null,
+    suspendedByAdministratorId: null,
+    suspensionReason: null,
+    ...professional,
+  };
+};
 
 const getEmailVerifiedValue = (user) => {
   if (user.role === 'PROFESSIONAL') {
@@ -151,27 +466,254 @@ const mapUserSummary = (user) => ({
     student: user.student,
     professor: user.professor,
     administrator: user.administrator,
-    professional: user.professional,
+    professional: normalizeProfessionalData(user.professional),
   },
 });
 
-const mapProfessionalRequest = (user) => ({
-  id: user.id,
-  requesterName: formatFullName(user),
-  firstName: user.firstName,
-  lastName: user.lastName,
-  email: user.email,
-  phone: user.phone,
-  profilePicture: user.profilePicture,
-  accountStatus: user.accountStatus,
-  createdAt: user.createdAt,
-  lastLoginAt: user.lastLoginAt,
-  organization: user.professional?.company || null,
-  type: 'ACCESS_REQUEST',
-  label: "Demande d'acces",
-  tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
-  professional: user.professional,
-});
+const mapProfessionalRequestDetail = (user) => {
+  const professional = normalizeProfessionalData(user.professional);
+
+  return {
+    id: user.id,
+    requesterName: formatFullName(user),
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    phone: user.phone,
+    profilePicture: user.profilePicture,
+    accountStatus: user.accountStatus,
+    createdAt: user.createdAt,
+    lastLoginAt: user.lastLoginAt,
+    organization: professional?.company || null,
+    type: 'ACCESS_REQUEST',
+    label: "Demande d'acces",
+    tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
+    professional,
+  };
+};
+
+const mapDashboardAccessRequest = (user) => {
+  const professional = normalizeProfessionalData(user.professional);
+
+  return {
+    id: user.id,
+    type: 'ACCESS_REQUEST',
+    label: "Demande d'acces",
+    requesterName: formatFullName(user),
+    email: user.email,
+    organization: professional?.company || null,
+    createdAt: user.createdAt,
+    tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
+    status: user.accountStatus,
+    raw: {
+      userId: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      profilePicture: user.profilePicture,
+      lastLoginAt: user.lastLoginAt,
+      accountStatus: user.accountStatus,
+      professional,
+    },
+  };
+};
+
+const mapDashboardCertificateRequest = (certificate) => {
+  const requester = certificate.activity?.student?.user;
+
+  return {
+    id: certificate.id,
+    type: 'CERTIFICATE_VALIDATION',
+    label: 'Certificate validation',
+    requesterName: requester ? formatFullName(requester) : 'Etudiant inconnu',
+    email: requester?.email || null,
+    organization: certificate.activity?.organization || null,
+    createdAt: certificate.submittedAt,
+    tone: 'green',
+    status: certificate.validationStatus,
+    raw: {
+      certificateId: certificate.id,
+      documentUrl: certificate.documentUrl,
+      submittedAt: certificate.submittedAt,
+      activityId: certificate.activity?.id || null,
+      activityTitle: certificate.activity?.title || null,
+      studentId: certificate.activity?.student?.id || null,
+    },
+  };
+};
+
+const mapCertificateRequestDetail = (certificate) => {
+  const requester = certificate.activity?.student?.user;
+
+  return {
+    id: certificate.id,
+    type: 'CERTIFICATE_VALIDATION',
+    label: 'Certificate validation',
+    requesterName: requester ? formatFullName(requester) : 'Etudiant inconnu',
+    email: requester?.email || null,
+    organization: certificate.activity?.organization || null,
+    createdAt: certificate.submittedAt,
+    tone: 'green',
+    status: certificate.validationStatus,
+    raw: {
+      certificateId: certificate.id,
+      documentUrl: certificate.documentUrl,
+      submittedAt: certificate.submittedAt,
+      activity: certificate.activity
+        ? {
+            id: certificate.activity.id,
+            title: certificate.activity.title,
+            description: certificate.activity.description || null,
+            type: certificate.activity.type || null,
+            organization: certificate.activity.organization || null,
+            startDate: certificate.activity.startDate || null,
+            endDate: certificate.activity.endDate || null,
+          }
+        : null,
+      student: certificate.activity?.student
+        ? {
+            id: certificate.activity.student.id,
+            apogeeCode: certificate.activity.student.apogeeCode || null,
+            cne: certificate.activity.student.cne || null,
+            major: certificate.activity.student.major,
+            level: certificate.activity.student.level,
+            city: certificate.activity.student.city || null,
+            user: requester
+              ? {
+                  id: requester.id,
+                  firstName: requester.firstName,
+                  lastName: requester.lastName,
+                  email: requester.email,
+                  phone: requester.phone || null,
+                  profilePicture: requester.profilePicture || null,
+                }
+              : null,
+          }
+        : null,
+    },
+  };
+};
+
+const mapRecommendationLetterValidationItem = (letter) => {
+  const studentUser = letter.student?.user;
+  const authorUser = letter.authorUser;
+
+  return {
+    id: letter.id,
+    type: 'RECOMMENDATION_LETTER_VALIDATION',
+    label: 'Recommendation letter validation',
+    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
+    email: studentUser?.email || null,
+    organization: null,
+    createdAt: letter.createdAt,
+    tone: 'green',
+    status: letter.validationStatus,
+    raw: {
+      title: letter.title,
+      content: letter.content,
+      letterType: letter.type,
+      documentUrl: letter.documentUrl,
+      validatedAt: letter.validatedAt,
+      rejectionReason: letter.rejectionReason,
+      authorName: authorUser ? formatFullName(authorUser) : null,
+      authorUser,
+      studentName: studentUser ? formatFullName(studentUser) : null,
+      student: letter.student,
+      validatorUser: letter.validatorUser,
+    },
+  };
+};
+
+const mapCommentValidationItem = (comment) => {
+  const authorUser = comment.authorUser;
+  const studentUser = comment.portfolio?.student?.user;
+
+  return {
+    id: comment.id,
+    type: 'COMMENT_VALIDATION',
+    label: 'Comment validation',
+    requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
+    email: authorUser?.email || null,
+    organization: null,
+    createdAt: comment.createdAt,
+    tone: 'green',
+    status: comment.status,
+    raw: {
+      title: comment.portfolio?.title || null,
+      content: comment.content,
+      targetType: comment.targetType,
+      targetId: comment.targetId,
+      validatedAt: comment.validatedAt,
+      rejectionReason: comment.rejectionReason,
+      authorName: authorUser ? formatFullName(authorUser) : null,
+      authorUser,
+      studentName: studentUser ? formatFullName(studentUser) : null,
+      portfolioTitle: comment.portfolio?.title || null,
+      portfolio: comment.portfolio,
+      validatorUser: comment.validatorUser,
+    },
+  };
+};
+
+const mapRecommendationValidationItem = (recommendation) => {
+  const authorUser = recommendation.authorUser;
+  const studentUser = recommendation.student?.user;
+
+  return {
+    id: recommendation.id,
+    type: 'RECOMMENDATION_VALIDATION',
+    label: 'Recommendation validation',
+    requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
+    email: authorUser?.email || null,
+    organization: recommendation.organization || null,
+    createdAt: recommendation.createdAt,
+    tone: 'green',
+    status: recommendation.status,
+    raw: {
+      title: recommendation.title,
+      content: recommendation.content,
+      authorJobTitle: recommendation.authorJobTitle,
+      recommendationType: recommendation.recommendationType,
+      validatedAt: recommendation.validatedAt,
+      rejectionReason: recommendation.rejectionReason,
+      authorName: authorUser ? formatFullName(authorUser) : null,
+      authorUser,
+      studentName: studentUser ? formatFullName(studentUser) : null,
+      student: recommendation.student,
+      portfolioTitle: recommendation.portfolio?.title || null,
+      portfolio: recommendation.portfolio,
+      validatorUser: recommendation.validatorUser,
+    },
+  };
+};
+
+const mapReportItem = (report) => {
+  const reporter = report.reporterUser;
+  const reviewer = report.reviewedByAdministrator?.user || null;
+
+  return {
+    id: report.id,
+    type: 'REPORT',
+    label: 'Report',
+    requesterName: reporter ? formatFullName(reporter) : 'Utilisateur inconnu',
+    email: reporter?.email || null,
+    organization: null,
+    createdAt: report.createdAt,
+    tone: 'red',
+    status: report.status,
+    raw: {
+      targetType: report.targetType,
+      targetId: report.targetId,
+      reason: report.reason,
+      description: report.description,
+      reviewedAt: report.reviewedAt,
+      resolutionNote: report.resolutionNote,
+      reporterUser: reporter,
+      reviewerName: reviewer ? formatFullName(reviewer) : null,
+      reviewerUser: reviewer,
+    },
+  };
+};
 
 const buildUserSearch = (search) => {
   if (!search) {
@@ -208,6 +750,128 @@ const buildPagination = (page, limit, total) => ({
   limit,
   total,
   totalPages: Math.max(1, Math.ceil(total / limit)),
+});
+
+const normalizeValidationType = (value) =>
+  typeof value === 'string' ? value.trim().toUpperCase().replace(/-/g, '_') : value;
+
+const ensureValidValidationType = (type) => {
+  if (!VALIDATION_ITEM_TYPES.includes(type)) {
+    throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+const ensureValidNotificationType = (type) => {
+  if (!NOTIFICATION_TYPES.includes(type)) {
+    throw new Error('INVALID_NOTIFICATION_TYPE');
+  }
+};
+
+const ensureValidReportStatus = (status) => {
+  if (!REPORT_STATUSES.includes(status)) {
+    throw new Error('INVALID_REPORT_STATUS');
+  }
+};
+
+const ensureValidReportTargetType = (targetType) => {
+  if (!REPORT_TARGET_TYPES.includes(targetType)) {
+    throw new Error('UNSUPPORTED_REPORT_TARGET_TYPE');
+  }
+};
+
+const paginateItems = (items, page = 1, limit = 10) => {
+  const { page: safePage, limit: safeLimit, skip } = normalizePagination(page, limit);
+
+  return {
+    items: items.slice(skip, skip + safeLimit),
+    pagination: buildPagination(safePage, safeLimit, items.length),
+  };
+};
+
+const normalizeSearch = (value) => String(value || '').trim().toLowerCase();
+
+const matchesValidationSearch = (item, search) => {
+  const normalizedSearch = normalizeSearch(search);
+
+  if (!normalizedSearch) {
+    return true;
+  }
+
+  const haystacks = [
+    item.requesterName,
+    item.email,
+    item.label,
+    item.organization,
+    item.raw?.title,
+    item.raw?.activityTitle,
+    item.raw?.portfolioTitle,
+    item.raw?.authorName,
+    item.raw?.studentName,
+    item.raw?.reason,
+    item.raw?.description,
+    item.raw?.targetType,
+  ]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase());
+
+  return haystacks.some((value) => value.includes(normalizedSearch));
+};
+
+const getNotificationTone = (type, relatedType = null) => {
+  const effectiveType = relatedType || type;
+
+  switch (effectiveType) {
+    case 'ACCESS_REQUEST':
+      return 'orange';
+    case 'REPORT':
+      return 'red';
+    case 'SYSTEM':
+      return 'blue';
+    default:
+      return 'green';
+  }
+};
+
+const getNotificationLink = (type, relatedType = null) => {
+  const effectiveType = relatedType || type;
+
+  switch (effectiveType) {
+    case 'ACCESS_REQUEST':
+      return '/admin/dashboard';
+    case 'REPORT':
+      return '/admin/reports';
+    case 'CERTIFICATE_VALIDATION':
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+    case 'COMMENT_VALIDATION':
+    case 'RECOMMENDATION_VALIDATION':
+      return '/admin/validations';
+    default:
+      return '/admin/notifications';
+  }
+};
+
+const mapNotificationItem = (notification) => ({
+  id: notification.id,
+  type: notification.type,
+  title: notification.title,
+  message: notification.message,
+  isRead: notification.isRead,
+  createdAt: notification.createdAt,
+  readAt: notification.readAt,
+  tone: getNotificationTone(notification.type, notification.relatedType),
+  link: getNotificationLink(notification.type, notification.relatedType),
+  target:
+    notification.relatedId && (notification.relatedType || notification.type)
+      ? {
+          itemType: notification.relatedType || notification.type,
+          itemId: notification.relatedId,
+        }
+      : null,
+  raw: {
+    administratorId: notification.administratorId,
+    relatedType: notification.relatedType,
+    relatedId: notification.relatedId,
+  },
 });
 
 const buildProfessionalProfileData = (payload, accountStatus) => {
@@ -367,17 +1031,195 @@ const getUserOrThrow = async (userId) => {
   return user;
 };
 
+const certificateDetailSelect = {
+  id: true,
+  validationStatus: true,
+  submittedAt: true,
+  documentUrl: true,
+  activity: {
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      type: true,
+      organization: true,
+      startDate: true,
+      endDate: true,
+      student: {
+        select: {
+          id: true,
+          apogeeCode: true,
+          cne: true,
+          major: true,
+          level: true,
+          city: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              profilePicture: true,
+            },
+          },
+        },
+      },
+    },
+  },
+};
+
 const getProfessionalRequestOrThrow = async (userId) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: professionalRequestSelect,
-  });
+  const user = await safeReadWithFallback(
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: professionalRequestLegacySelect,
+      }),
+    null
+  );
 
   if (!user || user.role !== 'PROFESSIONAL' || !user.professional) {
     throw new Error('REQUEST_NOT_FOUND');
   }
 
   return user;
+};
+
+const getCertificateRequestOrThrow = async (certificateId) => {
+  const certificate = await safeReadWithFallback(
+    () =>
+      prisma.certificate.findUnique({
+        where: { id: certificateId },
+        select: certificateDetailSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!certificate) {
+    throw new Error('DASHBOARD_ITEM_NOT_FOUND');
+  }
+
+  return certificate;
+};
+
+const getValidationCertificateOrThrow = async (certificateId) => {
+  try {
+    return await getCertificateRequestOrThrow(certificateId);
+  } catch (err) {
+    if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+      throw new Error('VALIDATION_ITEM_NOT_FOUND');
+    }
+
+    throw err;
+  }
+};
+
+const getReportOrThrow = async (reportId) => {
+  const report = await safeReadWithFallback(
+    () =>
+      prisma.report.findUnique({
+        where: { id: reportId },
+        select: reportSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!report) {
+    throw new Error('REPORT_NOT_FOUND');
+  }
+
+  return report;
+};
+
+const getNotificationOrThrow = async (notificationId, administratorId = null) => {
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [];
+
+  const notification = await safeReadWithFallback(
+    () =>
+      prisma.notification.findFirst({
+        where: {
+          id: notificationId,
+          ...(scopeConditions.length
+            ? {
+                AND: scopeConditions,
+              }
+            : {}),
+        },
+        select: notificationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!notification) {
+    throw new Error('NOTIFICATION_NOT_FOUND');
+  }
+
+  return notification;
+};
+
+const getRecommendationLetterValidationOrThrow = async (letterId) => {
+  const letter = await safeReadWithFallback(
+    () =>
+      prisma.recommendationLetter.findUnique({
+        where: { id: letterId },
+        select: recommendationLetterValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!letter) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return letter;
+};
+
+const getCommentValidationOrThrow = async (commentId) => {
+  const comment = await safeReadWithFallback(
+    () =>
+      prisma.comment.findUnique({
+        where: { id: commentId },
+        select: commentValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!comment) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return comment;
+};
+
+const getRecommendationValidationOrThrow = async (recommendationId) => {
+  const recommendation = await safeReadWithFallback(
+    () =>
+      prisma.recommendation.findUnique({
+        where: { id: recommendationId },
+        select: recommendationValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!recommendation) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return recommendation;
 };
 
 const deleteCurrentProfile = async (tx, user) => {
@@ -539,52 +1381,549 @@ const buildTemporaryPassword = () => {
   return `Temp${suffix}Aa!1`;
 };
 
+const getPendingValidationCounts = async () => {
+  const [
+    pendingCertificates,
+    pendingLetters,
+    pendingComments,
+    pendingRecommendations,
+  ] = await Promise.all([
+    safeCount(() => prisma.certificate.count({ where: { validationStatus: 'PENDING' } })),
+    safeCount(() => prisma.recommendationLetter.count({ where: { validationStatus: 'PENDING' } })),
+    safeCount(() => prisma.comment.count({ where: { status: 'PENDING' } })),
+    safeCount(() => prisma.recommendation.count({ where: { status: 'PENDING' } })),
+  ]);
+
+  return {
+    pendingCertificates,
+    pendingLetters,
+    pendingComments,
+    pendingRecommendations,
+    total:
+      pendingCertificates +
+      pendingLetters +
+      pendingComments +
+      pendingRecommendations,
+  };
+};
+
+const getRecentProfessionalRequests = async () =>
+  safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 5,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 5,
+        select: professionalRequestLegacySelect,
+      }),
+    []
+  );
+
+const getRecentCertificateRequests = async () =>
+  safeReadWithFallback(
+    () =>
+      prisma.certificate.findMany({
+        where: {
+          validationStatus: 'PENDING',
+        },
+        orderBy: [{ submittedAt: 'desc' }],
+        take: 5,
+        select: recentCertificateSelect,
+      }),
+    null,
+    []
+  );
+
+const getRecentReportItems = async () =>
+  safeReadWithFallback(
+    () =>
+      prisma.report.findMany({
+        where: {
+          status: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 5,
+        select: reportSelect,
+      }),
+    null,
+    []
+  );
+
+const getRecentDashboardRequests = async () => {
+  const [professionalRequests, certificateRequests, reportItems] = await Promise.all([
+    getRecentProfessionalRequests(),
+    getRecentCertificateRequests(),
+    getRecentReportItems(),
+  ]);
+
+  return [
+    ...professionalRequests.map(mapDashboardAccessRequest),
+    ...certificateRequests.map(mapDashboardCertificateRequest),
+    ...reportItems.map(mapReportItem),
+  ]
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .slice(0, 5);
+};
+
+const syncPendingAccessRequestNotifications = async () => {
+  const requests = await safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: professionalRequestLegacySelect,
+      }),
+    []
+  );
+
+  await Promise.all(
+    requests.map((request) =>
+      notificationService.ensurePendingItemNotification(mapDashboardAccessRequest(request))
+    )
+  );
+};
+
+const syncPendingValidationNotifications = async () => {
+  const [certificates, letters, comments, recommendations] = await Promise.all([
+    loadCertificateValidationItems('PENDING'),
+    loadRecommendationLetterValidationItems('PENDING'),
+    loadCommentValidationItems('PENDING'),
+    loadRecommendationValidationItems('PENDING'),
+  ]);
+
+  const items = [
+    ...certificates.map(mapDashboardCertificateRequest),
+    ...letters.map(mapRecommendationLetterValidationItem),
+    ...comments.map(mapCommentValidationItem),
+    ...recommendations.map(mapRecommendationValidationItem),
+  ];
+
+  await Promise.all(items.map((item) => notificationService.ensurePendingItemNotification(item)));
+};
+
+const syncPendingReportNotifications = async () => {
+  const reports = await loadReportItems('PENDING', null);
+
+  await Promise.all(
+    reports.map((report) =>
+      notificationService.ensurePendingItemNotification(mapReportItem(report))
+    )
+  );
+};
+
+const syncAdminNotifications = async () => {
+  await Promise.all([
+    syncPendingAccessRequestNotifications(),
+    syncPendingValidationNotifications(),
+    syncPendingReportNotifications(),
+  ]);
+};
+
+const getProfessionalRequestsList = async (where, skip, take) =>
+  safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip,
+        take,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip,
+        take,
+        select: professionalRequestLegacySelect,
+      }),
+    []
+  );
+
+const loadCertificateValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.certificate.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ submittedAt: 'desc' }],
+        take: 100,
+        select: certificateDetailSelect,
+      }),
+    null,
+    []
+  );
+
+const loadRecommendationLetterValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.recommendationLetter.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: recommendationLetterValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadCommentValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.comment.findMany({
+        where: { status },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: commentValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadRecommendationValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.recommendation.findMany({
+        where: { status },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: recommendationValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadReportItems = async (status, targetType) =>
+  safeReadWithFallback(
+    () =>
+      prisma.report.findMany({
+        where: {
+          ...(status ? { status } : {}),
+          ...(targetType ? { targetType } : {}),
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take: 100,
+        select: reportSelect,
+      }),
+    null,
+    []
+  );
+
+const approveCertificateRequest = async (certificateId, administratorId, comment = null) => {
+  const certificate = await getCertificateRequestOrThrow(certificateId);
+
+  if (certificate.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.certificate.update({
+      where: { id: certificateId },
+      data: { validationStatus: 'APPROVED' },
+    });
+
+    await tx.certificateValidation.create({
+      data: {
+        certificateId,
+        administratorId,
+        decision: 'APPROVED',
+        comment,
+      },
+    });
+  });
+
+  const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `La validation du certificat de ${
+      updatedCertificate.activity?.student?.user
+        ? formatFullName(updatedCertificate.activity.student.user)
+        : 'un etudiant'
+    } a ete approuvee.`,
+    relatedType: 'CERTIFICATE_VALIDATION',
+    relatedId: certificateId,
+  });
+  return mapCertificateRequestDetail(updatedCertificate);
+};
+
+const rejectCertificateRequest = async (certificateId, administratorId, comment = null) => {
+  const certificate = await getCertificateRequestOrThrow(certificateId);
+
+  if (certificate.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.certificate.update({
+      where: { id: certificateId },
+      data: { validationStatus: 'REJECTED' },
+    });
+
+    await tx.certificateValidation.create({
+      data: {
+        certificateId,
+        administratorId,
+        decision: 'REJECTED',
+        comment,
+      },
+    });
+  });
+
+  const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `La validation du certificat de ${
+      updatedCertificate.activity?.student?.user
+        ? formatFullName(updatedCertificate.activity.student.user)
+        : 'un etudiant'
+    } a ete rejetee.`,
+    relatedType: 'CERTIFICATE_VALIDATION',
+    relatedId: certificateId,
+  });
+  return mapCertificateRequestDetail(updatedCertificate);
+};
+
+const approveRecommendationLetterValidation = async (letterId, actorUserId) => {
+  const letter = await getRecommendationLetterValidationOrThrow(letterId);
+
+  if (letter.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendationLetter.update({
+    where: { id: letterId },
+    data: {
+      validationStatus: 'APPROVED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: null,
+    },
+  });
+
+  const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `La lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    } a ete approuvee.`,
+    relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
+    relatedId: letterId,
+  });
+
+  return mapRecommendationLetterValidationItem(updatedLetter);
+};
+
+const rejectRecommendationLetterValidation = async (letterId, actorUserId, rejectionReason = null) => {
+  const letter = await getRecommendationLetterValidationOrThrow(letterId);
+
+  if (letter.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendationLetter.update({
+    where: { id: letterId },
+    data: {
+      validationStatus: 'REJECTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason,
+    },
+  });
+
+  const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `La lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    } a ete rejetee.`,
+    relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
+    relatedId: letterId,
+  });
+
+  return mapRecommendationLetterValidationItem(updatedLetter);
+};
+
+const approveCommentValidation = async (commentId, actorUserId) => {
+  const comment = await getCommentValidationOrThrow(commentId);
+
+  if (comment.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      status: 'APPROVED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: null,
+    },
+  });
+
+  const updatedComment = await getCommentValidationOrThrow(commentId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `Le commentaire de ${
+      updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
+    } a ete approuve.`,
+    relatedType: 'COMMENT_VALIDATION',
+    relatedId: commentId,
+  });
+
+  return mapCommentValidationItem(updatedComment);
+};
+
+const rejectCommentValidation = async (commentId, actorUserId, rejectionReason = null) => {
+  const comment = await getCommentValidationOrThrow(commentId);
+
+  if (comment.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      status: 'REJECTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason,
+    },
+  });
+
+  const updatedComment = await getCommentValidationOrThrow(commentId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `Le commentaire de ${
+      updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
+    } a ete rejete.`,
+    relatedType: 'COMMENT_VALIDATION',
+    relatedId: commentId,
+  });
+
+  return mapCommentValidationItem(updatedComment);
+};
+
+const approveRecommendationValidation = async (recommendationId, actorUserId) => {
+  const recommendation = await getRecommendationValidationOrThrow(recommendationId);
+
+  if (recommendation.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: 'APPROVED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: null,
+    },
+  });
+
+  const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation approuvee',
+    message: `La recommandation de ${
+      updatedRecommendation.authorUser
+        ? formatFullName(updatedRecommendation.authorUser)
+        : 'un utilisateur'
+    } a ete approuvee.`,
+    relatedType: 'RECOMMENDATION_VALIDATION',
+    relatedId: recommendationId,
+  });
+
+  return mapRecommendationValidationItem(updatedRecommendation);
+};
+
+const rejectRecommendationValidation = async (
+  recommendationId,
+  actorUserId,
+  rejectionReason = null
+) => {
+  const recommendation = await getRecommendationValidationOrThrow(recommendationId);
+
+  if (recommendation.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: 'REJECTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason,
+    },
+  });
+
+  const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
+  await notificationService.createAdminActionNotification({
+    title: 'Validation rejetee',
+    message: `La recommandation de ${
+      updatedRecommendation.authorUser
+        ? formatFullName(updatedRecommendation.authorUser)
+        : 'un utilisateur'
+    } a ete rejetee.`,
+    relatedType: 'RECOMMENDATION_VALIDATION',
+    relatedId: recommendationId,
+  });
+
+  return mapRecommendationValidationItem(updatedRecommendation);
+};
+
 exports.getDashboardData = async () => {
+  await syncAdminNotifications();
+
   const [
     totalUsers,
     totalStudents,
     totalProfessors,
     pendingRequests,
-    pendingProjects,
-    pendingInternships,
-    pendingCertificates,
-    pendingLetters,
-    pendingComments,
-    pendingRecommendations,
+    pendingValidationCounts,
+    pendingReports,
     recentRequests,
   ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { role: 'STUDENT' } }),
-    prisma.user.count({ where: { role: 'PROFESSOR' } }),
-    prisma.user.count({
-      where: {
-        role: 'PROFESSIONAL',
-        accountStatus: 'PENDING',
-      },
-    }),
-    safeCount(() => prisma.project.count({ where: { validationStatus: 'PENDING' } })),
-    safeCount(() => prisma.internship.count({ where: { validationStatus: 'PENDING' } })),
-    safeCount(() => prisma.certificate.count({ where: { validationStatus: 'PENDING' } })),
-    safeCount(() => prisma.recommendationLetter.count({ where: { validationStatus: 'PENDING' } })),
-    safeCount(() => prisma.comment.count({ where: { status: 'PENDING' } })),
-    safeCount(() => prisma.recommendation.count({ where: { status: 'PENDING' } })),
-    prisma.user.findMany({
-      where: {
-        role: 'PROFESSIONAL',
-      },
-      orderBy: [{ createdAt: 'desc' }],
-      take: 5,
-      select: professionalRequestSelect,
-    }),
+    safeCount(() => prisma.user.count()),
+    safeCount(() => prisma.user.count({ where: { role: 'STUDENT' } })),
+    safeCount(() => prisma.user.count({ where: { role: 'PROFESSOR' } })),
+    safeCount(() =>
+      prisma.user.count({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+      })
+    ),
+    getPendingValidationCounts(),
+    safeCount(() => prisma.report.count({ where: { status: 'PENDING' } })),
+    getRecentDashboardRequests(),
   ]);
-
-  const pendingValidations =
-    pendingProjects +
-    pendingInternships +
-    pendingCertificates +
-    pendingLetters +
-    pendingComments +
-    pendingRecommendations;
 
   return {
     summaryCards: {
@@ -595,10 +1934,10 @@ exports.getDashboardData = async () => {
     },
     urgentActions: {
       pendingAccessRequests: pendingRequests,
-      pendingValidations,
-      reports: 0,
+      pendingValidations: pendingValidationCounts.total,
+      reports: pendingReports,
     },
-    recentRequests: recentRequests.map(mapProfessionalRequest),
+    recentRequests,
   };
 };
 
@@ -897,25 +2236,19 @@ exports.listProfessionalRequests = async ({ status, emailVerified, page = 1, lim
   };
 
   const [total, requests] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      orderBy: [{ createdAt: 'desc' }],
-      skip,
-      take: safeLimit,
-      select: professionalRequestSelect,
-    }),
+    safeCount(() => prisma.user.count({ where })),
+    getProfessionalRequestsList(where, skip, safeLimit),
   ]);
 
   return {
-    items: requests.map(mapProfessionalRequest),
+    items: requests.map(mapProfessionalRequestDetail),
     pagination: buildPagination(safePage, safeLimit, total),
   };
 };
 
 exports.getProfessionalRequest = async (userId) => {
   const request = await getProfessionalRequestOrThrow(userId);
-  return mapProfessionalRequest(request);
+  return mapProfessionalRequestDetail(request);
 };
 
 exports.approveProfessionalRequest = async (userId, administratorId) => {
@@ -955,7 +2288,15 @@ exports.approveProfessionalRequest = async (userId, administratorId) => {
     });
   });
 
-  return exports.getProfessionalRequest(userId);
+  const updatedRequest = await exports.getProfessionalRequest(userId);
+  await notificationService.createAdminActionNotification({
+    title: "Demande d'acces approuvee",
+    message: `La demande d'acces de ${updatedRequest.requesterName} a ete approuvee.`,
+    relatedType: 'ACCESS_REQUEST',
+    relatedId: userId,
+  });
+
+  return updatedRequest;
 };
 
 exports.rejectProfessionalRequest = async (userId, administratorId, rejectionReason) => {
@@ -987,5 +2328,510 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
     });
   });
 
-  return exports.getProfessionalRequest(userId);
+  const updatedRequest = await exports.getProfessionalRequest(userId);
+  await notificationService.createAdminActionNotification({
+    title: "Demande d'acces rejetee",
+    message: `La demande d'acces de ${updatedRequest.requesterName} a ete rejetee.`,
+    relatedType: 'ACCESS_REQUEST',
+    relatedId: userId,
+  });
+
+  return updatedRequest;
+};
+
+exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
+  await syncPendingValidationNotifications();
+
+  const normalizedType = type ? normalizeValidationType(type) : null;
+
+  if (normalizedType) {
+    ensureValidValidationType(normalizedType);
+  }
+
+  const loaders = [];
+
+  if (!normalizedType || normalizedType === 'CERTIFICATE_VALIDATION') {
+    loaders.push(loadCertificateValidationItems(status).then((items) => items.map(mapCertificateRequestDetail)));
+  }
+
+  if (!normalizedType || normalizedType === 'RECOMMENDATION_LETTER_VALIDATION') {
+    loaders.push(
+      loadRecommendationLetterValidationItems(status).then((items) =>
+        items.map(mapRecommendationLetterValidationItem)
+      )
+    );
+  }
+
+  if (!normalizedType || normalizedType === 'COMMENT_VALIDATION') {
+    loaders.push(loadCommentValidationItems(status).then((items) => items.map(mapCommentValidationItem)));
+  }
+
+  if (!normalizedType || normalizedType === 'RECOMMENDATION_VALIDATION') {
+    loaders.push(
+      loadRecommendationValidationItems(status).then((items) =>
+        items.map(mapRecommendationValidationItem)
+      )
+    );
+  }
+
+  const mergedItems = (await Promise.all(loaders))
+    .flat()
+    .filter((item) => matchesValidationSearch(item, search))
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+
+  const paginated = paginateItems(mergedItems, page, limit);
+
+  return {
+    filters: {
+      type: normalizedType,
+      status,
+      search: search || null,
+    },
+    ...paginated,
+  };
+};
+
+exports.getValidationItemDetail = async (itemType, itemId) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      return mapCertificateRequestDetail(await getValidationCertificateOrThrow(itemId));
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return mapRecommendationLetterValidationItem(
+        await getRecommendationLetterValidationOrThrow(itemId)
+      );
+
+    case 'COMMENT_VALIDATION':
+      return mapCommentValidationItem(await getCommentValidationOrThrow(itemId));
+
+    case 'RECOMMENDATION_VALIDATION':
+      return mapRecommendationValidationItem(await getRecommendationValidationOrThrow(itemId));
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.approveValidationItem = async (
+  itemType,
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      try {
+        return await approveCertificateRequest(
+          itemId,
+          administratorId,
+          typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+        );
+      } catch (err) {
+        if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+          throw new Error('VALIDATION_ITEM_NOT_FOUND');
+        }
+
+        throw err;
+      }
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return approveRecommendationLetterValidation(itemId, actorUserId);
+
+    case 'COMMENT_VALIDATION':
+      return approveCommentValidation(itemId, actorUserId);
+
+    case 'RECOMMENDATION_VALIDATION':
+      return approveRecommendationValidation(itemId, actorUserId);
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.rejectValidationItem = async (
+  itemType,
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  const normalizedReason =
+    typeof payload.comment === 'string'
+      ? payload.comment.trim() || null
+      : typeof payload.rejectionReason === 'string'
+        ? payload.rejectionReason.trim() || null
+        : typeof payload.reason === 'string'
+          ? payload.reason.trim() || null
+          : null;
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      try {
+        return await rejectCertificateRequest(itemId, administratorId, normalizedReason);
+      } catch (err) {
+        if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+          throw new Error('VALIDATION_ITEM_NOT_FOUND');
+        }
+
+        throw err;
+      }
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return rejectRecommendationLetterValidation(itemId, actorUserId, normalizedReason);
+
+    case 'COMMENT_VALIDATION':
+      return rejectCommentValidation(itemId, actorUserId, normalizedReason);
+
+    case 'RECOMMENDATION_VALIDATION':
+      return rejectRecommendationValidation(itemId, actorUserId, normalizedReason);
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.listNotifications = async ({
+  administratorId,
+  type,
+  isRead,
+  page = 1,
+  limit = 10,
+  search,
+} = {}) => {
+  await syncAdminNotifications();
+
+  const normalizedType = type ? normalizeValidationType(type) : null;
+
+  if (normalizedType) {
+    ensureValidNotificationType(normalizedType);
+  }
+
+  const { skip, page: safePage, limit: safeLimit } = normalizePagination(page, limit);
+  const normalizedSearch = String(search || '').trim();
+
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [{ administratorId: null }];
+
+  const where = {
+    ...(normalizedType ? { type: normalizedType } : {}),
+    ...(typeof isRead === 'boolean' ? { isRead } : {}),
+    ...(scopeConditions.length || normalizedSearch
+      ? {
+          AND: [
+            ...scopeConditions,
+            ...(normalizedSearch
+              ? [
+                  {
+                    OR: [
+                      { title: { contains: normalizedSearch, mode: 'insensitive' } },
+                      { message: { contains: normalizedSearch, mode: 'insensitive' } },
+                      { relatedType: { contains: normalizedSearch, mode: 'insensitive' } },
+                    ],
+                  },
+                ]
+              : []),
+          ],
+        }
+      : {}),
+  };
+
+  const [total, unreadCount, allCount, notifications] = await Promise.all([
+    safeCount(() => prisma.notification.count({ where })),
+    safeCount(() =>
+      prisma.notification.count({
+        where: {
+          ...(scopeConditions.length
+            ? {
+                AND: scopeConditions,
+              }
+            : {}),
+          isRead: false,
+        },
+      })
+    ),
+    safeCount(() =>
+      prisma.notification.count({
+        where: scopeConditions.length
+          ? {
+              AND: scopeConditions,
+            }
+          : undefined,
+      })
+    ),
+    safeReadWithFallback(
+      () =>
+        prisma.notification.findMany({
+          where,
+          orderBy: [{ createdAt: 'desc' }],
+          skip,
+          take: safeLimit,
+          select: notificationSelect,
+        }),
+      null,
+      []
+    ),
+  ]);
+
+  return {
+    filters: {
+      type: normalizedType,
+      isRead: typeof isRead === 'boolean' ? isRead : null,
+      search: normalizedSearch || null,
+    },
+    summary: {
+      total: allCount,
+      unread: unreadCount,
+      read: Math.max(0, allCount - unreadCount),
+    },
+    items: notifications.map(mapNotificationItem),
+    pagination: buildPagination(safePage, safeLimit, total),
+  };
+};
+
+exports.markNotificationAsRead = async (notificationId, administratorId) => {
+  await getNotificationOrThrow(notificationId, administratorId);
+
+  try {
+    await prisma.notification.update({
+      where: { id: notificationId },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('NOTIFICATION_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  return mapNotificationItem(await getNotificationOrThrow(notificationId, administratorId));
+};
+
+exports.markAllNotificationsAsRead = async (administratorId) => {
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [{ administratorId: null }];
+
+  const now = new Date();
+
+  try {
+    const result = await prisma.notification.updateMany({
+      where: {
+        isRead: false,
+        ...(scopeConditions.length
+          ? {
+              AND: scopeConditions,
+            }
+          : {}),
+      },
+      data: {
+        isRead: true,
+        readAt: now,
+      },
+    });
+
+    return {
+      updatedCount: result.count,
+      readAt: now,
+    };
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      return {
+        updatedCount: 0,
+        readAt: now,
+      };
+    }
+
+    throw err;
+  }
+};
+
+exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit = 10, search } = {}) => {
+  await syncPendingReportNotifications();
+
+  const normalizedTargetType = targetType
+    ? String(targetType).trim().toUpperCase().replace(/-/g, '_')
+    : null;
+
+  ensureValidReportStatus(status);
+
+  if (normalizedTargetType) {
+    ensureValidReportTargetType(normalizedTargetType);
+  }
+
+  const reports = await loadReportItems(status, normalizedTargetType);
+  const filteredReports = reports
+    .map(mapReportItem)
+    .filter((item) => matchesValidationSearch(item, search));
+
+  const paginated = paginateItems(filteredReports, page, limit);
+
+  return {
+    filters: {
+      status,
+      targetType: normalizedTargetType,
+      search: search || null,
+    },
+    ...paginated,
+  };
+};
+
+exports.getReportById = async (reportId) => mapReportItem(await getReportOrThrow(reportId));
+
+exports.approveReport = async (reportId, administratorId, resolutionNote = null) => {
+  const report = await getReportOrThrow(reportId);
+
+  if (report.status !== 'PENDING') {
+    throw new Error('REPORT_INVALID_STATE');
+  }
+
+  await prisma.report.update({
+    where: { id: reportId },
+    data: {
+      status: 'APPROVED',
+      reviewedByAdministratorId: administratorId,
+      reviewedAt: new Date(),
+      resolutionNote,
+    },
+  });
+
+  const updatedReport = await exports.getReportById(reportId);
+  await notificationService.createAdminActionNotification({
+    title: 'Signalement approuve',
+    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete approuve.`,
+    relatedType: 'REPORT',
+    relatedId: reportId,
+  });
+
+  return updatedReport;
+};
+
+exports.rejectReport = async (reportId, administratorId, resolutionNote = null) => {
+  const report = await getReportOrThrow(reportId);
+
+  if (report.status !== 'PENDING') {
+    throw new Error('REPORT_INVALID_STATE');
+  }
+
+  await prisma.report.update({
+    where: { id: reportId },
+    data: {
+      status: 'REJECTED',
+      reviewedByAdministratorId: administratorId,
+      reviewedAt: new Date(),
+      resolutionNote,
+    },
+  });
+
+  const updatedReport = await exports.getReportById(reportId);
+  await notificationService.createAdminActionNotification({
+    title: 'Signalement rejete',
+    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete rejete.`,
+    relatedType: 'REPORT',
+    relatedId: reportId,
+  });
+
+  return updatedReport;
+};
+
+exports.getDashboardItemDetail = async (itemType, itemId) => {
+  const normalizedType = String(itemType || '')
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, '_');
+
+  switch (normalizedType) {
+    case 'ACCESS_REQUEST': {
+      const request = await getProfessionalRequestOrThrow(itemId);
+      return mapProfessionalRequestDetail(request);
+    }
+
+    case 'CERTIFICATE_VALIDATION': {
+      const certificate = await getCertificateRequestOrThrow(itemId);
+      return mapCertificateRequestDetail(certificate);
+    }
+
+    case 'REPORT':
+      return exports.getReportById(itemId);
+
+    default:
+      throw new Error('UNSUPPORTED_DASHBOARD_ITEM_TYPE');
+  }
+};
+
+exports.approveDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
+  const normalizedType = String(itemType || '')
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, '_');
+
+  switch (normalizedType) {
+    case 'ACCESS_REQUEST':
+      return exports.approveProfessionalRequest(itemId, administratorId);
+
+    case 'CERTIFICATE_VALIDATION':
+      return approveCertificateRequest(
+        itemId,
+        administratorId,
+        typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+      );
+
+    case 'REPORT':
+      return exports.approveReport(
+        itemId,
+        administratorId,
+        typeof payload.resolutionNote === 'string'
+          ? payload.resolutionNote.trim() || null
+          : typeof payload.comment === 'string'
+            ? payload.comment.trim() || null
+            : null
+      );
+
+    default:
+      throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
+  }
+};
+
+exports.rejectDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
+  const normalizedType = String(itemType || '')
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, '_');
+
+  const normalizedComment =
+    typeof payload.comment === 'string'
+      ? payload.comment.trim() || null
+      : typeof payload.rejectionReason === 'string'
+        ? payload.rejectionReason.trim() || null
+        : typeof payload.reason === 'string'
+          ? payload.reason.trim() || null
+          : null;
+
+  switch (normalizedType) {
+    case 'ACCESS_REQUEST':
+      return exports.rejectProfessionalRequest(itemId, administratorId, normalizedComment);
+
+    case 'CERTIFICATE_VALIDATION':
+      return rejectCertificateRequest(itemId, administratorId, normalizedComment);
+
+    case 'REPORT':
+      return exports.rejectReport(itemId, administratorId, normalizedComment);
+
+    default:
+      throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
+  }
 };
