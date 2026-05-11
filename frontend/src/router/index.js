@@ -198,6 +198,11 @@ const router = createRouter({
             component: () => import('@/views/student/comments.vue'),
             },
             {
+            path: 'settings',
+            name: 'StudentSettings',
+            component: () => import('@/views/student/Settings.vue'),
+            },
+            {
             path: "notifications",
             name: "student-notifications",
             component: () => import("../views/Notifications.vue"),
