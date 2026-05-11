@@ -1,26 +1,32 @@
 'use strict';
 
-const { success } = require('../utils/apiResponse');
+const studentService = require('../services/studentService');
+const { success, error } = require('../utils/apiResponse');
 
-exports.getDashboard = (req, res) => {
-  return success(
-    res,
-    200,
-    'Acces autorise a l espace etudiant',
-    {
-      area: 'student',
-      user: req.user,
-    }
-  );
+const handleStudentError = (res, err) => {
+  if (err.message === 'STUDENT_PROFILE_NOT_FOUND') {
+    return error(res, 404, 'Profil etudiant introuvable.');
+  }
+
+  return null;
 };
 
-exports.getProfile = (req, res) => {
-  return success(
-    res,
-    200,
-    'Profil etudiant accessible',
-    {
-      user: req.user,
-    }
-  );
+exports.getDashboard = async (req, res, next) => {
+  try {
+    const dashboard = await studentService.getStudentDashboard(req.user.userId);
+    return success(res, 200, 'Tableau de bord etudiant charge.', dashboard);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getProfile = async (req, res, next) => {
+  try {
+    const profile = await studentService.getStudentProfile(req.user.userId);
+    return success(res, 200, 'Profil etudiant charge.', profile);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
 };

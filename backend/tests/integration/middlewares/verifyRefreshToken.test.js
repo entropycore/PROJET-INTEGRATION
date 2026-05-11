@@ -1,8 +1,8 @@
 'use strict';
 
 const request = require('supertest');
-const app     = require('../../../src/server');
-const jwt     = require('jsonwebtoken');
+const app = require('../../../src/server');
+const jwt = require('jsonwebtoken');
 
 describe('MIDDLEWARE - verifyRefreshToken', () => {
 
