@@ -3,94 +3,181 @@ const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
+const upsertUser = async ({
+  email,
+  lastName,
+  firstName,
+  passwordHash,
+  accountStatus,
+  role,
+}) =>
+  prisma.user.upsert({
+    where: { email },
+    update: {
+      lastName,
+      firstName,
+      passwordHash,
+      accountStatus,
+      role,
+    },
+    create: {
+      email,
+      lastName,
+      firstName,
+      passwordHash,
+      accountStatus,
+      role,
+    },
+  });
+
+const upsertAdministratorProfile = async (userId) =>
+  prisma.administrator.upsert({
+    where: { employeeId: 'ADM-CRED-2026' },
+    update: {
+      userId,
+      employeeId: 'ADM-CRED-2026',
+      department: 'Direction IT - ENSA Tanger',
+    },
+    create: {
+      userId,
+      employeeId: 'ADM-CRED-2026',
+      department: 'Direction IT - ENSA Tanger',
+    },
+  });
+
+const upsertStudentProfile = async (userId) =>
+  prisma.student.upsert({
+    where: { apogeeCode: 'APG123456' },
+    update: {
+      userId,
+      apogeeCode: 'APG123456',
+      cne: 'K123456789',
+      major: 'Genie Informatique',
+      level: 'GINF1',
+      city: 'Tanger',
+    },
+    create: {
+      userId,
+      apogeeCode: 'APG123456',
+      cne: 'K123456789',
+      major: 'Genie Informatique',
+      level: 'GINF1',
+      city: 'Tanger',
+    },
+  });
+
+const upsertProfessorProfile = async (userId) =>
+  prisma.professor.upsert({
+    where: { employeeId: 'PROF-ENSA-01' },
+    update: {
+      userId,
+      employeeId: 'PROF-ENSA-01',
+    },
+    create: {
+      userId,
+      employeeId: 'PROF-ENSA-01',
+    },
+  });
+
+const upsertProfessionalProfile = async (
+  userId,
+  { company, jobTitle, isEmailVerified, isVerified, emailVerifiedAt }
+) =>
+  prisma.professional.upsert({
+    where: { userId },
+    update: {
+      company,
+      jobTitle,
+      isEmailVerified,
+      isVerified,
+      emailVerifyToken: null,
+      emailVerifyExpires: null,
+      emailVerifiedAt,
+    },
+    create: {
+      userId,
+      company,
+      jobTitle,
+      isEmailVerified,
+      isVerified,
+      emailVerifyToken: null,
+      emailVerifyExpires: null,
+      emailVerifiedAt,
+    },
+  });
+
 async function main() {
-  // Mot de passe unifié pour faciliter les tests : Password123!
   const passwordHash = await bcrypt.hash('Password123!', 10);
+  const verifiedAt = new Date();
 
-  // 1. Création de l'Administrateur (Chef d'équipe / Super Admin)
-  await prisma.user.create({
-    data: {
-      lastName: 'Admin',
-      firstName: 'Credencia',
-      email: 'admin@credencia.ma',
-      passwordHash: passwordHash,
-      accountStatus: 'ACTIVE',
-      role: 'ADMINISTRATOR',
-      administrator: {
-        create: {
-          employeeId: 'ADM-CRED-2026',
-          department: 'Direction IT - ENSA Tanger',
-        },
-      },
-    },
+  const adminUser = await upsertUser({
+    email: 'admin@credencia.ma',
+    lastName: 'Admin',
+    firstName: 'Credencia',
+    passwordHash,
+    accountStatus: 'ACTIVE',
+    role: 'ADMINISTRATOR',
+  });
+  await upsertAdministratorProfile(adminUser.id);
+
+  const studentUser = await upsertUser({
+    email: 'etudiant@credencia.ma',
+    lastName: 'Zaaboul',
+    firstName: 'Mohamed',
+    passwordHash,
+    accountStatus: 'ACTIVE',
+    role: 'STUDENT',
+  });
+  await upsertStudentProfile(studentUser.id);
+
+  const professorUser = await upsertUser({
+    email: 'professeur@credencia.ma',
+    lastName: 'Ghailani',
+    firstName: 'Mohamed',
+    passwordHash,
+    accountStatus: 'ACTIVE',
+    role: 'PROFESSOR',
+  });
+  await upsertProfessorProfile(professorUser.id);
+
+  const activeProfessionalUser = await upsertUser({
+    email: 'pro@entreprise.com',
+    lastName: 'Tech',
+    firstName: 'Recruiter',
+    passwordHash,
+    accountStatus: 'ACTIVE',
+    role: 'PROFESSIONAL',
+  });
+  await upsertProfessionalProfile(activeProfessionalUser.id, {
+    company: 'Capgemini Tanger',
+    jobTitle: 'Senior Tech Lead',
+    isEmailVerified: true,
+    isVerified: true,
+    emailVerifiedAt: verifiedAt,
   });
 
-  // 2. Création de l'Étudiant (GINF1)
-  await prisma.user.create({
-    data: {
-      lastName: 'Zaaboul',
-      firstName: 'Mohamed',
-      email: 'etudiant@credencia.ma', //neaveau mot de passe pour les tests : Temp567c7e1aAa!1  pour supabase
-      passwordHash: passwordHash,
-      accountStatus: 'ACTIVE',
-      role: 'STUDENT',
-      student: {
-        create: {
-          apogeeCode: 'APG123456',
-          cne: 'K123456789',
-          major: 'Génie Informatique',
-          level: 'GINF1',
-          city: 'Tanger',
-        },
-      },
-    },
+  const pendingProfessionalUser = await upsertUser({
+    email: 'pending.pro@entreprise.com',
+    lastName: 'Pending',
+    firstName: 'Professional',
+    passwordHash,
+    accountStatus: 'PENDING',
+    role: 'PROFESSIONAL',
+  });
+  await upsertProfessionalProfile(pendingProfessionalUser.id, {
+    company: 'Accenture Maroc',
+    jobTitle: 'HR Recruiter',
+    isEmailVerified: true,
+    isVerified: false,
+    emailVerifiedAt: verifiedAt,
   });
 
-  // 3. Création du Professeur (Encadrant)
-  await prisma.user.create({
-    data: {
-      lastName: 'Ghailani',
-      firstName: 'Mohamed',
-      email: 'professeur@credencia.ma',
-      passwordHash: passwordHash,
-      accountStatus: 'ACTIVE',
-      role: 'PROFESSOR',
-      professor: {
-        create: {
-          employeeId: 'PROF-ENSA-01',
-          // Note : Ajoute les champs exacts selon ton schema.prisma si 'department' n'existe pas
-        },
-      },
-    },
-  });
-
-  // 4. Création du Professionnel (Entreprise externe)
-  await prisma.user.create({
-    data: {
-      lastName: 'Tech',
-      firstName: 'Recruiter',
-      email: 'pro@entreprise.com',
-      passwordHash: passwordHash,
-      accountStatus: 'ACTIVE',
-      role: 'PROFESSIONAL',
-      professional: {
-        create: {
-          company: 'Capgemini Tanger',
-          jobTitle: 'Senior Tech Lead',
-          // On force la vérification pour qu'il puisse se connecter direct lors des tests
-          isEmailVerified: true, 
-          isVerified: true 
-        },
-      },
-    },
-  });
-
-  console.log(' Base de données Credencia seedée avec succès avec les 4 rôles !');
+  console.log('Base de donnees seedee avec succes avec les roles principaux et une demande pro en attente.');
 }
 
 main()
   .catch((e) => {
-    console.error(' Erreur lors du seed :', e);
+    console.error('Erreur lors du seed :', e);
     process.exit(1);
   })
   .finally(async () => {
