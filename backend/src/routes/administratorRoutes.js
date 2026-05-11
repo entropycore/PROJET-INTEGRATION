@@ -39,6 +39,10 @@ router.patch('/reports/:reportId/resolve', administratorController.resolveLegacy
 router.patch('/reports/:reportId/approve', administratorController.approveReport);
 router.patch('/reports/:reportId/reject', administratorController.rejectReport);
 router.delete('/reports/:reportId/target', administratorController.deleteLegacyReportedTarget);
+router.get('/badges', administratorController.listBadges);
+router.post('/badges', administratorController.createBadge);
+router.put('/badges/:badgeId', administratorController.updateBadge);
+router.delete('/badges/:badgeId', administratorController.deleteBadge);
 router.get('/profile', administratorController.getProfile);
 router.get('/users', administratorController.listUsers);
 router.post('/users', administratorController.createUser);
