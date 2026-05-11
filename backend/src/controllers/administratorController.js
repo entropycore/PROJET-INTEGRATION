@@ -12,6 +12,7 @@ const VALID_VALIDATION_TYPES = new Set([
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ]);
+const VALID_LEGACY_VALIDATION_TYPES = new Set(['PROJECT', 'INTERNSHIP', 'CERTIFICATE', 'ACTIVITY']);
 const VALID_NOTIFICATION_TYPES = new Set([
   'ACCESS_REQUEST',
   'CERTIFICATE_VALIDATION',
@@ -88,6 +89,10 @@ const handleAdminError = (res, err) => {
 
   if (err.message === 'UNSUPPORTED_VALIDATION_TYPE') {
     return error(res, 400, "Le type de validation n'est pas supporte.");
+  }
+
+  if (err.message === 'UNSUPPORTED_LEGACY_VALIDATION_TYPE') {
+    return error(res, 400, "Le type de validation legacy n'est pas supporte.");
   }
 
   if (err.message === 'UNSUPPORTED_REPORT_TARGET_TYPE') {
@@ -246,7 +251,20 @@ exports.listValidationItems = async (req, res, next) => {
 
 exports.listPendingValidationsLegacy = async (req, res, next) => {
   try {
+    const type = normalizeItemType(req.query.type);
+    const status = normalizeStatus(req.query.status || 'PENDING');
+
+    if (type && !VALID_LEGACY_VALIDATION_TYPES.has(type)) {
+      return error(res, 400, 'Le filtre type legacy est invalide.');
+    }
+
+    if (status && !VALID_VALIDATION_STATUSES.has(status)) {
+      return error(res, 400, 'Le filtre status est invalide.');
+    }
+
     const data = await administratorService.listPendingValidationsLegacy({
+      type,
+      status,
       search: req.query.search?.trim(),
       page: parsePositiveInt(req.query.page, 1),
       limit: parsePositiveInt(req.query.limit, 10),
