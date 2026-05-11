@@ -21,6 +21,9 @@ const VALID_NOTIFICATION_TYPES = new Set([
   'RECOMMENDATION_VALIDATION',
   'REPORT',
   'SYSTEM',
+  'INFO',
+  'VALIDATION',
+  'ALERT',
 ]);
 const VALID_REPORT_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED']);
 const VALID_REPORT_TARGET_TYPES = new Set([
@@ -400,7 +403,9 @@ exports.requestLegacyValidationChanges = async (req, res, next) => {
 exports.listNotifications = async (req, res, next) => {
   try {
     const type = normalizeItemType(req.query.type);
-    const isRead = parseBooleanFilter(req.query.isRead);
+    const isRead = parseBooleanFilter(
+      typeof req.query.isRead !== 'undefined' ? req.query.isRead : req.query.read
+    );
 
     if (type && !VALID_NOTIFICATION_TYPES.has(type)) {
       return error(res, 400, 'Le filtre type est invalide.');
@@ -426,6 +431,16 @@ exports.listNotifications = async (req, res, next) => {
   }
 };
 
+exports.getUnreadNotificationsCount = async (req, res, next) => {
+  try {
+    const count = await administratorService.getUnreadNotificationsCount(req.user.roleId);
+    return success(res, 200, 'Compteur des notifications non lues recupere.', { count });
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.markNotificationAsRead = async (req, res, next) => {
   try {
     const notification = await administratorService.markNotificationAsRead(
@@ -434,6 +449,20 @@ exports.markNotificationAsRead = async (req, res, next) => {
     );
 
     return success(res, 200, 'Notification marquee comme lue.', notification);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteNotification = async (req, res, next) => {
+  try {
+    const result = await administratorService.deleteNotification(
+      req.params.notificationId,
+      req.user.roleId
+    );
+
+    return success(res, 200, 'Notification supprimee.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
