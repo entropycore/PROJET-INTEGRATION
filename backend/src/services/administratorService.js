@@ -28,6 +28,13 @@ const NOTIFICATION_TYPES = [
 const LEGACY_NOTIFICATION_TYPES = ['INFO', 'VALIDATION', 'ALERT'];
 const REPORT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
 const REPORT_TARGET_TYPES = ['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'];
+const DELETABLE_REPORT_TARGET_TYPES = new Set([
+  'PORTFOLIO',
+  'COMMENT',
+  'RECOMMENDATION',
+  'PROJECT',
+  'INTERNSHIP',
+]);
 const BCRYPT_ROUNDS = 10;
 
 const professionalRequestSelect = {
@@ -1186,6 +1193,10 @@ const ensureValidReportTargetType = (targetType) => {
 };
 
 const deleteReportTargetRecord = async (tx, report) => {
+  if (!DELETABLE_REPORT_TARGET_TYPES.has(report.targetType)) {
+    return 'resolved_without_target_deletion';
+  }
+
   try {
     switch (report.targetType) {
       case 'PORTFOLIO':
@@ -1195,7 +1206,7 @@ const deleteReportTargetRecord = async (tx, report) => {
         await tx.portfolio.delete({
           where: { id: report.targetId },
         });
-        return;
+        return 'deleted';
 
       case 'COMMENT':
         if (!report.targetId) {
@@ -1204,7 +1215,7 @@ const deleteReportTargetRecord = async (tx, report) => {
         await tx.comment.delete({
           where: { id: report.targetId },
         });
-        return;
+        return 'deleted';
 
       case 'RECOMMENDATION':
         if (!report.targetId) {
@@ -1213,7 +1224,7 @@ const deleteReportTargetRecord = async (tx, report) => {
         await tx.recommendation.delete({
           where: { id: report.targetId },
         });
-        return;
+        return 'deleted';
 
       case 'PROJECT':
         if (!report.targetId) {
@@ -1222,7 +1233,7 @@ const deleteReportTargetRecord = async (tx, report) => {
         await tx.project.delete({
           where: { id: report.targetId },
         });
-        return;
+        return 'deleted';
 
       case 'INTERNSHIP':
         if (!report.targetId) {
@@ -1231,10 +1242,10 @@ const deleteReportTargetRecord = async (tx, report) => {
         await tx.internship.delete({
           where: { id: report.targetId },
         });
-        return;
+        return 'deleted';
 
       default:
-        throw new Error('UNSUPPORTED_REPORT_TARGET_TYPE');
+        return 'resolved_without_target_deletion';
     }
   } catch (err) {
     if (err?.code === 'P2025') {
@@ -4206,17 +4217,26 @@ exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote 
     throw new Error('REPORT_INVALID_STATE');
   }
 
-  const appliedResolutionNote = resolutionNote || 'Contenu signale supprime.';
+  const reviewedAt = new Date();
+  let deletionOutcome = 'resolved_without_target_deletion';
+  let appliedResolutionNote = resolutionNote;
 
   await prisma.$transaction(async (tx) => {
-    await deleteReportTargetRecord(tx, report);
+    deletionOutcome = await deleteReportTargetRecord(tx, report);
+
+    if (!appliedResolutionNote) {
+      appliedResolutionNote =
+        deletionOutcome === 'deleted'
+          ? 'Contenu signale supprime.'
+          : 'Signalement traite sans suppression automatique de la cible.';
+    }
 
     await tx.report.update({
       where: { id: reportId },
       data: {
         status: 'APPROVED',
         reviewedByAdministratorId: administratorId,
-        reviewedAt: new Date(),
+        reviewedAt,
         resolutionNote: appliedResolutionNote,
       },
     });
@@ -4224,8 +4244,14 @@ exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote 
 
   const updatedReport = await exports.getReportById(reportId);
   await notificationService.createAdminActionNotification({
-    title: 'Contenu signale supprime',
-    message: `Le contenu signale lie a ${report.targetType.toLowerCase()} a ete supprime.`,
+    title:
+      deletionOutcome === 'deleted'
+        ? 'Contenu signale supprime'
+        : 'Signalement traite',
+    message:
+      deletionOutcome === 'deleted'
+        ? `Le contenu signale lie a ${report.targetType.toLowerCase()} a ete supprime.`
+        : `Le signalement lie a ${report.targetType.toLowerCase()} a ete traite sans suppression automatique de la cible.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
