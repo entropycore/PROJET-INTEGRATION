@@ -536,3 +536,17 @@ model Recommendation {
   @@index([status])
   @@map("recommendations")
 }
+
+model Badge {
+  id          String   @id @default(uuid()) @map("id_badge")
+  name        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  rule        String   @db.Text
+  iconUrl     String?  @map("icon_url") @db.Text
+  tone        String   @default("blue") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([createdAt])
+  @@map("badges")
+}
