@@ -2,8 +2,8 @@
 
 const request = require('supertest');
 const app = require('../../../src/server');
-const { PrismaClient } = require('../../../src/generated/prisma');
-const prisma = new PrismaClient();
+const prisma = require('../../../src/config/prisma');
+
 // ─── HELPERS ───────────────────────────────────────────────
 const saveCookies = (res) => (res.headers['set-cookie'] || []).join('; ');
 
@@ -15,8 +15,47 @@ const isCookieCleared = (res, name) =>
     c => c.startsWith(name + '=') && c.includes('Expires=Thu, 01 Jan 1970')
   );
 
-let cookieHeader = '';
 const timestamp = Date.now();
+
+// ✅ Sans point dans la partie locale — normalizeEmail() ne modifie pas l'email
+const TEST_EMAIL = `testuser${timestamp}@ensa.ac.ma`;
+const TEST_EMAIL_2 = `newuser${timestamp}@ensa.ac.ma`;
+const TEST_PASSWORD = 'Test@1234';
+
+let cookieHeader = '';
+
+// ─── SETUP GLOBAL ──────────────────────────────────────────
+beforeAll(async () => {
+  await request(app)
+    .post('/api/auth/register')
+    .send({
+      lastName: 'Ali',
+      firstName: 'Sara',
+      email: TEST_EMAIL,
+      password: TEST_PASSWORD,
+      company: 'ENSA',
+      jobTitle: 'Ingenieure',
+    });
+
+  const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
+  if (user) {
+    await prisma.user.update({
+      where: { email: TEST_EMAIL },
+      data: { accountStatus: 'ACTIVE' },
+    });
+    await prisma.professional.update({
+      where: { userId: user.id },
+      data: {
+        isEmailVerified: true,
+        isVerified: true,
+      },
+    });
+  }
+});
+
+afterAll(async () => {
+  await prisma.$disconnect();
+});
 
 // *************************
 // POST /api/auth/register
@@ -29,10 +68,10 @@ describe('AUTH - POST /register', () => {
       .send({
         lastName: 'Ali',
         firstName: 'Sara',
-        email: `test.${timestamp}@ensa.ac.ma`,
-        password: 'Test@1234',
+        email: TEST_EMAIL_2,
+        password: TEST_PASSWORD,
         company: 'ENSA',
-        jobTitle: 'Ingenieure'
+        jobTitle: 'Ingenieure',
       });
     expect(res.statusCode).toBe(201);
     expect(res.body.success).toBe(true);
@@ -46,11 +85,12 @@ describe('AUTH - POST /register', () => {
       .send({
         lastName: 'Ali',
         firstName: 'Sara',
-        email: `test.${timestamp}@ensa.ac.ma`,
-        password: 'Test@1234',
+        email: TEST_EMAIL,
+        password: TEST_PASSWORD,
         company: 'ENSA',
-        jobTitle: 'Ingenieure'
+        jobTitle: 'Ingenieure',
       });
+    console.log('TC-AUTH-02 body:', res.body);
     expect(res.statusCode).toBe(409);
     expect(res.body.success).toBe(false);
   });
@@ -61,27 +101,27 @@ describe('AUTH - POST /register', () => {
       .send({
         lastName: 'Ali',
         firstName: 'Sara',
-        email: `sara3.${timestamp}@ensa.ac.ma`,
+        email: `shortpass${timestamp}@ensa.ac.ma`,
         password: 'Ab@1',
         company: 'ENSA',
-        jobTitle: 'Ingenieure'
+        jobTitle: 'Ingenieure',
       });
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.errors.some(e => e.field === 'password')).toBe(true);
   });
 });
+
 // ************************
-// POST /api/auth/verify-email
+// GET /api/auth/verify-email
 // ************************
 describe('AUTH - GET /verify-email', () => {
 
   test('TC-AUTH-VE-01 : Sans token -> 400', async () => {
-    const res = await request(app)
-      .get('/api/auth/verify-email');
+    const res = await request(app).get('/api/auth/verify-email');
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
-});
+  });
 
   test('TC-AUTH-VE-02 : Token invalide -> 400', async () => {
     const res = await request(app)
@@ -103,45 +143,28 @@ describe('AUTH - GET /verify-email', () => {
 // ***********************
 describe('AUTH - POST /login', () => {
 
-test('TC-AUTH-06 : Login réussi -> 200', async () => {
-    const userEmail = `test.${timestamp}@ensa.ac.ma`;
-    // 1. Activation du compte dans la table User
-    await prisma.user.update({
-        where: { email: userEmail },
-        data: { accountStatus: 'ACTIVE' } // Passage du statut de PENDING à ACTIVE
-    });
-    // 2. Vérification de l'email dans la table Professional (car l'inscription est de type Professional dans TC-AUTH-01)
-    await prisma.professional.update({
-        where: { 
-            // Recherche via l'ID de l'utilisateur associé à cet email
-            userId: (await prisma.user.findUnique({ where: { email: userEmail } })).id 
-        },
-        data: { isEmailVerified: true }
-    });
+  test('TC-AUTH-06 : Login réussi -> 200', async () => {
     const res = await request(app)
-        .post('/api/auth/login')
-        .send({ 
-            email: userEmail, 
-            password: 'Test@1234' 
-        });
+      .post('/api/auth/login')
+      .send({ email: TEST_EMAIL, password: TEST_PASSWORD });
     expect(res.statusCode).toBe(200);
-    // Récupération des cookies pour les tests suivants (ex: refresh-token)
-    cookieHeader = saveCookies(res); 
+    cookieHeader = saveCookies(res);
     expect(hasCookie(res, 'accessToken')).toBe(true);
-});
+  });
+
   test('TC-AUTH-07 : Mauvais mot de passe -> 401', async () => {
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ email: 'sara@ensa.ac.ma', password: 'Mauvais@999' });
+      .send({ email: TEST_EMAIL, password: 'Mauvais@999' });
     expect(res.statusCode).toBe(401);
     expect(res.body.success).toBe(false);
     expect(hasCookie(res, 'accessToken')).toBe(false);
   });
-
+q
   test('TC-AUTH-08 : Email inexistant -> 401', async () => {
     const res = await request(app)
       .post('/api/auth/login')
-      .send({ email: 'fantome@ensa.ac.ma', password: 'Test@1234' });
+      .send({ email: 'fantome@ensa.ac.ma', password: TEST_PASSWORD });
     expect(res.statusCode).toBe(401);
     expect(res.body.success).toBe(false);
   });
@@ -159,7 +182,6 @@ test('TC-AUTH-06 : Login réussi -> 200', async () => {
 // *************************
 // GET /api/auth/me
 // *************************
-
 describe('AUTH - GET /me', () => {
 
   test('TC-AUTH-ME-01 : Cookie valide -> 200 + donnees sans passwordHash', async () => {
@@ -198,36 +220,35 @@ describe('AUTH - GET /me', () => {
     expect(res.body.success).toBe(false);
   });
 });
+
 // *************************
 // POST /api/auth/refresh-token
 // *************************
-describe('AUTH - POST /refresh-token',() => {
+describe('AUTH - POST /refresh-token', () => {
 
   test('TC-AUTH-RT-01 : Refresh token valide -> 200 + nouveau accessToken', async () => {
     const res = await request(app)
-    .post('/api/auth/refresh-token')
-    .set('Cookie',cookieHeader);
-    console.log("la reponse de serveur :", res.body);
+      .post('/api/auth/refresh-token')
+      .set('Cookie', cookieHeader);
     expect(res.statusCode).toBe(200);
     expect(res.body.success).toBe(true);
     expect(hasCookie(res, 'accessToken')).toBe(true);
   });
 
   test('TC-AUTH-RT-02 : Sans cookie -> 401', async () => {
-    const res=await request(app)
-    .post('/api/auth/refresh-token');
+    const res = await request(app).post('/api/auth/refresh-token');
     expect(res.statusCode).toBe(401);
-    expect(res.body.success).toBe(false)
+    expect(res.body.success).toBe(false);
   });
 
   test('TC-AUTH-RT-03 : Refresh token falsifie -> 401', async () => {
     const res = await request(app)
-    .post('/api/auth/refresh-token')
-    .set('Cookie', 'refresh-token')
+      .post('/api/auth/refresh-token')
+      .set('Cookie', 'refreshToken=tokenbidon.faux.signature');
     expect(res.statusCode).toBe(401);
     expect(res.body.success).toBe(false);
+  });
 });
-})
 
 // ************************
 // POST /api/auth/logout
@@ -235,8 +256,7 @@ describe('AUTH - POST /refresh-token',() => {
 describe('AUTH - POST /logout', () => {
 
   test('TC-AUTH-11 : Sans cookie -> 401', async () => {
-    const res = await request(app)
-      .post('/api/auth/logout');
+    const res = await request(app).post('/api/auth/logout');
     expect(res.statusCode).toBe(401);
     expect(res.body.success).toBe(false);
   });
@@ -248,7 +268,8 @@ describe('AUTH - POST /logout', () => {
     expect(res.statusCode).toBe(401);
     expect(res.body.success).toBe(false);
   });
-test('TC-AUTH-01 : Deconnexion reussie -> 200 + cookies effaces', async () => {
+
+  test('TC-AUTH-13 : Deconnexion reussie -> 200 + cookies effaces', async () => {
     const res = await request(app)
       .post('/api/auth/logout')
       .set('Cookie', cookieHeader);
