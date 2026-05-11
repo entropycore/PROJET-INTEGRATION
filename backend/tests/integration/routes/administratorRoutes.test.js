@@ -77,6 +77,22 @@ describe('Administrator Routes', () => {
     expect(res.body.data.count).toBe(3);
   });
 
+  it('GET /api/admin/notifications returns the notifications list', async () => {
+    administratorService.listNotifications.mockResolvedValue({
+      items: [{ id: 'notif-1', title: 'Nouvelle demande professionnelle' }],
+      pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      filters: { type: null, isRead: null, search: null },
+      summary: { total: 1, unread: 1, read: 0 },
+    });
+
+    const res = await request(app)
+      .get('/api/admin/notifications')
+      .set('Cookie', `accessToken=${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toHaveLength(1);
+  });
+
   it('GET /api/admin/validations/pending-count returns legacy validation counters', async () => {
     administratorService.getPendingValidationCountsLegacy.mockResolvedValue({
       count: 4,
@@ -95,6 +111,22 @@ describe('Administrator Routes', () => {
     expect(res.body.data.internships).toBe(1);
   });
 
+  it('GET /api/admin/validations/pending returns the pending validation list', async () => {
+    administratorService.listPendingValidationsLegacy.mockResolvedValue({
+      items: [{ id: 'validation-1', targetType: 'PROJECT' }],
+      pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      filters: { type: null, status: 'PENDING', search: null },
+      summary: { count: 1, projects: 1, internships: 0, certificates: 0, activities: 0 },
+    });
+
+    const res = await request(app)
+      .get('/api/admin/validations/pending')
+      .set('Cookie', `accessToken=${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toHaveLength(1);
+  });
+
   it('GET /api/admin/reports/pending-count returns legacy report counters', async () => {
     administratorService.getPendingReportsCountLegacy.mockResolvedValue({
       count: 2,
@@ -108,6 +140,38 @@ describe('Administrator Routes', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.data.count).toBe(2);
+  });
+
+  it('GET /api/admin/reports returns the reports list', async () => {
+    administratorService.listReports.mockResolvedValue({
+      items: [{ id: 'report-1', targetType: 'PROJECT', status: 'PENDING' }],
+      pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+      filters: { status: 'PENDING', targetType: null, search: null },
+      summary: { total: 1, pending: 1, approved: 0, rejected: 0 },
+    });
+
+    const res = await request(app)
+      .get('/api/admin/reports')
+      .set('Cookie', `accessToken=${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.items).toHaveLength(1);
+  });
+
+  it('GET /api/admin/profile returns the administrator profile', async () => {
+    administratorService.getAdministratorProfile.mockResolvedValue({
+      id: 'admin-role-id',
+      employeeId: 'ADM-CRED-2026',
+      department: 'Direction IT - ENSA Tanger',
+    });
+
+    const res = await request(app)
+      .get('/api/admin/profile')
+      .set('Cookie', `accessToken=${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(administratorService.getAdministratorProfile).toHaveBeenCalledWith('admin-user-id');
+    expect(res.body.data.employeeId).toBe('ADM-CRED-2026');
   });
 
   it('GET /api/admin/badges returns the badge collection', async () => {
