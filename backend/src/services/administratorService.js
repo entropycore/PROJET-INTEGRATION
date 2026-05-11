@@ -161,6 +161,17 @@ const notificationSelect = {
   readAt: true,
 };
 
+const badgeSelect = {
+  id: true,
+  name: true,
+  description: true,
+  rule: true,
+  iconUrl: true,
+  tone: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
 const recommendationLetterValidationSelect = {
   id: true,
   validationStatus: true,
@@ -946,6 +957,18 @@ const buildUserSearch = (search) => {
   ];
 };
 
+const buildBadgeSearch = (search) => {
+  if (!search) {
+    return undefined;
+  }
+
+  return [
+    { name: { contains: search, mode: 'insensitive' } },
+    { description: { contains: search, mode: 'insensitive' } },
+    { rule: { contains: search, mode: 'insensitive' } },
+  ];
+};
+
 const normalizePagination = (page = 1, limit = 10) => {
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
   const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 50) : 10;
@@ -1090,6 +1113,96 @@ const paginateItems = (items, page = 1, limit = 10) => {
 };
 
 const normalizeSearch = (value) => String(value || '').trim().toLowerCase();
+
+const normalizeRequiredText = (value) => (typeof value === 'string' ? value.trim() : '');
+
+const normalizeOptionalText = (value) => {
+  if (typeof value !== 'string') {
+    return value == null ? null : value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed || null;
+};
+
+const normalizeBadgeTone = (value) => {
+  const normalized = normalizeRequiredText(value);
+  return normalized || 'blue';
+};
+
+const hasBadgeFeature = () => typeof prisma.badge?.findMany === 'function';
+
+const ensureBadgeFeatureAvailable = () => {
+  if (!hasBadgeFeature()) {
+    throw new Error('BADGE_FEATURE_UNAVAILABLE');
+  }
+
+  return prisma.badge;
+};
+
+const mapBadgeItem = (badge) => ({
+  id: badge.id,
+  name: badge.name,
+  description: badge.description,
+  rule: badge.rule,
+  iconUrl: badge.iconUrl || '',
+  iconFallback: '🏅',
+  tone: badge.tone || 'blue',
+  attributionCount: 0,
+  createdAt: badge.createdAt,
+  updatedAt: badge.updatedAt,
+});
+
+const getBadgeOrThrow = async (badgeId) => {
+  let badge;
+
+  try {
+    badge = await ensureBadgeFeatureAvailable().findUnique({
+      where: { id: badgeId },
+      select: badgeSelect,
+    });
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    throw err;
+  }
+
+  if (!badge) {
+    throw new Error('BADGE_NOT_FOUND');
+  }
+
+  return badge;
+};
+
+const ensureUniqueBadgeName = async (name, excludedBadgeId = null) => {
+  try {
+    const existingBadge = await ensureBadgeFeatureAvailable().findFirst({
+      where: {
+        name,
+        ...(excludedBadgeId
+          ? {
+              NOT: { id: excludedBadgeId },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingBadge) {
+      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+    }
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    throw err;
+  }
+};
 
 const matchesValidationSearch = (item, search) => {
   const normalizedSearch = normalizeSearch(search);
@@ -2474,6 +2587,164 @@ exports.getAdministratorProfile = async (userId) => {
   }
 
   return profile;
+};
+
+exports.listBadges = async ({ page = 1, limit = 10, search } = {}) => {
+  const { skip, page: safePage, limit: safeLimit } = normalizePagination(page, limit);
+
+  if (!hasBadgeFeature()) {
+    return {
+      items: [],
+      pagination: buildPagination(safePage, safeLimit, 0),
+    };
+  }
+
+  const where = search
+    ? {
+        OR: buildBadgeSearch(search),
+      }
+    : undefined;
+
+  try {
+    const [total, badges] = await Promise.all([
+      prisma.badge.count({ where }),
+      prisma.badge.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { name: 'asc' }],
+        skip,
+        take: safeLimit,
+        select: badgeSelect,
+      }),
+    ]);
+
+    return {
+      items: badges.map(mapBadgeItem),
+      pagination: buildPagination(safePage, safeLimit, total),
+    };
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      return {
+        items: [],
+        pagination: buildPagination(safePage, safeLimit, 0),
+      };
+    }
+
+    throw err;
+  }
+};
+
+exports.createBadge = async (payload = {}) => {
+  const name = normalizeRequiredText(payload.name);
+  const rule = normalizeRequiredText(payload.rule);
+
+  if (!name || !rule) {
+    throw new Error('BADGE_REQUIRED_FIELDS');
+  }
+
+  await ensureUniqueBadgeName(name);
+
+  try {
+    const badge = await ensureBadgeFeatureAvailable().create({
+      data: {
+        name,
+        description: normalizeOptionalText(payload.description),
+        rule,
+        iconUrl: normalizeOptionalText(payload.iconUrl),
+        tone: normalizeBadgeTone(payload.tone),
+      },
+      select: badgeSelect,
+    });
+
+    return mapBadgeItem(badge);
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    if (err?.code === 'P2002') {
+      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+    }
+
+    throw err;
+  }
+};
+
+exports.updateBadge = async (badgeId, payload = {}) => {
+  const existingBadge = await getBadgeOrThrow(badgeId);
+
+  const nextName = Object.prototype.hasOwnProperty.call(payload, 'name')
+    ? normalizeRequiredText(payload.name)
+    : existingBadge.name;
+  const nextRule = Object.prototype.hasOwnProperty.call(payload, 'rule')
+    ? normalizeRequiredText(payload.rule)
+    : existingBadge.rule;
+
+  if (!nextName || !nextRule) {
+    throw new Error('BADGE_REQUIRED_FIELDS');
+  }
+
+  await ensureUniqueBadgeName(nextName, badgeId);
+
+  try {
+    const updatedBadge = await ensureBadgeFeatureAvailable().update({
+      where: { id: badgeId },
+      data: {
+        name: nextName,
+        description: Object.prototype.hasOwnProperty.call(payload, 'description')
+          ? normalizeOptionalText(payload.description)
+          : existingBadge.description,
+        rule: nextRule,
+        iconUrl: Object.prototype.hasOwnProperty.call(payload, 'iconUrl')
+          ? normalizeOptionalText(payload.iconUrl)
+          : existingBadge.iconUrl,
+        tone: Object.prototype.hasOwnProperty.call(payload, 'tone')
+          ? normalizeBadgeTone(payload.tone)
+          : existingBadge.tone,
+      },
+      select: badgeSelect,
+    });
+
+    return mapBadgeItem(updatedBadge);
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    if (err?.code === 'P2025') {
+      throw new Error('BADGE_NOT_FOUND');
+    }
+
+    if (err?.code === 'P2002') {
+      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+    }
+
+    throw err;
+  }
+};
+
+exports.deleteBadge = async (badgeId) => {
+  await getBadgeOrThrow(badgeId);
+
+  try {
+    await ensureBadgeFeatureAvailable().delete({
+      where: { id: badgeId },
+    });
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    if (err?.code === 'P2025') {
+      throw new Error('BADGE_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  return {
+    id: badgeId,
+    deleted: true,
+  };
 };
 
 exports.listUsers = async ({ page = 1, limit = 10, search, role, status } = {}) => {
