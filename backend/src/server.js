@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 
 const corsOptions = require('./middlewares/corsOptions');
 const { globalLimiter } = require('./middlewares/rateLimiter');
+const { sanitizeInputs } = require('./middlewares/sanitize');
 const securityHeaders = require('./middlewares/securityHeaders');
 const redirectHttps = require('./middlewares/redirectHttps');
 const { handleErrors, notFound } = require('./middlewares/handleErrors');
@@ -30,6 +31,7 @@ app.use(redirectHttps);
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(sanitizeInputs);
 
 
 app.use('/api/auth', authRoutes);
