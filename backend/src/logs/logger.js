@@ -13,7 +13,6 @@ const logger = createLogger({
     format.json()
   ),
   transports: [
-    // Terminal — développement
     new transports.Console({
       format: format.combine(
         format.colorize(),
@@ -22,18 +21,16 @@ const logger = createLogger({
             Object.keys(meta).length ? JSON.stringify(meta) : ''
           }`;
         })
-      )
+      ),
     }),
-    // Fichier erreurs
     new transports.File({
       filename: path.join(logsDir, 'error.log'),
-      level: 'error'
+      level: 'error',
     }),
-    // Fichier toutes les requêtes
     new transports.File({
-      filename: path.join(logsDir, 'combined.log')
-    })
-  ]
+      filename: path.join(logsDir, 'combined.log'),
+    }),
+  ],
 });
 
 module.exports = logger;

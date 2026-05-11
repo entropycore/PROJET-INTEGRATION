@@ -2,8 +2,9 @@
 
 const { body, validationResult } = require('express-validator');
 
+const namePattern = /^[A-Za-z\u00C0-\u00FF\s]+$/u;
+
 const rules = {
-  // Règles login
   login: [
     body('email')
       .trim()
@@ -11,68 +12,67 @@ const rules = {
       .withMessage('Email obligatoire')
       .isEmail()
       .withMessage('Email invalide')
-      .normalizeEmail(), //convertir en minuscules
+      .normalizeEmail(),
 
     body('password')
       .trim()
       .notEmpty()
       .withMessage('Mot de passe obligatoire')
       .isLength({ min: 8 })
-      .withMessage('Minimum 8 caractères'),
+      .withMessage('Minimum 8 caracteres'),
   ],
-register: [
-  body('lastName')
-    .trim()
-    .notEmpty()
-    .withMessage('Nom obligatoire')
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Nom entre 2 et 50 caractères')
-    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
-    .withMessage('Nom invalide'),
 
-  body('firstName')
-    .trim()
-    .notEmpty()
-    .withMessage('Prénom obligatoire')
-    .isLength({ min: 2, max: 50 })
-    .withMessage('Prénom entre 2 et 50 caractères')
-    .matches(/^[a-zA-ZÀ-ÿ\s]+$/)
-    .withMessage('Prénom invalide'),
+  register: [
+    body('lastName')
+      .trim()
+      .notEmpty()
+      .withMessage('Nom obligatoire')
+      .isLength({ min: 2, max: 50 })
+      .withMessage('Nom entre 2 et 50 caracteres')
+      .matches(namePattern)
+      .withMessage('Nom invalide'),
 
-  body('email')
-    .trim()
-    .notEmpty()
-    .withMessage('Email obligatoire')
-    .isEmail()
-    .withMessage('Email invalide')
-    .normalizeEmail(),
+    body('firstName')
+      .trim()
+      .notEmpty()
+      .withMessage('Prenom obligatoire')
+      .isLength({ min: 2, max: 50 })
+      .withMessage('Prenom entre 2 et 50 caracteres')
+      .matches(namePattern)
+      .withMessage('Prenom invalide'),
 
-  body('password')
-    .trim()
-    .notEmpty()
-    .withMessage('Mot de passe obligatoire')
-    .isLength({ min: 8 })
-    .withMessage('Minimum 8 caractères')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
-    .withMessage('Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'),
+    body('email')
+      .trim()
+      .notEmpty()
+      .withMessage('Email obligatoire')
+      .isEmail()
+      .withMessage('Email invalide')
+      .normalizeEmail(),
 
-  body('company')
-    .trim()
-    .notEmpty()
-    .withMessage('Entreprise obligatoire')
-    .isLength({ min: 2, max: 150 })
-    .withMessage('Entreprise entre 2 et 150 caractères'),
+    body('password')
+      .trim()
+      .notEmpty()
+      .withMessage('Mot de passe obligatoire')
+      .isLength({ min: 8 })
+      .withMessage('Minimum 8 caracteres')
+      .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
+      .withMessage('Mot de passe doit contenir majuscule, minuscule, chiffre et caractere special'),
 
-  body('jobTitle')
-    .trim()
-    .notEmpty()
-    .withMessage('Poste obligatoire')
-    .isLength({ min: 2, max: 120 })
-    .withMessage('Poste entre 2 et 120 caractères'),
+    body('company')
+      .trim()
+      .notEmpty()
+      .withMessage('Entreprise obligatoire')
+      .isLength({ min: 2, max: 150 })
+      .withMessage('Entreprise entre 2 et 150 caracteres'),
 
-],
+    body('jobTitle')
+      .trim()
+      .notEmpty()
+      .withMessage('Poste obligatoire')
+      .isLength({ min: 2, max: 120 })
+      .withMessage('Poste entre 2 et 120 caracteres'),
+  ],
 
-  // Règles forgotPassword
   forgotPassword: [
     body('email')
       .trim()
@@ -83,7 +83,6 @@ register: [
       .normalizeEmail(),
   ],
 
-  // Règles resetPassword
   resetPassword: [
     body('token').trim().notEmpty().withMessage('Token obligatoire'),
 
@@ -92,11 +91,9 @@ register: [
       .notEmpty()
       .withMessage('Nouveau mot de passe obligatoire')
       .isLength({ min: 8 })
-      .withMessage('Minimum 8 caractères')
+      .withMessage('Minimum 8 caracteres')
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
-      .withMessage(
-        'Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'
-      ),
+      .withMessage('Mot de passe doit contenir majuscule, minuscule, chiffre et caractere special'),
   ],
 
   createReport: [
@@ -118,7 +115,7 @@ register: [
       .notEmpty()
       .withMessage('Motif obligatoire')
       .isLength({ min: 3, max: 200 })
-      .withMessage('Motif entre 3 et 200 caractÃ¨res'),
+      .withMessage('Motif entre 3 et 200 caracteres'),
 
     body('description')
       .optional({ values: 'falsy' })
@@ -128,20 +125,15 @@ register: [
   ],
 };
 
-// ── FONCTION PRINCIPALE ──
-const validationRules = (type) => {
-  return rules[type] || [];
-};
+const validationRules = (type) => rules[type] || [];
 
-// ── MIDDLEWARE VÉRIFICATION ──
-// À appeler après validationRules()
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
     return res.status(400).json({
       success: false,
-      message: 'Données invalides',
+      message: 'Donnees invalides',
       errors: errors.array().map((err) => ({
         field: err.path,
         message: err.msg,
