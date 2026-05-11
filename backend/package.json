@@ -9,15 +9,13 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-
     "test": "jest --forceExit --detectOpenHandles",
     "test:unit": "jest tests/unit --verbose",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --forceExit",
     "test:integration": "jest tests/integration",
-    "test:sec": "jest tests/integration/middlewares tests/unit/middlewares"
+    "test:sec": "jest tests/integration/middlewares tests/unit/middlewares",
     "security:scan": "bash scripts/zap-scan.sh"
-
   },
   "keywords": [],
   "author": "",
@@ -44,7 +42,9 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
     "coverageThreshold": {
       "global": {
         "lines": 70,
