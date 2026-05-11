@@ -799,7 +799,7 @@ const mapInternshipValidationItem = (internship) => {
     requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
     email: studentUser?.email || null,
     organization: internship.hostOrganization || null,
-    createdAt: internship.startDate || internship.endDate || new Date(0),
+    createdAt: internship.startDate || internship.endDate || null,
     tone: 'green',
     status: internship.validationStatus,
     raw: {
