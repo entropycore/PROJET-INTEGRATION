@@ -17,6 +17,10 @@ const professorRoutes = require('./routes/professorRoutes');
 const administratorRoutes = require('./routes/administratorRoutes');
 const githubRoutes = require('./routes/githubRoutes');
 
+
+const settingsRoutes = require('./routes/settingsRoutes');
+app.use('/api/settings', settingsRoutes);
+
 const app = express();
 
 
