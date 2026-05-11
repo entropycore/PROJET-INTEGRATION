@@ -130,11 +130,7 @@ describe('Administrator Routes', () => {
   });
 
   it('GET /api/admin/reports/pending-count returns legacy report counters', async () => {
-    administratorService.getPendingReportsCountLegacy.mockResolvedValue({
-      count: 2,
-      projectReports: 1,
-      commentReports: 1,
-    });
+    administratorService.getPendingReportsCount.mockResolvedValue(2);
 
     const res = await request(app)
       .get('/api/admin/reports/pending-count')
