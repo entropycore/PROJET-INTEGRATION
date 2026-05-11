@@ -15,8 +15,10 @@ router.get('/dashboard-items/:itemType/:itemId', administratorController.getDash
 router.patch('/dashboard-items/:itemType/:itemId/approve', administratorController.approveDashboardItem);
 router.patch('/dashboard-items/:itemType/:itemId/reject', administratorController.rejectDashboardItem);
 router.get('/notifications', administratorController.listNotifications);
+router.get('/notifications/unread-count', administratorController.getUnreadNotificationsCount);
 router.patch('/notifications/read-all', administratorController.markAllNotificationsAsRead);
 router.patch('/notifications/:notificationId/read', administratorController.markNotificationAsRead);
+router.delete('/notifications/:notificationId', administratorController.deleteNotification);
 router.get('/validations/pending', administratorController.listPendingValidationsLegacy);
 router.get('/validations/pending-count', administratorController.getPendingValidationCountsLegacy);
 router.get('/validations/:validationId', administratorController.getLegacyValidationDetail);
