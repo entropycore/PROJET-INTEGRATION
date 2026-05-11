@@ -10,14 +10,14 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
 
-    "test": "jest --forceExit --detectOpenHandles",
-    "test:unit": "jest tests/unit --verbose",
+    "test": "jest --forceExit --detectOpenHandles --runInBand",
+    "test:unit": "jest tests/unit --verbose --runInBand",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage --forceExit",
-    "test:integration": "jest tests/integration",
-    "test:sec": "jest tests/integration/middlewares tests/unit/middlewares",
-    "security:scan": "bash scripts/zap-scan.sh"
 
+    "test:coverage": "jest --coverage --forceExit --runInBand",
+    "test:integration": "jest tests/integration --runInBand",
+    "test:sec": "jest tests/integration/middlewares tests/unit/middlewares --runInBand",
+    "security:scan": "bash scripts/zap-scan.sh"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +25,7 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.19.3",
+    "axios": "^1.16.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
@@ -38,13 +39,14 @@
     "winston": "^3.19.0"
   },
   "devDependencies": {
-    "prisma": "^6.19.3",
     "jest": "^29.0.0",
+    "prisma": "^6.19.3",
     "supertest": "^6.0.0"
   },
   "jest": {
     "testEnvironment": "node",
     "testMatch": ["**/tests/**/*.test.js"],
+    "setupFiles": ["dotenv/config"],
     "coverageThreshold": {
       "global": {
         "lines": 70,
