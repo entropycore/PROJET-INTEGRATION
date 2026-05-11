@@ -13,6 +13,7 @@ const VALIDATION_ITEM_TYPES = [
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ];
+const LEGACY_VALIDATION_TYPES = ['PROJECT', 'INTERNSHIP', 'CERTIFICATE', 'ACTIVITY'];
 const NOTIFICATION_TYPES = [
   'ACCESS_REQUEST',
   'CERTIFICATE_VALIDATION',
@@ -945,6 +946,15 @@ const normalizeValidationType = (value) =>
 const ensureValidValidationType = (type) => {
   if (!VALIDATION_ITEM_TYPES.includes(type)) {
     throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+const normalizeLegacyValidationType = (value) =>
+  typeof value === 'string' ? value.trim().toUpperCase().replace(/-/g, '_') : value;
+
+const ensureValidLegacyValidationType = (type) => {
+  if (!LEGACY_VALIDATION_TYPES.includes(type)) {
+    throw new Error('UNSUPPORTED_LEGACY_VALIDATION_TYPE');
   }
 };
 
@@ -2712,7 +2722,7 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
   return updatedRequest;
 };
 
-exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
+const buildValidationItems = async ({ type, status = 'PENDING', search } = {}) => {
   await syncPendingValidationNotifications();
 
   const normalizedType = type ? normalizeValidationType(type) : null;
@@ -2752,7 +2762,15 @@ exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit
     .filter((item) => matchesValidationSearch(item, search))
     .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 
-  const paginated = paginateItems(mergedItems, page, limit);
+  return {
+    type: normalizedType,
+    items: mergedItems,
+  };
+};
+
+exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
+  const { type: normalizedType, items } = await buildValidationItems({ type, status, search });
+  const paginated = paginateItems(items, page, limit);
 
   return {
     filters: {
@@ -2764,17 +2782,51 @@ exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit
   };
 };
 
-exports.listPendingValidationsLegacy = async ({ page = 1, limit = 10, search } = {}) => {
-  const data = await exports.listValidationItems({
-    status: 'PENDING',
-    page,
-    limit,
+exports.listPendingValidationsLegacy = async ({
+  type,
+  status = 'PENDING',
+  page = 1,
+  limit = 10,
+  search,
+} = {}) => {
+  const normalizedLegacyType = type ? normalizeLegacyValidationType(type) : null;
+
+  if (normalizedLegacyType) {
+    ensureValidLegacyValidationType(normalizedLegacyType);
+  }
+
+  if (normalizedLegacyType === 'PROJECT' || normalizedLegacyType === 'INTERNSHIP') {
+    const paginated = paginateItems([], page, limit);
+
+    return {
+      filters: {
+        type: normalizedLegacyType,
+        status,
+        search: search || null,
+      },
+      ...paginated,
+    };
+  }
+
+  const mappedType = normalizedLegacyType === 'CERTIFICATE' ? 'CERTIFICATE_VALIDATION' : null;
+  const { items } = await buildValidationItems({
+    type: mappedType,
+    status,
     search,
   });
 
+  const legacyItems = items
+    .map(mapValidationItemToLegacyShape)
+    .filter((item) => !normalizedLegacyType || item.targetType === normalizedLegacyType);
+  const paginated = paginateItems(legacyItems, page, limit);
+
   return {
-    ...data,
-    items: data.items.map(mapValidationItemToLegacyShape),
+    filters: {
+      type: normalizedLegacyType,
+      status,
+      search: search || null,
+    },
+    ...paginated,
   };
 };
 
