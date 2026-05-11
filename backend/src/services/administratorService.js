@@ -2403,6 +2403,111 @@ const loadReportItems = async (status, targetType) =>
     []
   );
 
+const approveProjectValidation = async (projectId, feedback = null) => {
+  const project = await getProjectValidationOrThrow(projectId);
+
+  if (project.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      validationStatus: 'APPROVED',
+      generalFeedback: feedback,
+    },
+  });
+
+  return mapProjectValidationItem(await getProjectValidationOrThrow(projectId));
+};
+
+const rejectProjectValidation = async (projectId, feedback = null) => {
+  const project = await getProjectValidationOrThrow(projectId);
+
+  if (project.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      validationStatus: 'REJECTED',
+      generalFeedback: feedback,
+    },
+  });
+
+  return mapProjectValidationItem(await getProjectValidationOrThrow(projectId));
+};
+
+const requestProjectValidationChanges = async (projectId, feedback = null) => {
+  const project = await getProjectValidationOrThrow(projectId);
+
+  if (project.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      validationStatus: 'CHANGES_REQUESTED',
+      generalFeedback: feedback,
+    },
+  });
+
+  return mapProjectValidationItem(await getProjectValidationOrThrow(projectId));
+};
+
+const approveInternshipValidation = async (internshipId) => {
+  const internship = await getInternshipValidationOrThrow(internshipId);
+
+  if (internship.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.internship.update({
+    where: { id: internshipId },
+    data: {
+      validationStatus: 'APPROVED',
+    },
+  });
+
+  return mapInternshipValidationItem(await getInternshipValidationOrThrow(internshipId));
+};
+
+const rejectInternshipValidation = async (internshipId) => {
+  const internship = await getInternshipValidationOrThrow(internshipId);
+
+  if (internship.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.internship.update({
+    where: { id: internshipId },
+    data: {
+      validationStatus: 'REJECTED',
+    },
+  });
+
+  return mapInternshipValidationItem(await getInternshipValidationOrThrow(internshipId));
+};
+
+const requestInternshipValidationChanges = async (internshipId) => {
+  const internship = await getInternshipValidationOrThrow(internshipId);
+
+  if (internship.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.internship.update({
+    where: { id: internshipId },
+    data: {
+      validationStatus: 'CHANGES_REQUESTED',
+    },
+  });
+
+  return mapInternshipValidationItem(await getInternshipValidationOrThrow(internshipId));
+};
+
 const approveCertificateRequest = async (certificateId, administratorId, comment = null) => {
   const certificate = await getCertificateRequestOrThrow(certificateId);
 
@@ -3578,6 +3683,12 @@ exports.getValidationItemDetail = async (itemType, itemId) => {
   ensureValidValidationType(normalizedType);
 
   switch (normalizedType) {
+    case 'PROJECT':
+      return mapProjectValidationItem(await getProjectValidationOrThrow(itemId));
+
+    case 'INTERNSHIP':
+      return mapInternshipValidationItem(await getInternshipValidationOrThrow(itemId));
+
     case 'CERTIFICATE_VALIDATION':
       return mapCertificateRequestDetail(await getValidationCertificateOrThrow(itemId));
 
@@ -3613,6 +3724,15 @@ exports.approveValidationItem = async (
   ensureValidValidationType(normalizedType);
 
   switch (normalizedType) {
+    case 'PROJECT':
+      return approveProjectValidation(
+        itemId,
+        typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+      );
+
+    case 'INTERNSHIP':
+      return approveInternshipValidation(itemId);
+
     case 'CERTIFICATE_VALIDATION':
       try {
         return await approveCertificateRequest(
@@ -3662,6 +3782,12 @@ exports.rejectValidationItem = async (
           : null;
 
   switch (normalizedType) {
+    case 'PROJECT':
+      return rejectProjectValidation(itemId, normalizedReason);
+
+    case 'INTERNSHIP':
+      return rejectInternshipValidation(itemId);
+
     case 'CERTIFICATE_VALIDATION':
       try {
         return await rejectCertificateRequest(itemId, administratorId, normalizedReason);
@@ -3707,6 +3833,12 @@ exports.requestValidationChangesItem = async (
           : null;
 
   switch (normalizedType) {
+    case 'PROJECT':
+      return requestProjectValidationChanges(itemId, normalizedComment);
+
+    case 'INTERNSHIP':
+      return requestInternshipValidationChanges(itemId);
+
     case 'CERTIFICATE_VALIDATION':
       return requestCertificateValidationChanges(itemId, administratorId, normalizedComment);
 
