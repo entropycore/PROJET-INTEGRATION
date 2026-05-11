@@ -56,6 +56,20 @@ register: [
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/)
     .withMessage('Mot de passe doit contenir majuscule, minuscule, chiffre et caractère spécial'),
 
+  body('company')
+    .trim()
+    .notEmpty()
+    .withMessage('Entreprise obligatoire')
+    .isLength({ min: 2, max: 150 })
+    .withMessage('Entreprise entre 2 et 150 caractères'),
+
+  body('jobTitle')
+    .trim()
+    .notEmpty()
+    .withMessage('Poste obligatoire')
+    .isLength({ min: 2, max: 120 })
+    .withMessage('Poste entre 2 et 120 caractères'),
+
 ],
 
   // Règles forgotPassword
