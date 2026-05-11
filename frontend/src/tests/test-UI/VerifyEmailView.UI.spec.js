@@ -1,10 +1,16 @@
-import { describe, it, expect, vi } from 'vitest'
+import { beforeEach, describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import VerifyEmail from '@/views/VerifyEmailView.vue'
 
-// Si VerifyEmail utilise des services, tu peux rajouter les mocks ici
-const { verifyEmailMock } = vi.hoisted(() => ({
+const { mockRouter, mockRoute, verifyEmailMock } = vi.hoisted(() => ({
+  mockRouter: { push: vi.fn() },
+  mockRoute: { query: {} },
   verifyEmailMock: vi.fn(),
+}))
+
+vi.mock('vue-router', () => ({
+  useRouter: () => mockRouter,
+  useRoute: () => mockRoute,
 }))
 
 vi.mock('@/services/authService', () => ({
@@ -12,6 +18,11 @@ vi.mock('@/services/authService', () => ({
 }))
 
 describe('VerifyEmail - Tests UI', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockRoute.query = {}
+    verifyEmailMock.mockResolvedValue({})
+  })
   it('devrait afficher le spinner pendant le chargement', () => {
     const wrapper = mount(VerifyEmail)
     expect(wrapper.find('.status-spinner').exists()).toBe(true)

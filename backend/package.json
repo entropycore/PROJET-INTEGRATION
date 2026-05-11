@@ -9,14 +9,12 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-
     "test": "jest --forceExit --detectOpenHandles --runInBand",
     "test:unit": "jest tests/unit --verbose --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --forceExit --runInBand",
     "test:integration": "jest tests/integration --runInBand",
     "test:sec": "jest tests/integration/middlewares tests/unit/middlewares --runInBand"
-
   },
   "keywords": [],
   "author": "",
@@ -43,8 +41,12 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": ["**/tests/**/*.test.js"],
-    "setupFiles": ["dotenv/config"],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFiles": [
+      "dotenv/config"
+    ],
     "coverageThreshold": {
       "global": {
         "lines": 70,
