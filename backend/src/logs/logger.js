@@ -3,6 +3,8 @@
 const { createLogger, format, transports } = require('winston');
 const path = require('path');
 
+const logsDir = __dirname;
+
 const logger = createLogger({
   level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
   format: format.combine(
@@ -24,12 +26,12 @@ const logger = createLogger({
     }),
     // Fichier erreurs
     new transports.File({
-      filename: path.join('src', 'logs', 'error.log'),
+      filename: path.join(logsDir, 'error.log'),
       level: 'error'
     }),
     // Fichier toutes les requêtes
     new transports.File({
-      filename: path.join('src', 'logs', 'combined.log')
+      filename: path.join(logsDir, 'combined.log')
     })
   ]
 });
