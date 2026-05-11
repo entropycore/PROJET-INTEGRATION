@@ -31,9 +31,12 @@ router.get('/validations/:itemType/:itemId', administratorController.getValidati
 router.patch('/validations/:itemType/:itemId/approve', administratorController.approveValidationItem);
 router.patch('/validations/:itemType/:itemId/reject', administratorController.rejectValidationItem);
 router.get('/reports', administratorController.listReports);
+router.get('/reports/pending-count', administratorController.getPendingReportsCountLegacy);
 router.get('/reports/:reportId', administratorController.getReportById);
+router.patch('/reports/:reportId/resolve', administratorController.resolveLegacyReport);
 router.patch('/reports/:reportId/approve', administratorController.approveReport);
 router.patch('/reports/:reportId/reject', administratorController.rejectReport);
+router.delete('/reports/:reportId/target', administratorController.deleteLegacyReportedTarget);
 router.get('/profile', administratorController.getProfile);
 router.get('/users', administratorController.listUsers);
 router.post('/users', administratorController.createUser);
