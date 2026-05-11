@@ -5,27 +5,23 @@ const logger = require('../logs/logger');
 
 const verifyRefreshToken = (req, res, next) => {
   try {
-    // Lire le refresh token depuis le cookie
     const refreshToken = req.cookies?.refreshToken;
 
-    // Pas de refresh token
     if (!refreshToken) {
       return res.status(401).json({
         success: false,
-        message: 'Refresh token manquant — veuillez vous reconnecter',
+        message: 'Refresh token manquant - veuillez vous reconnecter',
       });
     }
 
-  
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-    // Injecter dans req.user
     req.user = {
       userId: decoded.userId,
-     }; 
+    };
 
     logger.info({
-      message: 'Refresh token vérifié',
+      message: 'Refresh token verifie',
       userId: req.user.userId,
       ip: req.ip,
     });
@@ -38,11 +34,10 @@ const verifyRefreshToken = (req, res, next) => {
       ip: req.ip,
     });
 
-    // Token expiré → reconnexion obligatoire
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: 'Session expirée — veuillez vous reconnecter',
+        message: 'Session expiree - veuillez vous reconnecter',
       });
     }
 
