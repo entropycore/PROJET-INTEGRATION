@@ -86,8 +86,16 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Notification introuvable.');
   }
 
+  if (err.message === 'BADGE_NOT_FOUND') {
+    return error(res, 404, 'Badge introuvable.');
+  }
+
   if (err.message === 'INVALID_NOTIFICATION_TYPE') {
     return error(res, 400, 'Le type de notification est invalide.');
+  }
+
+  if (err.message === 'BADGE_REQUIRED_FIELDS') {
+    return error(res, 400, 'Les champs name et rule sont obligatoires pour un badge.');
   }
 
   if (err.message === 'UNSUPPORTED_DASHBOARD_ITEM_TYPE') {
@@ -158,6 +166,10 @@ const handleAdminError = (res, err) => {
     return error(res, 409, 'Cet email est deja utilise.');
   }
 
+  if (err.message === 'BADGE_NAME_ALREADY_EXISTS') {
+    return error(res, 409, 'Un badge avec ce nom existe deja.');
+  }
+
   if (err.message === 'ROLE_CHANGE_REQUIRES_DEDICATED_ENDPOINT') {
     return error(res, 400, 'Utilisez la route dediee pour changer le role.');
   }
@@ -188,6 +200,10 @@ const handleAdminError = (res, err) => {
       409,
       'La suppression est impossible car ce compte est encore lie a des donnees metier.'
     );
+  }
+
+  if (err.message === 'BADGE_FEATURE_UNAVAILABLE') {
+    return error(res, 503, 'Le module badges n est pas disponible sur cette instance.');
   }
 
   if (err.code === 'P2002') {
@@ -649,6 +665,51 @@ exports.getProfile = async (req, res, next) => {
   try {
     const profile = await administratorService.getAdministratorProfile(req.user.userId);
     return success(res, 200, 'Profil administrateur charge.', profile);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.listBadges = async (req, res, next) => {
+  try {
+    const data = await administratorService.listBadges({
+      search: req.query.search?.trim(),
+      page: parsePositiveInt(req.query.page, 1),
+      limit: parsePositiveInt(req.query.limit, 10),
+    });
+
+    return success(res, 200, 'Badges recuperes.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.createBadge = async (req, res, next) => {
+  try {
+    const badge = await administratorService.createBadge(req.body || {});
+    return success(res, 201, 'Badge cree.', badge);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateBadge = async (req, res, next) => {
+  try {
+    const badge = await administratorService.updateBadge(req.params.badgeId, req.body || {});
+    return success(res, 200, 'Badge mis a jour.', badge);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteBadge = async (req, res, next) => {
+  try {
+    const result = await administratorService.deleteBadge(req.params.badgeId);
+    return success(res, 200, 'Badge supprime.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
