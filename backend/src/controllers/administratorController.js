@@ -75,6 +75,10 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Signalement introuvable.');
   }
 
+  if (err.message === 'REPORT_TARGET_NOT_FOUND') {
+    return error(res, 404, 'Cible du signalement introuvable.');
+  }
+
   if (err.message === 'NOTIFICATION_NOT_FOUND') {
     return error(res, 404, 'Notification introuvable.');
   }
@@ -449,8 +453,15 @@ exports.markAllNotificationsAsRead = async (req, res, next) => {
 
 exports.listReports = async (req, res, next) => {
   try {
-    const status = normalizeStatus(req.query.status || 'PENDING');
-    const targetType = normalizeItemType(req.query.targetType);
+    const requestedStatus = normalizeStatus(req.query.status);
+    const status = !requestedStatus
+      ? 'PENDING'
+      : requestedStatus === 'ALL'
+        ? null
+        : requestedStatus === 'RESOLVED'
+          ? 'APPROVED'
+          : requestedStatus;
+    const targetType = normalizeItemType(req.query.targetType || req.query.type);
 
     if (status && !VALID_REPORT_STATUSES.has(status)) {
       return error(res, 400, 'Le filtre status est invalide.');
@@ -469,6 +480,16 @@ exports.listReports = async (req, res, next) => {
     });
 
     return success(res, 200, 'Signalements recuperes.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getPendingReportsCountLegacy = async (req, res, next) => {
+  try {
+    const count = await administratorService.getPendingReportsCount();
+    return success(res, 200, 'Compteur des signalements en attente recupere.', { count });
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -504,6 +525,25 @@ exports.approveReport = async (req, res, next) => {
   }
 };
 
+exports.resolveLegacyReport = async (req, res, next) => {
+  try {
+    const report = await administratorService.resolveReportLegacy(
+      req.params.reportId,
+      req.user.roleId,
+      typeof req.body?.resolutionNote === 'string'
+        ? req.body.resolutionNote.trim() || null
+        : typeof req.body?.comment === 'string'
+          ? req.body.comment.trim() || null
+          : null
+    );
+
+    return success(res, 200, 'Signalement traite.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.rejectReport = async (req, res, next) => {
   try {
     const report = await administratorService.rejectReport(
@@ -519,6 +559,25 @@ exports.rejectReport = async (req, res, next) => {
     );
 
     return success(res, 200, 'Signalement rejete.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteLegacyReportedTarget = async (req, res, next) => {
+  try {
+    const report = await administratorService.deleteReportedTarget(
+      req.params.reportId,
+      req.user.roleId,
+      typeof req.body?.resolutionNote === 'string'
+        ? req.body.resolutionNote.trim() || null
+        : typeof req.body?.comment === 'string'
+          ? req.body.comment.trim() || null
+          : null
+    );
+
+    return success(res, 200, 'Contenu signale supprime.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
