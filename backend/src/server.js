@@ -33,6 +33,7 @@ app.use('/api/professional', professionalRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/professor', professorRoutes);
 app.use('/api/admin', administratorRoutes);
+app.use('/api/timeline', require('./src/modules/timeline/timeline.routes'));
 
 
 app.use(notFound);

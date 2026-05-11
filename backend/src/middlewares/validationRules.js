@@ -111,3 +111,34 @@ const handleValidationErrors = (req, res, next) => {
 };
 
 module.exports = { validationRules, handleValidationErrors };
+
+
+const { body } = require('express-validator');
+
+const addTimelineRules = [
+  body('title')
+    .notEmpty().withMessage('Le titre est obligatoire')
+    .isLength({ max: 255 }).withMessage('Le titre ne doit pas dépasser 255 caractères'),
+  body('institution')
+    .notEmpty().withMessage('L’établissement est obligatoire')
+    .isLength({ max: 255 }),
+  body('startDate')
+    .notEmpty().withMessage('La date de début est obligatoire')
+    .isISO8601().withMessage('Format de date invalide (AAAA-MM-JJ)'),
+  body('endDate')
+    .optional({ nullable: true })
+    .isISO8601().withMessage('Format de date invalide'),
+  body('description')
+    .optional({ nullable: true })
+    .isLength({ max: 2000 }),
+];
+
+const updateTimelineRules = [
+  body('title').optional().notEmpty().isLength({ max: 255 }),
+  body('institution').optional().notEmpty().isLength({ max: 255 }),
+  body('startDate').optional().isISO8601(),
+  body('endDate').optional({ nullable: true }).isISO8601(),
+  body('description').optional({ nullable: true }).isLength({ max: 2000 }),
+];
+
+module.exports = { addTimelineRules, updateTimelineRules };
