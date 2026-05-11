@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 
+process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'test-access-secret';
+
 jest.mock('../../../src/logs/logger', () => ({
   info: jest.fn(),
   warn: jest.fn(),
@@ -24,7 +26,7 @@ app.use('/api/admin', administratorRouter);
 const makeToken = (role = 'ADMINISTRATOR', roleId = 'admin-role-id') =>
   jwt.sign(
     { userId: 'admin-user-id', role, roleId },
-    process.env.ACCESS_TOKEN_SECRET ?? 'test-secret',
+    process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: '1h' }
   );
 
