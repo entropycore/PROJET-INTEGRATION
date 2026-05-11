@@ -8,6 +8,8 @@ const notificationService = require('./notificationService');
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
 const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
 const VALIDATION_ITEM_TYPES = [
+  'PROJECT',
+  'INTERNSHIP',
   'CERTIFICATE_VALIDATION',
   'RECOMMENDATION_LETTER_VALIDATION',
   'COMMENT_VALIDATION',
@@ -737,8 +739,148 @@ const buildLegacyValidationFiles = (url, fallbackName) =>
       ]
     : [];
 
+const buildLegacyValidationMediaFiles = (media = []) =>
+  Array.isArray(media)
+    ? media
+        .filter((item) => item?.mediaUrl)
+        .map((item, index) => ({
+          id: item.id || item.mediaUrl || `project-media-${index + 1}`,
+          name: extractFileNameFromUrl(
+            item.mediaUrl,
+            item.mediaType ? `${String(item.mediaType).toLowerCase()}-${index + 1}` : `media-${index + 1}`
+          ),
+          size: null,
+          url: item.mediaUrl,
+        }))
+    : [];
+
+const formatTechnologyLabel = (technology) =>
+  technology?.version ? `${technology.name} ${technology.version}` : technology?.name || null;
+
+const mapProjectValidationItem = (project) => {
+  const studentUser = project.student?.user;
+
+  return {
+    id: project.id,
+    type: 'PROJECT',
+    label: 'Project validation',
+    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
+    email: studentUser?.email || null,
+    organization: null,
+    createdAt: project.submittedAt || project.createdAt,
+    tone: 'green',
+    status: project.validationStatus,
+    raw: {
+      title: project.title,
+      description: project.description,
+      projectType: project.type,
+      teamRole: project.teamRole,
+      githubUrl: project.githubUrl,
+      youtubeUrl: project.youtubeUrl,
+      result: project.result,
+      generalFeedback: project.generalFeedback,
+      submittedAt: project.submittedAt,
+      createdAt: project.createdAt,
+      visibility: project.visibility,
+      student: project.student,
+      technologies: project.technologies,
+      media: project.media,
+    },
+  };
+};
+
+const mapInternshipValidationItem = (internship) => {
+  const studentUser = internship.student?.user;
+
+  return {
+    id: internship.id,
+    type: 'INTERNSHIP',
+    label: 'Internship validation',
+    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
+    email: studentUser?.email || null,
+    organization: internship.hostOrganization || null,
+    createdAt: internship.startDate || internship.endDate || new Date(0),
+    tone: 'green',
+    status: internship.validationStatus,
+    raw: {
+      title: internship.hostOrganization ? `Stage - ${internship.hostOrganization}` : 'Stage',
+      description: internship.missions || null,
+      hostOrganization: internship.hostOrganization,
+      duration: internship.duration,
+      startDate: internship.startDate,
+      endDate: internship.endDate,
+      missions: internship.missions,
+      reportUrl: internship.reportUrl,
+      visibility: internship.visibility,
+      student: internship.student,
+      supervisorProfessor: internship.supervisorProfessor,
+      technologies: internship.technologies,
+    },
+  };
+};
+
 const mapValidationItemToLegacyShape = (item) => {
   switch (item.type) {
+    case 'PROJECT': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Projet';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'PROJECT',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.raw?.submittedAt || item.createdAt,
+        description: item.raw?.description || 'Projet soumis pour validation.',
+        content: {
+          title,
+          description: item.raw?.description || null,
+          files: buildLegacyValidationMediaFiles(item.raw?.media),
+        },
+        targetDetails: {
+          technologies: (item.raw?.technologies || [])
+            .map((entry) => formatTechnologyLabel(entry.technology))
+            .filter(Boolean),
+          visibility: item.raw?.visibility || null,
+          createdAt: item.raw?.createdAt || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'INTERNSHIP': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Stage';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'INTERNSHIP',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.raw?.startDate || item.createdAt,
+        description: item.raw?.description || item.raw?.missions || 'Stage soumis pour validation.',
+        content: {
+          title,
+          description: item.raw?.missions || item.raw?.description || null,
+          files: buildLegacyValidationFiles(item.raw?.reportUrl, 'rapport-stage'),
+        },
+        targetDetails: {
+          company: item.raw?.hostOrganization || item.organization || null,
+          startDate: item.raw?.startDate || null,
+          endDate: item.raw?.endDate || null,
+        },
+        raw: item.raw,
+      };
+    }
+
     case 'CERTIFICATE_VALIDATION': {
       const student = item.raw?.student || null;
       const studentUser = student?.user || null;
@@ -1500,6 +1642,115 @@ const certificateDetailSelect = {
   },
 };
 
+const projectValidationSelect = {
+  id: true,
+  title: true,
+  description: true,
+  type: true,
+  teamRole: true,
+  githubUrl: true,
+  youtubeUrl: true,
+  result: true,
+  generalFeedback: true,
+  createdAt: true,
+  submittedAt: true,
+  validationStatus: true,
+  visibility: true,
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+        },
+      },
+    },
+  },
+  technologies: {
+    select: {
+      technology: {
+        select: {
+          name: true,
+          version: true,
+        },
+      },
+    },
+  },
+  media: {
+    select: {
+      id: true,
+      mediaType: true,
+      mediaUrl: true,
+      description: true,
+    },
+  },
+};
+
+const internshipValidationSelect = {
+  id: true,
+  hostOrganization: true,
+  duration: true,
+  startDate: true,
+  endDate: true,
+  missions: true,
+  reportUrl: true,
+  validationStatus: true,
+  visibility: true,
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+        },
+      },
+    },
+  },
+  supervisorProfessor: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+  },
+  technologies: {
+    select: {
+      technology: {
+        select: {
+          name: true,
+          version: true,
+        },
+      },
+    },
+  },
+};
+
 const getProfessionalRequestOrThrow = async (userId) => {
   const user = await safeReadWithFallback(
     () =>
@@ -1814,11 +2065,15 @@ const buildTemporaryPassword = () => {
 
 const getPendingValidationCounts = async () => {
   const [
+    pendingProjects,
+    pendingInternships,
     pendingCertificates,
     pendingLetters,
     pendingComments,
     pendingRecommendations,
   ] = await Promise.all([
+    safeCount(() => prisma.project.count({ where: { validationStatus: 'PENDING' } })),
+    safeCount(() => prisma.internship.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.certificate.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.recommendationLetter.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.comment.count({ where: { status: 'PENDING' } })),
@@ -1826,11 +2081,15 @@ const getPendingValidationCounts = async () => {
   ]);
 
   return {
+    pendingProjects,
+    pendingInternships,
     pendingCertificates,
     pendingLetters,
     pendingComments,
     pendingRecommendations,
     total:
+      pendingProjects +
+      pendingInternships +
       pendingCertificates +
       pendingLetters +
       pendingComments +
@@ -1840,8 +2099,8 @@ const getPendingValidationCounts = async () => {
 
 const mapLegacyPendingValidationCounts = (counts) => ({
   count: counts.total,
-  projects: 0,
-  internships: 0,
+  projects: counts.pendingProjects,
+  internships: counts.pendingInternships,
   certificates: counts.pendingCertificates,
   activities: counts.pendingLetters + counts.pendingComments + counts.pendingRecommendations,
 });
@@ -2019,6 +2278,32 @@ const loadCertificateValidationItems = async (status) =>
     []
   );
 
+const loadProjectValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.project.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ submittedAt: 'desc' }, { createdAt: 'desc' }],
+        take: 100,
+        select: projectValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadInternshipValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.internship.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ startDate: 'desc' }, { endDate: 'desc' }],
+        take: 100,
+        select: internshipValidationSelect,
+      }),
+    null,
+    []
+  );
+
 const loadRecommendationLetterValidationItems = async (status) =>
   safeReadWithFallback(
     () =>
@@ -2059,7 +2344,17 @@ const loadRecommendationValidationItems = async (status) =>
   );
 
 const resolveValidationItemTypeById = async (itemId) => {
-  const [certificate, letter, comment, recommendation] = await Promise.all([
+  const [project, internship, certificate, letter, comment, recommendation] = await Promise.all([
+    safeReadWithFallback(
+      () => prisma.project.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.internship.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
     safeReadWithFallback(
       () => prisma.certificate.findUnique({ where: { id: itemId }, select: { id: true } }),
       null,
@@ -2082,6 +2377,8 @@ const resolveValidationItemTypeById = async (itemId) => {
     ),
   ]);
 
+  if (project) return 'PROJECT';
+  if (internship) return 'INTERNSHIP';
   if (certificate) return 'CERTIFICATE_VALIDATION';
   if (letter) return 'RECOMMENDATION_LETTER_VALIDATION';
   if (comment) return 'COMMENT_VALIDATION';
@@ -2633,6 +2930,42 @@ exports.listBadges = async ({ page = 1, limit = 10, search } = {}) => {
   }
 };
 
+const getProjectValidationOrThrow = async (projectId) => {
+  const project = await safeReadWithFallback(
+    () =>
+      prisma.project.findUnique({
+        where: { id: projectId },
+        select: projectValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!project) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return project;
+};
+
+const getInternshipValidationOrThrow = async (internshipId) => {
+  const internship = await safeReadWithFallback(
+    () =>
+      prisma.internship.findUnique({
+        where: { id: internshipId },
+        select: internshipValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!internship) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return internship;
+};
+
 exports.createBadge = async (payload = {}) => {
   const name = normalizeRequiredText(payload.name);
   const rule = normalizeRequiredText(payload.rule);
@@ -3125,6 +3458,16 @@ const buildValidationItems = async ({ type, status = 'PENDING', search } = {}) =
 
   const loaders = [];
 
+  if (!normalizedType || normalizedType === 'PROJECT') {
+    loaders.push(loadProjectValidationItems(status).then((items) => items.map(mapProjectValidationItem)));
+  }
+
+  if (!normalizedType || normalizedType === 'INTERNSHIP') {
+    loaders.push(
+      loadInternshipValidationItems(status).then((items) => items.map(mapInternshipValidationItem))
+    );
+  }
+
   if (!normalizedType || normalizedType === 'CERTIFICATE_VALIDATION') {
     loaders.push(loadCertificateValidationItems(status).then((items) => items.map(mapCertificateRequestDetail)));
   }
@@ -3188,7 +3531,12 @@ exports.listPendingValidationsLegacy = async ({
   }
 
   if (normalizedLegacyType === 'PROJECT' || normalizedLegacyType === 'INTERNSHIP') {
-    const paginated = paginateItems([], page, limit);
+    const { items } = await buildValidationItems({
+      type: normalizedLegacyType,
+      status,
+      search,
+    });
+    const paginated = paginateItems(items.map(mapValidationItemToLegacyShape), page, limit);
 
     return {
       filters: {
