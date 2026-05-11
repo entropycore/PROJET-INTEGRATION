@@ -976,6 +976,55 @@ const ensureValidReportTargetType = (targetType) => {
   }
 };
 
+const deleteReportTargetRecord = async (tx, report) => {
+  if (!report?.targetId) {
+    throw new Error('REPORT_TARGET_NOT_FOUND');
+  }
+
+  try {
+    switch (report.targetType) {
+      case 'PORTFOLIO':
+        await tx.portfolio.delete({
+          where: { id: report.targetId },
+        });
+        return;
+
+      case 'COMMENT':
+        await tx.comment.delete({
+          where: { id: report.targetId },
+        });
+        return;
+
+      case 'RECOMMENDATION':
+        await tx.recommendation.delete({
+          where: { id: report.targetId },
+        });
+        return;
+
+      case 'PROJECT':
+        await tx.project.delete({
+          where: { id: report.targetId },
+        });
+        return;
+
+      case 'INTERNSHIP':
+        await tx.internship.delete({
+          where: { id: report.targetId },
+        });
+        return;
+
+      default:
+        throw new Error('UNSUPPORTED_REPORT_TARGET_TYPE');
+    }
+  } catch (err) {
+    if (err?.code === 'P2025') {
+      throw new Error('REPORT_TARGET_NOT_FOUND');
+    }
+
+    throw err;
+  }
+};
+
 const paginateItems = (items, page = 1, limit = 10) => {
   const { page: safePage, limit: safeLimit, skip } = normalizePagination(page, limit);
 
@@ -3188,14 +3237,17 @@ exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit =
   const normalizedTargetType = targetType
     ? String(targetType).trim().toUpperCase().replace(/-/g, '_')
     : null;
+  const normalizedStatus = status ? String(status).trim().toUpperCase() : null;
 
-  ensureValidReportStatus(status);
+  if (normalizedStatus) {
+    ensureValidReportStatus(normalizedStatus);
+  }
 
   if (normalizedTargetType) {
     ensureValidReportTargetType(normalizedTargetType);
   }
 
-  const reports = await loadReportItems(status, normalizedTargetType);
+  const reports = await loadReportItems(normalizedStatus, normalizedTargetType);
   const filteredReports = reports
     .map(mapReportItem)
     .filter((item) => matchesValidationSearch(item, search));
@@ -3204,13 +3256,20 @@ exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit =
 
   return {
     filters: {
-      status,
+      status: normalizedStatus,
       targetType: normalizedTargetType,
       search: search || null,
     },
     ...paginated,
   };
 };
+
+exports.getPendingReportsCount = async () =>
+  safeCount(() =>
+    prisma.report.count({
+      where: { status: 'PENDING' },
+    })
+  );
 
 exports.getReportById = async (reportId) => mapReportItem(await getReportOrThrow(reportId));
 
@@ -3242,6 +3301,13 @@ exports.approveReport = async (reportId, administratorId, resolutionNote = null)
   return updatedReport;
 };
 
+exports.resolveReportLegacy = async (reportId, administratorId, resolutionNote = null) =>
+  exports.approveReport(
+    reportId,
+    administratorId,
+    resolutionNote || 'Signalement marque comme traite.'
+  );
+
 exports.rejectReport = async (reportId, administratorId, resolutionNote = null) => {
   const report = await getReportOrThrow(reportId);
 
@@ -3263,6 +3329,40 @@ exports.rejectReport = async (reportId, administratorId, resolutionNote = null) 
   await notificationService.createAdminActionNotification({
     title: 'Signalement rejete',
     message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete rejete.`,
+    relatedType: 'REPORT',
+    relatedId: reportId,
+  });
+
+  return updatedReport;
+};
+
+exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote = null) => {
+  const report = await getReportOrThrow(reportId);
+
+  if (report.status !== 'PENDING') {
+    throw new Error('REPORT_INVALID_STATE');
+  }
+
+  const appliedResolutionNote = resolutionNote || 'Contenu signale supprime.';
+
+  await prisma.$transaction(async (tx) => {
+    await deleteReportTargetRecord(tx, report);
+
+    await tx.report.update({
+      where: { id: reportId },
+      data: {
+        status: 'APPROVED',
+        reviewedByAdministratorId: administratorId,
+        reviewedAt: new Date(),
+        resolutionNote: appliedResolutionNote,
+      },
+    });
+  });
+
+  const updatedReport = await exports.getReportById(reportId);
+  await notificationService.createAdminActionNotification({
+    title: 'Contenu signale supprime',
+    message: `Le contenu signale lie a ${report.targetType.toLowerCase()} a ete supprime.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
