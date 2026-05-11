@@ -83,7 +83,7 @@ const router = createRouter({
       path: 'notifications',
       name: 'admin-notifications',
       component: () => import('../views/Notifications.vue'),
-      meta: { baseApi: '/api/admin' }
+      meta: { baseApi: '/api/professional' }
     },
     {
       path: 'badges',
