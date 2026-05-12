@@ -28,6 +28,18 @@ const handleStudentError = (res, err) => {
     return error(res, 404, 'Competence etudiante introuvable.');
   }
 
+  if (err.message === 'STUDENT_NOTIFICATION_NOT_FOUND') {
+    return error(res, 404, 'Notification etudiante introuvable.');
+  }
+
+  if (err.message === 'GITHUB_NOT_CONFIGURED') {
+    return error(res, 503, 'Integration GitHub non configuree.');
+  }
+
+  if (err.message === 'GITHUB_REPOSITORY_NAME_REQUIRED') {
+    return error(res, 400, 'Le nom du depot GitHub est requis.');
+  }
+
   return null;
 };
 
@@ -265,6 +277,92 @@ exports.getUnreadNotifications = async (req, res, next) => {
   try {
     const notifications = await studentService.getUnreadStudentNotifications(req.user.userId);
     return success(res, 200, 'Notifications non lues chargees.', notifications);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.listNotifications = async (req, res, next) => {
+  try {
+    const notifications = await studentService.listStudentNotifications(req.user.userId, req.query);
+    return success(res, 200, 'Notifications etudiantes chargees.', notifications);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getUnreadNotificationsCount = async (req, res, next) => {
+  try {
+    const count = await studentService.getStudentUnreadNotificationCount(req.user.userId);
+    return success(res, 200, 'Compteur de notifications charge.', count);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.markNotificationAsRead = async (req, res, next) => {
+  try {
+    const notification = await studentService.markStudentNotificationAsRead(
+      req.user.userId,
+      req.params.notificationId,
+    );
+    return success(res, 200, 'Notification marquee comme lue.', notification);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.markAllNotificationsAsRead = async (req, res, next) => {
+  try {
+    const result = await studentService.markAllStudentNotificationsAsRead(req.user.userId);
+    return success(res, 200, 'Toutes les notifications ont ete marquees comme lues.', result);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteNotification = async (req, res, next) => {
+  try {
+    const result = await studentService.deleteStudentNotification(
+      req.user.userId,
+      req.params.notificationId,
+    );
+    return success(res, 200, 'Notification supprimee.', result);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getGithubAuthLink = async (req, res, next) => {
+  try {
+    const authLink = await studentService.getStudentGithubAuthLink();
+    return success(res, 200, 'Lien GitHub genere.', authLink);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getGithubStats = async (req, res, next) => {
+  try {
+    const stats = await studentService.getStudentGithubStats(req.user.userId);
+    return success(res, 200, 'Statistiques GitHub chargees.', stats);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.importGithubRepository = async (req, res, next) => {
+  try {
+    const project = await studentService.importGithubRepository(req.user.userId, req.body);
+    return success(res, 201, 'Depot GitHub importe dans les projets.', project);
   } catch (err) {
     if (handleStudentError(res, err)) return;
     next(err);
