@@ -11,6 +11,11 @@ router.use(authMiddleware);
 router.use(checkRoles('STUDENT'));
 
 router.get('/dashboard', studentController.getDashboard);
+router.get('/credibility-score', studentController.getCredibilityScore);
+router.get('/credibility-score/details', studentController.getCredibilityScoreDetails);
+router.get('/profile-completion', studentController.getProfileCompletion);
+router.get('/timeline', studentController.getTimeline);
+router.get('/badges', studentController.getBadges);
 router.get('/profile', studentController.getProfile);
 
 module.exports = router;
