@@ -21,6 +21,14 @@ router.post('/soft-skills', studentController.addSoftSkill);
 router.delete('/soft-skills/:studentSkillId', studentController.deleteSoftSkill);
 router.get('/career-goal', studentController.getCareerGoal);
 router.put('/career-goal', studentController.updateCareerGoal);
+router.get('/notifications', studentController.listNotifications);
+router.get('/notifications/unread-count', studentController.getUnreadNotificationsCount);
+router.patch('/notifications/read-all', studentController.markAllNotificationsAsRead);
+router.patch('/notifications/:notificationId/read', studentController.markNotificationAsRead);
+router.delete('/notifications/:notificationId', studentController.deleteNotification);
+router.get('/github/auth', studentController.getGithubAuthLink);
+router.get('/github/stats', studentController.getGithubStats);
+router.post('/github/import', studentController.importGithubRepository);
 router.get('/profile', studentController.getProfile);
 
 module.exports = router;
