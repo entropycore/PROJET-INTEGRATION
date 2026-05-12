@@ -7,9 +7,6 @@ import StudentDashboard from '../views/student/Dashboard.vue'
 import ProfessorDashboard from '../views/professor/Dashboard.vue'
 import ProfessionalDashboard from '../views/professional/Dashboard.vue'
 
-// 👇 1. ZEDNA L-IMPORT DYAL GITHUB HNA
-import GithubView from '../views/student/GithubView.vue'
-
 import { useAuthStore } from '../stores/auth'
 import { getMe } from '../services/authService'
 
@@ -43,13 +40,6 @@ const router = createRouter({
         {
             path: '/student',
             component: StudentDashboard,
-            meta: { requiresAuth: true, roles: ['STUDENT'] },
-        },
-        // 👇 2. ZEDNA L-ROUTE DYAL GITHUB HNA (M-7miya b-Role STUDENT)
-        {
-            path: '/student/github',
-            name: 'student-github',
-            component: GithubView,
             meta: { requiresAuth: true, roles: ['STUDENT'] },
         },
         {
