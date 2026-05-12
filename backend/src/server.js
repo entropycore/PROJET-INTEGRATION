@@ -13,6 +13,10 @@ const logger = require('./logs/logger');
 const authRoutes = require('./routes/authRoutes');
 const professionalRoutes = require('./routes/professionalRoutes');
 const studentRoutes = require('./routes/studentRoutes');
+const studentsRoutes = require('./routes/studentsRoutes');
+const academicPathsRoutes = require('./routes/academicPathsRoutes');
+const skillsRoutes = require('./routes/skillsRoutes');
+const notificationsRoutes = require('./routes/notificationsRoutes');
 const professorRoutes = require('./routes/professorRoutes');
 const administratorRoutes = require('./routes/administratorRoutes');
 
@@ -31,6 +35,10 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/professional', professionalRoutes);
 app.use('/api/student', studentRoutes);
+app.use('/api/students', studentsRoutes);
+app.use('/api/academic-paths', academicPathsRoutes);
+app.use('/api/skills', skillsRoutes);
+app.use('/api/notifications', notificationsRoutes);
 app.use('/api/professor', professorRoutes);
 app.use('/api/admin', administratorRoutes);
 
