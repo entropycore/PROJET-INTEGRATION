@@ -4,6 +4,7 @@ const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
 const studentController = require('../controllers/studentController');
+const studentStageController = require('../controllers/studentStageController');
 
 const router = express.Router();
 
@@ -29,6 +30,20 @@ router.delete('/notifications/:notificationId', studentController.deleteNotifica
 router.get('/github/auth', studentController.getGithubAuthLink);
 router.get('/github/stats', studentController.getGithubStats);
 router.post('/github/import', studentController.importGithubRepository);
+router.get('/stages', studentStageController.listStages);
+router.get('/stages/:stageId', studentStageController.getStageById);
+router.post('/stages', studentStageController.createStage);
+router.put('/stages/:stageId', studentStageController.updateStage);
+router.delete('/stages/:stageId', studentStageController.deleteStage);
+router.post('/stages/:stageId/submit-validation', studentStageController.submitStageValidation);
+router.patch('/stages/:stageId/visibility', studentStageController.updateStageVisibility);
+router.post('/stages/:stageId/report', studentStageController.updateStageReport);
+router.get('/stages/:stageId/validation-history', studentStageController.getStageValidationHistory);
+router.post('/stages/:stageId/technologies', studentStageController.addStageTechnologies);
+router.delete(
+  '/stages/:stageId/technologies/:technologyId',
+  studentStageController.removeStageTechnology,
+);
 router.get('/profile', studentController.getProfile);
 
 module.exports = router;
