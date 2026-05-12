@@ -1,0 +1,48 @@
+name: Auto PR
+
+on:
+  push:
+    branches:
+      - 'front/**'
+      - 'back/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  auto-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determiner la branche de base
+        id: target
+        run: |
+          if [[ "${GITHUB_REF_NAME}" == front/* ]]; then
+            echo "branch=frontend" >> "$GITHUB_OUTPUT"
+          elif [[ "${GITHUB_REF_NAME}" == back/* ]]; then
+            echo "branch=backend" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check existing PR
+        id: existing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+            PR_NUMBER= $(gh pr list \ --head "${GITHUB_REF_NAME}" \ --base "${{ steps.target.outputs.branch }}" \ --state open \ --json number \ --jq '.[0].number // empty')
+            echo "number= $PR_NUMBER" >> "$GITHUB_OUTPUT"
+          
+      - name: Créer la PR
+        if: steps.existing.outputs.number == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \ --base "${{ steps.target.outputs.branch }}" \ --head "${GITHUB_REF_NAME}" \ --title "Auto PR: ${GITHUB_REF_NAME}" → ${{ steps.target.outputs.branch }}" \ --body "PR automatique suite à un push sur ${GITHUB_REF_NAME}"
+
+      - name: PR already exists
+        if: steps.existing.outputs.number != ''
+        run: |
+          echo "PR already exists: #${{ steps.existing.outputs.number }}"
