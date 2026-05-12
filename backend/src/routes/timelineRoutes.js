@@ -2,10 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 const auth = require('../middlewares/authMiddleware');     
-const { addTimelineRules, updateTimelineRules } = require('../modules/timeline/timeline.validation');
+const { addTimelineRules, updateTimelineRules } = require('../middlewares/validationRules'); 
 const { handleValidationErrors } = require('../middlewares/validationRules'); 
 
-const controller = require('../controllers/timeline.controller');
+const controller = require('../controllers/timelineController');
 
 router.use(auth);
 
