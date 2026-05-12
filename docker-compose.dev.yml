@@ -1,9 +1,11 @@
 version: "3.8"
 services:
   db:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: base_donnees
-    env_file: .env
+    restart: unless-stopped
+    env_file: 
+     - .env
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -12,42 +14,71 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    mem_limit: 512m
+    cpus: 0.50
+    networks:
+      - credencia_net 
       
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: dev_back
+    restart: unless-stopped
     depends_on:
-      - db
-    env_file: .env
+      db:
+        condition: service_healthy
+    env_file: 
+     - .env
     environment:
       NODE_ENV: development
       DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public"
       PORT: 3000 
     volumes:
       - ./backend:/app
-      - /app/node_modules
+      - backend_node_modules:/app/node_modules
     command: npm run dev     
     ports:
       - "${BACKEND_PORT:-3000}:3000"
+    mem_limit: 512m
+    cpus: 0.75
+    networks:
+      - credencia_net
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: dev_front
+    restart: unless-stopped
     depends_on:
       - backend
+    env_file:
+      - .env
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     environment:
       VITE_API_BASE_URL: http://localhost:${BACKEND_PORT:-3000}
     volumes:
       - ./frontend:/app 
-      - /app/node_modules
+      - frontend_node_modules:/app/node_modules
     command: npm run dev -- --host
-
+    mem_limit: 512m
+    cpus: 0.75
+    networks:
+      - credencia_net
 
 volumes:
   postgres_data:
+  backend_node_modules:
+  frontend_node_modules:
+
+networks:
+  credencia_net:
+    driver: bridge
