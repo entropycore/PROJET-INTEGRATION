@@ -13,4 +13,10 @@ router.use(checkRoles('STUDENT'));
 router.get('/dashboard', studentController.getDashboard);
 router.get('/profile', studentController.getProfile);
 
+
+// Mettre à jour le profil de l'étudiant connecté
+router.put('/profile', studentController.updateProfile);
+
+
 module.exports = router;
+
