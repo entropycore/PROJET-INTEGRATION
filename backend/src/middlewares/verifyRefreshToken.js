@@ -16,13 +16,13 @@ const verifyRefreshToken = (req, res, next) => {
       });
     }
 
-    // Vérifier avec REFRESH_TOKEN_SECRET
+  
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
 
-    // Injecter dans req.user (Ghir l-ID bo7do li kayn f had l-token)
+    // Injecter dans req.user
     req.user = {
       userId: decoded.userId,
-    };
+     }; 
 
     logger.info({
       message: 'Refresh token vérifié',

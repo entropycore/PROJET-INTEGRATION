@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+node_modules/
+dist/
+*.log
+
+# Cypress specific
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+frontend/cypress/

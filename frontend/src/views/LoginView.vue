@@ -1,12 +1,13 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { login, getMe } from '../services/authService'
 import  AppLogo  from '../components/AppLogo.vue'
 import '../assets/styles/login.css'
 
-const router = useRouter()
+const router = useRouter() //va me servir a naviguer(changer les pages)
+const route = useRoute() //va me servir de lire (observer)
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -15,6 +16,19 @@ const errorMessage = ref('')
 const successMessage = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
+
+watch( //j'observe si l'user n'est pas autorise(cas de /admin dans l'url)
+  () => route.query.error,
+  (error) => {
+    if (error === 'unauthorized') {
+      errorMessage.value = "Vous n'avez pas accès à cette page."
+      return
+    }
+
+    errorMessage.value = ''
+  },
+  { immediate: true }
+)
 
 const handleLogin = async () => {
   errorMessage.value = ''
@@ -35,8 +49,16 @@ const handleLogin = async () => {
 
     const meResponse = await getMe()
 
-    authStore.setAuthSession(meResponse.data.data)
+    authStore.setAuthSession(meResponse.data.data) //je stock la data user dans le store pinia
     successMessage.value = 'Connexion réussie.'
+    const user = meResponse.data.data
+    const dashboardMap = {
+      ADMINISTRATOR: '/admin',
+      STUDENT: '/student',
+      PROFESSOR: '/professor',
+      PROFESSIONAL: '/professional'
+    }
+    router.push(dashboardMap[user.role] || '/login')
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message ||

@@ -248,8 +248,8 @@ const handleSubmit = async () => {
             </button>
 
             <p class="login-link">
-              Already have an account?
-              <span @click="goToLogin">Log in</span>
+              Vous avez déjà un compte?
+              <span @click="goToLogin">Connectez-vous</span>
             </p>
           </form>
         </div>
