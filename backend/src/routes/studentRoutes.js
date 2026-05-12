@@ -16,6 +16,11 @@ router.get('/credibility-score/details', studentController.getCredibilityScoreDe
 router.get('/profile-completion', studentController.getProfileCompletion);
 router.get('/timeline', studentController.getTimeline);
 router.get('/badges', studentController.getBadges);
+router.get('/soft-skills', studentController.getSoftSkills);
+router.post('/soft-skills', studentController.addSoftSkill);
+router.delete('/soft-skills/:studentSkillId', studentController.deleteSoftSkill);
+router.get('/career-goal', studentController.getCareerGoal);
+router.put('/career-goal', studentController.updateCareerGoal);
 router.get('/profile', studentController.getProfile);
 
 module.exports = router;
