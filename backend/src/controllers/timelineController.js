@@ -1,4 +1,4 @@
-const timelineService = require('./timeline.service');
+const timelineService = require('../services/timelineServices');
 
 exports.getMyTimeline = async (req, res, next) => {
   try {

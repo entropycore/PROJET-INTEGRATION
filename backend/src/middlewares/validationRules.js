@@ -110,10 +110,6 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-module.exports = { validationRules, handleValidationErrors };
-
-
-const { body } = require('express-validator');
 
 const addTimelineRules = [
   body('title')
@@ -140,5 +136,9 @@ const updateTimelineRules = [
   body('endDate').optional({ nullable: true }).isISO8601(),
   body('description').optional({ nullable: true }).isLength({ max: 2000 }),
 ];
-
-module.exports = { addTimelineRules, updateTimelineRules };
+module.exports = {
+  validationRules,
+  handleValidationErrors,
+  addTimelineRules,
+  updateTimelineRules,
+};
