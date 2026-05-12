@@ -9,6 +9,9 @@ const redirectHttps = require('./middlewares/redirectHttps');
 const { handleErrors, notFound } = require('./middlewares/handleErrors');
 const logger = require('./logs/logger');
 
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 
 const authRoutes = require('./routes/authRoutes');
 const professionalRoutes = require('./routes/professionalRoutes');
@@ -16,6 +19,8 @@ const studentRoutes = require('./routes/studentRoutes');
 const professorRoutes = require('./routes/professorRoutes');
 const administratorRoutes = require('./routes/administratorRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+
+
 
 const app = express();
 
@@ -28,6 +33,9 @@ app.use(redirectHttps);
 app.use(express.json());
 app.use(cookieParser());
 
+
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/professional', professionalRoutes);
