@@ -34,8 +34,11 @@ jobs:
       - name: Run frontend unit tests 
         run: npm test
 
-      - name: Build frontend
+      - name: Build frontend app
         run: npm run build 
+
+      - name: Build frontend Docker image
+        run: docker build -t credencia-frontend .
 
   backend:
     name: Backend CI
@@ -60,5 +63,5 @@ jobs:
       - name: Run backend unit tests 
         run: npm run test:unit
          
-      - name: Run backend build 
-        run: npm run build 
+      - name: Build backend Docker image
+        run: docker build -t credencia-backend .
