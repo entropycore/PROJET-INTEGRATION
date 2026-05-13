@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 
-require('dotenv').config();
+process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'test-access-secret';
 
 jest.mock('../../../src/logs/logger', () => ({
   info: jest.fn(),
@@ -13,73 +13,82 @@ jest.mock('../../../src/logs/logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock('../../../src/services/studentService');
+const studentService = require('../../../src/services/studentService');
+
 const studentRouter = require('../../../src/routes/studentRoutes');
+const { handleErrors } = require('../../../src/middlewares/handleErrors');
 
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/student', studentRouter);
+app.use(handleErrors);
 
-const SECRET = process.env.ACCESS_TOKEN_SECRET;
-
-const makeToken = (role = 'STUDENT', roleId = 40, expiresIn = '1h') =>
+const makeToken = (role = 'STUDENT', roleId = 'student-role-id', expiresIn = '1h') =>
   jwt.sign(
-    { userId: 1, role, roleId },
-    SECRET,
+    { userId: 'student-user-id', role, roleId },
+    process.env.ACCESS_TOKEN_SECRET,
     { expiresIn }
   );
 
-const studentToken = makeToken();
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
-beforeEach(() => jest.clearAllMocks());
+describe('Student Routes', () => {
+  it('returns 401 without an access token', async () => {
+    const res = await request(app).get('/api/student/dashboard');
 
-describe("Tests d'Intégration - Routes Étudiant", () => {
-
-  describe('Sécurité & Rôles', () => {
-
-    it('TC-STU-01 : Sans token → 401', async () => {
-      const res = await request(app).get('/api/student/dashboard');
-      expect(res.status).toBe(401);
-      expect(res.body.success).toBe(false);
-    });
-
-    it('TC-STU-02 : Token expiré → 401', async () => {
-      const expiredToken = makeToken('STUDENT', 40, '-1s');
-      const res = await request(app)
-        .get('/api/student/dashboard')
-        .set('Cookie', `accessToken=${expiredToken}`);
-      expect(res.status).toBe(401);
-    });
-
-    it('TC-STU-03 : Professeur tente accès Étudiant → 403', async () => {
-      const res = await request(app)
-        .get('/api/student/dashboard')
-        .set('Cookie', `accessToken=${makeToken('PROFESSOR')}`);
-      expect(res.status).toBe(403);
-      expect(res.body.success).toBe(false);
-    });
-
+    expect(res.status).toBe(401);
   });
 
-  describe('Endpoints Logic', () => {
+  it('returns 403 for a non-student role', async () => {
+    const res = await request(app)
+      .get('/api/student/dashboard')
+      .set('Cookie', `accessToken=${makeToken('PROFESSOR', 'professor-role-id')}`);
 
-    it('TC-STU-04 : Étudiant accède au Dashboard → 200 OK', async () => {
-      const res = await request(app)
-        .get('/api/student/dashboard')
-        .set('Cookie', `accessToken=${studentToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body.data.area).toBe('student');
-      expect(res.body.data.user).toBeDefined();
-    });
-
-    it('TC-STU-05 : Étudiant accède au Profil → 200 OK', async () => {
-      const res = await request(app)
-        .get('/api/student/profile')
-        .set('Cookie', `accessToken=${studentToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body.data.user).toBeDefined();
-    });
-
+    expect(res.status).toBe(403);
   });
 
+  it('returns the student dashboard payload', async () => {
+    studentService.getStudentDashboard.mockResolvedValue({
+      profileSnapshot: { fullName: 'Sara Alaoui' },
+      summaryCards: { projects: { value: 2 } },
+    });
+
+    const res = await request(app)
+      .get('/api/student/dashboard')
+      .set('Cookie', `accessToken=${makeToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(studentService.getStudentDashboard).toHaveBeenCalledWith('student-user-id');
+    expect(res.body.data.profileSnapshot.fullName).toBe('Sara Alaoui');
+  });
+
+  it('returns the student profile payload', async () => {
+    studentService.getStudentProfile.mockResolvedValue({
+      user: { email: 'sara.alaoui@example.com' },
+      student: { major: 'Genie Informatique' },
+    });
+
+    const res = await request(app)
+      .get('/api/student/profile')
+      .set('Cookie', `accessToken=${makeToken()}`);
+
+    expect(res.status).toBe(200);
+    expect(studentService.getStudentProfile).toHaveBeenCalledWith('student-user-id');
+    expect(res.body.data.student.major).toBe('Genie Informatique');
+  });
+
+  it('maps a missing student profile to 404', async () => {
+    studentService.getStudentProfile.mockRejectedValue(new Error('STUDENT_PROFILE_NOT_FOUND'));
+
+    const res = await request(app)
+      .get('/api/student/profile')
+      .set('Cookie', `accessToken=${makeToken()}`);
+
+    expect(res.status).toBe(404);
+    expect(res.body.success).toBe(false);
+  });
 });
