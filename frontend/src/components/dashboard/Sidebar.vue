@@ -42,7 +42,9 @@ const userInitial = computed(() => {
 const handleLogout = async () => {
   try {
     await logout()
-  } catch {}
+  } catch(err) {
+    console.error(err)
+  }
 
   authStore.clearAuthSession()
   router.push('/login')
