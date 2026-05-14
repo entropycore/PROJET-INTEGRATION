@@ -77,6 +77,32 @@ enum PortfolioStatus {
   ARCHIVED
 }
 
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReportTargetType {
+  PORTFOLIO
+  COMMENT
+  RECOMMENDATION
+  PROJECT
+  INTERNSHIP
+  USER
+  OTHER
+}
+
+enum NotificationType {
+  ACCESS_REQUEST
+  CERTIFICATE_VALIDATION
+  RECOMMENDATION_LETTER_VALIDATION
+  COMMENT_VALIDATION
+  RECOMMENDATION_VALIDATION
+  REPORT
+  SYSTEM
+}
+
 
 
 model User {
@@ -90,6 +116,7 @@ model User {
   profilePicture  String?       @map("profile_picture")
   accountStatus   AccountStatus @default(PENDING) @map("account_status")
   role            UserRole
+  preferences     Json          @default("{\"schema_version\": 1}")
   createdAt       DateTime      @default(now()) @map("created_at")
   lastLoginAt     DateTime?     @map("last_login_at")
 
@@ -104,6 +131,7 @@ model User {
   commentsValidated Comment[] @relation("CommentValidator")
   recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
+  reportsAuthored Report[] @relation("ReportAuthor")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -145,6 +173,7 @@ model Student {
   bio             String?   @db.Text
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
+  githubAccessToken String? @map("github_access_token") @db.Text
   academicPaths   AcademicPath[]
   studentSkills   StudentSkill[]
   projects        Project[]
@@ -185,6 +214,8 @@ model Administrator {
   approvedProfessionals Professional[] @relation("ProfessionalApprovedBy")
   rejectedProfessionals Professional[] @relation("ProfessionalRejectedBy")
   suspendedProfessionals Professional[] @relation("ProfessionalSuspendedBy")
+  reviewedReports Report[]
+  notifications Notification[]
 
   @@map("administrators")
 }
@@ -535,4 +566,67 @@ model Recommendation {
   @@index([validatorUserId])
   @@index([status])
   @@map("recommendations")
+}
+
+model Report {
+  id                          String          @id @default(uuid()) @map("id_report")
+  reporterUserId              String?         @map("reporter_user_id")
+  reporterUser                User?           @relation("ReportAuthor", fields: [reporterUserId], references: [id], onDelete: SetNull)
+  reviewedByAdministratorId   String?         @map("reviewed_by_administrator_id")
+  reviewedByAdministrator     Administrator?  @relation(fields: [reviewedByAdministratorId], references: [id], onDelete: SetNull)
+  targetType                  ReportTargetType @map("target_type")
+  targetId                    String?         @map("target_id")
+  reason                      String          @db.VarChar(200)
+  description                 String?         @db.Text
+  status                      ReportStatus    @default(PENDING)
+  createdAt                   DateTime        @default(now()) @map("created_at")
+  reviewedAt                  DateTime?       @map("reviewed_at")
+  resolutionNote              String?         @map("resolution_note") @db.Text
+
+  @@index([status])
+  @@index([targetType, targetId])
+  @@index([reporterUserId])
+  @@index([reviewedByAdministratorId])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model Notification {
+  id              String           @id @default(uuid()) @map("id_notification")
+  administratorId String?          @map("administrator_id")
+  administrator   Administrator?   @relation(fields: [administratorId], references: [id], onDelete: SetNull)
+  type            NotificationType
+  title           String           @db.VarChar(200)
+  message         String           @db.Text
+  relatedType     String?          @map("related_type") @db.VarChar(100)
+  relatedId       String?          @map("related_id")
+  isRead          Boolean          @default(false) @map("is_read")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  readAt          DateTime?        @map("read_at")
+
+  @@index([administratorId])
+  @@index([type])
+  @@index([isRead, createdAt])
+  @@index([relatedType, relatedId])
+  @@map("notifications")
+  }
+  
+model SystemSettings {
+  id                       String   @id @default(uuid()) @map("id_system_settings")
+  
+  // Branding & Établissement
+  institutionName          String   @default("ENSA Tanger") @map("institution_name") @db.VarChar(150)
+  emailDomain              String   @default("@ensa.ac.ma") @map("email_domain") @db.VarChar(100)
+  
+  // Règles de Gouvernance
+  requireProjectValidation Boolean  @default(true) @map("require_project_validation")
+  enableGithubSync         Boolean  @default(true) @map("enable_github_sync")
+  allowProRegistration     Boolean  @default(true) @map("allow_pro_registration")
+  
+  // Poids du Score (Stocké en JSON )
+  scoreWeights             Json     @default("{\"projects\": 30, \"internships\": 25, \"github\": 10, \"recos\": 20, \"certs\": 15}") @map("score_weights")
+  
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }
