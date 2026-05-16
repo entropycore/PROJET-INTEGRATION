@@ -3,10 +3,23 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const prisma = require('../config/prisma');
+const sendEmail = require('../utils/sendEmail');
 
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
 const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
 const BCRYPT_ROUNDS = 10;
+const ROLE_LABELS = {
+  STUDENT: 'Etudiant',
+  PROFESSOR: 'Professeur',
+  ADMINISTRATOR: 'Administrateur',
+  PROFESSIONAL: 'Professionnel',
+};
+const STATUS_LABELS = {
+  ACTIVE: 'Actif',
+  INACTIVE: 'Inactif',
+  SUSPENDED: 'Suspendu',
+  PENDING: 'En attente de validation',
+};
 
 const professionalRequestSelect = {
   id: true,
@@ -539,6 +552,30 @@ const buildTemporaryPassword = () => {
   return `Temp${suffix}Aa!1`;
 };
 
+const buildUserCredentialsEmail = ({ firstName, email, password, role, accountStatus }) => {
+  const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
+  const roleLabel = ROLE_LABELS[role] || role;
+  const statusLabel = STATUS_LABELS[accountStatus] || accountStatus;
+
+  return {
+    subject: 'Vos identifiants Credencia',
+    text: [
+      `Bonjour ${firstName},`,
+      '',
+      'Un compte Credencia a ete cree pour vous.',
+      '',
+      `Role : ${roleLabel}`,
+      `Statut du compte : ${statusLabel}`,
+      `Email : ${email}`,
+      `Mot de passe initial : ${password}`,
+      '',
+      `Connexion : ${loginUrl}`,
+      '',
+      "Nous vous recommandons de changer votre mot de passe apres votre premiere connexion.",
+    ].join('\n'),
+  };
+};
+
 exports.getDashboardData = async () => {
   const [
     totalUsers,
@@ -692,8 +729,12 @@ exports.createUser = async (payload) => {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
 
-  const temporaryPassword = payload.password || buildTemporaryPassword();
-  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
+  const providedPassword =
+    typeof payload.password === 'string' && payload.password.trim().length > 0
+      ? payload.password
+      : null;
+  const initialPassword = providedPassword || buildTemporaryPassword();
+  const passwordHash = await bcrypt.hash(initialPassword, BCRYPT_ROUNDS);
 
   const createdUser = await prisma.user.create({
     data: {
@@ -710,9 +751,28 @@ exports.createUser = async (payload) => {
     select: userSelect,
   });
 
+  try {
+    const emailPayload = buildUserCredentialsEmail({
+      firstName: createdUser.firstName,
+      email: createdUser.email,
+      password: initialPassword,
+      role,
+      accountStatus,
+    });
+
+    await sendEmail(createdUser.email, emailPayload.subject, emailPayload.text);
+  } catch (err) {
+    await prisma.user.delete({
+      where: { id: createdUser.id },
+    });
+
+    throw new Error('USER_EMAIL_SEND_FAILED');
+  }
+
   return {
     user: mapUserSummary(createdUser),
-    temporaryPassword: payload.password ? null : temporaryPassword,
+    temporaryPassword: providedPassword ? null : initialPassword,
+    credentialsSent: true,
   };
 };
 

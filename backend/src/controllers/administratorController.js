@@ -66,6 +66,14 @@ const handleAdminError = (res, err) => {
     return error(res, 409, 'Cet email est deja utilise.');
   }
 
+  if (err.message === 'USER_EMAIL_SEND_FAILED') {
+    return error(
+      res,
+      500,
+      "Le compte n'a pas ete conserve car l'envoi des identifiants par email a echoue."
+    );
+  }
+
   if (err.message === 'ROLE_CHANGE_REQUIRES_DEDICATED_ENDPOINT') {
     return error(res, 400, 'Utilisez la route dediee pour changer le role.');
   }
