@@ -5,6 +5,18 @@ import path from 'path'
 export default defineConfig({
   // Utilisation du plugin Vue pour compiler les fichiers .vue
   plugins: [vue()],
+
+
+  server: {
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+      'Cross-Origin-Opener-Policy': 'same-origin',
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://ghchart.rshah.org https://github.com https://avatars.githubusercontent.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000; form-action 'self'; frame-ancestors 'none'; base-uri 'self'",
+      'Cross-Origin-Resource-Policy': 'same-origin',
+    },
+  },
   
   test: {
     // Activation des API globales (describe, it, expect) pour éviter les imports répétitifs
