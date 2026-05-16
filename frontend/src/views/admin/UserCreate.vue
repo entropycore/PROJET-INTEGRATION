@@ -262,7 +262,11 @@ const submitCreate = async () => {
       <section class="admin-modal">
         <h2>Utilisateur créé</h2>
         <p class="admin-modal-text">
-          Mot de passe temporaire généré :
+          Mot de passe temporaire genere et envoye par email :
+        </p>
+
+        <p class="admin-modal-text">
+          Seul le dernier mot de passe temporaire recu est valide.
         </p>
 
         <div class="temporary-password-box">

@@ -386,6 +386,10 @@ const handleDelete = async () => {
           Mot de passe temporaire genere et envoye par email :
         </p>
 
+        <p class="admin-modal-text">
+          Seul le dernier mot de passe temporaire recu est valide.
+        </p>
+
         <div class="temporary-password-box">
           {{ temporaryPassword }}
         </div>
