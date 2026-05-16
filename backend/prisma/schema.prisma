@@ -90,6 +90,7 @@ model User {
   profilePicture  String?       @map("profile_picture")
   accountStatus   AccountStatus @default(PENDING) @map("account_status")
   role            UserRole
+  preferences     Json          @default("{\"schema_version\": 1}")
   createdAt       DateTime      @default(now()) @map("created_at")
   lastLoginAt     DateTime?     @map("last_login_at")
 

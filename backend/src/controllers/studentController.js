@@ -40,6 +40,42 @@ const handleStudentError = (res, err) => {
     return error(res, 400, 'Le nom du depot GitHub est requis.');
   }
 
+  if (err.message === 'CURRENT_PASSWORD_REQUIRED') {
+    return error(res, 400, 'Le mot de passe actuel est requis.');
+  }
+
+  if (err.message === 'NEW_PASSWORD_REQUIRED') {
+    return error(res, 400, 'Le nouveau mot de passe est requis.');
+  }
+
+  if (err.message === 'NEW_PASSWORD_TOO_SHORT') {
+    return error(res, 400, 'Le nouveau mot de passe doit contenir au moins 8 caracteres.');
+  }
+
+  if (err.message === 'PASSWORD_CONFIRMATION_MISMATCH') {
+    return error(res, 400, 'La confirmation du mot de passe ne correspond pas.');
+  }
+
+  if (err.message === 'CURRENT_PASSWORD_INVALID') {
+    return error(res, 400, 'Le mot de passe actuel est incorrect.');
+  }
+
+  if (err.message === 'NEW_PASSWORD_SAME_AS_CURRENT') {
+    return error(res, 400, 'Le nouveau mot de passe doit etre different du mot de passe actuel.');
+  }
+
+  if (err.message === 'INVALID_PROFILE_VISIBILITY') {
+    return error(res, 400, 'La visibilite du profil est invalide.');
+  }
+
+  if (err.message === 'INVALID_PRIVACY_BOOLEAN_VALUE') {
+    return error(res, 400, 'Les preferences de confidentialite doivent etre booleennes.');
+  }
+
+  if (err.message === 'INVALID_NOTIFICATION_BOOLEAN_VALUE') {
+    return error(res, 400, 'Les preferences de notification doivent etre booleennes.');
+  }
+
   return null;
 };
 
@@ -227,6 +263,36 @@ exports.updateCareerGoal = async (req, res, next) => {
   try {
     const careerGoal = await studentService.updateStudentCareerGoal(req.user.userId, req.body);
     return success(res, 200, 'Objectif professionnel mis a jour.', careerGoal);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateSettingsPassword = async (req, res, next) => {
+  try {
+    const result = await studentService.updateStudentSettingsPassword(req.user.userId, req.body);
+    return success(res, 200, 'Mot de passe etudiant mis a jour.', result);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateSettingsPrivacy = async (req, res, next) => {
+  try {
+    const settings = await studentService.updateStudentSettingsPrivacy(req.user.userId, req.body);
+    return success(res, 200, 'Preferences de confidentialite mises a jour.', settings);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateSettingsNotifications = async (req, res, next) => {
+  try {
+    const settings = await studentService.updateStudentSettingsNotifications(req.user.userId, req.body);
+    return success(res, 200, 'Preferences de notification mises a jour.', settings);
   } catch (err) {
     if (handleStudentError(res, err)) return;
     next(err);
