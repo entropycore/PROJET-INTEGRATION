@@ -46,8 +46,8 @@ jobs:
 
     env:
       NODE_ENV: test
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ credencia_test
-      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/    credencia_test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
         
     steps:
       - name: Checkout repository
