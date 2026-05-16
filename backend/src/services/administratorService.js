@@ -571,6 +571,8 @@ const buildUserCredentialsEmail = ({ firstName, email, password, role, accountSt
       '',
       `Connexion : ${loginUrl}`,
       '',
+      'Si vous recevez plusieurs emails de credentials, utilisez uniquement le mot de passe du dernier message recu.',
+      '',
       "Nous vous recommandons de changer votre mot de passe apres votre premiere connexion.",
     ].join('\n'),
   };
@@ -592,6 +594,8 @@ const buildPasswordResetEmail = ({ firstName, email, password, role }) => {
       `Nouveau mot de passe temporaire : ${password}`,
       '',
       `Connexion : ${loginUrl}`,
+      '',
+      'Si vous recevez plusieurs emails de reinitialisation, utilisez uniquement le mot de passe du dernier message recu.',
       '',
       "Nous vous recommandons de changer votre mot de passe apres votre prochaine connexion.",
     ].join('\n'),

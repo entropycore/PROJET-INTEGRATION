@@ -110,7 +110,7 @@ const router = createRouter({
         {
         path: '/student',
         component: DashboardLayout,
-        meta: { role: 'STUDENT' },
+        meta: { requiresAuth: true, roles: ['STUDENT'] },
         children: [
             {
             path: '',
