@@ -2,41 +2,48 @@
 
 const rateLimit = require('express-rate-limit');
 
-// Désactiver le rate limiter en mode test car il bloque les testes
+// Disable rate limiting in tests because it interferes with automated runs.
 const isTest = process.env.NODE_ENV === 'test';
+const isDevelopment = process.env.NODE_ENV === 'development';
 const bypass = (req, res, next) => next();
 
-// Limiteur général — toutes les routes
+const resolveLimit = (envName, fallback) => {
+  const parsed = Number.parseInt(process.env[envName] || '', 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+// General limiter for all routes.
 const globalLimiter = isTest ? bypass : rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: resolveLimit('GLOBAL_RATE_LIMIT_MAX', 100),
   message: {
     success: false,
-    message: 'Trop de requêtes, réessayez dans 15 minutes',
+    message: 'Trop de requetes, reessayez dans 15 minutes',
   },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Limiteur strict — routes login/register
+// Auth limiter for login/register routes.
 const authLimiter = isTest ? bypass : rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: resolveLimit('AUTH_RATE_LIMIT_MAX', isDevelopment ? 50 : 5),
+  skipSuccessfulRequests: true,
   message: {
     success: false,
-    message: 'Trop de tentatives de connexion, réessayez dans 15 minutes',
+    message: 'Trop de tentatives de connexion, reessayez dans 15 minutes',
   },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Limiteur forgotPassword
+// Forgot password limiter.
 const forgotPasswordLimiter = isTest ? bypass : rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 3,
+  max: resolveLimit('FORGOT_PASSWORD_RATE_LIMIT_MAX', 3),
   message: {
     success: false,
-    message: 'Trop de demandes de réinitialisation, réessayez dans 1 heure',
+    message: 'Trop de demandes de reinitialisation, reessayez dans 1 heure',
   },
   standardHeaders: true,
   legacyHeaders: false,
