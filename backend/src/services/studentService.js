@@ -1,5 +1,6 @@
 'use strict';
 
+const bcrypt = require('bcrypt');
 const prisma = require('../config/prisma');
 const studentProjectService = require('./studentProjectService');
 
@@ -79,6 +80,23 @@ const BADGE_CATALOG = [
     current: (stats) => stats.dataSignals,
   },
 ];
+
+const STUDENT_SETTINGS_DEFAULTS = Object.freeze({
+  schema_version: 1,
+  privacy: {
+    profileVisibility: 'PUBLIC',
+    showEmail: false,
+    showPhone: false,
+  },
+  notifications: {
+    email: true,
+    push: false,
+    validationUpdates: true,
+    recommendations: true,
+  },
+});
+
+const ALLOWED_PROFILE_VISIBILITY = new Set(['PUBLIC', 'PRIVATE', 'CONNECTIONS']);
 
 const studentProfileSelect = {
   id: true,
@@ -250,6 +268,84 @@ const mapProjectTypeLabel = (type) => PROJECT_TYPE_LABELS[type] || type;
 const safeNumber = (value) => {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const cloneDefaultStudentSettings = () => JSON.parse(JSON.stringify(STUDENT_SETTINGS_DEFAULTS));
+
+const asPlainObject = (value) =>
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+
+const mergeStudentSettings = (rawPreferences) => {
+  const defaults = cloneDefaultStudentSettings();
+  const source = asPlainObject(rawPreferences);
+
+  return {
+    ...defaults,
+    ...source,
+    schema_version: Number(source.schema_version) || defaults.schema_version,
+    privacy: {
+      ...defaults.privacy,
+      ...asPlainObject(source.privacy),
+    },
+    notifications: {
+      ...defaults.notifications,
+      ...asPlainObject(source.notifications),
+    },
+  };
+};
+
+const buildStudentPreferencesPayload = (currentPreferences, settings) => ({
+  ...asPlainObject(currentPreferences),
+  schema_version: settings.schema_version,
+  privacy: settings.privacy,
+  notifications: settings.notifications,
+});
+
+const ensureBoolean = (value, errorCode) => {
+  if (typeof value !== 'boolean') {
+    throw new Error(errorCode);
+  }
+
+  return value;
+};
+
+const normalizeProfileVisibility = (value) => {
+  const normalized = String(value || '')
+    .trim()
+    .toUpperCase();
+
+  if (!ALLOWED_PROFILE_VISIBILITY.has(normalized)) {
+    throw new Error('INVALID_PROFILE_VISIBILITY');
+  }
+
+  return normalized;
+};
+
+const updateStudentSettingsPreferences = async (userId, updater) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      preferences: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('STUDENT_PROFILE_NOT_FOUND');
+  }
+
+  const currentSettings = mergeStudentSettings(user.preferences);
+  const nextSettings = updater(currentSettings);
+  const nextPreferences = buildStudentPreferencesPayload(user.preferences, nextSettings);
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: {
+      preferences: nextPreferences,
+    },
+  });
+
+  return nextSettings;
 };
 
 const getStudentOrThrow = async (userId) => {
@@ -1068,6 +1164,123 @@ exports.updateStudentCareerGoal = async (userId, payload) => {
   });
 
   return exports.getStudentCareerGoal(userId);
+};
+
+exports.updateStudentSettingsPassword = async (userId, payload = {}) => {
+  await getStudentOrThrow(userId);
+
+  const currentPassword = String(payload.currentPassword || '');
+  const newPassword = String(payload.newPassword || '');
+  const confirmPassword =
+    payload.confirmPassword === undefined ? undefined : String(payload.confirmPassword || '');
+
+  if (!currentPassword) {
+    throw new Error('CURRENT_PASSWORD_REQUIRED');
+  }
+
+  if (!newPassword) {
+    throw new Error('NEW_PASSWORD_REQUIRED');
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error('NEW_PASSWORD_TOO_SHORT');
+  }
+
+  if (confirmPassword !== undefined && newPassword !== confirmPassword) {
+    throw new Error('PASSWORD_CONFIRMATION_MISMATCH');
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      passwordHash: true,
+    },
+  });
+
+  if (!user || !(await bcrypt.compare(currentPassword, user.passwordHash))) {
+    throw new Error('CURRENT_PASSWORD_INVALID');
+  }
+
+  if (await bcrypt.compare(newPassword, user.passwordHash)) {
+    throw new Error('NEW_PASSWORD_SAME_AS_CURRENT');
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: user.id },
+      data: { passwordHash },
+    }),
+    prisma.refreshTokenSession.updateMany({
+      where: {
+        userId: user.id,
+        isRevoked: false,
+      },
+      data: {
+        isRevoked: true,
+        revokedAt: new Date(),
+      },
+    }),
+  ]);
+
+  return {
+    updated: true,
+    sessionsRevoked: true,
+  };
+};
+
+exports.updateStudentSettingsPrivacy = async (userId, payload = {}) => {
+  const student = await getStudentOrThrow(userId);
+
+  const settings = await updateStudentSettingsPreferences(student.user.id, (currentSettings) => ({
+    ...currentSettings,
+    privacy: {
+      profileVisibility:
+        payload.profileVisibility === undefined
+          ? currentSettings.privacy.profileVisibility
+          : normalizeProfileVisibility(payload.profileVisibility),
+      showEmail:
+        payload.showEmail === undefined
+          ? currentSettings.privacy.showEmail
+          : ensureBoolean(payload.showEmail, 'INVALID_PRIVACY_BOOLEAN_VALUE'),
+      showPhone:
+        payload.showPhone === undefined
+          ? currentSettings.privacy.showPhone
+          : ensureBoolean(payload.showPhone, 'INVALID_PRIVACY_BOOLEAN_VALUE'),
+    },
+  }));
+
+  return settings.privacy;
+};
+
+exports.updateStudentSettingsNotifications = async (userId, payload = {}) => {
+  const student = await getStudentOrThrow(userId);
+
+  const settings = await updateStudentSettingsPreferences(student.user.id, (currentSettings) => ({
+    ...currentSettings,
+    notifications: {
+      email:
+        payload.email === undefined
+          ? currentSettings.notifications.email
+          : ensureBoolean(payload.email, 'INVALID_NOTIFICATION_BOOLEAN_VALUE'),
+      push:
+        payload.push === undefined
+          ? currentSettings.notifications.push
+          : ensureBoolean(payload.push, 'INVALID_NOTIFICATION_BOOLEAN_VALUE'),
+      validationUpdates:
+        payload.validationUpdates === undefined
+          ? currentSettings.notifications.validationUpdates
+          : ensureBoolean(payload.validationUpdates, 'INVALID_NOTIFICATION_BOOLEAN_VALUE'),
+      recommendations:
+        payload.recommendations === undefined
+          ? currentSettings.notifications.recommendations
+          : ensureBoolean(payload.recommendations, 'INVALID_NOTIFICATION_BOOLEAN_VALUE'),
+    },
+  }));
+
+  return settings.notifications;
 };
 
 exports.getStudentSkills = async (userId) => {
