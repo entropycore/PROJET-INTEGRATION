@@ -1,6 +1,6 @@
 'use strict';
 
-const checkRoles = require('../middlewares/checkRoles');
+const checkRoles = require('../../../src/middlewares/checkRoles');
 
 const mockRes = () => {
   const res = {};
