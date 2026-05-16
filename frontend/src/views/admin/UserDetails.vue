@@ -383,7 +383,7 @@ const handleDelete = async () => {
         <h2>Mot de passe réinitialisé</h2>
 
         <p class="admin-modal-text">
-          Mot de passe temporaire généré :
+          Mot de passe temporaire genere et envoye par email :
         </p>
 
         <div class="temporary-password-box">
