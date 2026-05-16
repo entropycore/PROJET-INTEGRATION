@@ -576,6 +576,28 @@ const buildUserCredentialsEmail = ({ firstName, email, password, role, accountSt
   };
 };
 
+const buildPasswordResetEmail = ({ firstName, email, password, role }) => {
+  const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
+  const roleLabel = ROLE_LABELS[role] || role;
+
+  return {
+    subject: 'Votre mot de passe Credencia a ete reinitialise',
+    text: [
+      `Bonjour ${firstName},`,
+      '',
+      'Votre mot de passe Credencia a ete reinitialise par un administrateur.',
+      '',
+      `Role : ${roleLabel}`,
+      `Email : ${email}`,
+      `Nouveau mot de passe temporaire : ${password}`,
+      '',
+      `Connexion : ${loginUrl}`,
+      '',
+      "Nous vous recommandons de changer votre mot de passe apres votre prochaine connexion.",
+    ].join('\n'),
+  };
+};
+
 exports.getDashboardData = async () => {
   const [
     totalUsers,
@@ -886,26 +908,78 @@ exports.updateUserRole = async (userId, role, payload = {}, currentUserId = null
 };
 
 exports.resetUserPassword = async (userId) => {
-  await getUserOrThrow(userId);
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      firstName: true,
+      email: true,
+      role: true,
+      accountStatus: true,
+      passwordHash: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('USER_NOT_FOUND');
+  }
 
   const temporaryPassword = buildTemporaryPassword();
   const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
+  let activeSessionIds = [];
 
   await prisma.$transaction(async (tx) => {
+    const activeSessions = await tx.refreshTokenSession.findMany({
+      where: { userId, isRevoked: false },
+      select: { id: true },
+    });
+
+    activeSessionIds = activeSessions.map((session) => session.id);
+
     await tx.user.update({
       where: { id: userId },
       data: { passwordHash },
     });
 
-    await tx.refreshTokenSession.updateMany({
-      where: { userId, isRevoked: false },
-      data: { isRevoked: true, revokedAt: new Date() },
-    });
+    if (activeSessionIds.length > 0) {
+      await tx.refreshTokenSession.updateMany({
+        where: { id: { in: activeSessionIds } },
+        data: { isRevoked: true, revokedAt: new Date() },
+      });
+    }
   });
+
+  try {
+    const emailPayload = buildPasswordResetEmail({
+      firstName: user.firstName,
+      email: user.email,
+      password: temporaryPassword,
+      role: user.role,
+    });
+
+    await sendEmail(user.email, emailPayload.subject, emailPayload.text);
+  } catch (err) {
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { passwordHash: user.passwordHash },
+      });
+
+      if (activeSessionIds.length > 0) {
+        await tx.refreshTokenSession.updateMany({
+          where: { id: { in: activeSessionIds } },
+          data: { isRevoked: false, revokedAt: null },
+        });
+      }
+    });
+
+    throw new Error('USER_RESET_EMAIL_SEND_FAILED');
+  }
 
   return {
     userId,
     temporaryPassword,
+    credentialsSent: true,
   };
 };
 
