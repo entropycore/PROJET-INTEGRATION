@@ -15,16 +15,34 @@ router.get('/dashboard-items/:itemType/:itemId', administratorController.getDash
 router.patch('/dashboard-items/:itemType/:itemId/approve', administratorController.approveDashboardItem);
 router.patch('/dashboard-items/:itemType/:itemId/reject', administratorController.rejectDashboardItem);
 router.get('/notifications', administratorController.listNotifications);
+router.get('/notifications/unread-count', administratorController.getUnreadNotificationsCount);
 router.patch('/notifications/read-all', administratorController.markAllNotificationsAsRead);
 router.patch('/notifications/:notificationId/read', administratorController.markNotificationAsRead);
+router.delete('/notifications/:notificationId', administratorController.deleteNotification);
+router.get('/validations/pending', administratorController.listPendingValidationsLegacy);
+router.get('/validations/pending-count', administratorController.getPendingValidationCountsLegacy);
+router.get('/validations/:validationId', administratorController.getLegacyValidationDetail);
+router.patch('/validations/:validationId/approve', administratorController.approveLegacyValidationItem);
+router.patch('/validations/:validationId/reject', administratorController.rejectLegacyValidationItem);
+router.patch(
+  '/validations/:validationId/request-changes',
+  administratorController.requestLegacyValidationChanges
+);
 router.get('/validations', administratorController.listValidationItems);
 router.get('/validations/:itemType/:itemId', administratorController.getValidationItemDetail);
 router.patch('/validations/:itemType/:itemId/approve', administratorController.approveValidationItem);
 router.patch('/validations/:itemType/:itemId/reject', administratorController.rejectValidationItem);
 router.get('/reports', administratorController.listReports);
+router.get('/reports/pending-count', administratorController.getPendingReportsCountLegacy);
 router.get('/reports/:reportId', administratorController.getReportById);
+router.patch('/reports/:reportId/resolve', administratorController.resolveLegacyReport);
 router.patch('/reports/:reportId/approve', administratorController.approveReport);
 router.patch('/reports/:reportId/reject', administratorController.rejectReport);
+router.delete('/reports/:reportId/target', administratorController.deleteLegacyReportedTarget);
+router.get('/badges', administratorController.listBadges);
+router.post('/badges', administratorController.createBadge);
+router.put('/badges/:badgeId', administratorController.updateBadge);
+router.delete('/badges/:badgeId', administratorController.deleteBadge);
 router.get('/profile', administratorController.getProfile);
 router.get('/users', administratorController.listUsers);
 router.post('/users', administratorController.createUser);

@@ -7,11 +7,14 @@ const VALID_ACCOUNT_STATUSES = new Set(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PEND
 const VALID_USER_ROLES = new Set(['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL']);
 const VALID_VALIDATION_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED']);
 const VALID_VALIDATION_TYPES = new Set([
+  'PROJECT',
+  'INTERNSHIP',
   'CERTIFICATE_VALIDATION',
   'RECOMMENDATION_LETTER_VALIDATION',
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ]);
+const VALID_LEGACY_VALIDATION_TYPES = new Set(['PROJECT', 'INTERNSHIP', 'CERTIFICATE', 'ACTIVITY']);
 const VALID_NOTIFICATION_TYPES = new Set([
   'ACCESS_REQUEST',
   'CERTIFICATE_VALIDATION',
@@ -20,6 +23,9 @@ const VALID_NOTIFICATION_TYPES = new Set([
   'RECOMMENDATION_VALIDATION',
   'REPORT',
   'SYSTEM',
+  'INFO',
+  'VALIDATION',
+  'ALERT',
 ]);
 const VALID_REPORT_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED']);
 const VALID_REPORT_TARGET_TYPES = new Set([
@@ -74,12 +80,24 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Signalement introuvable.');
   }
 
+  if (err.message === 'REPORT_TARGET_NOT_FOUND') {
+    return error(res, 404, 'Cible du signalement introuvable.');
+  }
+
   if (err.message === 'NOTIFICATION_NOT_FOUND') {
     return error(res, 404, 'Notification introuvable.');
   }
 
+  if (err.message === 'BADGE_NOT_FOUND') {
+    return error(res, 404, 'Badge introuvable.');
+  }
+
   if (err.message === 'INVALID_NOTIFICATION_TYPE') {
     return error(res, 400, 'Le type de notification est invalide.');
+  }
+
+  if (err.message === 'BADGE_REQUIRED_FIELDS') {
+    return error(res, 400, 'Les champs name et rule sont obligatoires pour un badge.');
   }
 
   if (err.message === 'UNSUPPORTED_DASHBOARD_ITEM_TYPE') {
@@ -88,6 +106,10 @@ const handleAdminError = (res, err) => {
 
   if (err.message === 'UNSUPPORTED_VALIDATION_TYPE') {
     return error(res, 400, "Le type de validation n'est pas supporte.");
+  }
+
+  if (err.message === 'UNSUPPORTED_LEGACY_VALIDATION_TYPE') {
+    return error(res, 400, "Le type de validation legacy n'est pas supporte.");
   }
 
   if (err.message === 'UNSUPPORTED_REPORT_TARGET_TYPE') {
@@ -146,6 +168,10 @@ const handleAdminError = (res, err) => {
     return error(res, 409, 'Cet email est deja utilise.');
   }
 
+  if (err.message === 'BADGE_NAME_ALREADY_EXISTS') {
+    return error(res, 409, 'Un badge avec ce nom existe deja.');
+  }
+
   if (err.message === 'ROLE_CHANGE_REQUIRES_DEDICATED_ENDPOINT') {
     return error(res, 400, 'Utilisez la route dediee pour changer le role.');
   }
@@ -176,6 +202,10 @@ const handleAdminError = (res, err) => {
       409,
       'La suppression est impossible car ce compte est encore lie a des donnees metier.'
     );
+  }
+
+  if (err.message === 'BADGE_FEATURE_UNAVAILABLE') {
+    return error(res, 503, 'Le module badges n est pas disponible sur cette instance.');
   }
 
   if (err.code === 'P2002') {
@@ -244,6 +274,44 @@ exports.listValidationItems = async (req, res, next) => {
   }
 };
 
+exports.listPendingValidationsLegacy = async (req, res, next) => {
+  try {
+    const type = normalizeItemType(req.query.type);
+    const status = normalizeStatus(req.query.status || 'PENDING');
+
+    if (type && !VALID_LEGACY_VALIDATION_TYPES.has(type)) {
+      return error(res, 400, 'Le filtre type legacy est invalide.');
+    }
+
+    if (status && !VALID_VALIDATION_STATUSES.has(status)) {
+      return error(res, 400, 'Le filtre status est invalide.');
+    }
+
+    const data = await administratorService.listPendingValidationsLegacy({
+      type,
+      status,
+      search: req.query.search?.trim(),
+      page: parsePositiveInt(req.query.page, 1),
+      limit: parsePositiveInt(req.query.limit, 10),
+    });
+
+    return success(res, 200, 'Validations en attente recuperees.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getPendingValidationCountsLegacy = async (req, res, next) => {
+  try {
+    const data = await administratorService.getPendingValidationCountsLegacy();
+    return success(res, 200, 'Compteurs des validations en attente recuperes.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.getValidationItemDetail = async (req, res, next) => {
   try {
     const item = await administratorService.getValidationItemDetail(
@@ -258,11 +326,37 @@ exports.getValidationItemDetail = async (req, res, next) => {
   }
 };
 
+exports.getLegacyValidationDetail = async (req, res, next) => {
+  try {
+    const item = await administratorService.getLegacyValidationDetail(req.params.validationId);
+    return success(res, 200, 'Validation recuperee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.approveValidationItem = async (req, res, next) => {
   try {
     const item = await administratorService.approveValidationItem(
       req.params.itemType,
       req.params.itemId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Validation approuvee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.approveLegacyValidationItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.approveLegacyValidationItem(
+      req.params.validationId,
       req.user.userId,
       req.user.roleId,
       req.body || {}
@@ -292,10 +386,44 @@ exports.rejectValidationItem = async (req, res, next) => {
   }
 };
 
+exports.rejectLegacyValidationItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.rejectLegacyValidationItem(
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Validation rejetee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.requestLegacyValidationChanges = async (req, res, next) => {
+  try {
+    const item = await administratorService.requestLegacyValidationChanges(
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Demande de correction envoyee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.listNotifications = async (req, res, next) => {
   try {
     const type = normalizeItemType(req.query.type);
-    const isRead = parseBooleanFilter(req.query.isRead);
+    const isRead = parseBooleanFilter(
+      typeof req.query.isRead !== 'undefined' ? req.query.isRead : req.query.read
+    );
 
     if (type && !VALID_NOTIFICATION_TYPES.has(type)) {
       return error(res, 400, 'Le filtre type est invalide.');
@@ -321,6 +449,16 @@ exports.listNotifications = async (req, res, next) => {
   }
 };
 
+exports.getUnreadNotificationsCount = async (req, res, next) => {
+  try {
+    const count = await administratorService.getUnreadNotificationsCount(req.user.roleId);
+    return success(res, 200, 'Compteur des notifications non lues recupere.', { count });
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.markNotificationAsRead = async (req, res, next) => {
   try {
     const notification = await administratorService.markNotificationAsRead(
@@ -329,6 +467,20 @@ exports.markNotificationAsRead = async (req, res, next) => {
     );
 
     return success(res, 200, 'Notification marquee comme lue.', notification);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteNotification = async (req, res, next) => {
+  try {
+    const result = await administratorService.deleteNotification(
+      req.params.notificationId,
+      req.user.roleId
+    );
+
+    return success(res, 200, 'Notification supprimee.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -348,8 +500,15 @@ exports.markAllNotificationsAsRead = async (req, res, next) => {
 
 exports.listReports = async (req, res, next) => {
   try {
-    const status = normalizeStatus(req.query.status || 'PENDING');
-    const targetType = normalizeItemType(req.query.targetType);
+    const requestedStatus = normalizeStatus(req.query.status);
+    const status = !requestedStatus
+      ? 'PENDING'
+      : requestedStatus === 'ALL'
+        ? null
+        : requestedStatus === 'RESOLVED'
+          ? 'APPROVED'
+          : requestedStatus;
+    const targetType = normalizeItemType(req.query.targetType || req.query.type);
 
     if (status && !VALID_REPORT_STATUSES.has(status)) {
       return error(res, 400, 'Le filtre status est invalide.');
@@ -368,6 +527,16 @@ exports.listReports = async (req, res, next) => {
     });
 
     return success(res, 200, 'Signalements recuperes.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getPendingReportsCountLegacy = async (req, res, next) => {
+  try {
+    const count = await administratorService.getPendingReportsCount();
+    return success(res, 200, 'Compteur des signalements en attente recupere.', { count });
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -403,6 +572,25 @@ exports.approveReport = async (req, res, next) => {
   }
 };
 
+exports.resolveLegacyReport = async (req, res, next) => {
+  try {
+    const report = await administratorService.resolveReportLegacy(
+      req.params.reportId,
+      req.user.roleId,
+      typeof req.body?.resolutionNote === 'string'
+        ? req.body.resolutionNote.trim() || null
+        : typeof req.body?.comment === 'string'
+          ? req.body.comment.trim() || null
+          : null
+    );
+
+    return success(res, 200, 'Signalement traite.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.rejectReport = async (req, res, next) => {
   try {
     const report = await administratorService.rejectReport(
@@ -418,6 +606,25 @@ exports.rejectReport = async (req, res, next) => {
     );
 
     return success(res, 200, 'Signalement rejete.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteLegacyReportedTarget = async (req, res, next) => {
+  try {
+    const report = await administratorService.deleteReportedTarget(
+      req.params.reportId,
+      req.user.roleId,
+      typeof req.body?.resolutionNote === 'string'
+        ? req.body.resolutionNote.trim() || null
+        : typeof req.body?.comment === 'string'
+          ? req.body.comment.trim() || null
+          : null
+    );
+
+    return success(res, 200, 'Contenu signale supprime.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -460,6 +667,51 @@ exports.getProfile = async (req, res, next) => {
   try {
     const profile = await administratorService.getAdministratorProfile(req.user.userId);
     return success(res, 200, 'Profil administrateur charge.', profile);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.listBadges = async (req, res, next) => {
+  try {
+    const data = await administratorService.listBadges({
+      search: req.query.search?.trim(),
+      page: parsePositiveInt(req.query.page, 1),
+      limit: parsePositiveInt(req.query.limit, 10),
+    });
+
+    return success(res, 200, 'Badges recuperes.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.createBadge = async (req, res, next) => {
+  try {
+    const badge = await administratorService.createBadge(req.body || {});
+    return success(res, 201, 'Badge cree.', badge);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateBadge = async (req, res, next) => {
+  try {
+    const badge = await administratorService.updateBadge(req.params.badgeId, req.body || {});
+    return success(res, 200, 'Badge mis a jour.', badge);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteBadge = async (req, res, next) => {
+  try {
+    const result = await administratorService.deleteBadge(req.params.badgeId);
+    return success(res, 200, 'Badge supprime.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);

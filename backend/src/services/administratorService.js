@@ -8,11 +8,14 @@ const notificationService = require('./notificationService');
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
 const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
 const VALIDATION_ITEM_TYPES = [
+  'PROJECT',
+  'INTERNSHIP',
   'CERTIFICATE_VALIDATION',
   'RECOMMENDATION_LETTER_VALIDATION',
   'COMMENT_VALIDATION',
   'RECOMMENDATION_VALIDATION',
 ];
+const LEGACY_VALIDATION_TYPES = ['PROJECT', 'INTERNSHIP', 'CERTIFICATE', 'ACTIVITY'];
 const NOTIFICATION_TYPES = [
   'ACCESS_REQUEST',
   'CERTIFICATE_VALIDATION',
@@ -22,8 +25,16 @@ const NOTIFICATION_TYPES = [
   'REPORT',
   'SYSTEM',
 ];
+const LEGACY_NOTIFICATION_TYPES = ['INFO', 'VALIDATION', 'ALERT'];
 const REPORT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
 const REPORT_TARGET_TYPES = ['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'];
+const DELETABLE_REPORT_TARGET_TYPES = new Set([
+  'PORTFOLIO',
+  'COMMENT',
+  'RECOMMENDATION',
+  'PROJECT',
+  'INTERNSHIP',
+]);
 const BCRYPT_ROUNDS = 10;
 
 const professionalRequestSelect = {
@@ -157,6 +168,17 @@ const notificationSelect = {
   isRead: true,
   createdAt: true,
   readAt: true,
+};
+
+const badgeSelect = {
+  id: true,
+  name: true,
+  description: true,
+  rule: true,
+  iconUrl: true,
+  tone: true,
+  createdAt: true,
+  updatedAt: true,
 };
 
 const recommendationLetterValidationSelect = {
@@ -687,21 +709,371 @@ const mapRecommendationValidationItem = (recommendation) => {
   };
 };
 
+const extractFileNameFromUrl = (url, fallbackName) => {
+  if (!url) {
+    return fallbackName;
+  }
+
+  try {
+    const pathname = new URL(url).pathname;
+    const fileName = pathname.split('/').filter(Boolean).pop();
+    return fileName || fallbackName;
+  } catch (_) {
+    const fileName = String(url).split('/').filter(Boolean).pop();
+    return fileName || fallbackName;
+  }
+};
+
+const buildLegacyValidationStudent = (student, user, fallbackName, fallbackEmail = null) => ({
+  id: student?.id || null,
+  fullName: user ? formatFullName(user) : fallbackName || 'Utilisateur inconnu',
+  email: user?.email || fallbackEmail || null,
+  profilePicture: user?.profilePicture || null,
+  field: student?.major || null,
+  level: student?.level || null,
+  city: student?.city || null,
+});
+
+const buildLegacyValidationFiles = (url, fallbackName) =>
+  url
+    ? [
+        {
+          id: url,
+          name: extractFileNameFromUrl(url, fallbackName),
+          size: null,
+          url,
+        },
+      ]
+    : [];
+
+const buildLegacyValidationMediaFiles = (media = []) =>
+  Array.isArray(media)
+    ? media
+        .filter((item) => item?.mediaUrl)
+        .map((item, index) => ({
+          id: item.id || item.mediaUrl || `project-media-${index + 1}`,
+          name: extractFileNameFromUrl(
+            item.mediaUrl,
+            item.mediaType ? `${String(item.mediaType).toLowerCase()}-${index + 1}` : `media-${index + 1}`
+          ),
+          size: null,
+          url: item.mediaUrl,
+        }))
+    : [];
+
+const formatTechnologyLabel = (technology) =>
+  technology?.version ? `${technology.name} ${technology.version}` : technology?.name || null;
+
+const mapProjectValidationItem = (project) => {
+  const studentUser = project.student?.user;
+
+  return {
+    id: project.id,
+    type: 'PROJECT',
+    label: 'Project validation',
+    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
+    email: studentUser?.email || null,
+    organization: null,
+    createdAt: project.submittedAt || project.createdAt,
+    tone: 'green',
+    status: project.validationStatus,
+    raw: {
+      title: project.title,
+      description: project.description,
+      projectType: project.type,
+      teamRole: project.teamRole,
+      githubUrl: project.githubUrl,
+      youtubeUrl: project.youtubeUrl,
+      result: project.result,
+      generalFeedback: project.generalFeedback,
+      submittedAt: project.submittedAt,
+      createdAt: project.createdAt,
+      visibility: project.visibility,
+      student: project.student,
+      technologies: project.technologies,
+      media: project.media,
+    },
+  };
+};
+
+const mapInternshipValidationItem = (internship) => {
+  const studentUser = internship.student?.user;
+
+  return {
+    id: internship.id,
+    type: 'INTERNSHIP',
+    label: 'Internship validation',
+    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
+    email: studentUser?.email || null,
+    organization: internship.hostOrganization || null,
+    createdAt: internship.startDate || internship.endDate || null,
+    tone: 'green',
+    status: internship.validationStatus,
+    raw: {
+      title: internship.hostOrganization ? `Stage - ${internship.hostOrganization}` : 'Stage',
+      description: internship.missions || null,
+      hostOrganization: internship.hostOrganization,
+      duration: internship.duration,
+      startDate: internship.startDate,
+      endDate: internship.endDate,
+      missions: internship.missions,
+      reportUrl: internship.reportUrl,
+      visibility: internship.visibility,
+      student: internship.student,
+      supervisorProfessor: internship.supervisorProfessor,
+      technologies: internship.technologies,
+    },
+  };
+};
+
+const mapValidationItemToLegacyShape = (item) => {
+  switch (item.type) {
+    case 'PROJECT': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Projet';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'PROJECT',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.raw?.submittedAt || item.createdAt,
+        description: item.raw?.description || 'Projet soumis pour validation.',
+        content: {
+          title,
+          description: item.raw?.description || null,
+          files: buildLegacyValidationMediaFiles(item.raw?.media),
+        },
+        targetDetails: {
+          technologies: (item.raw?.technologies || [])
+            .map((entry) => formatTechnologyLabel(entry.technology))
+            .filter(Boolean),
+          visibility: item.raw?.visibility || null,
+          createdAt: item.raw?.createdAt || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'INTERNSHIP': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Stage';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'INTERNSHIP',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.raw?.startDate || item.createdAt,
+        description: item.raw?.description || item.raw?.missions || 'Stage soumis pour validation.',
+        content: {
+          title,
+          description: item.raw?.missions || item.raw?.description || null,
+          files: buildLegacyValidationFiles(item.raw?.reportUrl, 'rapport-stage'),
+        },
+        targetDetails: {
+          company: item.raw?.hostOrganization || item.organization || null,
+          startDate: item.raw?.startDate || null,
+          endDate: item.raw?.endDate || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'CERTIFICATE_VALIDATION': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const activity = item.raw?.activity || null;
+      const certificateId = item.raw?.certificateId || item.id;
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'CERTIFICATE',
+        targetId: certificateId,
+        title: activity?.title || 'Certificat',
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.raw?.submittedAt || item.createdAt,
+        description: activity?.description || 'Certificat soumis pour validation.',
+        content: {
+          title: activity?.title || 'Certificat',
+          description: activity?.description || null,
+          files: buildLegacyValidationFiles(item.raw?.documentUrl, 'certificat'),
+        },
+        targetDetails: {
+          issuer: activity?.organization || null,
+          issueDate: activity?.startDate || null,
+          expirationDate: activity?.endDate || null,
+          credentialUrl: item.raw?.documentUrl || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'RECOMMENDATION_LETTER_VALIDATION': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Lettre de recommandation';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: item.raw?.content || null,
+        content: {
+          title,
+          description: item.raw?.content || null,
+          files: buildLegacyValidationFiles(item.raw?.documentUrl, 'recommendation-letter'),
+        },
+        targetDetails: {
+          organization: null,
+          role: item.raw?.authorName || null,
+          description: item.raw?.content || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'COMMENT_VALIDATION': {
+      const student = item.raw?.portfolio?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Commentaire';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.raw?.targetId || item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: item.raw?.content || null,
+        content: {
+          title,
+          description: item.raw?.content || null,
+          files: [],
+        },
+        targetDetails: {
+          organization: null,
+          role: item.requesterName || null,
+          description: item.raw?.content || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    case 'RECOMMENDATION_VALIDATION': {
+      const student = item.raw?.student || null;
+      const studentUser = student?.user || null;
+      const title = item.raw?.title || 'Recommendation';
+
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.id,
+        title,
+        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: item.raw?.content || null,
+        content: {
+          title,
+          description: item.raw?.content || null,
+          files: [],
+        },
+        targetDetails: {
+          organization: item.raw?.organization || item.organization || null,
+          role: item.raw?.authorJobTitle || null,
+          description: item.raw?.content || null,
+        },
+        raw: item.raw,
+      };
+    }
+
+    default:
+      return {
+        id: item.id,
+        itemType: item.type,
+        targetType: 'ACTIVITY',
+        targetId: item.id,
+        title: item.label,
+        student: {
+          id: null,
+          fullName: item.requesterName,
+          email: item.email,
+          profilePicture: null,
+          field: null,
+          level: null,
+          city: null,
+        },
+        status: item.status,
+        submittedAt: item.createdAt,
+        description: null,
+        content: {
+          title: item.label,
+          description: null,
+          files: [],
+        },
+        targetDetails: {},
+        raw: item.raw,
+      };
+  }
+};
+
 const mapReportItem = (report) => {
   const reporter = report.reporterUser;
   const reviewer = report.reviewedByAdministrator?.user || null;
+  const reporterFullName = reporter ? formatFullName(reporter) : 'Utilisateur inconnu';
+  const displayStatus = report.status === 'APPROVED' ? 'RESOLVED' : report.status;
 
   return {
     id: report.id,
     type: 'REPORT',
     label: 'Report',
-    requesterName: reporter ? formatFullName(reporter) : 'Utilisateur inconnu',
+    requesterName: reporterFullName,
     email: reporter?.email || null,
     organization: null,
     createdAt: report.createdAt,
     tone: 'red',
-    status: report.status,
+    status: displayStatus,
+    targetType: report.targetType,
+    targetId: report.targetId,
+    reason: report.reason,
+    description: report.description,
+    reviewedAt: report.reviewedAt,
+    resolutionNote: report.resolutionNote,
+    reportedBy: {
+      id: reporter?.id || null,
+      fullName: reporterFullName,
+      email: reporter?.email || null,
+      phone: reporter?.phone || null,
+      profilePicture: reporter?.profilePicture || null,
+    },
+    reviewedBy: reviewer
+      ? {
+          id: reviewer.id,
+          fullName: formatFullName(reviewer),
+          email: reviewer.email || null,
+        }
+      : null,
     raw: {
+      status: report.status,
       targetType: report.targetType,
       targetId: report.targetId,
       reason: report.reason,
@@ -734,6 +1106,18 @@ const buildUserSearch = (search) => {
   ];
 };
 
+const buildBadgeSearch = (search) => {
+  if (!search) {
+    return undefined;
+  }
+
+  return [
+    { name: { contains: search, mode: 'insensitive' } },
+    { description: { contains: search, mode: 'insensitive' } },
+    { rule: { contains: search, mode: 'insensitive' } },
+  ];
+};
+
 const normalizePagination = (page = 1, limit = 10) => {
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
   const safeLimit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 50) : 10;
@@ -761,9 +1145,38 @@ const ensureValidValidationType = (type) => {
   }
 };
 
+const normalizeLegacyValidationType = (value) =>
+  typeof value === 'string' ? value.trim().toUpperCase().replace(/-/g, '_') : value;
+
+const ensureValidLegacyValidationType = (type) => {
+  if (!LEGACY_VALIDATION_TYPES.includes(type)) {
+    throw new Error('UNSUPPORTED_LEGACY_VALIDATION_TYPE');
+  }
+};
+
 const ensureValidNotificationType = (type) => {
-  if (!NOTIFICATION_TYPES.includes(type)) {
+  if (!NOTIFICATION_TYPES.includes(type) && !LEGACY_NOTIFICATION_TYPES.includes(type)) {
     throw new Error('INVALID_NOTIFICATION_TYPE');
+  }
+};
+
+const getNotificationFilterByType = (type) => {
+  switch (type) {
+    case 'INFO':
+      return { in: ['ACCESS_REQUEST', 'SYSTEM'] };
+    case 'VALIDATION':
+      return {
+        in: [
+          'CERTIFICATE_VALIDATION',
+          'RECOMMENDATION_LETTER_VALIDATION',
+          'COMMENT_VALIDATION',
+          'RECOMMENDATION_VALIDATION',
+        ],
+      };
+    case 'ALERT':
+      return { in: ['REPORT'] };
+    default:
+      return type;
   }
 };
 
@@ -779,6 +1192,70 @@ const ensureValidReportTargetType = (targetType) => {
   }
 };
 
+const deleteReportTargetRecord = async (tx, report) => {
+  if (!DELETABLE_REPORT_TARGET_TYPES.has(report.targetType)) {
+    return 'resolved_without_target_deletion';
+  }
+
+  try {
+    switch (report.targetType) {
+      case 'PORTFOLIO':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
+        await tx.portfolio.delete({
+          where: { id: report.targetId },
+        });
+        return 'deleted';
+
+      case 'COMMENT':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
+        await tx.comment.delete({
+          where: { id: report.targetId },
+        });
+        return 'deleted';
+
+      case 'RECOMMENDATION':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
+        await tx.recommendation.delete({
+          where: { id: report.targetId },
+        });
+        return 'deleted';
+
+      case 'PROJECT':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
+        await tx.project.delete({
+          where: { id: report.targetId },
+        });
+        return 'deleted';
+
+      case 'INTERNSHIP':
+        if (!report.targetId) {
+          throw new Error('REPORT_TARGET_NOT_FOUND');
+        }
+        await tx.internship.delete({
+          where: { id: report.targetId },
+        });
+        return 'deleted';
+
+      default:
+        return 'resolved_without_target_deletion';
+    }
+  } catch (err) {
+    if (err?.code === 'P2025') {
+      throw new Error('REPORT_TARGET_NOT_FOUND');
+    }
+
+    throw err;
+  }
+};
+
 const paginateItems = (items, page = 1, limit = 10) => {
   const { page: safePage, limit: safeLimit, skip } = normalizePagination(page, limit);
 
@@ -789,6 +1266,96 @@ const paginateItems = (items, page = 1, limit = 10) => {
 };
 
 const normalizeSearch = (value) => String(value || '').trim().toLowerCase();
+
+const normalizeRequiredText = (value) => (typeof value === 'string' ? value.trim() : '');
+
+const normalizeOptionalText = (value) => {
+  if (typeof value !== 'string') {
+    return value == null ? null : value;
+  }
+
+  const trimmed = value.trim();
+  return trimmed || null;
+};
+
+const normalizeBadgeTone = (value) => {
+  const normalized = normalizeRequiredText(value);
+  return normalized || 'blue';
+};
+
+const hasBadgeFeature = () => typeof prisma.badge?.findMany === 'function';
+
+const ensureBadgeFeatureAvailable = () => {
+  if (!hasBadgeFeature()) {
+    throw new Error('BADGE_FEATURE_UNAVAILABLE');
+  }
+
+  return prisma.badge;
+};
+
+const mapBadgeItem = (badge) => ({
+  id: badge.id,
+  name: badge.name,
+  description: badge.description,
+  rule: badge.rule,
+  iconUrl: badge.iconUrl || '',
+  iconFallback: '🏅',
+  tone: badge.tone || 'blue',
+  attributionCount: 0,
+  createdAt: badge.createdAt,
+  updatedAt: badge.updatedAt,
+});
+
+const getBadgeOrThrow = async (badgeId) => {
+  let badge;
+
+  try {
+    badge = await ensureBadgeFeatureAvailable().findUnique({
+      where: { id: badgeId },
+      select: badgeSelect,
+    });
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    throw err;
+  }
+
+  if (!badge) {
+    throw new Error('BADGE_NOT_FOUND');
+  }
+
+  return badge;
+};
+
+const ensureUniqueBadgeName = async (name, excludedBadgeId = null) => {
+  try {
+    const existingBadge = await ensureBadgeFeatureAvailable().findFirst({
+      where: {
+        name,
+        ...(excludedBadgeId
+          ? {
+              NOT: { id: excludedBadgeId },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (existingBadge) {
+      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+    }
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    throw err;
+  }
+};
 
 const matchesValidationSearch = (item, search) => {
   const normalizedSearch = normalizeSearch(search);
@@ -850,11 +1417,27 @@ const getNotificationLink = (type, relatedType = null) => {
   }
 };
 
+const getLegacyNotificationType = (type, relatedType = null) => {
+  const effectiveType = relatedType || type;
+
+  switch (effectiveType) {
+    case 'REPORT':
+      return 'ALERT';
+    case 'ACCESS_REQUEST':
+    case 'SYSTEM':
+      return 'INFO';
+    default:
+      return 'VALIDATION';
+  }
+};
+
 const mapNotificationItem = (notification) => ({
   id: notification.id,
-  type: notification.type,
+  type: getLegacyNotificationType(notification.type, notification.relatedType),
+  notificationType: notification.type,
   title: notification.title,
   message: notification.message,
+  read: notification.isRead,
   isRead: notification.isRead,
   createdAt: notification.createdAt,
   readAt: notification.readAt,
@@ -869,6 +1452,7 @@ const mapNotificationItem = (notification) => ({
       : null,
   raw: {
     administratorId: notification.administratorId,
+    notificationType: notification.type,
     relatedType: notification.relatedType,
     relatedId: notification.relatedId,
   },
@@ -1063,6 +1647,115 @@ const certificateDetailSelect = {
               profilePicture: true,
             },
           },
+        },
+      },
+    },
+  },
+};
+
+const projectValidationSelect = {
+  id: true,
+  title: true,
+  description: true,
+  type: true,
+  teamRole: true,
+  githubUrl: true,
+  youtubeUrl: true,
+  result: true,
+  generalFeedback: true,
+  createdAt: true,
+  submittedAt: true,
+  validationStatus: true,
+  visibility: true,
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+        },
+      },
+    },
+  },
+  technologies: {
+    select: {
+      technology: {
+        select: {
+          name: true,
+          version: true,
+        },
+      },
+    },
+  },
+  media: {
+    select: {
+      id: true,
+      mediaType: true,
+      mediaUrl: true,
+      description: true,
+    },
+  },
+};
+
+const internshipValidationSelect = {
+  id: true,
+  hostOrganization: true,
+  duration: true,
+  startDate: true,
+  endDate: true,
+  missions: true,
+  reportUrl: true,
+  validationStatus: true,
+  visibility: true,
+  student: {
+    select: {
+      id: true,
+      apogeeCode: true,
+      cne: true,
+      major: true,
+      level: true,
+      city: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          profilePicture: true,
+        },
+      },
+    },
+  },
+  supervisorProfessor: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      },
+    },
+  },
+  technologies: {
+    select: {
+      technology: {
+        select: {
+          name: true,
+          version: true,
         },
       },
     },
@@ -1383,11 +2076,15 @@ const buildTemporaryPassword = () => {
 
 const getPendingValidationCounts = async () => {
   const [
+    pendingProjects,
+    pendingInternships,
     pendingCertificates,
     pendingLetters,
     pendingComments,
     pendingRecommendations,
   ] = await Promise.all([
+    safeCount(() => prisma.project.count({ where: { validationStatus: 'PENDING' } })),
+    safeCount(() => prisma.internship.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.certificate.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.recommendationLetter.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.comment.count({ where: { status: 'PENDING' } })),
@@ -1395,17 +2092,29 @@ const getPendingValidationCounts = async () => {
   ]);
 
   return {
+    pendingProjects,
+    pendingInternships,
     pendingCertificates,
     pendingLetters,
     pendingComments,
     pendingRecommendations,
     total:
+      pendingProjects +
+      pendingInternships +
       pendingCertificates +
       pendingLetters +
       pendingComments +
       pendingRecommendations,
   };
 };
+
+const mapLegacyPendingValidationCounts = (counts) => ({
+  count: counts.total,
+  projects: counts.pendingProjects,
+  internships: counts.pendingInternships,
+  certificates: counts.pendingCertificates,
+  activities: counts.pendingLetters + counts.pendingComments + counts.pendingRecommendations,
+});
 
 const getRecentProfessionalRequests = async () =>
   safeReadWithFallback(
@@ -1580,6 +2289,32 @@ const loadCertificateValidationItems = async (status) =>
     []
   );
 
+const loadProjectValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.project.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ submittedAt: 'desc' }, { createdAt: 'desc' }],
+        take: 100,
+        select: projectValidationSelect,
+      }),
+    null,
+    []
+  );
+
+const loadInternshipValidationItems = async (status) =>
+  safeReadWithFallback(
+    () =>
+      prisma.internship.findMany({
+        where: { validationStatus: status },
+        orderBy: [{ startDate: 'desc' }, { endDate: 'desc' }],
+        take: 100,
+        select: internshipValidationSelect,
+      }),
+    null,
+    []
+  );
+
 const loadRecommendationLetterValidationItems = async (status) =>
   safeReadWithFallback(
     () =>
@@ -1619,6 +2354,50 @@ const loadRecommendationValidationItems = async (status) =>
     []
   );
 
+const resolveValidationItemTypeById = async (itemId) => {
+  const [project, internship, certificate, letter, comment, recommendation] = await Promise.all([
+    safeReadWithFallback(
+      () => prisma.project.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.internship.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.certificate.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.recommendationLetter.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.comment.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.recommendation.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+  ]);
+
+  if (project) return 'PROJECT';
+  if (internship) return 'INTERNSHIP';
+  if (certificate) return 'CERTIFICATE_VALIDATION';
+  if (letter) return 'RECOMMENDATION_LETTER_VALIDATION';
+  if (comment) return 'COMMENT_VALIDATION';
+  if (recommendation) return 'RECOMMENDATION_VALIDATION';
+
+  throw new Error('VALIDATION_ITEM_NOT_FOUND');
+};
+
 const loadReportItems = async (status, targetType) =>
   safeReadWithFallback(
     () =>
@@ -1634,6 +2413,111 @@ const loadReportItems = async (status, targetType) =>
     null,
     []
   );
+
+const approveProjectValidation = async (projectId, feedback = null) => {
+  const project = await getProjectValidationOrThrow(projectId);
+
+  if (project.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      validationStatus: 'APPROVED',
+      generalFeedback: feedback,
+    },
+  });
+
+  return mapProjectValidationItem(await getProjectValidationOrThrow(projectId));
+};
+
+const rejectProjectValidation = async (projectId, feedback = null) => {
+  const project = await getProjectValidationOrThrow(projectId);
+
+  if (project.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      validationStatus: 'REJECTED',
+      generalFeedback: feedback,
+    },
+  });
+
+  return mapProjectValidationItem(await getProjectValidationOrThrow(projectId));
+};
+
+const requestProjectValidationChanges = async (projectId, feedback = null) => {
+  const project = await getProjectValidationOrThrow(projectId);
+
+  if (project.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      validationStatus: 'CHANGES_REQUESTED',
+      generalFeedback: feedback,
+    },
+  });
+
+  return mapProjectValidationItem(await getProjectValidationOrThrow(projectId));
+};
+
+const approveInternshipValidation = async (internshipId) => {
+  const internship = await getInternshipValidationOrThrow(internshipId);
+
+  if (internship.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.internship.update({
+    where: { id: internshipId },
+    data: {
+      validationStatus: 'APPROVED',
+    },
+  });
+
+  return mapInternshipValidationItem(await getInternshipValidationOrThrow(internshipId));
+};
+
+const rejectInternshipValidation = async (internshipId) => {
+  const internship = await getInternshipValidationOrThrow(internshipId);
+
+  if (internship.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.internship.update({
+    where: { id: internshipId },
+    data: {
+      validationStatus: 'REJECTED',
+    },
+  });
+
+  return mapInternshipValidationItem(await getInternshipValidationOrThrow(internshipId));
+};
+
+const requestInternshipValidationChanges = async (internshipId) => {
+  const internship = await getInternshipValidationOrThrow(internshipId);
+
+  if (internship.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.internship.update({
+    where: { id: internshipId },
+    data: {
+      validationStatus: 'CHANGES_REQUESTED',
+    },
+  });
+
+  return mapInternshipValidationItem(await getInternshipValidationOrThrow(internshipId));
+};
 
 const approveCertificateRequest = async (certificateId, administratorId, comment = null) => {
   const certificate = await getCertificateRequestOrThrow(certificateId);
@@ -1897,6 +2781,152 @@ const rejectRecommendationValidation = async (
   return mapRecommendationValidationItem(updatedRecommendation);
 };
 
+const requestCertificateValidationChanges = async (
+  certificateId,
+  administratorId,
+  comment = null
+) => {
+  const certificate = await getValidationCertificateOrThrow(certificateId);
+
+  if (certificate.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.certificate.update({
+      where: { id: certificateId },
+      data: { validationStatus: 'CHANGES_REQUESTED' },
+    });
+
+    await tx.certificateValidation.create({
+      data: {
+        certificateId,
+        administratorId,
+        decision: 'CHANGES_REQUESTED',
+        comment,
+      },
+    });
+  });
+
+  const updatedCertificate = await getValidationCertificateOrThrow(certificateId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour le certificat de ${
+      updatedCertificate.activity?.student?.user
+        ? formatFullName(updatedCertificate.activity.student.user)
+        : 'un etudiant'
+    }.`,
+    relatedType: 'CERTIFICATE_VALIDATION',
+    relatedId: certificateId,
+  });
+
+  return mapCertificateRequestDetail(updatedCertificate);
+};
+
+const requestRecommendationLetterValidationChanges = async (
+  letterId,
+  actorUserId,
+  comment = null
+) => {
+  const letter = await getRecommendationLetterValidationOrThrow(letterId);
+
+  if (letter.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendationLetter.update({
+    where: { id: letterId },
+    data: {
+      validationStatus: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: comment,
+    },
+  });
+
+  const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour la lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    }.`,
+    relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
+    relatedId: letterId,
+  });
+
+  return mapRecommendationLetterValidationItem(updatedLetter);
+};
+
+const requestCommentValidationChanges = async (
+  commentId,
+  actorUserId,
+  commentText = null
+) => {
+  const comment = await getCommentValidationOrThrow(commentId);
+
+  if (comment.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      status: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: commentText,
+    },
+  });
+
+  const updatedComment = await getCommentValidationOrThrow(commentId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour le commentaire de ${
+      updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
+    }.`,
+    relatedType: 'COMMENT_VALIDATION',
+    relatedId: commentId,
+  });
+
+  return mapCommentValidationItem(updatedComment);
+};
+
+const requestRecommendationValidationChanges = async (
+  recommendationId,
+  actorUserId,
+  comment = null
+) => {
+  const recommendation = await getRecommendationValidationOrThrow(recommendationId);
+
+  if (recommendation.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: comment,
+    },
+  });
+
+  const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour la recommandation de ${
+      updatedRecommendation.authorUser
+        ? formatFullName(updatedRecommendation.authorUser)
+        : 'un utilisateur'
+    }.`,
+    relatedType: 'RECOMMENDATION_VALIDATION',
+    relatedId: recommendationId,
+  });
+
+  return mapRecommendationValidationItem(updatedRecommendation);
+};
+
 exports.getDashboardData = async () => {
   await syncAdminNotifications();
 
@@ -1970,6 +3000,200 @@ exports.getAdministratorProfile = async (userId) => {
   }
 
   return profile;
+};
+
+exports.listBadges = async ({ page = 1, limit = 10, search } = {}) => {
+  const { skip, page: safePage, limit: safeLimit } = normalizePagination(page, limit);
+
+  if (!hasBadgeFeature()) {
+    return {
+      items: [],
+      pagination: buildPagination(safePage, safeLimit, 0),
+    };
+  }
+
+  const where = search
+    ? {
+        OR: buildBadgeSearch(search),
+      }
+    : undefined;
+
+  try {
+    const [total, badges] = await Promise.all([
+      prisma.badge.count({ where }),
+      prisma.badge.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }, { name: 'asc' }],
+        skip,
+        take: safeLimit,
+        select: badgeSelect,
+      }),
+    ]);
+
+    return {
+      items: badges.map(mapBadgeItem),
+      pagination: buildPagination(safePage, safeLimit, total),
+    };
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      return {
+        items: [],
+        pagination: buildPagination(safePage, safeLimit, 0),
+      };
+    }
+
+    throw err;
+  }
+};
+
+const getProjectValidationOrThrow = async (projectId) => {
+  const project = await safeReadWithFallback(
+    () =>
+      prisma.project.findUnique({
+        where: { id: projectId },
+        select: projectValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!project) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return project;
+};
+
+const getInternshipValidationOrThrow = async (internshipId) => {
+  const internship = await safeReadWithFallback(
+    () =>
+      prisma.internship.findUnique({
+        where: { id: internshipId },
+        select: internshipValidationSelect,
+      }),
+    null,
+    null
+  );
+
+  if (!internship) {
+    throw new Error('VALIDATION_ITEM_NOT_FOUND');
+  }
+
+  return internship;
+};
+
+exports.createBadge = async (payload = {}) => {
+  const name = normalizeRequiredText(payload.name);
+  const rule = normalizeRequiredText(payload.rule);
+
+  if (!name || !rule) {
+    throw new Error('BADGE_REQUIRED_FIELDS');
+  }
+
+  await ensureUniqueBadgeName(name);
+
+  try {
+    const badge = await ensureBadgeFeatureAvailable().create({
+      data: {
+        name,
+        description: normalizeOptionalText(payload.description),
+        rule,
+        iconUrl: normalizeOptionalText(payload.iconUrl),
+        tone: normalizeBadgeTone(payload.tone),
+      },
+      select: badgeSelect,
+    });
+
+    return mapBadgeItem(badge);
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    if (err?.code === 'P2002') {
+      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+    }
+
+    throw err;
+  }
+};
+
+exports.updateBadge = async (badgeId, payload = {}) => {
+  const existingBadge = await getBadgeOrThrow(badgeId);
+
+  const nextName = Object.prototype.hasOwnProperty.call(payload, 'name')
+    ? normalizeRequiredText(payload.name)
+    : existingBadge.name;
+  const nextRule = Object.prototype.hasOwnProperty.call(payload, 'rule')
+    ? normalizeRequiredText(payload.rule)
+    : existingBadge.rule;
+
+  if (!nextName || !nextRule) {
+    throw new Error('BADGE_REQUIRED_FIELDS');
+  }
+
+  await ensureUniqueBadgeName(nextName, badgeId);
+
+  try {
+    const updatedBadge = await ensureBadgeFeatureAvailable().update({
+      where: { id: badgeId },
+      data: {
+        name: nextName,
+        description: Object.prototype.hasOwnProperty.call(payload, 'description')
+          ? normalizeOptionalText(payload.description)
+          : existingBadge.description,
+        rule: nextRule,
+        iconUrl: Object.prototype.hasOwnProperty.call(payload, 'iconUrl')
+          ? normalizeOptionalText(payload.iconUrl)
+          : existingBadge.iconUrl,
+        tone: Object.prototype.hasOwnProperty.call(payload, 'tone')
+          ? normalizeBadgeTone(payload.tone)
+          : existingBadge.tone,
+      },
+      select: badgeSelect,
+    });
+
+    return mapBadgeItem(updatedBadge);
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    if (err?.code === 'P2025') {
+      throw new Error('BADGE_NOT_FOUND');
+    }
+
+    if (err?.code === 'P2002') {
+      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+    }
+
+    throw err;
+  }
+};
+
+exports.deleteBadge = async (badgeId) => {
+  await getBadgeOrThrow(badgeId);
+
+  try {
+    await ensureBadgeFeatureAvailable().delete({
+      where: { id: badgeId },
+    });
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+    }
+
+    if (err?.code === 'P2025') {
+      throw new Error('BADGE_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  return {
+    id: badgeId,
+    deleted: true,
+  };
 };
 
 exports.listUsers = async ({ page = 1, limit = 10, search, role, status } = {}) => {
@@ -2339,7 +3563,7 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
   return updatedRequest;
 };
 
-exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
+const buildValidationItems = async ({ type, status = 'PENDING', search } = {}) => {
   await syncPendingValidationNotifications();
 
   const normalizedType = type ? normalizeValidationType(type) : null;
@@ -2349,6 +3573,16 @@ exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit
   }
 
   const loaders = [];
+
+  if (!normalizedType || normalizedType === 'PROJECT') {
+    loaders.push(loadProjectValidationItems(status).then((items) => items.map(mapProjectValidationItem)));
+  }
+
+  if (!normalizedType || normalizedType === 'INTERNSHIP') {
+    loaders.push(
+      loadInternshipValidationItems(status).then((items) => items.map(mapInternshipValidationItem))
+    );
+  }
 
   if (!normalizedType || normalizedType === 'CERTIFICATE_VALIDATION') {
     loaders.push(loadCertificateValidationItems(status).then((items) => items.map(mapCertificateRequestDetail)));
@@ -2379,7 +3613,15 @@ exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit
     .filter((item) => matchesValidationSearch(item, search))
     .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 
-  const paginated = paginateItems(mergedItems, page, limit);
+  return {
+    type: normalizedType,
+    items: mergedItems,
+  };
+};
+
+exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
+  const { type: normalizedType, items } = await buildValidationItems({ type, status, search });
+  const paginated = paginateItems(items, page, limit);
 
   return {
     filters: {
@@ -2391,11 +3633,73 @@ exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit
   };
 };
 
+exports.listPendingValidationsLegacy = async ({
+  type,
+  status = 'PENDING',
+  page = 1,
+  limit = 10,
+  search,
+} = {}) => {
+  const normalizedLegacyType = type ? normalizeLegacyValidationType(type) : null;
+
+  if (normalizedLegacyType) {
+    ensureValidLegacyValidationType(normalizedLegacyType);
+  }
+
+  if (normalizedLegacyType === 'PROJECT' || normalizedLegacyType === 'INTERNSHIP') {
+    const { items } = await buildValidationItems({
+      type: normalizedLegacyType,
+      status,
+      search,
+    });
+    const paginated = paginateItems(items.map(mapValidationItemToLegacyShape), page, limit);
+
+    return {
+      filters: {
+        type: normalizedLegacyType,
+        status,
+        search: search || null,
+      },
+      ...paginated,
+    };
+  }
+
+  const mappedType = normalizedLegacyType === 'CERTIFICATE' ? 'CERTIFICATE_VALIDATION' : null;
+  const { items } = await buildValidationItems({
+    type: mappedType,
+    status,
+    search,
+  });
+
+  const legacyItems = items
+    .map(mapValidationItemToLegacyShape)
+    .filter((item) => !normalizedLegacyType || item.targetType === normalizedLegacyType);
+  const paginated = paginateItems(legacyItems, page, limit);
+
+  return {
+    filters: {
+      type: normalizedLegacyType,
+      status,
+      search: search || null,
+    },
+    ...paginated,
+  };
+};
+
+exports.getPendingValidationCountsLegacy = async () =>
+  mapLegacyPendingValidationCounts(await getPendingValidationCounts());
+
 exports.getValidationItemDetail = async (itemType, itemId) => {
   const normalizedType = normalizeValidationType(itemType);
   ensureValidValidationType(normalizedType);
 
   switch (normalizedType) {
+    case 'PROJECT':
+      return mapProjectValidationItem(await getProjectValidationOrThrow(itemId));
+
+    case 'INTERNSHIP':
+      return mapInternshipValidationItem(await getInternshipValidationOrThrow(itemId));
+
     case 'CERTIFICATE_VALIDATION':
       return mapCertificateRequestDetail(await getValidationCertificateOrThrow(itemId));
 
@@ -2415,6 +3719,11 @@ exports.getValidationItemDetail = async (itemType, itemId) => {
   }
 };
 
+exports.getLegacyValidationDetail = async (itemId) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  return mapValidationItemToLegacyShape(await exports.getValidationItemDetail(itemType, itemId));
+};
+
 exports.approveValidationItem = async (
   itemType,
   itemId,
@@ -2426,6 +3735,15 @@ exports.approveValidationItem = async (
   ensureValidValidationType(normalizedType);
 
   switch (normalizedType) {
+    case 'PROJECT':
+      return approveProjectValidation(
+        itemId,
+        typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+      );
+
+    case 'INTERNSHIP':
+      return approveInternshipValidation(itemId);
+
     case 'CERTIFICATE_VALIDATION':
       try {
         return await approveCertificateRequest(
@@ -2475,6 +3793,12 @@ exports.rejectValidationItem = async (
           : null;
 
   switch (normalizedType) {
+    case 'PROJECT':
+      return rejectProjectValidation(itemId, normalizedReason);
+
+    case 'INTERNSHIP':
+      return rejectInternshipValidation(itemId);
+
     case 'CERTIFICATE_VALIDATION':
       try {
         return await rejectCertificateRequest(itemId, administratorId, normalizedReason);
@@ -2498,6 +3822,87 @@ exports.rejectValidationItem = async (
     default:
       throw new Error('UNSUPPORTED_VALIDATION_TYPE');
   }
+};
+
+exports.requestValidationChangesItem = async (
+  itemType,
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  const normalizedComment =
+    typeof payload.comment === 'string'
+      ? payload.comment.trim() || null
+      : typeof payload.rejectionReason === 'string'
+        ? payload.rejectionReason.trim() || null
+        : typeof payload.reason === 'string'
+          ? payload.reason.trim() || null
+          : null;
+
+  switch (normalizedType) {
+    case 'PROJECT':
+      return requestProjectValidationChanges(itemId, normalizedComment);
+
+    case 'INTERNSHIP':
+      return requestInternshipValidationChanges(itemId);
+
+    case 'CERTIFICATE_VALIDATION':
+      return requestCertificateValidationChanges(itemId, administratorId, normalizedComment);
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return requestRecommendationLetterValidationChanges(itemId, actorUserId, normalizedComment);
+
+    case 'COMMENT_VALIDATION':
+      return requestCommentValidationChanges(itemId, actorUserId, normalizedComment);
+
+    case 'RECOMMENDATION_VALIDATION':
+      return requestRecommendationValidationChanges(itemId, actorUserId, normalizedComment);
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.approveLegacyValidationItem = async (
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  return exports.approveValidationItem(itemType, itemId, actorUserId, administratorId, payload);
+};
+
+exports.rejectLegacyValidationItem = async (
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  return exports.rejectValidationItem(itemType, itemId, actorUserId, administratorId, payload);
+};
+
+exports.requestLegacyValidationChanges = async (
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const itemType = await resolveValidationItemTypeById(itemId);
+  const updatedItem = await exports.requestValidationChangesItem(
+    itemType,
+    itemId,
+    actorUserId,
+    administratorId,
+    payload
+  );
+
+  return mapValidationItemToLegacyShape(updatedItem);
 };
 
 exports.listNotifications = async ({
@@ -2524,7 +3929,7 @@ exports.listNotifications = async ({
     : [{ administratorId: null }];
 
   const where = {
-    ...(normalizedType ? { type: normalizedType } : {}),
+    ...(normalizedType ? { type: getNotificationFilterByType(normalizedType) } : {}),
     ...(typeof isRead === 'boolean' ? { isRead } : {}),
     ...(scopeConditions.length || normalizedSearch
       ? {
@@ -2599,6 +4004,25 @@ exports.listNotifications = async ({
   };
 };
 
+exports.getUnreadNotificationsCount = async (administratorId) => {
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [{ administratorId: null }];
+
+  return safeCount(() =>
+    prisma.notification.count({
+      where: {
+        isRead: false,
+        ...(scopeConditions.length
+          ? {
+              AND: scopeConditions,
+            }
+          : {}),
+      },
+    })
+  );
+};
+
 exports.markNotificationAsRead = async (notificationId, administratorId) => {
   await getNotificationOrThrow(notificationId, administratorId);
 
@@ -2619,6 +4043,27 @@ exports.markNotificationAsRead = async (notificationId, administratorId) => {
   }
 
   return mapNotificationItem(await getNotificationOrThrow(notificationId, administratorId));
+};
+
+exports.deleteNotification = async (notificationId, administratorId) => {
+  await getNotificationOrThrow(notificationId, administratorId);
+
+  try {
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+  } catch (err) {
+    if (isStructureMissingError(err) || err?.code === 'P2025') {
+      throw new Error('NOTIFICATION_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  return {
+    id: notificationId,
+    deleted: true,
+  };
 };
 
 exports.markAllNotificationsAsRead = async (administratorId) => {
@@ -2666,14 +4111,17 @@ exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit =
   const normalizedTargetType = targetType
     ? String(targetType).trim().toUpperCase().replace(/-/g, '_')
     : null;
+  const normalizedStatus = status ? String(status).trim().toUpperCase() : null;
 
-  ensureValidReportStatus(status);
+  if (normalizedStatus) {
+    ensureValidReportStatus(normalizedStatus);
+  }
 
   if (normalizedTargetType) {
     ensureValidReportTargetType(normalizedTargetType);
   }
 
-  const reports = await loadReportItems(status, normalizedTargetType);
+  const reports = await loadReportItems(normalizedStatus, normalizedTargetType);
   const filteredReports = reports
     .map(mapReportItem)
     .filter((item) => matchesValidationSearch(item, search));
@@ -2682,13 +4130,20 @@ exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit =
 
   return {
     filters: {
-      status,
+      status: normalizedStatus,
       targetType: normalizedTargetType,
       search: search || null,
     },
     ...paginated,
   };
 };
+
+exports.getPendingReportsCount = async () =>
+  safeCount(() =>
+    prisma.report.count({
+      where: { status: 'PENDING' },
+    })
+  );
 
 exports.getReportById = async (reportId) => mapReportItem(await getReportOrThrow(reportId));
 
@@ -2720,6 +4175,13 @@ exports.approveReport = async (reportId, administratorId, resolutionNote = null)
   return updatedReport;
 };
 
+exports.resolveReportLegacy = async (reportId, administratorId, resolutionNote = null) =>
+  exports.approveReport(
+    reportId,
+    administratorId,
+    resolutionNote || 'Signalement marque comme traite.'
+  );
+
 exports.rejectReport = async (reportId, administratorId, resolutionNote = null) => {
   const report = await getReportOrThrow(reportId);
 
@@ -2741,6 +4203,55 @@ exports.rejectReport = async (reportId, administratorId, resolutionNote = null) 
   await notificationService.createAdminActionNotification({
     title: 'Signalement rejete',
     message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete rejete.`,
+    relatedType: 'REPORT',
+    relatedId: reportId,
+  });
+
+  return updatedReport;
+};
+
+exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote = null) => {
+  const report = await getReportOrThrow(reportId);
+
+  if (report.status !== 'PENDING') {
+    throw new Error('REPORT_INVALID_STATE');
+  }
+
+  const reviewedAt = new Date();
+  let deletionOutcome = 'resolved_without_target_deletion';
+  let appliedResolutionNote = resolutionNote;
+
+  await prisma.$transaction(async (tx) => {
+    deletionOutcome = await deleteReportTargetRecord(tx, report);
+
+    if (!appliedResolutionNote) {
+      appliedResolutionNote =
+        deletionOutcome === 'deleted'
+          ? 'Contenu signale supprime.'
+          : 'Signalement traite sans suppression automatique de la cible.';
+    }
+
+    await tx.report.update({
+      where: { id: reportId },
+      data: {
+        status: 'APPROVED',
+        reviewedByAdministratorId: administratorId,
+        reviewedAt,
+        resolutionNote: appliedResolutionNote,
+      },
+    });
+  });
+
+  const updatedReport = await exports.getReportById(reportId);
+  await notificationService.createAdminActionNotification({
+    title:
+      deletionOutcome === 'deleted'
+        ? 'Contenu signale supprime'
+        : 'Signalement traite',
+    message:
+      deletionOutcome === 'deleted'
+        ? `Le contenu signale lie a ${report.targetType.toLowerCase()} a ete supprime.`
+        : `Le signalement lie a ${report.targetType.toLowerCase()} a ete traite sans suppression automatique de la cible.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
