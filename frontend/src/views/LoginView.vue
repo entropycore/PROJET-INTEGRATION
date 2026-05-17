@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { login, getMe } from '../services/authService'
-import  AppLogo  from '../components/AppLogo.vue'
+import AppLogo from '../components/AppLogo.vue'
 import '../assets/styles/login.css'
 
 const router = useRouter() //va me servir a naviguer(changer les pages)
@@ -17,15 +17,24 @@ const successMessage = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
 
-watch( //j'observe si l'user n'est pas autorise(cas de /admin dans l'url)
-  () => route.query.error,
-  (error) => {
+watch( //j'observe les infos de navigation utiles depuis l'url
+  () => [route.query.error, route.query.reset],
+  ([error, reset]) => {
     if (error === 'unauthorized') {
-      errorMessage.value = "Vous n'avez pas accès à cette page."
+      errorMessage.value = "Vous n'avez pas acces a cette page."
+      successMessage.value = ''
       return
     }
 
     errorMessage.value = ''
+
+    if (reset === 'success') {
+      successMessage.value =
+        'Mot de passe reinitialise. Vous pouvez maintenant vous connecter.'
+      return
+    }
+
+    successMessage.value = ''
   },
   { immediate: true }
 )
@@ -50,19 +59,19 @@ const handleLogin = async () => {
     const meResponse = await getMe()
 
     authStore.setAuthSession(meResponse.data.data) //je stock la data user dans le store pinia
-    successMessage.value = 'Connexion réussie.'
+    successMessage.value = 'Connexion reussie.'
     const user = meResponse.data.data
     const dashboardMap = {
       ADMINISTRATOR: '/admin',
       STUDENT: '/student',
       PROFESSOR: '/professor',
-      PROFESSIONAL: '/professional'
+      PROFESSIONAL: '/professional',
     }
     router.push(dashboardMap[user.role] || '/login')
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message ||
-      'Connexion impossible. Vérifiez vos identifiants.'
+      'Connexion impossible. Verifiez vos identifiants.'
   } finally {
     isLoading.value = false
   }
@@ -70,6 +79,10 @@ const handleLogin = async () => {
 
 const goToRequestAccess = () => {
   router.push('/request-access')
+}
+
+const goToForgotPassword = () => {
+  router.push('/forgot-password')
 }
 
 const togglePassword = () => {
@@ -85,18 +98,18 @@ const togglePassword = () => {
 
         <div class="hero-text">
           <h1>
-            Votre identité<br />
+            Votre identite<br />
             professionnelle<br />
-            <span>certifiée.</span>
+            <span>certifiee.</span>
           </h1>
 
           <p>
-            Construisez un portfolio académique validé par votre institution,
+            Construisez un portfolio academique valide par votre institution,
             et reconnu par les recruteurs.
           </p>
 
           <p>
-            Chaque réalisation validée devient un atout officiel pour votre
+            Chaque realisation validee devient un atout officiel pour votre
             insertion professionnelle.
           </p>
         </div>
@@ -107,7 +120,7 @@ const togglePassword = () => {
       <div class="auth-card">
         <div class="auth-form-block">
           <h2>Bon retour</h2>
-          <p class="subtitle">Connectez-vous à votre espace personnel</p>
+          <p class="subtitle">Connectez-vous a votre espace personnel</p>
 
           <form class="auth-form" @submit.prevent="handleLogin">
             <div class="form-group">
@@ -142,10 +155,20 @@ const togglePassword = () => {
             </div>
 
             <div class="login-form-links">
+              <div class="forgot-password-row">
+                <button
+                  class="forgot-password"
+                  type="button"
+                  @click="goToForgotPassword"
+                >
+                  Mot de passe oublie ?
+                </button>
+              </div>
+
               <p class="access-request-text">
                 Vous n'avez pas encore de compte ?
                 <span class="access-request-link" @click="goToRequestAccess">
-                  Demandez l'accès
+                  Demandez l'acces
                 </span>
               </p>
             </div>
