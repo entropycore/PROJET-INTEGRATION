@@ -74,34 +74,44 @@ const formatDate = (date) => {
     
 
     <div class="filters">
-      <button
-        :class="{ active: selectedFilter === 'ALL' }"
-        @click="selectedFilter = 'ALL'"
-      >
-        Toutes
-      </button>
+        <button
+            :class="{ active: selectedFilter === 'ALL' }"
+            @click="selectedFilter = 'ALL'"
+        >
+            Toutes
+            <span>
+            {{
+                recommendationsData.stats.received +
+                recommendationsData.stats.pending +
+                recommendationsData.stats.rejected
+            }}
+            </span>
+        </button>
 
-      <button
-        :class="{ active: selectedFilter === 'RECEIVED' }"
-        @click="selectedFilter = 'RECEIVED'"
-      >
-        Reçues
-      </button>
+        <button
+            :class="{ active: selectedFilter === 'RECEIVED' }"
+            @click="selectedFilter = 'RECEIVED'"
+        >
+            Reçues
+            <span>{{ recommendationsData.stats.received }}</span>
+        </button>
 
-      <button
-        :class="{ active: selectedFilter === 'PENDING' }"
-        @click="selectedFilter = 'PENDING'"
-      >
-        En attente
-      </button>
+        <button
+            :class="{ active: selectedFilter === 'PENDING' }"
+            @click="selectedFilter = 'PENDING'"
+        >
+            En attente
+            <span>{{ recommendationsData.stats.pending }}</span>
+        </button>
 
-      <button
-        :class="{ active: selectedFilter === 'REJECTED' }"
-        @click="selectedFilter = 'REJECTED'"
-      >
-        Refusées
-      </button>
-    </div>
+        <button
+            :class="{ active: selectedFilter === 'REJECTED' }"
+            @click="selectedFilter = 'REJECTED'"
+        >
+            Refusées
+            <span>{{ recommendationsData.stats.rejected }}</span>
+        </button>
+        </div>
 
     <div
       v-if="loading"
@@ -168,7 +178,7 @@ const formatDate = (date) => {
         </div>
 
         <p class="recommendation-content">
-          {{ recommendation.content }}
+          "{{ recommendation.content }}"
         </p>
 
         <div class="recommendation-footer">
@@ -231,71 +241,74 @@ const formatDate = (date) => {
   margin: 0;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
 
-.stat-card {
-  position: relative;
+
+.filters {
+  width: fit-content;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+
   background: #ffffff;
   border: 1px solid #dee1dd;
   border-radius: 0.9rem;
-  padding: 1.2rem 1.4rem;
-  overflow: hidden;
-}
 
-.stat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0 auto auto 0;
-  width: 100%;
-  height: 0.18rem;
-  background: #2f575d;
-}
+  padding: 0.3rem;
 
-.stat-card span {
-  color: #99aead;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08rem;
-}
-
-.stat-card strong {
-  display: block;
-  color: #102a33;
-  font-size: 2.15rem;
-  font-weight: 800;
-  margin-top: 0.65rem;
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.65rem;
   margin-bottom: 1.25rem;
 }
 
 .filters button {
-  border: 1px solid #c4cdc1;
-  background: #ffffff;
-  color: #2f575d;
-  border-radius: 999px;
-  padding: 0.55rem 1rem;
-  font-size: 0.88rem;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  border: none;
+  background: transparent;
+
+  color: #6d9197;
+
+  border-radius: 0.7rem;
+  padding: 0.65rem 1rem;
+
+  font-size: 0.9rem;
+  font-weight: 800;
+
   cursor: pointer;
   transition: 0.2s ease;
 }
 
-.filters button:hover,
+.filters button span {
+  min-width: 1.35rem;
+  height: 1.35rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+
+  background: #edf2f0;
+  color: #2f575d;
+
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.filters button:hover {
+  background: #f8f9f8;
+  color: #2f575d;
+}
+
 .filters button.active {
   background: #2f575d;
   color: #ffffff;
-  border-color: #2f575d;
+}
+
+.filters button.active span {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
 }
 
 .loading-state {
@@ -510,6 +523,17 @@ const formatDate = (date) => {
   .primary-btn,
   .danger-btn {
     flex: 1;
+  }
+}
+@media (max-width: 700px) {
+  .filters {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .filters button {
+    flex: 1;
+    justify-content: center;
   }
 }
 </style>
