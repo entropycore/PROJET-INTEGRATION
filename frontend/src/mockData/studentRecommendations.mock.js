@@ -51,7 +51,7 @@ export const studentRecommendationsMock = {
         initials: 'IB',
       },
       content:
-        'Très bon esprit d’équipe. Elle aide souvent les autres membres du groupe à comprendre les parties techniques.',
+        'Très bon esprit d’équipe. Il aide souvent les autres membres du groupe à comprendre les parties techniques.',
       status: 'RECEIVED',
       visibility: 'PRIVATE',
       read: true,
@@ -68,7 +68,7 @@ export const studentRecommendationsMock = {
         initials: 'NA',
       },
       content:
-        'Recommandation en attente de votre décision avant affichage dans votre portfolio.',
+        'Profil très prometteur, excellente maîtrise des outils DevOps pour un étudiant en 1ère année.',
       status: 'PENDING',
       visibility: 'PRIVATE',
       read: false,
