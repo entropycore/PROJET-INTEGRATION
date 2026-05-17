@@ -52,6 +52,34 @@ const formatDate = (date) => {
     year: 'numeric',
   })
 }
+const viewAuthorProfile = (authorId) => {
+  // Plus tard : router.push(`/student/users/${authorId}`)
+  console.log('Voir profil auteur :', authorId)
+}
+
+const acceptRecommendation = (id) => {
+  recommendationsData.value.recommendations =
+    recommendationsData.value.recommendations.map((recommendation) =>
+      recommendation.id === id
+        ? { ...recommendation, status: 'RECEIVED', visibility: 'PUBLIC' }
+        : recommendation,
+    )
+
+  recommendationsData.value.stats.pending -= 1
+  recommendationsData.value.stats.received += 1
+}
+
+const rejectRecommendation = (id) => {
+  recommendationsData.value.recommendations =
+    recommendationsData.value.recommendations.map((recommendation) =>
+      recommendation.id === id
+        ? { ...recommendation, status: 'REJECTED', visibility: 'PRIVATE' }
+        : recommendation,
+    )
+
+  recommendationsData.value.stats.pending -= 1
+  recommendationsData.value.stats.rejected += 1
+}
 </script>
 
 <template>
@@ -187,22 +215,26 @@ const formatDate = (date) => {
           </span>
 
           <div class="recommendation-actions">
-            <button class="secondary-btn">
-              Voir profil
-            </button>
+            <button class="secondary-btn"
+                @click="viewAuthorProfile(recommendation.author.id)"
+                >
+                Voir profil
+                </button>
 
             <button
-              v-if="recommendation.status === 'PENDING'"
-              class="primary-btn"
-            >
-              Accepter
-            </button>
+                v-if="recommendation.status === 'PENDING'"
+                class="primary-btn"
+                @click="acceptRecommendation(recommendation.id)"
+                >
+                Accepter
+                </button>
 
             <button
-              v-if="recommendation.status === 'PENDING'"
-              class="danger-btn"
+            v-if="recommendation.status === 'PENDING'"
+            class="danger-btn"
+            @click="rejectRecommendation(recommendation.id)"
             >
-              Refuser
+            Refuser
             </button>
           </div>
         </div>
