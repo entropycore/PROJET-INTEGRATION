@@ -98,6 +98,9 @@ jobs:
       - name: Run backend unit tests 
         run: npm run test:unit
                
+      - name: Run backend security tests
+        run: npm run test:sec
+
       - name: Run backend integration tests
         run: npm run test:integration
 
