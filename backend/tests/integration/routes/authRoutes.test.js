@@ -160,7 +160,6 @@ describe('AUTH - POST /login', () => {
     expect(res.body.success).toBe(false);
     expect(hasCookie(res, 'accessToken')).toBe(false);
   });
-q
   test('TC-AUTH-08 : Email inexistant -> 401', async () => {
     const res = await request(app)
       .post('/api/auth/login')
