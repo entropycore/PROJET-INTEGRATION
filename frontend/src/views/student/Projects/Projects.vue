@@ -219,7 +219,6 @@ const submitProject = (projectId) => {
               @click="submitProject(project.id)"
             >
               <span class="material-icons-round">send</span>
-              Soumettre
             </button>
           </div>
         </article>

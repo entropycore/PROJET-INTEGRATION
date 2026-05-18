@@ -276,14 +276,16 @@
 
 .project-description {
   display: -webkit-box;
-  min-height: 2.7rem;
+  min-height: calc(12.5px * 1.55 * 3);
+  max-height: calc(12.5px * 1.55 * 3);
   margin: 0;
   overflow: hidden;
   color: #99aead;
   font-size: 12.5px;
-  line-height: 1.5;
-  line-clamp: 2;
-  -webkit-line-clamp: 2;
+  line-height: 1.55;
+  text-overflow: ellipsis;
+  line-clamp: 3;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
 }
 
