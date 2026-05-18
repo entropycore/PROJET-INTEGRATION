@@ -1,0 +1,98 @@
+name: E2E & Security Scan
+
+on:
+  pull_request:
+    branches:
+      - dev
+      - main
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  e2e-security:
+    name: Cypress E2E and OWASP ZAP
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: credencia_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
+      VITE_API_BASE_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Generate Prisma client
+        working-directory: backend
+        run: npx prisma generate
+
+      - name: Apply Prisma migrations
+        working-directory: backend
+        run: npx prisma migrate deploy
+
+      - name: Start backend
+        working-directory: backend
+        run: npm run start &
+
+      - name: Start frontend
+        working-directory: frontend
+        run: npm run dev -- --host 0.0.0.0 &
+
+      - name: Wait for backend
+        run: |
+          until curl -s http://localhost:3000/api/auth/login > /dev/null; do
+            echo "Waiting for backend..."
+            sleep 2
+          done
+
+      - name: Wait for frontend
+        run: |
+          until curl -s http://localhost:5173 > /dev/null; do
+            echo "Waiting for frontend..."
+            sleep 2
+          done
+
+      - name: Run Cypress E2E tests
+        working-directory: frontend
+        run: npx cypress run --project ../qa --env API_BASE_URL=http://localhost:3000
+
+      - name: Run OWASP ZAP scan
+        run: bash scripts/zap-scan.sh 
+
+      - name: Upload ZAP reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-security-reports
+          path: scripts/reports/
