@@ -259,3 +259,80 @@
     flex-direction: column;
   }
 }
+.project-edit-page .back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.7rem;
+  color: #6f7875;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.project-edit-page .back-link:hover {
+  color: #2f5a60;
+}
+
+.project-edit-page .back-link .material-icons-round {
+  font-size: 18px;
+}
+
+.project-edit-page .primary-action,
+.project-edit-page .secondary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0 0.95rem;
+  border-radius: 0.55rem;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.project-edit-page .primary-action {
+  border: 1px solid #2f5a60;
+  background: #2f5a60;
+  color: #ffffff;
+}
+
+.project-edit-page .primary-action:disabled {
+  border-color: #cfd8d4;
+  background: #e8eeeb;
+  color: #8a9691;
+  cursor: not-allowed;
+}
+
+.project-edit-page .secondary-action {
+  border: 1px solid #d8ddd9;
+  background: #ffffff;
+  color: #24363a;
+}
+
+.project-edit-page .secondary-action:hover {
+  border-color: #2f5a60;
+  color: #2f5a60;
+}
+
+.project-edit-page .project-tech-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.project-edit-page .project-tech-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid #eeeeea;
+  border-radius: 0.45rem;
+  background: #f8f9f8;
+  color: #53605d;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
