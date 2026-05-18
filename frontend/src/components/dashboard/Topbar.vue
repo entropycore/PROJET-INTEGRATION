@@ -40,16 +40,20 @@ const avatarLetter = computed(() => {
 <template>
   <header class="topbar">
     <div class="topbar-left">
-      <AppLogo class="topbar-logo" />
-      <span class="role">{{ roleLabel }}</span>
+      <img src="../../assets/logo.png" alt="Logo Credencia" style="height: 37px;" />
+      <span class="logo-text">Cred<span>encia</span></span>
     </div>
 
     <div class="topbar-right">
-      <RouterLink :to="notificationPath"><img :src="notificationIcon" /></RouterLink>
+  <span class="role">{{ roleLabel }}</span>
 
-      <RouterLink :to="profilePath" class="avatar">
-        {{ avatarLetter }}
-      </RouterLink>
-    </div>
+  <RouterLink :to="notificationPath" class="notification-link">
+    <img :src="notificationIcon" />
+  </RouterLink>
+
+  <RouterLink :to="profilePath" class="avatar">
+    {{ avatarLetter }}
+  </RouterLink>
+</div>
   </header>
 </template>
