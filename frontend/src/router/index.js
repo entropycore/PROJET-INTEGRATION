@@ -88,7 +88,7 @@ const router = createRouter({
                 {
                     path: 'profiles',
                     name: 'admin-profiles',
-                    component: () => import('../views/Profiles.vue'),
+                    component: () => import('../views/profiles.vue'),
                 },
                 {
                     path: 'notifications',
