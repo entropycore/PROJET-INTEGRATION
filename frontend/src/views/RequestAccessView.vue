@@ -1,44 +1,43 @@
 <script setup>
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { requestAccess } from '../services/requestAccessService'
-import '../assets/styles/request-access.css'
-import AppLogo from '../components/AppLogo.vue'
+import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { requestAccess } from "../services/requestAccessService";
+import "../assets/styles/request-access.css";
+import AppLogo from "../components/AppLogo.vue";
 
-
-const router = useRouter()
+const router = useRouter();
 
 const form = reactive({
-  lastName: '',
-  firstName: '',
-  email: '',
-  company: '',
-  jobTitle: '',
-  password: '',
-  passwordConfirmation: '',
-})
+  lastName: "",
+  firstName: "",
+  email: "",
+  company: "",
+  jobTitle: "",
+  password: "",
+  passwordConfirmation: "",
+});
 
-const errorMessage = ref('')
-const successMessage = ref('')
-const isSubmitting = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
+const errorMessage = ref("");
+const successMessage = ref("");
+const isSubmitting = ref(false);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push("/login");
+};
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 
 const toggleConfirmPassword = () => {
-  showConfirmPassword.value = !showConfirmPassword.value
-}
+  showConfirmPassword.value = !showConfirmPassword.value;
+};
 
 const validateForm = () => {
-  errorMessage.value = ''
-  successMessage.value = ''
+  errorMessage.value = "";
+  successMessage.value = "";
 
   if (
     !form.lastName.trim() ||
@@ -49,34 +48,38 @@ const validateForm = () => {
     !form.password.trim() ||
     !form.passwordConfirmation.trim()
   ) {
-    errorMessage.value = 'Veuillez remplir tous les champs.'
-    return false
+    errorMessage.value = "Veuillez remplir tous les champs.";
+    return false;
   }
 
   if (form.password !== form.passwordConfirmation) {
-    errorMessage.value = 'Les mots de passe ne correspondent pas.'
-    return false
+    errorMessage.value = "Les mots de passe ne correspondent pas.";
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 const getRequestAccessErrorMessage = (error) => {
-  const apiError = error?.response?.data
+  const apiError = error?.response?.data;
 
   if (Array.isArray(apiError?.errors) && apiError.errors.length > 0) {
-    return apiError.errors[0]?.message || apiError?.message || "Impossible d'envoyer la demande."
+    return (
+      apiError.errors[0]?.message ||
+      apiError?.message ||
+      "Impossible d'envoyer la demande."
+    );
   }
 
-  return apiError?.message || "Impossible d'envoyer la demande."
-}
+  return apiError?.message || "Impossible d'envoyer la demande.";
+};
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) return;
 
-  isSubmitting.value = true
+  isSubmitting.value = true;
 
-  try { 
+  try {
     const response = await requestAccess({
       email: form.email.trim(),
       password: form.password,
@@ -84,17 +87,17 @@ const handleSubmit = async () => {
       firstName: form.firstName.trim(),
       company: form.company.trim(),
       jobTitle: form.jobTitle.trim(),
-    })
+    });
 
     successMessage.value =
       response?.message ||
-      "Demande envoyee. Veuillez verifier votre boite de reception pour valider votre email."
+      "Demande envoyee. Veuillez verifier votre boite de reception pour valider votre email.";
   } catch (error) {
-    errorMessage.value = getRequestAccessErrorMessage(error)
+    errorMessage.value = getRequestAccessErrorMessage(error);
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 </script>
 
 <template>
@@ -112,15 +115,14 @@ const handleSubmit = async () => {
             <span>certifiés.</span>
           </h1>
 
-
           <p>
-            Découvrez une sélection de portfolios académiques validés, offrant une
-            visibilité claire et fiable sur les compétences des candidats.
+            Découvrez une sélection de portfolios académiques validés, offrant
+            une visibilité claire et fiable sur les compétences des candidats.
           </p>
 
           <p>
-            Chaque réalisation présentée est certifiée par son institution, pour un
-            recrutement basé sur des données authentiques.
+            Chaque réalisation présentée est certifiée par son institution, pour
+            un recrutement basé sur des données authentiques.
           </p>
         </div>
       </div>
@@ -199,7 +201,11 @@ const handleSubmit = async () => {
                   />
                   <img
                     class="toggle-icon"
-                    :src="showPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                    :src="
+                      showPassword
+                        ? '/src/assets/Button.png'
+                        : '/src/assets/icon.png'
+                    "
                     alt=""
                     aria-hidden="true"
                     @click="togglePassword"
@@ -218,7 +224,11 @@ const handleSubmit = async () => {
                   />
                   <img
                     class="toggle-icon"
-                    :src="showConfirmPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                    :src="
+                      showConfirmPassword
+                        ? '/src/assets/Button.png'
+                        : '/src/assets/icon.png'
+                    "
                     alt=""
                     aria-hidden="true"
                     @click="toggleConfirmPassword"
@@ -244,7 +254,7 @@ const handleSubmit = async () => {
             </p>
 
             <button class="submit-btn" type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Envoi...' : 'Envoyer une demande' }}
+              {{ isSubmitting ? "Envoi..." : "Envoyer une demande" }}
             </button>
 
             <p class="login-link">

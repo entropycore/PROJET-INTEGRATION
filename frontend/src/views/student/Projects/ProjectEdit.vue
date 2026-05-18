@@ -1,135 +1,135 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 
-import { getStudentProjectById } from '@/services/studentProjectsApis'
-import { mockProjects } from '@/mockData/projects'
+import { getStudentProjectById } from "@/services/studentProjectsApis";
+import { mockProjects } from "@/mockData/projects";
 
-import '@/assets/styles/student-project-edit.css'
+import "@/assets/styles/student-project-edit.css";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const isLoading = ref(false)
-const projectForm = ref(null)
+const isLoading = ref(false);
+const projectForm = ref(null);
 
-const newTechnology = ref('')
-const newLinkLabel = ref('')
-const newLinkUrl = ref('')
+const newTechnology = ref("");
+const newLinkLabel = ref("");
+const newLinkUrl = ref("");
 
 const validators = [
-  'Pr. Moussaoui',
-  'Pr. Benali',
-  'Mme Ghizlan',
-  'Pr. Haddad',
-  'Pr. El Amrani',
-]
+  "Pr. Moussaoui",
+  "Pr. Benali",
+  "Mme Ghizlan",
+  "Pr. Haddad",
+  "Pr. El Amrani",
+];
 
 const projectTypes = [
-  'Module',
-  'Intégration',
-  'Hackathon',
-  'Personnel',
-  'Stage',
-]
+  "Module",
+  "Intégration",
+  "Hackathon",
+  "Personnel",
+  "Stage",
+];
 
 const canSubmit = computed(() => {
-  return Boolean(projectForm.value?.validatorName)
-})
+  return Boolean(projectForm.value?.validatorName);
+});
 
 const fetchProject = async () => {
-  isLoading.value = true
+  isLoading.value = true;
 
   try {
-    const response = await getStudentProjectById(route.params.id)
-    projectForm.value = structuredClone(response.data)
+    const response = await getStudentProjectById(route.params.id);
+    projectForm.value = structuredClone(response.data);
   } catch (error) {
-    console.warn('API project detail indisponible, utilisation mock data.')
+    console.warn("API project detail indisponible, utilisation mock data.");
 
     const mockProject = mockProjects.find(
       (item) => String(item.id) === String(route.params.id),
-    )
+    );
 
-    projectForm.value = structuredClone(mockProject)
+    projectForm.value = structuredClone(mockProject);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const addTechnology = () => {
-  const value = newTechnology.value.trim()
+  const value = newTechnology.value.trim();
 
-  if (!value) return
+  if (!value) return;
 
   if (!projectForm.value.technologies) {
-    projectForm.value.technologies = []
+    projectForm.value.technologies = [];
   }
 
   if (!projectForm.value.technologies.includes(value)) {
-    projectForm.value.technologies.push(value)
+    projectForm.value.technologies.push(value);
   }
 
-  newTechnology.value = ''
-}
+  newTechnology.value = "";
+};
 
 const removeTechnology = (tech) => {
   projectForm.value.technologies = projectForm.value.technologies.filter(
     (item) => item !== tech,
-  )
-}
+  );
+};
 
 const projectLinks = computed(() => {
   return [
     {
-      key: 'githubUrl',
-      label: 'GitHub Repository',
+      key: "githubUrl",
+      label: "GitHub Repository",
     },
     {
-      key: 'demoUrl',
-      label: 'Démo du projet',
+      key: "demoUrl",
+      label: "Démo du projet",
     },
     {
-      key: 'documentationUrl',
-      label: 'Documentation',
+      key: "documentationUrl",
+      label: "Documentation",
     },
     {
-      key: 'portfolioUrl',
-      label: 'Portfolio',
+      key: "portfolioUrl",
+      label: "Portfolio",
     },
-  ]
-})
+  ];
+});
 
 const addCustomLink = () => {
-  const label = newLinkLabel.value.trim()
-  const url = newLinkUrl.value.trim()
+  const label = newLinkLabel.value.trim();
+  const url = newLinkUrl.value.trim();
 
-  if (!label || !url) return
+  if (!label || !url) return;
 
   if (!projectForm.value.extraLinks) {
-    projectForm.value.extraLinks = []
+    projectForm.value.extraLinks = [];
   }
 
   projectForm.value.extraLinks.push({
     id: Date.now(),
     label,
     url,
-  })
+  });
 
-  newLinkLabel.value = ''
-  newLinkUrl.value = ''
-}
+  newLinkLabel.value = "";
+  newLinkUrl.value = "";
+};
 
 const removeCustomLink = (id) => {
   projectForm.value.extraLinks = projectForm.value.extraLinks.filter(
     (link) => link.id !== id,
-  )
-}
+  );
+};
 
 const handleScreenshotsUpload = (event) => {
-  const files = Array.from(event.target.files || [])
+  const files = Array.from(event.target.files || []);
 
   if (!projectForm.value.screenshots) {
-    projectForm.value.screenshots = []
+    projectForm.value.screenshots = [];
   }
 
   files.forEach((file) => {
@@ -137,66 +137,61 @@ const handleScreenshotsUpload = (event) => {
       id: Date.now() + Math.random(),
       title: file.name,
       imageUrl: URL.createObjectURL(file),
-    })
-  })
+    });
+  });
 
-  event.target.value = ''
-}
+  event.target.value = "";
+};
 
 const handleAttachmentsUpload = (event) => {
-  const files = Array.from(event.target.files || [])
+  const files = Array.from(event.target.files || []);
 
   if (!projectForm.value.attachments) {
-    projectForm.value.attachments = []
+    projectForm.value.attachments = [];
   }
 
   files.forEach((file) => {
     projectForm.value.attachments.push({
       id: Date.now() + Math.random(),
       name: file.name,
-      type: file.type || 'FICHIER',
-      url: '#',
-    })
-  })
+      type: file.type || "FICHIER",
+      url: "#",
+    });
+  });
 
-  event.target.value = ''
-}
+  event.target.value = "";
+};
 
 const removeScreenshot = (id) => {
   projectForm.value.screenshots = projectForm.value.screenshots.filter(
     (screenshot) => screenshot.id !== id,
-  )
-}
+  );
+};
 
 const removeAttachment = (id) => {
   projectForm.value.attachments = projectForm.value.attachments.filter(
     (attachment) => attachment.id !== id,
-  )
-}
+  );
+};
 
 const saveProject = () => {
-  console.log('Projet sauvegardé localement :', projectForm.value)
-  router.push(`/student/projects/${route.params.id}`)
-}
+  console.log("Projet sauvegardé localement :", projectForm.value);
+  router.push(`/student/projects/${route.params.id}`);
+};
 
 const submitProject = () => {
-  if (!canSubmit.value) return
+  if (!canSubmit.value) return;
 
-  console.log('Projet soumis au validateur :', projectForm.value.validatorName)
-  router.push(`/student/projects/${route.params.id}`)
-}
+  console.log("Projet soumis au validateur :", projectForm.value.validatorName);
+  router.push(`/student/projects/${route.params.id}`);
+};
 
-onMounted(fetchProject)
+onMounted(fetchProject);
 </script>
 
 <template>
   <section class="project-edit-page">
-    <div
-      v-if="isLoading"
-      class="edit-state"
-    >
-      Chargement du projet...
-    </div>
+    <div v-if="isLoading" class="edit-state">Chargement du projet...</div>
 
     <template v-else-if="projectForm">
       <div class="edit-header">
@@ -212,16 +207,13 @@ onMounted(fetchProject)
           <h1>Modifier le projet</h1>
 
           <p>
-            Complétez les informations du projet avant de le soumettre à un validateur.
+            Complétez les informations du projet avant de le soumettre à un
+            validateur.
           </p>
         </div>
 
         <div class="edit-header-actions">
-          <button
-            type="button"
-            class="secondary-action"
-            @click="saveProject"
-          >
+          <button type="button" class="secondary-action" @click="saveProject">
             Enregistrer
           </button>
 
@@ -317,12 +309,7 @@ onMounted(fetchProject)
                 class="project-tech-pill editable"
               >
                 {{ tech }}
-                <button
-                  type="button"
-                  @click="removeTechnology(tech)"
-                >
-                  ×
-                </button>
+                <button type="button" @click="removeTechnology(tech)">×</button>
               </span>
             </div>
 
@@ -384,20 +371,14 @@ onMounted(fetchProject)
               </button>
             </div>
 
-            <div
-              v-if="projectForm.extraLinks?.length"
-              class="extra-links-list"
-            >
+            <div v-if="projectForm.extraLinks?.length" class="extra-links-list">
               <div
                 v-for="link in projectForm.extraLinks"
                 :key="link.id"
                 class="extra-link-item"
               >
                 <span>{{ link.label }}</span>
-                <button
-                  type="button"
-                  @click="removeCustomLink(link.id)"
-                >
+                <button type="button" @click="removeCustomLink(link.id)">
                   Supprimer
                 </button>
               </div>
@@ -422,10 +403,7 @@ onMounted(fetchProject)
               />
             </label>
 
-            <div
-              v-if="projectForm.screenshots?.length"
-              class="uploaded-list"
-            >
+            <div v-if="projectForm.screenshots?.length" class="uploaded-list">
               <div
                 v-for="screenshot in projectForm.screenshots"
                 :key="screenshot.id"
@@ -433,10 +411,7 @@ onMounted(fetchProject)
               >
                 <span>{{ screenshot.title }}</span>
 
-                <button
-                  type="button"
-                  @click="removeScreenshot(screenshot.id)"
-                >
+                <button type="button" @click="removeScreenshot(screenshot.id)">
                   Supprimer
                 </button>
               </div>
@@ -451,17 +426,10 @@ onMounted(fetchProject)
               <strong>Ajouter des fichiers</strong>
               <small>PDF, image ou document</small>
 
-              <input
-                type="file"
-                multiple
-                @change="handleAttachmentsUpload"
-              />
+              <input type="file" multiple @change="handleAttachmentsUpload" />
             </label>
 
-            <div
-              v-if="projectForm.attachments?.length"
-              class="uploaded-list"
-            >
+            <div v-if="projectForm.attachments?.length" class="uploaded-list">
               <div
                 v-for="attachment in projectForm.attachments"
                 :key="attachment.id"
@@ -469,20 +437,14 @@ onMounted(fetchProject)
               >
                 <span>{{ attachment.name }}</span>
 
-                <button
-                  type="button"
-                  @click="removeAttachment(attachment.id)"
-                >
+                <button type="button" @click="removeAttachment(attachment.id)">
                   Supprimer
                 </button>
               </div>
             </div>
           </section>
 
-          <section
-            v-if="!canSubmit"
-            class="edit-warning-card"
-          >
+          <section v-if="!canSubmit" class="edit-warning-card">
             Choisissez un validateur avant de soumettre le projet.
           </section>
         </aside>

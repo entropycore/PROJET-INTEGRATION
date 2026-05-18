@@ -1,106 +1,106 @@
 <script setup>
-import { computed, ref } from 'vue'
-import StageImagesModal from '@/components/student/stages/StageImagesModal.vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, ref } from "vue";
+import StageImagesModal from "@/components/student/stages/StageImagesModal.vue";
+import { useRoute, useRouter } from "vue-router";
 
-import { stages } from '@/mockData/studentStages.store'
+import { stages } from "@/mockData/studentStages.store";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
 const stage = computed(() => {
-  return stages.value.find((item) => item.id === route.params.id)
-})
+  return stages.value.find((item) => item.id === route.params.id);
+});
 
 const canEditStage = computed(() => {
-  return ['DRAFT', 'PENDING', 'CORRECTION_REQUIRED'].includes(
+  return ["DRAFT", "PENDING", "CORRECTION_REQUIRED"].includes(
     stage.value?.validationStatus,
-  )
-})
+  );
+});
 
 const statusText = computed(() => {
-  if (!stage.value) return ''
+  if (!stage.value) return "";
 
-  if (stage.value.validationStatus === 'APPROVED') {
-    return `Validé par ${stage.value.supervisor.fullName}`
+  if (stage.value.validationStatus === "APPROVED") {
+    return `Validé par ${stage.value.supervisor.fullName}`;
   }
 
-  if (stage.value.validationStatus === 'PENDING') {
-    return 'En attente de validation'
+  if (stage.value.validationStatus === "PENDING") {
+    return "En attente de validation";
   }
 
-  if (stage.value.validationStatus === 'DRAFT') {
-    return 'Brouillon'
+  if (stage.value.validationStatus === "DRAFT") {
+    return "Brouillon";
   }
 
-  if (stage.value.validationStatus === 'REJECTED') {
-    return 'Refusé'
+  if (stage.value.validationStatus === "REJECTED") {
+    return "Refusé";
   }
 
-  return 'Correction demandée'
-})
+  return "Correction demandée";
+});
 
 const statusClass = computed(() => {
-  return stage.value?.validationStatus || 'PENDING'
-})
+  return stage.value?.validationStatus || "PENDING";
+});
 
 const getTimelineTitle = (status) => {
   const titles = {
-    DRAFT: 'Stage créé',
-    PENDING: 'Stage soumis',
-    APPROVED: 'Stage validé',
-    REJECTED: 'Stage refusé',
-    CORRECTION_REQUIRED: 'Correction demandée',
-  }
+    DRAFT: "Stage créé",
+    PENDING: "Stage soumis",
+    APPROVED: "Stage validé",
+    REJECTED: "Stage refusé",
+    CORRECTION_REQUIRED: "Correction demandée",
+  };
 
-  return titles[status] || 'Mise à jour'
-}
+  return titles[status] || "Mise à jour";
+};
 
 const getTimelineAuthor = (status) => {
-  if (status === 'APPROVED') return 'Encadrant académique'
-  if (status === 'REJECTED') return 'Encadrant académique'
-  if (status === 'CORRECTION_REQUIRED') return 'Encadrant académique'
+  if (status === "APPROVED") return "Encadrant académique";
+  if (status === "REJECTED") return "Encadrant académique";
+  if (status === "CORRECTION_REQUIRED") return "Encadrant académique";
 
-  return 'Étudiant'
-}
+  return "Étudiant";
+};
 
 const getTimelineIcon = (status) => {
   const icons = {
-    DRAFT: 'edit',
-    PENDING: 'schedule',
-    APPROVED: 'check_circle',
-    REJECTED: 'cancel',
-    CORRECTION_REQUIRED: 'priority_high',
-  }
+    DRAFT: "edit",
+    PENDING: "schedule",
+    APPROVED: "check_circle",
+    REJECTED: "cancel",
+    CORRECTION_REQUIRED: "priority_high",
+  };
 
-  return icons[status] || 'history'
-}
+  return icons[status] || "history";
+};
 //pour la boite modal des images
-const showImagesModal = ref(false)
+const showImagesModal = ref(false);
 
 const visibleImages = computed(() => {
-  return stage.value?.images?.slice(0, 4) || []
-})
+  return stage.value?.images?.slice(0, 4) || [];
+});
 
 const hasMoreImages = computed(() => {
-  return stage.value?.images?.length > 4
-})
+  return stage.value?.images?.length > 4;
+});
 
 const openImagesModal = () => {
-  showImagesModal.value = true
-}
+  showImagesModal.value = true;
+};
 
 const closeImagesModal = () => {
-  showImagesModal.value = false
-}
+  showImagesModal.value = false;
+};
 
 const goBack = () => {
-  router.push('/student/stages')
-}
+  router.push("/student/stages");
+};
 
 const goToEdit = () => {
-  router.push(`/student/stages/${route.params.id}/edit`)
-}
+  router.push(`/student/stages/${route.params.id}/edit`);
+};
 </script>
 
 <template>
@@ -114,7 +114,6 @@ const goToEdit = () => {
 
     <div class="hero-card">
       <div>
-
         <h1>{{ stage.title }}</h1>
 
         <div class="company-line">
@@ -124,11 +123,7 @@ const goToEdit = () => {
         </div>
       </div>
 
-      <button
-        v-if="canEditStage"
-        class="edit-btn"
-        @click="goToEdit"
-      >
+      <button v-if="canEditStage" class="edit-btn" @click="goToEdit">
         <span class="material-icons-round">edit</span>
         Modifier
       </button>
@@ -171,37 +166,37 @@ const goToEdit = () => {
         <!-- IMAGES -->
 
         <div class="content-card">
-  <div class="section-header">
-    <h2>
-      <span class="material-icons-round">image</span>
-      Captures d’écran
-    </h2>
+          <div class="section-header">
+            <h2>
+              <span class="material-icons-round">image</span>
+              Captures d’écran
+            </h2>
 
-    <button
-      v-if="hasMoreImages"
-      class="view-all-btn"
-      @click="openImagesModal"
-    >
-      Voir toutes les images
-    </button>
-  </div>
+            <button
+              v-if="hasMoreImages"
+              class="view-all-btn"
+              @click="openImagesModal"
+            >
+              Voir toutes les images
+            </button>
+          </div>
 
-  <div v-if="stage.images?.length" class="screens-grid">
-    <div
-      v-for="image in visibleImages"
-      :key="image.id"
-      class="screen-card"
-    >
-      <img :src="image.url" :alt="image.title" />
-      <span>{{ image.title }}</span>
-    </div>
-  </div>
+          <div v-if="stage.images?.length" class="screens-grid">
+            <div
+              v-for="image in visibleImages"
+              :key="image.id"
+              class="screen-card"
+            >
+              <img :src="image.url" :alt="image.title" />
+              <span>{{ image.title }}</span>
+            </div>
+          </div>
 
-  <div v-else class="empty-screens">
-    <span class="material-icons-round">image_not_supported</span>
-    <p>Aucune capture d’écran ajoutée pour ce stage.</p>
-  </div>
-</div>
+          <div v-else class="empty-screens">
+            <span class="material-icons-round">image_not_supported</span>
+            <p>Aucune capture d’écran ajoutée pour ce stage.</p>
+          </div>
+        </div>
 
         <!-- MISSIONS -->
 
@@ -212,10 +207,7 @@ const goToEdit = () => {
           </h2>
 
           <ul class="missions-list">
-            <li
-              v-for="mission in stage.missions"
-              :key="mission"
-            >
+            <li v-for="mission in stage.missions" :key="mission">
               {{ mission }}
             </li>
           </ul>
@@ -316,18 +308,10 @@ const goToEdit = () => {
 
             <strong>
               <span class="material-icons-round small-icon">
-                {{
-                  stage.visibility === 'PUBLIC'
-                    ? 'public'
-                    : 'lock'
-                }}
+                {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
               </span>
 
-              {{
-                stage.visibility === 'PUBLIC'
-                  ? 'Publique'
-                  : 'Privée'
-              }}
+              {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
             </strong>
           </div>
         </div>
@@ -361,9 +345,7 @@ const goToEdit = () => {
 
         <div class="side-card">
           <h3>
-            <span class="material-icons-round">
-              picture_as_pdf
-            </span>
+            <span class="material-icons-round"> picture_as_pdf </span>
 
             Rapport PDF
           </h3>
@@ -374,16 +356,12 @@ const goToEdit = () => {
             target="_blank"
             class="report-btn"
           >
-            <span class="material-icons-round">
-              open_in_new
-            </span>
+            <span class="material-icons-round"> open_in_new </span>
 
             Voir le rapport
           </a>
 
-          <p v-else class="muted">
-            Aucun rapport ajouté.
-          </p>
+          <p v-else class="muted">Aucun rapport ajouté.</p>
         </div>
       </aside>
     </div>
@@ -755,7 +733,7 @@ h3 .material-icons-round {
 }
 
 .timeline::before {
-  content: '';
+  content: "";
 
   position: absolute;
 

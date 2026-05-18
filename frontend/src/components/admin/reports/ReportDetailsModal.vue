@@ -73,7 +73,9 @@ const formatDate = (date) => {
 
           <div class="detail-row">
             <span>Type</span>
-            <strong>{{ typeLabels[report.targetType] || report.targetType }}</strong>
+            <strong>{{
+              typeLabels[report.targetType] || report.targetType
+            }}</strong>
           </div>
 
           <div class="detail-row">
@@ -95,9 +97,7 @@ const formatDate = (date) => {
       </div>
 
       <div class="modal-actions">
-        <button class="cancel-btn" @click="emit('close')">
-          Fermer
-        </button>
+        <button class="cancel-btn" @click="emit('close')">Fermer</button>
 
         <button
           v-if="report.status === 'PENDING'"

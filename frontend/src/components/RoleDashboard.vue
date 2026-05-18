@@ -1,9 +1,9 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { getDashboard, getProfile } from '../services/dashboardService'
-import { logout } from '../services/authService'
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+import { getDashboard, getProfile } from "../services/dashboardService";
+import { logout } from "../services/authService";
 
 const props = defineProps({
   roleArea: {
@@ -14,60 +14,59 @@ const props = defineProps({
     type: String,
     required: true,
   },
-})
+});
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
-const dashboardMessage = ref('')
-const profileMessage = ref('')
-const profile = ref(null)
-const errorMessage = ref('')
-const isLoading = ref(false)
-const isLoggingOut = ref(false)
+const dashboardMessage = ref("");
+const profileMessage = ref("");
+const profile = ref(null);
+const errorMessage = ref("");
+const isLoading = ref(false);
+const isLoggingOut = ref(false);
 
 const userName = computed(() => {
-  const user = authStore.user
+  const user = authStore.user;
 
-  if (!user) return 'Utilisateur'
-  return `${user.firstName } ${user.lastName }`.trim() || user.email
-})
+  if (!user) return "Utilisateur";
+  return `${user.firstName} ${user.lastName}`.trim() || user.email;
+});
 
 const loadDashboard = async () => {
-  errorMessage.value = ''
-  isLoading.value = true
+  errorMessage.value = "";
+  isLoading.value = true;
 
   try {
     const [dashboardResponse, profileResponse] = await Promise.all([
       getDashboard(props.roleArea),
       getProfile(props.roleArea),
-    ])
+    ]);
 
-    dashboardMessage.value = dashboardResponse.message
-    profileMessage.value = profileResponse.message
-    profile.value = profileResponse.data?.user
+    dashboardMessage.value = dashboardResponse.message;
+    profileMessage.value = profileResponse.message;
+    profile.value = profileResponse.data?.user;
   } catch (error) {
     errorMessage.value =
-      error?.response?.data?.message ||
-      "Impossible de charger votre espace."
+      error?.response?.data?.message || "Impossible de charger votre espace.";
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const handleLogout = async () => {
-  isLoggingOut.value = true
+  isLoggingOut.value = true;
 
   try {
-    await logout()
+    await logout();
   } finally {
-    authStore.clearAuthSession() //je vide la session locale apres l'appel api logout
-    router.push('/login')
-    isLoggingOut.value = false
+    authStore.clearAuthSession(); //je vide la session locale apres l'appel api logout
+    router.push("/login");
+    isLoggingOut.value = false;
   }
-}
+};
 
-onMounted(loadDashboard)
+onMounted(loadDashboard);
 </script>
 
 <template>
@@ -89,9 +88,7 @@ onMounted(loadDashboard)
       <p>Role : {{ profile?.role }}</p>
     </div>
 
-    <button @click="handleLogout">
-      Se déconnecter
-    </button>
+    <button @click="handleLogout">Se déconnecter</button>
   </div>
 </template>
 <style scoped>

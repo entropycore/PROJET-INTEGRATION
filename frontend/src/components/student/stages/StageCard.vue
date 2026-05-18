@@ -1,57 +1,57 @@
 <script setup>
-import { useRouter } from 'vue-router'
-import StageValidationBadge from './StageValidationBadge.vue'
+import { useRouter } from "vue-router";
+import StageValidationBadge from "./StageValidationBadge.vue";
 
 const props = defineProps({
   stage: {
     type: Object,
     required: true,
   },
-})
+});
 
-const emit = defineEmits(['delete-stage', 'submit-validation'])
+const emit = defineEmits(["delete-stage", "submit-validation"]);
 
-const router = useRouter()
+const router = useRouter();
 
 const goToDetails = () => {
-  router.push(`/student/stages/${props.stage.id}`)
-}
+  router.push(`/student/stages/${props.stage.id}`);
+};
 
 const goToEdit = () => {
-  router.push(`/student/stages/${props.stage.id}/edit`)
-}
+  router.push(`/student/stages/${props.stage.id}/edit`);
+};
 
 const canEditStage = () => {
-  return ['DRAFT', 'PENDING', 'CORRECTION_REQUIRED'].includes(
+  return ["DRAFT", "PENDING", "CORRECTION_REQUIRED"].includes(
     props.stage.validationStatus,
-  )
-}
+  );
+};
 
 const canSubmitValidation = () => {
-  return ['DRAFT', 'CORRECTION_REQUIRED'].includes(
+  return ["DRAFT", "CORRECTION_REQUIRED"].includes(
     props.stage.validationStatus,
-  )
-}
+  );
+};
 
 const canDeleteStage = () => {
-  return ['DRAFT', 'CORRECTION_REQUIRED', 'REJECTED'].includes(
+  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
     props.stage.validationStatus,
-  )
-}
+  );
+};
 
 const submitButtonLabel = () => {
-  return props.stage.validationStatus === 'CORRECTION_REQUIRED'
-    ? 'Resoumettre'
-    : 'Soumettre'
-}
+  return props.stage.validationStatus === "CORRECTION_REQUIRED"
+    ? "Resoumettre"
+    : "Soumettre";
+};
 
 const submitValidation = () => {
-  emit('submit-validation', props.stage.id)
-}
+  emit("submit-validation", props.stage.id);
+};
 
 const deleteCurrentStage = () => {
-  emit('delete-stage', props.stage.id)
-}
+  emit("delete-stage", props.stage.id);
+};
 </script>
 
 <template>
@@ -102,9 +102,9 @@ const deleteCurrentStage = () => {
         <span>Visibilité</span>
         <strong>
           <span class="material-icons-round small-icon">
-            {{ stage.visibility === 'PUBLIC' ? 'public' : 'lock' }}
+            {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
           </span>
-          {{ stage.visibility === 'PUBLIC' ? 'Publique' : 'Privée' }}
+          {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
         </strong>
       </div>
     </div>
@@ -116,11 +116,7 @@ const deleteCurrentStage = () => {
       </div>
 
       <div class="tech-list">
-        <span
-          v-for="tech in stage.technologies"
-          :key="tech"
-          class="tech-tag"
-        >
+        <span v-for="tech in stage.technologies" :key="tech" class="tech-tag">
           {{ tech }}
         </span>
       </div>
@@ -132,11 +128,7 @@ const deleteCurrentStage = () => {
         Détails
       </button>
 
-      <button
-        v-if="canEditStage()"
-        class="action-btn"
-        @click="goToEdit"
-      >
+      <button v-if="canEditStage()" class="action-btn" @click="goToEdit">
         <span class="material-icons-round">edit</span>
         Modifier
       </button>
@@ -155,7 +147,6 @@ const deleteCurrentStage = () => {
         <span class="material-icons-round">send</span>
         {{ submitButtonLabel() }}
       </button>
-
     </div>
   </article>
 </template>

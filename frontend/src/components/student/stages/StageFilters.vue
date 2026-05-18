@@ -3,13 +3,13 @@ defineProps({
   search: String,
   status: String,
   visibility: String,
-})
+});
 
 const emit = defineEmits([
-  'update:search',
-  'update:status',
-  'update:visibility',
-])
+  "update:search",
+  "update:status",
+  "update:visibility",
+]);
 </script>
 
 <template>

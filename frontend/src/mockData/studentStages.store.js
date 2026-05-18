@@ -1,6 +1,6 @@
-import { ref } from 'vue'
+import { ref } from "vue";
 
-import { studentStages as mockStages } from './studentStages.mock'
+import { studentStages as mockStages } from "./studentStages.mock";
 
 /*
 | STORE MOCK TEMPORAIRE — STAGES ÉTUDIANT
@@ -27,7 +27,7 @@ POURQUOI CE FICHIER ?
 | - ou une vraie fonction fetchStages()
 */
 
-export const stages = ref([...mockStages])
+export const stages = ref([...mockStages]);
 
 /*FONCTION FUTURE BACKEND — fetchStages()
 | Cette fonction n’est pas utilisée maintenant.
@@ -79,8 +79,8 @@ export const addStage = (newStage) => {
 
   // VERSION MOCK ACTUELLE :
   // On ajoute localement le stage au début de la liste.
-  stages.value.unshift(newStage)
-}
+  stages.value.unshift(newStage);
+};
 
 /*MODIFIER UN STAGE*/
 export const updateStage = (updatedStage) => {
@@ -123,11 +123,11 @@ export const updateStage = (updatedStage) => {
   // On remplace le stage qui a le même id.
   stages.value = stages.value.map((stage) =>
     stage.id === updatedStage.id ? updatedStage : stage,
-  )
-}
+  );
+};
 
 /*SUPPRIMER UN STAGE
-*/
+ */
 export const deleteStage = (stageId) => {
   /*
   BACKEND PLUS TARD :
@@ -147,8 +147,8 @@ export const deleteStage = (stageId) => {
 
   // VERSION MOCK ACTUELLE :
   // On garde tous les stages sauf celui à supprimer.
-  stages.value = stages.value.filter((stage) => stage.id !== stageId)
-}
+  stages.value = stages.value.filter((stage) => stage.id !== stageId);
+};
 
 /*SOUMETTRE UN STAGE POUR VALIDATION*/
 export const submitStageValidation = (stageId) => {
@@ -173,19 +173,19 @@ export const submitStageValidation = (stageId) => {
   // On change le statut localement vers PENDING
   // et on ajoute une ligne dans l’historique.
   stages.value = stages.value.map((stage) => {
-    if (stage.id !== stageId) return stage
+    if (stage.id !== stageId) return stage;
 
     return {
       ...stage,
-      validationStatus: 'PENDING',
+      validationStatus: "PENDING",
       validationHistory: [
         {
-          status: 'PENDING',
-          comment: 'Stage soumis pour validation.',
-          createdAt: new Date().toISOString().split('T')[0],
+          status: "PENDING",
+          comment: "Stage soumis pour validation.",
+          createdAt: new Date().toISOString().split("T")[0],
         },
         ...(stage.validationHistory || []),
       ],
-    }
-  })
-}
+    };
+  });
+};

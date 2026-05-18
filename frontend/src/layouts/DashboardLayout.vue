@@ -1,14 +1,14 @@
 <script setup>
-import { ref } from 'vue'
-import Sidebar from '../components/dashboard/Sidebar.vue'
-import Topbar from '../components/dashboard/Topbar.vue'
-import '../assets/styles/dashboard-layout.css'
+import { ref } from "vue";
+import Sidebar from "../components/dashboard/Sidebar.vue";
+import Topbar from "../components/dashboard/Topbar.vue";
+import "../assets/styles/dashboard-layout.css";
 
-const isSidebarCollapsed = ref(false)
+const isSidebarCollapsed = ref(false);
 
 const toggleSidebar = () => {
-  isSidebarCollapsed.value = !isSidebarCollapsed.value
-}
+  isSidebarCollapsed.value = !isSidebarCollapsed.value;
+};
 </script>
 
 <template>
@@ -16,7 +16,10 @@ const toggleSidebar = () => {
     <Topbar />
 
     <div class="dashboard-body">
-      <Sidebar :collapsed="isSidebarCollapsed"  @toggle-sidebar="toggleSidebar" />
+      <Sidebar
+        :collapsed="isSidebarCollapsed"
+        @toggle-sidebar="toggleSidebar"
+      />
 
       <main class="dashboard-content">
         <router-view />

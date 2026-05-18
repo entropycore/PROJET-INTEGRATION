@@ -60,7 +60,7 @@ const formatDate = (date) => {
       </span>
 
       <span class="status-badge" :class="validation.status.toLowerCase()">
-      {{ statusLabels[validation.status] || validation.status }}
+        {{ statusLabels[validation.status] || validation.status }}
       </span>
 
       <span class="date-cell">
@@ -90,7 +90,7 @@ const formatDate = (date) => {
           title="Demander correction"
           @click="emit('request-changes', validation)"
         >
-        ✎
+          ✎
         </button>
       </div>
     </div>

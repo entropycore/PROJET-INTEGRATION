@@ -3,5 +3,5 @@
 </template>
 
 <script setup>
-import RoleDashboard from '../../components/RoleDashboard.vue'
+import RoleDashboard from "../../components/RoleDashboard.vue";
 </script>

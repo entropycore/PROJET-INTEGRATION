@@ -10,7 +10,9 @@
   justify-content: space-between;
   overflow-y: auto;
   overflow-x: hidden;
-  transition: width 0.25s ease, padding 0.25s ease;
+  transition:
+    width 0.25s ease,
+    padding 0.25s ease;
 }
 .sidebar::-webkit-scrollbar {
   width: 6px;
@@ -89,9 +91,10 @@
   color: #5f777b;
   text-decoration: none;
   min-width: 0;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
-
 
 .sidebar-link-active {
   background: transparent;
@@ -170,8 +173,6 @@
   text-decoration: none;
 }
 
-
-
 .sidebar-sublink-active {
   background: #2f5d62;
   color: #ffffff;
@@ -214,7 +215,6 @@
 .sidebar-collapsed .sidebar-collapse-btn {
   margin: 0 auto;
 }
-
 
 /* liens en mode icône seule */
 .sidebar-collapsed .sidebar-link,
