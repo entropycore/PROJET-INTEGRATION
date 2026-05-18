@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed,onMounted } from "vue";
 import { useRoute } from "vue-router";
+const route = useRoute();
+const baseApi = route.meta.baseApi;
 
 /*
 BACKEND (a activer lorque api est pret )
