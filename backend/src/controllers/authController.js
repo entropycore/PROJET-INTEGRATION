@@ -1,6 +1,7 @@
 'use strict';
 
 const authService = require('../services/authService');
+const jwt = require('jsonwebtoken');
 const { setCookies, clearCookies, setAccessTokenCookie } = require('../utils/setCookies');
 
 // Inscription
@@ -10,7 +11,7 @@ exports.register = async (req, res, next) => {
     res.status(201).json({ success: true, message: "Demande envoyée. Vérifiez votre email." });
   } catch (err) {
     if (err.message === "EMAIL_ALREADY_EXISTS") {
-      return res.status(400).json({ success: false, message: "Cet email est déjà utilisé." });
+      return res.status(409).json({ success: false, message: "Cet email est déjà utilisé." });
     }
     if (err.message === "EMAIL_SEND_FAILED") {
       return res.status(500).json({ success: false, message: "Erreur d'envoi d'email. Veuillez réessayer." });
@@ -29,6 +30,46 @@ exports.verifyEmail = async (req, res, next) => {
     res.json({ success: true, message: "Email vérifié avec succès." });
   } catch (err) {
     if (err.message === "INVALID_TOKEN") return res.status(400).json({ success: false, message: "Lien invalide ou expiré." });
+    next(err);
+  }
+};
+
+// Demande de reinitialisation de mot de passe
+exports.forgotPassword = async (req, res, next) => {
+  try {
+    await authService.requestPasswordReset(req.body.email);
+    res.json({
+      success: true,
+      message:
+        "Si un compte existe avec cet email, un lien de reinitialisation a ete envoye.",
+    });
+  } catch (err) {
+    if (err.message === "EMAIL_SEND_FAILED") {
+      return res.status(500).json({
+        success: false,
+        message: "Erreur d'envoi d'email. Veuillez reessayer.",
+      });
+    }
+    next(err);
+  }
+};
+
+// Reinitialisation du mot de passe
+exports.resetPassword = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+    await authService.resetPassword(token, newPassword);
+    res.json({
+      success: true,
+      message: 'Mot de passe reinitialise avec succes.',
+    });
+  } catch (err) {
+    if (err.message === "INVALID_RESET_TOKEN") {
+      return res.status(400).json({
+        success: false,
+        message: 'Lien de reinitialisation invalide ou expire.',
+      });
+    }
     next(err);
   }
 };
@@ -98,9 +139,14 @@ exports.logout = async (req, res, next) => {
   try {
     const refreshTokenCookie = req.cookies?.refreshToken;
 
-    // Révoquer la session spécifique dans la DB si le token est présent
+    // Révoquer la session spécifique quand un refresh token valide est encore présent.
     if (refreshTokenCookie) {
-      await authService.revokeToken(req.user.userId, refreshTokenCookie);
+      try {
+        const decoded = jwt.verify(refreshTokenCookie, process.env.REFRESH_TOKEN_SECRET);
+        await authService.revokeToken(decoded.userId, refreshTokenCookie);
+      } catch (err) {
+        // Si le refresh token est invalide ou expiré, on ignore l'erreur et on vide quand même les cookies.
+      }
     }
 
     // Effacer les cookies du navigateur
