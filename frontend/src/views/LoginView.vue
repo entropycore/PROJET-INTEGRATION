@@ -6,8 +6,8 @@ import { login, getMe } from '../services/authService'
 import AppLogo from '../components/AppLogo.vue'
 import '../assets/styles/login.css'
 
-const router = useRouter() //va me servir a naviguer(changer les pages)
-const route = useRoute() //va me servir de lire (observer)
+const router = useRouter() // va me servir a naviguer (changer les pages)
+const route = useRoute() // va me servir a lire (observer)
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -17,11 +17,12 @@ const successMessage = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
 
-watch( //j'observe les infos de navigation utiles depuis l'url
+watch(
+  // j'observe les infos de navigation utiles depuis l'url
   () => [route.query.error, route.query.reset],
   ([error, reset]) => {
     if (error === 'unauthorized') {
-      errorMessage.value = "Vous n'avez pas acces a cette page."
+      errorMessage.value = "Vous n'avez pas accès à cette page."
       successMessage.value = ''
       return
     }
@@ -30,7 +31,7 @@ watch( //j'observe les infos de navigation utiles depuis l'url
 
     if (reset === 'success') {
       successMessage.value =
-        'Mot de passe reinitialise. Vous pouvez maintenant vous connecter.'
+        'Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.'
       return
     }
 
@@ -58,8 +59,8 @@ const handleLogin = async () => {
 
     const meResponse = await getMe()
 
-    authStore.setAuthSession(meResponse.data.data) //je stock la data user dans le store pinia
-    successMessage.value = 'Connexion reussie.'
+    authStore.setAuthSession(meResponse.data.data) // je stocke la data user dans le store Pinia
+    successMessage.value = 'Connexion réussie.'
     const user = meResponse.data.data
     const dashboardMap = {
       ADMINISTRATOR: '/admin',
@@ -71,7 +72,7 @@ const handleLogin = async () => {
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message ||
-      'Connexion impossible. Verifiez vos identifiants.'
+      'Connexion impossible. Vérifiez vos identifiants.'
   } finally {
     isLoading.value = false
   }
@@ -98,18 +99,18 @@ const togglePassword = () => {
 
         <div class="hero-text">
           <h1>
-            Votre identite<br />
+            Votre identité<br />
             professionnelle<br />
-            <span>certifiee.</span>
+            <span>certifiée.</span>
           </h1>
 
           <p>
-            Construisez un portfolio academique valide par votre institution,
+            Construisez un portfolio académique validé par votre institution,
             et reconnu par les recruteurs.
           </p>
 
           <p>
-            Chaque realisation validee devient un atout officiel pour votre
+            Chaque réalisation validée devient un atout officiel pour votre
             insertion professionnelle.
           </p>
         </div>
@@ -120,7 +121,7 @@ const togglePassword = () => {
       <div class="auth-card">
         <div class="auth-form-block">
           <h2>Bon retour</h2>
-          <p class="subtitle">Connectez-vous a votre espace personnel</p>
+          <p class="subtitle">Connectez-vous à votre espace personnel</p>
 
           <form class="auth-form" @submit.prevent="handleLogin">
             <div class="form-group">
@@ -161,14 +162,14 @@ const togglePassword = () => {
                   type="button"
                   @click="goToForgotPassword"
                 >
-                  Mot de passe oublie ?
+                  Mot de passe oublié ?
                 </button>
               </div>
 
               <p class="access-request-text">
                 Vous n'avez pas encore de compte ?
                 <span class="access-request-link" @click="goToRequestAccess">
-                  Demandez l'acces
+                  Demandez l'accès
                 </span>
               </p>
             </div>
