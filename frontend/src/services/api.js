@@ -16,26 +16,38 @@ api.interceptors.response.use(
     const originalRequest = error.config
     const authStore = useAuthStore()
 
+    const isLoginRequest = originalRequest?.url === '/auth/login'
+    const isRefreshRequest = originalRequest?.url === '/auth/refresh-token'
+    const isRegisterRequest = originalRequest?.url === '/auth/register'
+
     if (
       error.response?.status === 401 &&
       originalRequest &&
       !originalRequest._retry &&
-      originalRequest.url !== '/auth/refresh-token'
+      !isLoginRequest &&
+      !isRefreshRequest
     ) {
-      originalRequest._retry = true //je retente une fois apres avoir renouvelé le token
-       try {
-         await api.post('/auth/refresh-token')
-         return api(originalRequest)
-       } catch {
-         authStore.clearAuthSession()
-         window.location.href = '/login'
-         return Promise.reject(error)
-}
+      originalRequest._retry = true
+
+      try {
+        await api.post('/auth/refresh-token')
+        return api(originalRequest)
+      } catch {
+        authStore.clearAuthSession()
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
     }
-    // 403 — Accès refusé
-    if (error.response?.status === 403) {
+
+    if (
+      error.response?.status === 403 &&
+      !isLoginRequest &&
+      !isRegisterRequest &&
+      !isRefreshRequest
+    ) {
       window.location.href = '/403'
     }
+
     return Promise.reject(error)
   }
 )
