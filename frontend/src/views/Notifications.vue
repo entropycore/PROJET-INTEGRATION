@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed,onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 const route = useRoute();
 const baseApi = route.meta.baseApi;
@@ -71,9 +71,7 @@ const notifications = ref([
   },
 ]);
 
-const unreadCount = ref(
-  notifications.value.filter((n) => !n.read).length
-);
+const unreadCount = ref(notifications.value.filter((n) => !n.read).length);
 
 const loading = ref(false);
 const error = ref(null);
@@ -114,7 +112,7 @@ const filteredNotifications = computed(() => {
   }
 
   return notifications.value.filter(
-    (notification) => notification.type === selectedType.value
+    (notification) => notification.type === selectedType.value,
   );
 });
 </script>
@@ -128,14 +126,12 @@ const filteredNotifications = computed(() => {
     </header>
 
     <NotificationToolbar
-    :unread-count="unreadCount"
-    v-model:selected-type="selectedType"
-    @read-all="handleReadAll"
+      :unread-count="unreadCount"
+      v-model:selected-type="selectedType"
+      @read-all="handleReadAll"
     />
 
-    <div v-if="loading" class="state-box">
-      Chargement...
-    </div>
+    <div v-if="loading" class="state-box">Chargement...</div>
 
     <div v-else-if="error" class="state-box error">
       {{ error }}

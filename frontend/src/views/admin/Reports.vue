@@ -36,7 +36,8 @@ const reports = ref([
     targetType: "PROJECT",
     targetId: 12,
     reason: "Contenu inapproprié",
-    description: "Le contenu signalé semble non conforme aux règles de la plateforme.",
+    description:
+      "Le contenu signalé semble non conforme aux règles de la plateforme.",
     status: "PENDING",
     reportedBy: {
       id: 30,
@@ -102,9 +103,12 @@ onMounted(fetchReports);
 const stats = computed(() => {
   return {
     total: reports.value.length,
-    pending: reports.value.filter((report) => report.status === "PENDING").length,
-    resolved: reports.value.filter((report) => report.status === "RESOLVED").length,
-    rejected: reports.value.filter((report) => report.status === "REJECTED").length,
+    pending: reports.value.filter((report) => report.status === "PENDING")
+      .length,
+    resolved: reports.value.filter((report) => report.status === "RESOLVED")
+      .length,
+    rejected: reports.value.filter((report) => report.status === "REJECTED")
+      .length,
   };
 });
 
@@ -129,7 +133,7 @@ const filteredReports = computed(() => {
 
 const updateReportStatus = (id, status) => {
   reports.value = reports.value.map((report) =>
-    report.id === id ? { ...report, status } : report
+    report.id === id ? { ...report, status } : report,
   );
 
   if (selectedReport.value?.id === id) {
@@ -219,9 +223,7 @@ const handleDeleteTarget = async (report) => {
         v-model:selected-status="selectedStatus"
       />
 
-      <div v-if="loading" class="state-box">
-        Chargement des signalements...
-      </div>
+      <div v-if="loading" class="state-box">Chargement des signalements...</div>
 
       <div v-else-if="error" class="state-box error">
         {{ error }}
