@@ -35,11 +35,11 @@ const getForgotPasswordErrorMessage = (error) => {
     return (
       apiError.errors[0]?.message ||
       apiError?.message ||
-      "Impossible d'envoyer l'email de reinitialisation."
+      "Impossible d'envoyer l'email de réinitialisation."
     )
   }
 
-  return apiError?.message || "Impossible d'envoyer l'email de reinitialisation."
+  return apiError?.message || "Impossible d'envoyer l'email de réinitialisation."
 }
 
 const handleSubmit = async () => {
@@ -51,7 +51,7 @@ const handleSubmit = async () => {
     const response = await forgotPassword(email.value.trim())
     successMessage.value =
       response?.message ||
-      'Si un compte existe avec cet email, un lien de reinitialisation a ete envoye.'
+      'Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.'
   } catch (error) {
     errorMessage.value = getForgotPasswordErrorMessage(error)
   } finally {
@@ -70,19 +70,19 @@ const handleSubmit = async () => {
 
         <div class="hero-text">
           <h1>
-            Recuperez l'acces<br />
-            a votre espace<br />
-            <span>en toute securite.</span>
+            Récupérez l'accès<br />
+            à votre espace<br />
+            <span>en toute sécurité.</span>
           </h1>
 
           <p>
             Saisissez votre adresse email pour recevoir un lien de
-            reinitialisation si votre compte existe deja dans la plateforme.
+            réinitialisation si votre compte existe déjà dans la plateforme.
           </p>
 
           <p>
-            Pour des raisons de confidentialite, nous affichons le meme message
-            meme si aucun compte ne correspond a l'adresse renseignee.
+            Pour des raisons de confidentialité, nous affichons le même message
+            même si aucun compte ne correspond à l'adresse renseignée.
           </p>
         </div>
       </div>
@@ -91,10 +91,10 @@ const handleSubmit = async () => {
     <section class="auth-right">
       <div class="auth-card auth-card-forgot">
         <div class="auth-form-block">
-          <h2>Mot de passe oublie</h2>
+          <h2>Mot de passe oublié</h2>
           <p class="subtitle">
             Entrez votre email pour recevoir les instructions de
-            reinitialisation.
+            réinitialisation.
           </p>
 
           <form class="auth-form" @submit.prevent="handleSubmit">
@@ -112,8 +112,8 @@ const handleSubmit = async () => {
             <div class="request-note">
               <p>
                 <strong>Important :</strong>
-                si un compte est associe a cette adresse, vous recevrez un email
-                vous permettant de definir un nouveau mot de passe.
+                si un compte est associé à cette adresse, vous recevrez un email
+                vous permettant de définir un nouveau mot de passe.
               </p>
             </div>
 
@@ -131,7 +131,7 @@ const handleSubmit = async () => {
 
             <p class="login-link">
               Vous vous souvenez de votre mot de passe ?
-              <span @click="goToLogin">Retour a la connexion</span>
+              <span @click="goToLogin">Retour à la connexion</span>
             </p>
           </form>
         </div>

@@ -36,7 +36,7 @@ const validateForm = () => {
   successMessage.value = ''
 
   if (!hasValidToken.value) {
-    errorMessage.value = 'Lien de reinitialisation manquant ou invalide.'
+    errorMessage.value = 'Lien de réinitialisation manquant ou invalide.'
     return false
   }
 
@@ -60,11 +60,11 @@ const getResetPasswordErrorMessage = (error) => {
     return (
       apiError.errors[0]?.message ||
       apiError?.message ||
-      'Impossible de reinitialiser le mot de passe.'
+      'Impossible de réinitialiser le mot de passe.'
     )
   }
 
-  return apiError?.message || 'Impossible de reinitialiser le mot de passe.'
+  return apiError?.message || 'Impossible de réinitialiser le mot de passe.'
 }
 
 const handleSubmit = async () => {
@@ -79,7 +79,7 @@ const handleSubmit = async () => {
     })
 
     successMessage.value =
-      response?.message || 'Mot de passe reinitialise avec succes.'
+      response?.message || 'Mot de passe réinitialisé avec succès.'
     newPassword.value = ''
     confirmPassword.value = ''
 
@@ -102,7 +102,7 @@ onMounted(() => {
     return
   }
 
-  errorMessage.value = 'Lien de reinitialisation manquant ou invalide.'
+  errorMessage.value = 'Lien de réinitialisation manquant ou invalide.'
 })
 </script>
 
@@ -122,13 +122,13 @@ onMounted(() => {
           </h1>
 
           <p>
-            Definissez un nouveau mot de passe pour retrouver l'acces a votre
+            Définissez un nouveau mot de passe pour retrouver l'accès à votre
             espace personnel.
           </p>
 
           <p>
-            Utilisez un mot de passe solide pour proteger votre compte et vos
-            informations academiques.
+            Utilisez un mot de passe solide pour protéger votre compte et vos
+            informations académiques.
           </p>
         </div>
       </div>
@@ -137,10 +137,10 @@ onMounted(() => {
     <section class="auth-right">
       <div class="auth-card auth-card-reset">
         <div class="auth-form-block">
-          <h2>Reinitialiser le mot de passe</h2>
+          <h2>Réinitialiser le mot de passe</h2>
           <p class="subtitle">
             Saisissez votre nouveau mot de passe pour terminer la
-            reinitialisation.
+            réinitialisation.
           </p>
 
           <form class="auth-form" @submit.prevent="handleSubmit">
@@ -189,8 +189,8 @@ onMounted(() => {
             <div class="request-note">
               <p>
                 <strong>Important :</strong>
-                le lien recu par email est necessaire pour valider cette
-                operation.
+                le lien reçu par email est nécessaire pour valider cette
+                opération.
               </p>
             </div>
 
@@ -207,11 +207,15 @@ onMounted(() => {
               type="submit"
               :disabled="isSubmitting || !hasValidToken"
             >
-              {{ isSubmitting ? 'Validation...' : 'Reinitialiser le mot de passe' }}
+              {{
+                isSubmitting
+                  ? 'Validation...'
+                  : 'Réinitialiser le mot de passe'
+              }}
             </button>
 
             <p class="login-link">
-              Retour a votre espace de connexion ?
+              Retour à votre espace de connexion ?
               <span @click="goToLogin">Se connecter</span>
             </p>
           </form>
