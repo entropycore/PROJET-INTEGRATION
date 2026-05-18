@@ -6,9 +6,11 @@ import { getMe } from '../services/authService'
 import LoginView from '../views/LoginView.vue'
 import RequestAccessView from '../views/RequestAccessView.vue'
 import VerifyEmailView from '../views/VerifyEmailView.vue'
-import LandingView from '../views/LandingView.vue' // Ajout de la Landing Page
+import LandingView from '../views/LandingView.vue'
+import ForgotPasswordView from '../views/ForgotPasswordView.vue'
+import ResetPasswordView from '../views/ResetPasswordView.vue'
 
-/* Imports des tableaux de bord par rôle */
+/* Imports des tableaux de bord par role */
 import AdminDashboard from '../views/admin/Dashboard.vue'
 import StudentDashboard from '../views/student/Dashboard.vue'
 import ProfessorDashboard from '../views/professor/Dashboard.vue'
@@ -19,7 +21,6 @@ const router = createRouter({
     history: createWebHistory(),
     routes: [
         {
-            /* Changement : La Landing Page est maintenant la racine */
             path: '/',
             name: 'landing',
             component: LandingView,
@@ -40,68 +41,78 @@ const router = createRouter({
             component: VerifyEmailView,
         },
         {
-  path: '/admin',
-  component: DashboardLayout,
-  meta: { requiresAuth: true, roles: ['ADMINISTRATOR'] },
-  children: [
-    {
-      path: '',
-      name: 'admin-dashboard',
-      component: AdminDashboard,
-    },
-    {
-      path: 'users',
-      name: 'admin-users',
-      component: () => import('../views/admin/Users.vue'),
-    },
-    {
-      path: 'users/create',
-      name: 'admin-user-create',
-      component: () => import('../views/admin/UserCreate.vue'),
-    },
-    {
-      path: 'users/:userId',
-      name: 'admin-user-details',
-      component: () => import('../views/admin/UserDetails.vue'),
-    },
-    {
-      path: 'users/:userId/edit',
-      name: 'admin-user-edit',
-      component: () => import('../views/admin/UserDetails.vue'),
-    },
-    {
-      path: 'validations',
-      name: 'admin-validations',
-      component: () => import('../views/admin/Validations.vue'),
-    },
-    {
-      path: 'profiles',
-      name: 'admin-profiles',
-      component: () => import('../views/Profiles.vue'),
-    },
-    {
-      path: 'notifications',
-      name: 'admin-notifications',
-      component: () => import('../views/Notifications.vue'),
-      meta: { baseApi: '/api/professional' }
-    },
-    {
-      path: 'badges',
-      name: 'admin-badges',
-      component: () => import('../views/admin/Badges.vue'),
-    },
-    {
-      path: 'profile',
-      name: 'admin-profile',
-      component: () => import('../views/Profile.vue'),
-    },
-    {
-        path: 'reports',
-        name: 'admin-reports',
-        component: () => import('../views/admin/Reports.vue'),
-        }
-  ],
-},
+            path: '/forgot-password',
+            name: 'forgot-password',
+            component: ForgotPasswordView,
+        },
+        {
+            path: '/reset-password',
+            name: 'reset-password',
+            component: ResetPasswordView,
+        },
+        {
+            path: '/admin',
+            component: DashboardLayout,
+            meta: { requiresAuth: true, roles: ['ADMINISTRATOR'] },
+            children: [
+                {
+                    path: '',
+                    name: 'admin-dashboard',
+                    component: AdminDashboard,
+                },
+                {
+                    path: 'users',
+                    name: 'admin-users',
+                    component: () => import('../views/admin/Users.vue'),
+                },
+                {
+                    path: 'users/create',
+                    name: 'admin-user-create',
+                    component: () => import('../views/admin/UserCreate.vue'),
+                },
+                {
+                    path: 'users/:userId',
+                    name: 'admin-user-details',
+                    component: () => import('../views/admin/UserDetails.vue'),
+                },
+                {
+                    path: 'users/:userId/edit',
+                    name: 'admin-user-edit',
+                    component: () => import('../views/admin/UserDetails.vue'),
+                },
+                {
+                    path: 'validations',
+                    name: 'admin-validations',
+                    component: () => import('../views/admin/Validations.vue'),
+                },
+                {
+                    path: 'profiles',
+                    name: 'admin-profiles',
+                    component: () => import('../views/Profiles.vue'),
+                },
+                {
+                    path: 'notifications',
+                    name: 'admin-notifications',
+                    component: () => import('../views/Notifications.vue'),
+                    meta: { baseApi: '/api/professional' },
+                },
+                {
+                    path: 'badges',
+                    name: 'admin-badges',
+                    component: () => import('../views/admin/Badges.vue'),
+                },
+                {
+                    path: 'profile',
+                    name: 'admin-profile',
+                    component: () => import('../views/Profile.vue'),
+                },
+                {
+                    path: 'reports',
+                    name: 'admin-reports',
+                    component: () => import('../views/admin/Reports.vue'),
+                },
+            ],
+        },
         {
             path: '/student',
             component: StudentDashboard,
@@ -121,14 +132,14 @@ const router = createRouter({
             path: '/403',
             name: 'not-authorized',
             component: () => import('../views/NotAuthorized.vue'),
-        }
-    ]
+        },
+    ],
 })
 
 router.beforeEach(async (to) => {
     const authStore = useAuthStore()
 
-    /* Vérification de la session si nécessaire */
+    /* Verification de la session si necessaire */
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
         try {
             const meResponse = await getMe()
@@ -138,7 +149,7 @@ router.beforeEach(async (to) => {
         }
     }
 
-    /* Redirection si l'accès nécessite une authentification */
+    /* Redirection si l'acces necessite une authentification */
     if (to.meta.requiresAuth && !authStore.isAuthenticated) {
         return {
             path: '/login',
@@ -146,7 +157,7 @@ router.beforeEach(async (to) => {
         }
     }
 
-    /* Changement : Rediriger l'utilisateur vers son dashboard s'il est déjà connecté */
+    /* Rediriger l'utilisateur vers son dashboard s'il est deja connecte */
     if (authStore.isAuthenticated && (to.name === 'landing' || to.name === 'login')) {
         const role = authStore.user?.role
         if (role === 'ADMINISTRATOR') return { name: 'admin-dashboard' }
@@ -155,7 +166,7 @@ router.beforeEach(async (to) => {
         if (role === 'PROFESSIONAL') return { path: '/professional' }
     }
 
-    /* Vérification des permissions par rôle */
+    /* Verification des permissions par role */
     if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
         return { path: '/403' }
     }
