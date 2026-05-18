@@ -1,53 +1,53 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import {
   stages,
   deleteStage,
   submitStageValidation,
-} from '@/mockData/studentStages.store'
+} from "@/mockData/studentStages.store";
 
-import StageCard from '@/components/student/stages/StageCard.vue'
-import StageFilters from '@/components/student/stages/StageFilters.vue'
+import StageCard from "@/components/student/stages/StageCard.vue";
+import StageFilters from "@/components/student/stages/StageFilters.vue";
 
-const router = useRouter()
+const router = useRouter();
 
-const search = ref('')
-const selectedStatus = ref('ALL')
-const selectedVisibility = ref('ALL')
+const search = ref("");
+const selectedStatus = ref("ALL");
+const selectedVisibility = ref("ALL");
 
 const filteredStages = computed(() => {
   return stages.value.filter((stage) => {
-    const value = search.value.toLowerCase()
+    const value = search.value.toLowerCase();
 
     const matchesSearch =
       stage.title.toLowerCase().includes(value) ||
       stage.company.toLowerCase().includes(value) ||
-      stage.technologies.some((tech) => tech.toLowerCase().includes(value))
+      stage.technologies.some((tech) => tech.toLowerCase().includes(value));
 
     const matchesStatus =
-      selectedStatus.value === 'ALL' ||
-      stage.validationStatus === selectedStatus.value
+      selectedStatus.value === "ALL" ||
+      stage.validationStatus === selectedStatus.value;
 
     const matchesVisibility =
-      selectedVisibility.value === 'ALL' ||
-      stage.visibility === selectedVisibility.value
+      selectedVisibility.value === "ALL" ||
+      stage.visibility === selectedVisibility.value;
 
-    return matchesSearch && matchesStatus && matchesVisibility
-  })
-})
+    return matchesSearch && matchesStatus && matchesVisibility;
+  });
+});
 
 const goToCreate = () => {
-  router.push('/student/stages/create')
-}
+  router.push("/student/stages/create");
+};
 
 const handleDeleteStage = (stageId) => {
   const confirmDelete = window.confirm(
-    'Voulez-vous vraiment supprimer ce stage ?',
-  )
+    "Voulez-vous vraiment supprimer ce stage ?",
+  );
 
-  if (!confirmDelete) return
+  if (!confirmDelete) return;
 
   /*
   BACKEND PLUS TARD :
@@ -58,8 +58,8 @@ const handleDeleteStage = (stageId) => {
   deleteStage(stageId)
   */
 
-  deleteStage(stageId)
-}
+  deleteStage(stageId);
+};
 
 const handleSubmitValidation = (stageId) => {
   /*
@@ -71,8 +71,8 @@ const handleSubmitValidation = (stageId) => {
   submitStageValidation(stageId)
   */
 
-  submitStageValidation(stageId)
-}
+  submitStageValidation(stageId);
+};
 </script>
 
 <template>

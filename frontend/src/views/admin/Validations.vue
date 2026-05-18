@@ -36,40 +36,40 @@ const stats = ref({
 
 const validations = ref([
   {
-  id: 1,
-  targetType: "PROJECT",
-  targetId: 12,
-  title: "Plateforme de gestion de projets",
-  student: {
-    id: 3,
-    fullName: "Yassine K.",
-    email: "yassine.k@ensa.ma",
-    profilePicture: "",
-    field: "Génie informatique",
-    level: "2ème année",
-    city: "Tanger",
-  },
-  status: "PENDING",
-  submittedAt: "2026-05-02T12:30:00.000Z",
-  content: {
+    id: 1,
+    targetType: "PROJECT",
+    targetId: 12,
     title: "Plateforme de gestion de projets",
-    description: "Application complète pour gérer des projets en équipe.",
-    files: [
-      {
-        id: 1,
-        name: "cahier_charges.pdf",
-        size: "1.2 Mo",
-        url: "#",
-      },
-    ],
+    student: {
+      id: 3,
+      fullName: "Yassine K.",
+      email: "yassine.k@ensa.ma",
+      profilePicture: "",
+      field: "Génie informatique",
+      level: "2ème année",
+      city: "Tanger",
+    },
+    status: "PENDING",
+    submittedAt: "2026-05-02T12:30:00.000Z",
+    content: {
+      title: "Plateforme de gestion de projets",
+      description: "Application complète pour gérer des projets en équipe.",
+      files: [
+        {
+          id: 1,
+          name: "cahier_charges.pdf",
+          size: "1.2 Mo",
+          url: "#",
+        },
+      ],
+    },
+    targetDetails: {
+      technologies: ["Vue.js", "Node.js", "PostgreSQL"],
+      visibility: "PUBLIC",
+      createdAt: "2026-05-01T10:00:00.000Z",
+    },
   },
-  targetDetails: {
-    technologies: ["Vue.js", "Node.js", "PostgreSQL"],
-    visibility: "PUBLIC",
-    createdAt: "2026-05-01T10:00:00.000Z",
-  },
-},
-//les files a verifier et les data a importer de plus a partir de backend
+  //les files a verifier et les data a importer de plus a partir de backend
   {
     id: 2,
     targetType: "INTERNSHIP",
@@ -173,9 +173,7 @@ const closeDetailsModal = () => {
 //fct pour updater le statut de validations
 const updateValidationStatus = (id, status) => {
   validations.value = validations.value.map((validation) =>
-    validation.id === id
-      ? { ...validation, status }
-      : validation
+    validation.id === id ? { ...validation, status } : validation,
   );
   if (selectedValidation.value?.id === id) {
     selectedValidation.value = {
@@ -249,11 +247,9 @@ const handleRequestChanges = async (validation) => {
         v-model:search="search"
         v-model:selected-type="selectedType"
         v-model:selected-status="selectedStatus"
-        />
+      />
 
-      <div v-if="loading" class="state-box">
-        Chargement des validations...
-      </div>
+      <div v-if="loading" class="state-box">Chargement des validations...</div>
 
       <div v-else-if="error" class="state-box error">
         {{ error }}

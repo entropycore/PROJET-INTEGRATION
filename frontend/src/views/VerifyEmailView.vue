@@ -1,65 +1,65 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import AppLogo from '../components/AppLogo.vue'
-import { verifyEmail } from '../services/authService'
-import '../assets/styles/verification-email.css'
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import AppLogo from "../components/AppLogo.vue";
+import { verifyEmail } from "../services/authService";
+import "../assets/styles/verification-email.css";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const isLoading = ref(true)
-const isSuccess = ref(false)
-const message = ref('')
+const isLoading = ref(true);
+const isSuccess = ref(false);
+const message = ref("");
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push("/login");
+};
 
 const statusTitle = computed(() => {
   if (isLoading.value) {
-    return "Vérification de l'email"
+    return "Vérification de l'email";
   }
 
   if (isSuccess.value) {
-    return 'Email vérifié avec succès'
+    return "Email vérifié avec succès";
   }
 
-  return 'Vérification impossible'
-})
+  return "Vérification impossible";
+});
 
 const statusText = computed(() => {
   if (isLoading.value) {
-    return 'Nous confirmons votre adresse email. Veuillez patienter un instant.'
+    return "Nous confirmons votre adresse email. Veuillez patienter un instant.";
   }
 
   if (isSuccess.value) {
-    return 'Votre demande est en attente de validation par l\'administration.'
+    return "Votre demande est en attente de validation par l'administration.";
   }
 
-  return message.value || "Impossible de vérifier l'adresse email."
-})
+  return message.value || "Impossible de vérifier l'adresse email.";
+});
 
 onMounted(async () => {
-  const token = route.query.token
+  const token = route.query.token;
 
-  if (!token || typeof token !== 'string') {
-    isLoading.value = false
-    message.value = 'Token de vérification manquant.'
-    return
+  if (!token || typeof token !== "string") {
+    isLoading.value = false;
+    message.value = "Token de vérification manquant.";
+    return;
   }
 
   try {
-    await verifyEmail(token)
-    isSuccess.value = true
+    await verifyEmail(token);
+    isSuccess.value = true;
   } catch (error) {
     message.value =
       error?.response?.data?.message ||
-      "Impossible de vérifier l'adresse email."
+      "Impossible de vérifier l'adresse email.";
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-})
+});
 </script>
 
 <template>
@@ -80,21 +80,9 @@ onMounted(async () => {
             }"
             aria-hidden="true"
           >
-            <svg
-              v-if="isLoading"
-              viewBox="0 0 24 24"
-              class="status-spinner"
-            >
-              <circle
-                class="status-spinner-track"
-                cx="12"
-                cy="12"
-                r="9"
-              />
-              <path
-                class="status-spinner-head"
-                d="M12 3a9 9 0 0 1 9 9"
-              />
+            <svg v-if="isLoading" viewBox="0 0 24 24" class="status-spinner">
+              <circle class="status-spinner-track" cx="12" cy="12" r="9" />
+              <path class="status-spinner-head" d="M12 3a9 9 0 0 1 9 9" />
             </svg>
 
             <svg
@@ -112,11 +100,7 @@ onMounted(async () => {
               />
             </svg>
 
-            <svg
-              v-else
-              viewBox="0 0 24 24"
-              class="status-symbol"
-            >
+            <svg v-else viewBox="0 0 24 24" class="status-symbol">
               <path
                 d="M12 8v5"
                 fill="none"
@@ -147,6 +131,4 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -1,56 +1,56 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref } from "vue";
 
 const props = defineProps({
   initialStage: {
     type: Object,
     default: null,
   },
-})
+});
 
-const emit = defineEmits(['save-draft', 'submit-validation'])
+const emit = defineEmits(["save-draft", "submit-validation"]);
 
 const form = reactive({
-  title: props.initialStage?.title || '',
-  company: props.initialStage?.company || '',
-  duration: props.initialStage?.duration || '',
-  startDate: props.initialStage?.startDate || '',
-  endDate: props.initialStage?.endDate || '',
-  description: props.initialStage?.description || '',
-  missions: props.initialStage?.missions?.join('\n') || '',
-  supervisorName: props.initialStage?.supervisor?.fullName || '',
-  supervisorDepartment: props.initialStage?.supervisor?.department || '',
+  title: props.initialStage?.title || "",
+  company: props.initialStage?.company || "",
+  duration: props.initialStage?.duration || "",
+  startDate: props.initialStage?.startDate || "",
+  endDate: props.initialStage?.endDate || "",
+  description: props.initialStage?.description || "",
+  missions: props.initialStage?.missions?.join("\n") || "",
+  supervisorName: props.initialStage?.supervisor?.fullName || "",
+  supervisorDepartment: props.initialStage?.supervisor?.department || "",
   technologies: props.initialStage?.technologies || [],
-  visibility: props.initialStage?.visibility || 'PRIVATE',
+  visibility: props.initialStage?.visibility || "PRIVATE",
   report: null,
   images: [],
-})
+});
 
-const technologyInput = ref('')
+const technologyInput = ref("");
 
 const addTechnology = () => {
-  const value = technologyInput.value.trim()
+  const value = technologyInput.value.trim();
 
-  if (!value) return
+  if (!value) return;
 
   if (!form.technologies.includes(value)) {
-    form.technologies.push(value)
+    form.technologies.push(value);
   }
 
-  technologyInput.value = ''
-}
+  technologyInput.value = "";
+};
 
 const removeTechnology = (tech) => {
-  form.technologies = form.technologies.filter((item) => item !== tech)
-}
+  form.technologies = form.technologies.filter((item) => item !== tech);
+};
 
 const handleReportUpload = (event) => {
-  form.report = event.target.files[0]
-}
+  form.report = event.target.files[0];
+};
 
 const handleImagesUpload = (event) => {
-  form.images = Array.from(event.target.files)
-}
+  form.images = Array.from(event.target.files);
+};
 
 const buildPayload = () => {
   return {
@@ -61,7 +61,7 @@ const buildPayload = () => {
     endDate: form.endDate,
     description: form.description,
     missions: form.missions
-      .split('\n')
+      .split("\n")
       .map((mission) => mission.trim())
       .filter(Boolean),
     supervisor: {
@@ -72,22 +72,22 @@ const buildPayload = () => {
     visibility: form.visibility,
     report: form.report,
     images: form.images,
-  }
-}
+  };
+};
 
 const saveDraft = () => {
-  emit('save-draft', buildPayload())
-}
+  emit("save-draft", buildPayload());
+};
 
 const submitValidation = () => {
-  emit('submit-validation', buildPayload())
-}
+  emit("submit-validation", buildPayload());
+};
 
 const submitButtonLabel = () => {
-  return props.initialStage?.validationStatus === 'CORRECTION_REQUIRED'
-    ? 'Resoumettre pour validation'
-    : 'Soumettre validation'
-}
+  return props.initialStage?.validationStatus === "CORRECTION_REQUIRED"
+    ? "Resoumettre pour validation"
+    : "Soumettre validation";
+};
 </script>
 
 <template>
@@ -114,17 +114,29 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Titre du stage</label>
-              <input v-model="form.title" type="text" placeholder="Ex : Développement Frontend Vue.js" />
+              <input
+                v-model="form.title"
+                type="text"
+                placeholder="Ex : Développement Frontend Vue.js"
+              />
             </div>
 
             <div class="form-group">
               <label>Entreprise</label>
-              <input v-model="form.company" type="text" placeholder="Ex : Capgemini Maroc" />
+              <input
+                v-model="form.company"
+                type="text"
+                placeholder="Ex : Capgemini Maroc"
+              />
             </div>
 
             <div class="form-group">
               <label>Durée</label>
-              <input v-model="form.duration" type="text" placeholder="Ex : 2 mois" />
+              <input
+                v-model="form.duration"
+                type="text"
+                placeholder="Ex : 2 mois"
+              />
             </div>
 
             <div class="form-group">
@@ -172,12 +184,20 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Nom de l’encadrant</label>
-              <input v-model="form.supervisorName" type="text" placeholder="Ex : Pr. Karim Alaoui" />
+              <input
+                v-model="form.supervisorName"
+                type="text"
+                placeholder="Ex : Pr. Karim Alaoui"
+              />
             </div>
 
             <div class="form-group">
               <label>Département</label>
-              <input v-model="form.supervisorDepartment" type="text" placeholder="Ex : Génie Informatique" />
+              <input
+                v-model="form.supervisorDepartment"
+                type="text"
+                placeholder="Ex : Génie Informatique"
+              />
             </div>
           </div>
         </section>
@@ -195,9 +215,7 @@ const submitButtonLabel = () => {
               class="tech-tag"
             >
               {{ tech }}
-              <button type="button" @click="removeTechnology(tech)">
-                ×
-              </button>
+              <button type="button" @click="removeTechnology(tech)">×</button>
             </span>
           </div>
 
@@ -228,7 +246,12 @@ const submitButtonLabel = () => {
             <strong>Ajouter des captures</strong>
             <small>PNG, JPG ou WEBP</small>
 
-            <input type="file" multiple accept="image/*" @change="handleImagesUpload" />
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              @change="handleImagesUpload"
+            />
           </label>
 
           <p v-if="form.images.length" class="file-info">
@@ -247,7 +270,11 @@ const submitButtonLabel = () => {
             <strong>Ajouter le rapport</strong>
             <small>PDF uniquement</small>
 
-            <input type="file" accept="application/pdf" @change="handleReportUpload" />
+            <input
+              type="file"
+              accept="application/pdf"
+              @change="handleReportUpload"
+            />
           </label>
 
           <p v-if="form.report" class="file-info">

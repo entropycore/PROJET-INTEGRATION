@@ -80,17 +80,12 @@ const content = props.validation.content || props.validation;
         <div>
           <h2>Détail de la validation</h2>
 
-          <span
-            class="type-badge"
-            :class="typeClasses[validation.targetType]"
-          >
+          <span class="type-badge" :class="typeClasses[validation.targetType]">
             {{ typeLabels[validation.targetType] }}
           </span>
         </div>
 
-        <button class="close-btn" @click="emit('close')">
-          ×
-        </button>
+        <button class="close-btn" @click="emit('close')">×</button>
       </div>
 
       <div class="modal-body">
@@ -137,14 +132,15 @@ const content = props.validation.content || props.validation;
         <!-- COLONNE DROITE : CONTENU VALIDÉ -->
         <main class="details-panel">
           <h3>
-            Détails {{
+            Détails
+            {{
               validation.targetType === "PROJECT"
                 ? "du projet"
                 : validation.targetType === "INTERNSHIP"
-                ? "du stage"
-                : validation.targetType === "CERTIFICATE"
-                ? "du certificat"
-                : "de l’activité"
+                  ? "du stage"
+                  : validation.targetType === "CERTIFICATE"
+                    ? "du certificat"
+                    : "de l’activité"
             }}
           </h3>
 
@@ -176,7 +172,9 @@ const content = props.validation.content || props.validation;
 
             <div class="detail-row">
               <span>Visibilité</span>
-              <strong>{{ targetDetails.visibility || "Non renseignée" }}</strong>
+              <strong>{{
+                targetDetails.visibility || "Non renseignée"
+              }}</strong>
             </div>
 
             <div class="detail-row">
@@ -195,7 +193,8 @@ const content = props.validation.content || props.validation;
             <div class="detail-row">
               <span>Période</span>
               <strong>
-                {{ targetDetails.startDate || "-" }} → {{ targetDetails.endDate || "-" }}
+                {{ targetDetails.startDate || "-" }} →
+                {{ targetDetails.endDate || "-" }}
               </strong>
             </div>
           </template>
@@ -229,7 +228,9 @@ const content = props.validation.content || props.validation;
           <template v-if="validation.targetType === 'ACTIVITY'">
             <div class="detail-row">
               <span>Organisation</span>
-              <strong>{{ targetDetails.organization || "Non renseignée" }}</strong>
+              <strong>{{
+                targetDetails.organization || "Non renseignée"
+              }}</strong>
             </div>
 
             <div class="detail-row">
@@ -257,14 +258,15 @@ const content = props.validation.content || props.validation;
           </a>
         </div>
 
-        <p v-else class="no-files">
-          Aucun fichier joint.
-        </p>
+        <p v-else class="no-files">Aucun fichier joint.</p>
       </section>
 
       <!-- ACTIONS -->
       <div class="modal-actions">
-        <button class="changes-btn" @click="emit('request-changes', validation)">
+        <button
+          class="changes-btn"
+          @click="emit('request-changes', validation)"
+        >
           Demander correction
         </button>
 
@@ -353,7 +355,7 @@ const content = props.validation.content || props.validation;
   background: #fff4e6;
   color: #ea580c;
 }
-  
+
 .modal-body {
   display: grid;
   grid-template-columns: 280px 1fr;

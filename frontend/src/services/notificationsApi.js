@@ -16,7 +16,7 @@ export async function getUnreadCount(baseApi) {
     `${API_URL}${baseApi}/notifications/unread-count`,
     {
       withCredentials: true,
-    }
+    },
   );
 
   return res.data.data;
@@ -28,7 +28,7 @@ export async function markAsRead(baseApi, id) {
     {},
     {
       withCredentials: true,
-    }
+    },
   );
 }
 
@@ -38,7 +38,7 @@ export async function markAllAsRead(baseApi) {
     {},
     {
       withCredentials: true,
-    }
+    },
   );
 }
 

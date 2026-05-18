@@ -31,10 +31,7 @@ const formatDate = (date) => {
 <template>
   <article class="item" :class="{ unread: !notification.read }">
     <div class="content">
-      <span
-        class="type"
-        :class="typeConfig[notification.type]?.class"
-      >
+      <span class="type" :class="typeConfig[notification.type]?.class">
         <span class="dot"></span>
         {{ typeConfig[notification.type]?.label || notification.type }}
       </span>
@@ -57,12 +54,7 @@ const formatDate = (date) => {
         ✓
       </button>
 
-
-      <button
-        class="icon-btn delete"
-        title="Supprimer"
-        @click="emit('delete')"
-      >
+      <button class="icon-btn delete" title="Supprimer" @click="emit('delete')">
         🗑
       </button>
     </div>

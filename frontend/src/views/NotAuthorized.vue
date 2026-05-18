@@ -1,26 +1,26 @@
 <script setup>
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import AppLogo from '../components/AppLogo.vue'
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+import AppLogo from "../components/AppLogo.vue";
 
-const router = useRouter()
-const authStore = useAuthStore()
+const router = useRouter();
+const authStore = useAuthStore();
 
 const dashboardMap = {
-  ADMINISTRATOR: '/admin',
-  STUDENT: '/student',
-  PROFESSOR: '/professor',
-  PROFESSIONAL: '/professional',
-}
+  ADMINISTRATOR: "/admin",
+  STUDENT: "/student",
+  PROFESSOR: "/professor",
+  PROFESSIONAL: "/professional",
+};
 
-const homePath = computed(() => dashboardMap[authStore.user?.role] || '/login')
+const homePath = computed(() => dashboardMap[authStore.user?.role] || "/login");
 const homeLabel = computed(() =>
-  authStore.isAuthenticated ? 'Aller à mon espace' : 'Se connecter'
-)
+  authStore.isAuthenticated ? "Aller à mon espace" : "Se connecter",
+);
 
-const goBack = () => router.back()
-const goHome = () => router.push(homePath.value)
+const goBack = () => router.back();
+const goHome = () => router.push(homePath.value);
 </script>
 
 <template>
@@ -59,7 +59,11 @@ const goHome = () => router.push(homePath.value)
   place-items: center;
   padding: 32px;
   background:
-    radial-gradient(circle at top left, rgba(47, 90, 96, 0.16), transparent 34%),
+    radial-gradient(
+      circle at top left,
+      rgba(47, 90, 96, 0.16),
+      transparent 34%
+    ),
     linear-gradient(135deg, #f5f5f0, #ece9df);
 }
 

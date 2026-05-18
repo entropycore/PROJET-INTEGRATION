@@ -31,7 +31,7 @@ export async function resolveReport(id) {
   const res = await axios.patch(
     `${API_URL}/api/admin/reports/${id}/resolve`,
     {},
-    { withCredentials: true }
+    { withCredentials: true },
   );
 
   return res.data;
@@ -41,7 +41,7 @@ export async function rejectReport(id, payload) {
   const res = await axios.patch(
     `${API_URL}/api/admin/reports/${id}/reject`,
     payload,
-    { withCredentials: true }
+    { withCredentials: true },
   );
 
   return res.data;

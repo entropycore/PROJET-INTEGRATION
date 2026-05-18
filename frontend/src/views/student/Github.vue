@@ -1,58 +1,62 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from "vue";
 
-import { connectGithub,getGithubStats, importGithubRepository} from '@/services/studentGithub'
+import {
+  connectGithub,
+  getGithubStats,
+  importGithubRepository,
+} from "@/services/studentGithub";
 
-import '@/assets/styles/student-github.css'
+import "@/assets/styles/student-github.css";
 
-const isLoading = ref(false)
-const isConnecting = ref(false)
-const errorMessage = ref('')
-const githubData = ref(null)
-const importedRepos = ref([])
+const isLoading = ref(false);
+const isConnecting = ref(false);
+const errorMessage = ref("");
+const githubData = ref(null);
+const importedRepos = ref([]);
 
-const isConnected = computed(() => githubData.value?.connected)
-const repositories = computed(() => githubData.value?.repositories || [])
-const languagesCount = computed(() => githubData.value?.languages?.length || 0)
+const isConnected = computed(() => githubData.value?.connected);
+const repositories = computed(() => githubData.value?.repositories || []);
+const languagesCount = computed(() => githubData.value?.languages?.length || 0);
 
 const publicReposCount = computed(() => {
-  return githubData.value?.publicRepos || repositories.value.length
-})
+  return githubData.value?.publicRepos || repositories.value.length;
+});
 
 const totalContributions = computed(() => {
-  return githubData.value?.totalContributions || 0
-})
+  return githubData.value?.totalContributions || 0;
+});
 
 const fetchGithubStats = async () => {
-  isLoading.value = true
+  isLoading.value = true;
 
   try {
-    const response = await getGithubStats()
-    githubData.value = response.data.data
+    const response = await getGithubStats();
+    githubData.value = response.data.data;
   } catch (error) {
-    console.error('Erreur récupération GitHub:', error)
+    console.error("Erreur récupération GitHub:", error);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const handleConnectGithub = async () => {
-  isConnecting.value = true
-  errorMessage.value = ''
+  isConnecting.value = true;
+  errorMessage.value = "";
 
   try {
-    const response = await connectGithub()
-    window.location.href = response.data.data.url
+    const response = await connectGithub();
+    window.location.href = response.data.data.url;
   } catch (error) {
-    console.error('Erreur connexion GitHub:', error)
-    errorMessage.value = 'Connexion GitHub impossible pour le moment.'
+    console.error("Erreur connexion GitHub:", error);
+    errorMessage.value = "Connexion GitHub impossible pour le moment.";
   } finally {
-    isConnecting.value = false
+    isConnecting.value = false;
   }
-}
+};
 
 const handleImportRepository = async (repo) => {
-  errorMessage.value = ''
+  errorMessage.value = "";
 
   try {
     const response = await importGithubRepository({
@@ -60,36 +64,36 @@ const handleImportRepository = async (repo) => {
       repoDescription: repo.description,
       repoUrl: repo.url,
       repoLanguage: repo.language,
-    })
+    });
 
-    importedRepos.value.push(repo.name)
+    importedRepos.value.push(repo.name);
 
-    const projectId = response.data?.data?.project?.id
+    const projectId = response.data?.data?.project?.id;
 
     if (projectId) {
-      console.log('Projet créé depuis GitHub :', projectId)
+      console.log("Projet créé depuis GitHub :", projectId);
     }
   } catch (error) {
-    console.error('Erreur import repo:', error)
-    errorMessage.value = 'Impossible d\'importer ce dépôt.'
+    console.error("Erreur import repo:", error);
+    errorMessage.value = "Impossible d'importer ce dépôt.";
   }
-}
+};
 
 const isRepoImported = (repo) => {
-  return repo.isImported || importedRepos.value.includes(repo.name)
-}
+  return repo.isImported || importedRepos.value.includes(repo.name);
+};
 
 const formatDate = (date) => {
-  if (!date) return '—'
+  if (!date) return "—";
 
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(date))
-}
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+};
 
-onMounted(fetchGithubStats)
+onMounted(fetchGithubStats);
 </script>
 
 <template>
@@ -100,11 +104,12 @@ onMounted(fetchGithubStats)
       <h1>Mon GitHub</h1>
 
       <p>
-        Connectez votre compte GitHub pour enrichir automatiquement votre portfolio.
+        Connectez votre compte GitHub pour enrichir automatiquement votre
+        portfolio.
       </p>
     </header>
 
-    <div  v-if="isLoading"  class="github-state-card"  >
+    <div v-if="isLoading" class="github-state-card">
       Chargement des données GitHub...
     </div>
 
@@ -113,7 +118,11 @@ onMounted(fetchGithubStats)
         <section class="github-connect-hero">
           <div class="github-connect-content">
             <div class="github-small-icon">
-              <img src="@/assets/icons/github-octocat.svg"  alt="GitHub"  class="github-logo-icon" />
+              <img
+                src="@/assets/icons/github-octocat.svg"
+                alt="GitHub"
+                class="github-logo-icon"
+              />
             </div>
 
             <h2>Lier votre compte GitHub</h2>
@@ -123,12 +132,17 @@ onMounted(fetchGithubStats)
               projets GitHub dans Credencia en quelques clics.
             </p>
 
-            <p  v-if="errorMessage"  class="github-inline-error"  >
+            <p v-if="errorMessage" class="github-inline-error">
               {{ errorMessage }}
             </p>
 
-            <button  type="button"  class="primary-action"  :disabled="isConnecting"  @click="handleConnectGithub"  >
-              {{ isConnecting ? 'Connexion...' : 'Connecter GitHub' }}
+            <button
+              type="button"
+              class="primary-action"
+              :disabled="isConnecting"
+              @click="handleConnectGithub"
+            >
+              {{ isConnecting ? "Connexion..." : "Connecter GitHub" }}
             </button>
           </div>
         </section>
@@ -145,7 +159,8 @@ onMounted(fetchGithubStats)
               <div>
                 <h3>Importez vos projets</h3>
                 <p>
-                  Transformez vos dépôts en projets brouillons dans votre portfolio.
+                  Transformez vos dépôts en projets brouillons dans votre
+                  portfolio.
                 </p>
               </div>
             </article>
@@ -157,9 +172,7 @@ onMounted(fetchGithubStats)
 
               <div>
                 <h3>Suivez vos contributions</h3>
-                <p>
-                  Visualisez vos statistiques et votre activité GitHub.
-                </p>
+                <p>Visualisez vos statistiques et votre activité GitHub.</p>
               </div>
             </article>
 
@@ -171,7 +184,8 @@ onMounted(fetchGithubStats)
               <div>
                 <h3>Gagnez du temps</h3>
                 <p>
-                  Préremplissez automatiquement les informations techniques importantes.
+                  Préremplissez automatiquement les informations techniques
+                  importantes.
                 </p>
               </div>
             </article>
@@ -180,113 +194,139 @@ onMounted(fetchGithubStats)
       </template>
 
       <template v-else>
-  <section class="github-account-panel">
-    <div class="github-account-head">
-      <h3>Compte connecté</h3>
+        <section class="github-account-panel">
+          <div class="github-account-head">
+            <h3>Compte connecté</h3>
 
-      <span class="github-badge-connected">
-        <span></span>
-        Connecté
-      </span>
-    </div>
-
-    <div class="github-account-body">
-      <div class="github-account-avatar">
-        <span class="material-icons-round">hub</span>
-      </div>
-
-      <div>
-        <a :href="githubData.profileUrl" target="_blank"  rel="noopener noreferrer"  class="github-profile-link" > github.com/{{ githubData.username }}
-            <span class="material-icons-round">open_in_new</span>
-        </a>
-        <p>Synchronisé avec Credencia</p>
-      </div>
-
-      <button  type="button"  class="github-sync-btn"  @click="fetchGithubStats"  >
-        <span class="material-icons-round">sync</span>
-        Synchroniser
-      </button>
-    </div>
-  </section>
-
-  <div class="github-stats-grid">
-    <section class="github-stat-card">
-      <span>Dépôts publics</span>
-      <strong>{{ publicReposCount }}</strong>
-    </section>
-
-    <section class="github-stat-card">
-      <span>Contributions</span>
-      <strong>{{ totalContributions }}</strong>
-    </section>
-
-    <section class="github-stat-card">
-      <span>Langages</span>
-      <strong>{{ languagesCount }}</strong>
-    </section>
-  </div>
-
-  <section class="github-content-card">
-  <div class="github-card-title-row">
-    <h3>Calendrier d'activité</h3>
-  </div>
-
-  <div class="github-chart-wrap">
-    <img v-if="githubData.username"  :src="`https://ghchart.rshah.org/2F575D/${githubData.username}`"  alt="Calendrier des contributions GitHub"  class="github-contribution-chart" />
-  </div>
-</section>
-
-  <section class="github-table-card">
-    <div class="github-table-title">
-      <h3>Dépôts à inclure dans le portfolio</h3>
-      <p>Importez un dépôt pour créer un projet brouillon dans votre portfolio.</p>
-    </div>
-
-    <p  v-if="errorMessage"  class="github-inline-error" >
-      {{ errorMessage }}
-    </p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Dépôt</th>
-          <th>Technologie</th>
-          <th>Dernière activité</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr v-for="repo in repositories" :key="repo.id || repo.name" >
-          <td>
-            <strong>{{ repo.name }}</strong>
-            <p>{{ repo.description || 'Aucune description disponible.' }}</p>
-          </td>
-
-          <td>
-            <span class="github-language-pill">
-              {{ repo.language || 'N/A' }}
+            <span class="github-badge-connected">
+              <span></span>
+              Connecté
             </span>
-          </td>
+          </div>
 
-          <td class="github-muted">
-            {{ formatDate(repo.updatedAt) }}
-          </td>
+          <div class="github-account-body">
+            <div class="github-account-avatar">
+              <span class="material-icons-round">hub</span>
+            </div>
 
-          <td>
-            <button  type="button" class="github-import-project-btn" :class="{ imported: isRepoImported(repo) }" :disabled="isRepoImported(repo)" @click="handleImportRepository(repo)">
-                {{ isRepoImported(repo) ? 'Déjà importé' : '+ Projet' }}
+            <div>
+              <a
+                :href="githubData.profileUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="github-profile-link"
+              >
+                github.com/{{ githubData.username }}
+                <span class="material-icons-round">open_in_new</span>
+              </a>
+              <p>Synchronisé avec Credencia</p>
+            </div>
+
+            <button
+              type="button"
+              class="github-sync-btn"
+              @click="fetchGithubStats"
+            >
+              <span class="material-icons-round">sync</span>
+              Synchroniser
             </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+          </div>
+        </section>
 
-    <p v-if="!repositories.length" class="github-empty-message" >
-      Aucun dépôt GitHub trouvé.
-    </p>
-  </section>
-</template>
+        <div class="github-stats-grid">
+          <section class="github-stat-card">
+            <span>Dépôts publics</span>
+            <strong>{{ publicReposCount }}</strong>
+          </section>
+
+          <section class="github-stat-card">
+            <span>Contributions</span>
+            <strong>{{ totalContributions }}</strong>
+          </section>
+
+          <section class="github-stat-card">
+            <span>Langages</span>
+            <strong>{{ languagesCount }}</strong>
+          </section>
+        </div>
+
+        <section class="github-content-card">
+          <div class="github-card-title-row">
+            <h3>Calendrier d'activité</h3>
+          </div>
+
+          <div class="github-chart-wrap">
+            <img
+              v-if="githubData.username"
+              :src="`https://ghchart.rshah.org/2F575D/${githubData.username}`"
+              alt="Calendrier des contributions GitHub"
+              class="github-contribution-chart"
+            />
+          </div>
+        </section>
+
+        <section class="github-table-card">
+          <div class="github-table-title">
+            <h3>Dépôts à inclure dans le portfolio</h3>
+            <p>
+              Importez un dépôt pour créer un projet brouillon dans votre
+              portfolio.
+            </p>
+          </div>
+
+          <p v-if="errorMessage" class="github-inline-error">
+            {{ errorMessage }}
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Dépôt</th>
+                <th>Technologie</th>
+                <th>Dernière activité</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr v-for="repo in repositories" :key="repo.id || repo.name">
+                <td>
+                  <strong>{{ repo.name }}</strong>
+                  <p>
+                    {{ repo.description || "Aucune description disponible." }}
+                  </p>
+                </td>
+
+                <td>
+                  <span class="github-language-pill">
+                    {{ repo.language || "N/A" }}
+                  </span>
+                </td>
+
+                <td class="github-muted">
+                  {{ formatDate(repo.updatedAt) }}
+                </td>
+
+                <td>
+                  <button
+                    type="button"
+                    class="github-import-project-btn"
+                    :class="{ imported: isRepoImported(repo) }"
+                    :disabled="isRepoImported(repo)"
+                    @click="handleImportRepository(repo)"
+                  >
+                    {{ isRepoImported(repo) ? "Déjà importé" : "+ Projet" }}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p v-if="!repositories.length" class="github-empty-message">
+            Aucun dépôt GitHub trouvé.
+          </p>
+        </section>
+      </template>
     </template>
   </section>
 </template>

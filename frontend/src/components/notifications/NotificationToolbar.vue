@@ -24,9 +24,7 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
         </select>
       </div>
 
-      <button @click="emit('read-all')">
-        ✓ Tout marquer comme lu
-      </button>
+      <button @click="emit('read-all')">✓ Tout marquer comme lu</button>
     </div>
   </div>
 </template>

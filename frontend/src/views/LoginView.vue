@@ -1,94 +1,94 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { login, getMe } from '../services/authService'
-import AppLogo from '../components/AppLogo.vue'
-import '../assets/styles/login.css'
+import { ref, watch } from "vue";
+import { useRouter, useRoute } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+import { login, getMe } from "../services/authService";
+import AppLogo from "../components/AppLogo.vue";
+import "../assets/styles/login.css";
 
-const router = useRouter() // va me servir a naviguer (changer les pages)
-const route = useRoute() // va me servir a lire (observer)
-const authStore = useAuthStore()
+const router = useRouter(); // va me servir a naviguer (changer les pages)
+const route = useRoute(); // va me servir a lire (observer)
+const authStore = useAuthStore();
 
-const email = ref('')
-const password = ref('')
-const errorMessage = ref('')
-const successMessage = ref('')
-const isLoading = ref(false)
-const showPassword = ref(false)
+const email = ref("");
+const password = ref("");
+const errorMessage = ref("");
+const successMessage = ref("");
+const isLoading = ref(false);
+const showPassword = ref(false);
 
 watch(
   // j'observe les infos de navigation utiles depuis l'url
   () => [route.query.error, route.query.reset],
   ([error, reset]) => {
-    if (error === 'unauthorized') {
-      errorMessage.value = "Vous n'avez pas accès à cette page."
-      successMessage.value = ''
-      return
+    if (error === "unauthorized") {
+      errorMessage.value = "Vous n'avez pas accès à cette page.";
+      successMessage.value = "";
+      return;
     }
 
-    errorMessage.value = ''
+    errorMessage.value = "";
 
-    if (reset === 'success') {
+    if (reset === "success") {
       successMessage.value =
-        'Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.'
-      return
+        "Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.";
+      return;
     }
 
-    successMessage.value = ''
+    successMessage.value = "";
   },
-  { immediate: true }
-)
+  { immediate: true },
+);
 
 const handleLogin = async () => {
-  errorMessage.value = ''
-  successMessage.value = ''
+  errorMessage.value = "";
+  successMessage.value = "";
 
   if (!email.value.trim() || !password.value.trim()) {
-    errorMessage.value = 'Veuillez remplir tous les champs.'
-    return
+    errorMessage.value = "Veuillez remplir tous les champs.";
+    return;
   }
 
   try {
-    isLoading.value = true
+    isLoading.value = true;
 
     await login({
       email: email.value.trim(),
       password: password.value,
-    })
+    });
 
-    const meResponse = await getMe()
+    const meResponse = await getMe();
 
-    authStore.setAuthSession(meResponse.data.data) // je stocke la data user dans le store Pinia
-    successMessage.value = 'Connexion réussie.'
-    const user = meResponse.data.data
+    authStore.setAuthSession(meResponse.data.data); // je stocke la data user dans le store Pinia
+    successMessage.value = "Connexion réussie.";
+    const user = meResponse.data.data;
     const dashboardMap = {
-      ADMINISTRATOR: '/admin',
-      STUDENT: '/student',
-      PROFESSOR: '/professor',
-      PROFESSIONAL: '/professional',
-    }
-    router.push(dashboardMap[user.role] || '/login')
+      ADMINISTRATOR: "/admin",
+      STUDENT: "/student",
+      PROFESSOR: "/professor",
+      PROFESSIONAL: "/professional",
+    };
+    router.push(dashboardMap[user.role] || "/login");
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message ||
-      'Connexion impossible. Vérifiez vos identifiants.'
+      "Connexion impossible. Vérifiez vos identifiants.";
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 const goToRequestAccess = () => {
-  router.push('/request-access')
-}
+  router.push("/request-access");
+};
 
 const goToForgotPassword = () => {
-  router.push('/forgot-password')
-}
+  router.push("/forgot-password");
+};
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 </script>
 
 <template>
@@ -105,8 +105,8 @@ const togglePassword = () => {
           </h1>
 
           <p>
-            Construisez un portfolio académique validé par votre institution,
-            et reconnu par les recruteurs.
+            Construisez un portfolio académique validé par votre institution, et
+            reconnu par les recruteurs.
           </p>
 
           <p>
@@ -147,7 +147,11 @@ const togglePassword = () => {
                 />
                 <img
                   class="toggle-icon"
-                  :src="showPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                  :src="
+                    showPassword
+                      ? '/src/assets/Button.png'
+                      : '/src/assets/icon.png'
+                  "
                   alt=""
                   aria-hidden="true"
                   @click="togglePassword"
@@ -183,7 +187,7 @@ const togglePassword = () => {
             </p>
 
             <button class="submit-btn" type="submit" :disabled="isLoading">
-              {{ isLoading ? 'Connexion...' : 'Se connecter' }}
+              {{ isLoading ? "Connexion..." : "Se connecter" }}
             </button>
           </form>
         </div>
