@@ -3,11 +3,11 @@ import { ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { login, getMe } from '../services/authService'
-import  AppLogo  from '../components/AppLogo.vue'
+import AppLogo from '../components/AppLogo.vue'
 import '../assets/styles/login.css'
 
-const router = useRouter() //va me servir a naviguer(changer les pages)
-const route = useRoute() //va me servir de lire (observer)
+const router = useRouter() // va me servir a naviguer (changer les pages)
+const route = useRoute() // va me servir a lire (observer)
 const authStore = useAuthStore()
 
 const email = ref('')
@@ -17,15 +17,25 @@ const successMessage = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
 
-watch( //j'observe si l'user n'est pas autorise(cas de /admin dans l'url)
-  () => route.query.error,
-  (error) => {
+watch(
+  // j'observe les infos de navigation utiles depuis l'url
+  () => [route.query.error, route.query.reset],
+  ([error, reset]) => {
     if (error === 'unauthorized') {
       errorMessage.value = "Vous n'avez pas accès à cette page."
+      successMessage.value = ''
       return
     }
 
     errorMessage.value = ''
+
+    if (reset === 'success') {
+      successMessage.value =
+        'Mot de passe réinitialisé. Vous pouvez maintenant vous connecter.'
+      return
+    }
+
+    successMessage.value = ''
   },
   { immediate: true }
 )
@@ -49,14 +59,14 @@ const handleLogin = async () => {
 
     const meResponse = await getMe()
 
-    authStore.setAuthSession(meResponse.data.data) //je stock la data user dans le store pinia
+    authStore.setAuthSession(meResponse.data.data) // je stocke la data user dans le store Pinia
     successMessage.value = 'Connexion réussie.'
     const user = meResponse.data.data
     const dashboardMap = {
       ADMINISTRATOR: '/admin',
       STUDENT: '/student',
       PROFESSOR: '/professor',
-      PROFESSIONAL: '/professional'
+      PROFESSIONAL: '/professional',
     }
     router.push(dashboardMap[user.role] || '/login')
   } catch (error) {
@@ -70,6 +80,10 @@ const handleLogin = async () => {
 
 const goToRequestAccess = () => {
   router.push('/request-access')
+}
+
+const goToForgotPassword = () => {
+  router.push('/forgot-password')
 }
 
 const togglePassword = () => {
@@ -142,6 +156,16 @@ const togglePassword = () => {
             </div>
 
             <div class="login-form-links">
+              <div class="forgot-password-row">
+                <button
+                  class="forgot-password"
+                  type="button"
+                  @click="goToForgotPassword"
+                >
+                  Mot de passe oublié ?
+                </button>
+              </div>
+
               <p class="access-request-text">
                 Vous n'avez pas encore de compte ?
                 <span class="access-request-link" @click="goToRequestAccess">
