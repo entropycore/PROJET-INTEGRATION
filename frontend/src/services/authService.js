@@ -1,50 +1,16 @@
-import api from './api'
+import axios from 'axios'
 
-export const login = async ({ email, password }) => {
-  const response = await api.post('/auth/login', {
-    email,
-    password,
-  })
+const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+})
 
-  return response.data
-}
-
-export const getMe = async () => {
-  const response = await api.get('/auth/me')
-  return response
-}
-
-export const logout = async () => {
-  const response = await api.post('/auth/logout')
-  return response.data
-}
-
-export const refreshToken = async () => {
-  const response = await api.post('/auth/refresh-token')
-  return response.data
-}
-
-export const verifyEmail = async (token) => {
-  const response = await api.get('/auth/verify-email', {
-    params: { token },
-  })
-
-  return response.data
-}
-
-export const forgotPassword = async (email) => {
-  const response = await api.post('/auth/forgot-password', {
-    email,
-  })
-
-  return response.data
-}
-
-export const resetPassword = async ({ token, newPassword }) => {
-  const response = await api.post('/auth/reset-password', {
-    token,
-    newPassword,
-  })
-
-  return response.data
-}
+export const login = (payload) => apiClient.post('/auth/login', payload)
+export const getMe = () => apiClient.get('/auth/me')
+export const verifyEmail = (token) => apiClient.get('/auth/verify-email', { params: { token } })
+export const forgotPassword = (email) => apiClient.post('/auth/forgot-password', { email })
+export const resetPassword = (payload) => apiClient.post('/auth/reset-password', payload)
+export const logout = () => apiClient.post('/auth/logout')
