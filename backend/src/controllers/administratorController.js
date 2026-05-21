@@ -168,6 +168,22 @@ const handleAdminError = (res, err) => {
     return error(res, 409, 'Cet email est deja utilise.');
   }
 
+  if (err.message === 'USER_EMAIL_SEND_FAILED') {
+    return error(
+      res,
+      500,
+      "Le compte n'a pas ete conserve car l'envoi des identifiants par email a echoue."
+    );
+  }
+
+  if (err.message === 'USER_RESET_EMAIL_SEND_FAILED') {
+    return error(
+      res,
+      500,
+      "Le mot de passe n'a pas ete modifie car l'envoi du nouvel identifiant par email a echoue."
+    );
+  }
+  
   if (err.message === 'BADGE_NAME_ALREADY_EXISTS') {
     return error(res, 409, 'Un badge avec ce nom existe deja.');
   }
