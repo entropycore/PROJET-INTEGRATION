@@ -1,1 +1,1 @@
-<template> a bientot </template>
+<template>a bientot</template>

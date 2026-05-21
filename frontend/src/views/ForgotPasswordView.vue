@@ -1,63 +1,65 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { forgotPassword } from '../services/authService'
-import '../assets/styles/forgot-password.css'
-import AppLogo from '../components/AppLogo.vue'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { forgotPassword } from "../services/authService";
+import "../assets/styles/forgot-password.css";
+import AppLogo from "../components/AppLogo.vue";
 
-const router = useRouter()
+const router = useRouter();
 
-const email = ref('')
-const errorMessage = ref('')
-const successMessage = ref('')
-const isSubmitting = ref(false)
+const email = ref("");
+const errorMessage = ref("");
+const successMessage = ref("");
+const isSubmitting = ref(false);
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push("/login");
+};
 
 const validateForm = () => {
-  errorMessage.value = ''
-  successMessage.value = ''
+  errorMessage.value = "";
+  successMessage.value = "";
 
   if (!email.value.trim()) {
-    errorMessage.value = 'Veuillez renseigner votre adresse email.'
-    return false
+    errorMessage.value = "Veuillez renseigner votre adresse email.";
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 const getForgotPasswordErrorMessage = (error) => {
-  const apiError = error?.response?.data
+  const apiError = error?.response?.data;
 
   if (Array.isArray(apiError?.errors) && apiError.errors.length > 0) {
     return (
       apiError.errors[0]?.message ||
       apiError?.message ||
       "Impossible d'envoyer l'email de réinitialisation."
-    )
+    );
   }
 
-  return apiError?.message || "Impossible d'envoyer l'email de réinitialisation."
-}
+  return (
+    apiError?.message || "Impossible d'envoyer l'email de réinitialisation."
+  );
+};
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) return;
 
-  isSubmitting.value = true
+  isSubmitting.value = true;
 
   try {
-    const response = await forgotPassword(email.value.trim())
+    const response = await forgotPassword(email.value.trim());
     successMessage.value =
       response?.message ||
-      'Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.'
+      "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.";
   } catch (error) {
-    errorMessage.value = getForgotPasswordErrorMessage(error)
+    errorMessage.value = getForgotPasswordErrorMessage(error);
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 </script>
 
 <template>
@@ -126,7 +128,7 @@ const handleSubmit = async () => {
             </p>
 
             <button class="submit-btn" type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Envoi...' : 'Envoyer le lien' }}
+              {{ isSubmitting ? "Envoi..." : "Envoyer le lien" }}
             </button>
 
             <p class="login-link">
