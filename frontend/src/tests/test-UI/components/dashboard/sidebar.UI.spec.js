@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { createTestingPinia } from '@pinia/testing'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -6,7 +6,6 @@ import { useAuthStore } from '@/stores/auth'
 import { logout } from '@/services/authService'
 import Sidebar from '@/components/dashboard/Sidebar.vue'
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
 
 vi.mock('@/services/authService', () => ({
   logout: vi.fn().mockResolvedValue(undefined),
@@ -48,8 +47,6 @@ const router = createRouter({
   ],
 })
 
-// ─── Factory ──────────────────────────────────────────────────────────────────
-
 const mountSidebar = (props = {}, userOverride = {}) => {
   const defaultUser = { firstName: 'Alice', lastName: 'Dupont', role: 'admin' }
   return mount(Sidebar, {
@@ -73,14 +70,25 @@ const mountSidebar = (props = {}, userOverride = {}) => {
   })
 }
 
-// ─── Tests UI ─────────────────────────────────────────────────────────────────
-
 describe('Sidebar tests UI', () => {
-  afterEach(() => {
-    vi.clearAllMocks()
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+      },
+      configurable: true,
+    })
   })
 
-  // ── Identité utilisateur ───────────────────────────────────────────────────
+  afterEach(() => {
+    vi.clearAllMocks()
+    vi.restoreAllMocks()
+  })
 
   describe('Bloc utilisateur', () => {
     it("affiche l'initiale de l'utilisateur dans l'avatar", () => {
@@ -105,8 +113,6 @@ describe('Sidebar tests UI', () => {
       expect(wrapper.find('.sidebar-avatar').text()).toBe('A')
     })
   })
-
-  // ── Navigation principale ──────────────────────────────────────────────────
 
   describe('Navigation', () => {
     it('affiche le titre de section', () => {
@@ -134,7 +140,6 @@ describe('Sidebar tests UI', () => {
     })
   })
 
-  // ── Dropdown ───────────────────────────────────────────────────────────────
 
   describe('Dropdown', () => {
     it('ouvre le sous-menu au clic sur le trigger', async () => {
@@ -168,8 +173,6 @@ describe('Sidebar tests UI', () => {
     })
   })
 
-  // ── Collapsed ─────────────────────────────────────────────────────────────
-
   describe('Prop collapsed', () => {
     it("ajoute la classe 'sidebar-collapsed' quand collapsed=true", () => {
       const wrapper = mountSidebar({ collapsed: true })
@@ -188,7 +191,6 @@ describe('Sidebar tests UI', () => {
     })
   })
 
-  // ── Déconnexion ───────────────────────────────────────────────────────────
 
   describe('Déconnexion', () => {
     it('appelle logout() et redirige vers /login', async () => {
@@ -217,7 +219,6 @@ describe('Sidebar tests UI', () => {
     })
   })
 
-  // ── Sections selon le rôle ────────────────────────────────────────────────
 
   describe('Sections par rôle', () => {
     it("n'affiche aucune section si le rôle est inconnu", () => {
