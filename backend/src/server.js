@@ -20,6 +20,8 @@ const skillsRoutes = require('./routes/skillsRoutes');
 const notificationsRoutes = require('./routes/notificationsRoutes');
 const professorRoutes = require('./routes/professorRoutes');
 const administratorRoutes = require('./routes/administratorRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const githubRoutes = require('./routes/githubRoutes');
 
 const app = express();
 
@@ -34,7 +36,10 @@ app.use(cookieParser());
 
 
 app.use('/api/auth', authRoutes);
+
 app.use('/api/professional', professionalRoutes);
+
+app.use('/api/student/github', githubRoutes);
 app.use('/api/student', studentRoutes);
 app.use('/api/students', studentsRoutes);
 app.use('/api/academic-paths', academicPathsRoutes);
@@ -42,7 +47,10 @@ app.use('/api/projects', projectsRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/professor', professorRoutes);
+
 app.use('/api/admin', administratorRoutes);
+app.use('/api/reports', reportRoutes);
+
 
 
 app.use(notFound);
