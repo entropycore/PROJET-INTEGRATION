@@ -3,6 +3,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const prisma = require('../config/prisma');
+const sendEmail = require('../utils/sendEmail');
 const notificationService = require('./notificationService');
 
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
@@ -36,6 +37,18 @@ const DELETABLE_REPORT_TARGET_TYPES = new Set([
   'INTERNSHIP',
 ]);
 const BCRYPT_ROUNDS = 10;
+const ROLE_LABELS = {
+  STUDENT: 'Etudiant',
+  PROFESSOR: 'Professeur',
+  ADMINISTRATOR: 'Administrateur',
+  PROFESSIONAL: 'Professionnel',
+};
+const STATUS_LABELS = {
+  ACTIVE: 'Actif',
+  INACTIVE: 'Inactif',
+  SUSPENDED: 'Suspendu',
+  PENDING: 'En attente de validation',
+};
 
 const professionalRequestSelect = {
   id: true,
@@ -2927,6 +2940,56 @@ const requestRecommendationValidationChanges = async (
   return mapRecommendationValidationItem(updatedRecommendation);
 };
 
+const buildUserCredentialsEmail = ({ firstName, email, password, role, accountStatus }) => {
+  const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
+  const roleLabel = ROLE_LABELS[role] || role;
+  const statusLabel = STATUS_LABELS[accountStatus] || accountStatus;
+
+  return {
+    subject: 'Vos identifiants Credencia',
+    text: [
+      `Bonjour ${firstName},`,
+      '',
+      'Un compte Credencia a ete cree pour vous.',
+      '',
+      `Role : ${roleLabel}`,
+      `Statut du compte : ${statusLabel}`,
+      `Email : ${email}`,
+      `Mot de passe initial : ${password}`,
+      '',
+      `Connexion : ${loginUrl}`,
+      '',
+      'Si vous recevez plusieurs emails de credentials, utilisez uniquement le mot de passe du dernier message recu.',
+      '',
+      "Nous vous recommandons de changer votre mot de passe apres votre premiere connexion.",
+    ].join('\n'),
+  };
+};
+
+const buildPasswordResetEmail = ({ firstName, email, password, role }) => {
+  const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
+  const roleLabel = ROLE_LABELS[role] || role;
+
+  return {
+    subject: 'Votre mot de passe Credencia a ete reinitialise',
+    text: [
+      `Bonjour ${firstName},`,
+      '',
+      'Votre mot de passe Credencia a ete reinitialise par un administrateur.',
+      '',
+      `Role : ${roleLabel}`,
+      `Email : ${email}`,
+      `Nouveau mot de passe temporaire : ${password}`,
+      '',
+      `Connexion : ${loginUrl}`,
+      '',
+      'Si vous recevez plusieurs emails de reinitialisation, utilisez uniquement le mot de passe du dernier message recu.',
+      '',
+      "Nous vous recommandons de changer votre mot de passe apres votre prochaine connexion.",
+    ].join('\n'),
+  };
+};
+
 exports.getDashboardData = async () => {
   await syncAdminNotifications();
 
@@ -3255,8 +3318,12 @@ exports.createUser = async (payload) => {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
 
-  const temporaryPassword = payload.password || buildTemporaryPassword();
-  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
+  const providedPassword =
+    typeof payload.password === 'string' && payload.password.trim().length > 0
+      ? payload.password
+      : null;
+  const initialPassword = providedPassword || buildTemporaryPassword();
+  const passwordHash = await bcrypt.hash(initialPassword, BCRYPT_ROUNDS);
 
   const createdUser = await prisma.user.create({
     data: {
@@ -3273,9 +3340,28 @@ exports.createUser = async (payload) => {
     select: userSelect,
   });
 
+  try {
+    const emailPayload = buildUserCredentialsEmail({
+      firstName: createdUser.firstName,
+      email: createdUser.email,
+      password: initialPassword,
+      role,
+      accountStatus,
+    });
+
+    await sendEmail(createdUser.email, emailPayload.subject, emailPayload.text);
+  } catch (err) {
+    await prisma.user.delete({
+      where: { id: createdUser.id },
+    });
+
+    throw new Error('USER_EMAIL_SEND_FAILED');
+  }
+
   return {
     user: mapUserSummary(createdUser),
-    temporaryPassword: payload.password ? null : temporaryPassword,
+    temporaryPassword: providedPassword ? null : initialPassword,
+    credentialsSent: true,
   };
 };
 
@@ -3867,32 +3953,95 @@ exports.requestValidationChangesItem = async (
   }
 };
 
-exports.approveLegacyValidationItem = async (
-  itemId,
-  actorUserId,
-  administratorId,
-  payload = {}
-) => {
+exports.resetUserPassword = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      firstName: true,
+      email: true,
+      role: true,
+      accountStatus: true,
+      passwordHash: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('USER_NOT_FOUND');
+  }
+
+  const temporaryPassword = buildTemporaryPassword();
+  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
+  let activeSessionIds = [];
+
+  await prisma.$transaction(async (tx) => {
+    const activeSessions = await tx.refreshTokenSession.findMany({
+      where: { userId, isRevoked: false },
+      select: { id: true },
+    });
+
+    activeSessionIds = activeSessions.map((session) => session.id);
+
+    await tx.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    if (activeSessionIds.length > 0) {
+      await tx.refreshTokenSession.updateMany({
+        where: { id: { in: activeSessionIds } },
+        data: { isRevoked: true, revokedAt: new Date() },
+      });
+    }
+  });
+
+ 
+  try {
+    const emailPayload = buildPasswordResetEmail({
+      firstName: user.firstName,
+      email: user.email,
+      password: temporaryPassword,
+      role: user.role,
+    });
+
+    await sendEmail(user.email, emailPayload.subject, emailPayload.text);
+  } catch (err) {
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { passwordHash: user.passwordHash },
+      });
+
+      if (activeSessionIds.length > 0) {
+        await tx.refreshTokenSession.updateMany({
+          where: { id: { in: activeSessionIds } },
+          data: { isRevoked: false, revokedAt: null },
+        });
+      }
+    });
+
+    throw new Error('USER_RESET_EMAIL_SEND_FAILED');
+  }
+
+  return {
+    userId,
+    temporaryPassword,
+    credentialsSent: true,
+  };
+}; 
+
+
+exports.approveLegacyValidationItem = async (itemId, actorUserId, administratorId, payload = {}) => {
   const itemType = await resolveValidationItemTypeById(itemId);
   return exports.approveValidationItem(itemType, itemId, actorUserId, administratorId, payload);
 };
 
-exports.rejectLegacyValidationItem = async (
-  itemId,
-  actorUserId,
-  administratorId,
-  payload = {}
-) => {
+exports.rejectLegacyValidationItem = async (itemId, actorUserId, administratorId, payload = {}) => {
   const itemType = await resolveValidationItemTypeById(itemId);
   return exports.rejectValidationItem(itemType, itemId, actorUserId, administratorId, payload);
 };
 
-exports.requestLegacyValidationChanges = async (
-  itemId,
-  actorUserId,
-  administratorId,
-  payload = {}
-) => {
+exports.requestLegacyValidationChanges = async (itemId, actorUserId, administratorId, payload = {}) => {
   const itemType = await resolveValidationItemTypeById(itemId);
   const updatedItem = await exports.requestValidationChangesItem(
     itemType,
@@ -3905,14 +4054,7 @@ exports.requestLegacyValidationChanges = async (
   return mapValidationItemToLegacyShape(updatedItem);
 };
 
-exports.listNotifications = async ({
-  administratorId,
-  type,
-  isRead,
-  page = 1,
-  limit = 10,
-  search,
-} = {}) => {
+exports.listNotifications = async ({ administratorId, type, isRead, page = 1, limit = 10, search } = {}) => {
   await syncAdminNotifications();
 
   const normalizedType = type ? normalizeValidationType(type) : null;
@@ -3988,6 +4130,7 @@ exports.listNotifications = async ({
     ),
   ]);
 
+  
   return {
     filters: {
       type: normalizedType,
@@ -4002,7 +4145,7 @@ exports.listNotifications = async ({
     items: notifications.map(mapNotificationItem),
     pagination: buildPagination(safePage, safeLimit, total),
   };
-};
+}; 
 
 exports.getUnreadNotificationsCount = async (administratorId) => {
   const scopeConditions = administratorId
