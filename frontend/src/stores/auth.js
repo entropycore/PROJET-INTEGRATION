@@ -26,7 +26,11 @@ export const useAuthStore = defineStore('auth', {
     setAuthSession(user) {
       this.user = user
       this.isAuthenticated = Boolean(user)
-      if (typeof window !== 'undefined') {
+      if (
+        typeof window !== 'undefined' &&
+        window.localStorage &&
+        typeof window.localStorage.setItem === 'function'
+      ) {
         window.localStorage.setItem(
           'auth',
           JSON.stringify({ user: this.user, isAuthenticated: this.isAuthenticated })
@@ -37,7 +41,11 @@ export const useAuthStore = defineStore('auth', {
     clearAuthSession() {
       this.user = null
       this.isAuthenticated = false
-      if (typeof window !== 'undefined') {
+      if (
+        typeof window !== 'undefined' &&
+        window.localStorage &&
+        typeof window.localStorage.removeItem === 'function'
+      ) {
         window.localStorage.removeItem('auth')
       }
     },
