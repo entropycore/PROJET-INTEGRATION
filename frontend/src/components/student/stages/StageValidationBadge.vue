@@ -2,43 +2,40 @@
 defineProps({
   status: {
     type: String,
-    default: 'PENDING',
+    default: "PENDING",
   },
-})
+});
 
 const statusConfig = {
   DRAFT: {
-    label: 'Brouillon',
-    class: 'draft',
+    label: "Brouillon",
+    class: "draft",
   },
 
   PENDING: {
-    label: 'En attente',
-    class: 'pending',
+    label: "En attente",
+    class: "pending",
   },
 
   APPROVED: {
-    label: 'Validé',
-    class: 'approved',
+    label: "Validé",
+    class: "approved",
   },
 
   REJECTED: {
-    label: 'Refusé',
-    class: 'rejected',
+    label: "Refusé",
+    class: "rejected",
   },
 
   CORRECTION_REQUIRED: {
-    label: 'Correction demandée',
-    class: 'correction',
+    label: "Correction demandée",
+    class: "correction",
   },
-}
+};
 </script>
 
 <template>
-  <span
-    class="validation-badge"
-    :class="statusConfig[status]?.class"
-  >
+  <span class="validation-badge" :class="statusConfig[status]?.class">
     {{ statusConfig[status]?.label }}
   </span>
 </template>

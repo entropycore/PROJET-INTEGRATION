@@ -1,109 +1,109 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { resetPassword } from '../services/authService'
-import '../assets/styles/reset-password.css'
-import AppLogo from '../components/AppLogo.vue'
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { resetPassword } from "../services/authService";
+import "../assets/styles/reset-password.css";
+import AppLogo from "../components/AppLogo.vue";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const token = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-const errorMessage = ref('')
-const successMessage = ref('')
-const isSubmitting = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
+const token = ref("");
+const newPassword = ref("");
+const confirmPassword = ref("");
+const errorMessage = ref("");
+const successMessage = ref("");
+const isSubmitting = ref(false);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
-const hasValidToken = computed(() => Boolean(token.value))
+const hasValidToken = computed(() => Boolean(token.value));
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push("/login");
+};
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 
 const toggleConfirmPassword = () => {
-  showConfirmPassword.value = !showConfirmPassword.value
-}
+  showConfirmPassword.value = !showConfirmPassword.value;
+};
 
 const validateForm = () => {
-  errorMessage.value = ''
-  successMessage.value = ''
+  errorMessage.value = "";
+  successMessage.value = "";
 
   if (!hasValidToken.value) {
-    errorMessage.value = 'Lien de réinitialisation manquant ou invalide.'
-    return false
+    errorMessage.value = "Lien de réinitialisation manquant ou invalide.";
+    return false;
   }
 
   if (!newPassword.value.trim() || !confirmPassword.value.trim()) {
-    errorMessage.value = 'Veuillez remplir tous les champs.'
-    return false
+    errorMessage.value = "Veuillez remplir tous les champs.";
+    return false;
   }
 
   if (newPassword.value !== confirmPassword.value) {
-    errorMessage.value = 'Les mots de passe ne correspondent pas.'
-    return false
+    errorMessage.value = "Les mots de passe ne correspondent pas.";
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 const getResetPasswordErrorMessage = (error) => {
-  const apiError = error?.response?.data
+  const apiError = error?.response?.data;
 
   if (Array.isArray(apiError?.errors) && apiError.errors.length > 0) {
     return (
       apiError.errors[0]?.message ||
       apiError?.message ||
-      'Impossible de réinitialiser le mot de passe.'
-    )
+      "Impossible de réinitialiser le mot de passe."
+    );
   }
 
-  return apiError?.message || 'Impossible de réinitialiser le mot de passe.'
-}
+  return apiError?.message || "Impossible de réinitialiser le mot de passe.";
+};
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) return;
 
-  isSubmitting.value = true
+  isSubmitting.value = true;
 
   try {
     const response = await resetPassword({
       token: token.value,
       newPassword: newPassword.value,
-    })
+    });
 
     successMessage.value =
-      response?.message || 'Mot de passe réinitialisé avec succès.'
-    newPassword.value = ''
-    confirmPassword.value = ''
+      response?.message || "Mot de passe réinitialisé avec succès.";
+    newPassword.value = "";
+    confirmPassword.value = "";
 
     router.push({
-      path: '/login',
-      query: { reset: 'success' },
-    })
+      path: "/login",
+      query: { reset: "success" },
+    });
   } catch (error) {
-    errorMessage.value = getResetPasswordErrorMessage(error)
+    errorMessage.value = getResetPasswordErrorMessage(error);
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 
 onMounted(() => {
-  const tokenFromQuery = route.query.token
+  const tokenFromQuery = route.query.token;
 
-  if (typeof tokenFromQuery === 'string' && tokenFromQuery.trim()) {
-    token.value = tokenFromQuery
-    return
+  if (typeof tokenFromQuery === "string" && tokenFromQuery.trim()) {
+    token.value = tokenFromQuery;
+    return;
   }
 
-  errorMessage.value = 'Lien de réinitialisation manquant ou invalide.'
-})
+  errorMessage.value = "Lien de réinitialisation manquant ou invalide.";
+});
 </script>
 
 <template>
@@ -157,7 +157,11 @@ onMounted(() => {
                 />
                 <img
                   class="toggle-icon"
-                  :src="showPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                  :src="
+                    showPassword
+                      ? '/src/assets/Button.png'
+                      : '/src/assets/icon.png'
+                  "
                   alt=""
                   aria-hidden="true"
                   @click="togglePassword"
@@ -178,7 +182,11 @@ onMounted(() => {
                 />
                 <img
                   class="toggle-icon"
-                  :src="showConfirmPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
+                  :src="
+                    showConfirmPassword
+                      ? '/src/assets/Button.png'
+                      : '/src/assets/icon.png'
+                  "
                   alt=""
                   aria-hidden="true"
                   @click="toggleConfirmPassword"
@@ -208,9 +216,7 @@ onMounted(() => {
               :disabled="isSubmitting || !hasValidToken"
             >
               {{
-                isSubmitting
-                  ? 'Validation...'
-                  : 'Réinitialiser le mot de passe'
+                isSubmitting ? "Validation..." : "Réinitialiser le mot de passe"
               }}
             </button>
 
