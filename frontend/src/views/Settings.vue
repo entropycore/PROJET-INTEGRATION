@@ -1,1 +1,1 @@
-<template> <h1> soon </h1></template>
+<template><h1>soon</h1></template>

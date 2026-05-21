@@ -1,32 +1,28 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-import {
-  stages,
-  addStage,
-  updateStage,
-} from '@/mockData/studentStages.store'
+import { stages, addStage, updateStage } from "@/mockData/studentStages.store";
 
-import StageForm from '@/components/student/stages/StageForm.vue'
+import StageForm from "@/components/student/stages/StageForm.vue";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const isEditMode = computed(() => Boolean(route.params.id))
+const isEditMode = computed(() => Boolean(route.params.id));
 
 const currentStage = computed(() => {
-  if (!isEditMode.value) return null
+  if (!isEditMode.value) return null;
 
-  return stages.value.find((stage) => stage.id === route.params.id)
-})
+  return stages.value.find((stage) => stage.id === route.params.id);
+});
 
 const goBack = () => {
-  router.push('/student/stages')
-}
+  router.push("/student/stages");
+};
 
-const createLocalStage = (payload, validationStatus = 'DRAFT') => {
-  const today = new Date().toISOString().split('T')[0]
+const createLocalStage = (payload, validationStatus = "DRAFT") => {
+  const today = new Date().toISOString().split("T")[0];
 
   return {
     id: isEditMode.value ? route.params.id : Date.now().toString(),
@@ -45,7 +41,7 @@ const createLocalStage = (payload, validationStatus = 'DRAFT') => {
 
     reportUrl: payload.report
       ? URL.createObjectURL(payload.report)
-      : currentStage.value?.reportUrl || '',
+      : currentStage.value?.reportUrl || "",
 
     images: payload.images?.length
       ? payload.images.map((image, index) => ({
@@ -59,9 +55,9 @@ const createLocalStage = (payload, validationStatus = 'DRAFT') => {
       {
         status: validationStatus,
         comment:
-          validationStatus === 'PENDING'
-            ? 'Stage soumis pour validation.'
-            : 'Stage enregistré comme brouillon.',
+          validationStatus === "PENDING"
+            ? "Stage soumis pour validation."
+            : "Stage enregistré comme brouillon.",
         createdAt: today,
       },
       ...(currentStage.value?.validationHistory || []),
@@ -69,8 +65,8 @@ const createLocalStage = (payload, validationStatus = 'DRAFT') => {
 
     createdAt: currentStage.value?.createdAt || today,
     updatedAt: today,
-  }
-}
+  };
+};
 
 const handleSaveDraft = (payload) => {
   /*
@@ -112,16 +108,16 @@ const handleSaveDraft = (payload) => {
   - updateStage(...)
   */
 
-  const localStage = createLocalStage(payload, 'DRAFT')
+  const localStage = createLocalStage(payload, "DRAFT");
 
   if (isEditMode.value) {
-    updateStage(localStage)
+    updateStage(localStage);
   } else {
-    addStage(localStage)
+    addStage(localStage);
   }
 
-  router.push('/student/stages')
-}
+  router.push("/student/stages");
+};
 
 const handleSubmitValidation = (payload) => {
   /*
@@ -167,16 +163,16 @@ const handleSubmitValidation = (payload) => {
   - updateStage(...)
   */
 
-  const localStage = createLocalStage(payload, 'PENDING')
+  const localStage = createLocalStage(payload, "PENDING");
 
   if (isEditMode.value) {
-    updateStage(localStage)
+    updateStage(localStage);
   } else {
-    addStage(localStage)
+    addStage(localStage);
   }
 
-  router.push('/student/stages')
-}
+  router.push("/student/stages");
+};
 </script>
 
 <template>
@@ -188,14 +184,14 @@ const handleSubmitValidation = (payload) => {
 
     <div class="page-header">
       <h1>
-        {{ isEditMode ? 'Modifier le stage' : 'Ajouter un stage' }}
+        {{ isEditMode ? "Modifier le stage" : "Ajouter un stage" }}
       </h1>
 
       <p>
         {{
           isEditMode
-            ? 'Mettez à jour les informations de votre stage.'
-            : 'Enregistrez les informations de votre stage. Il sera soumis à votre enseignant encadrant pour validation.'
+            ? "Mettez à jour les informations de votre stage."
+            : "Enregistrez les informations de votre stage. Il sera soumis à votre enseignant encadrant pour validation."
         }}
       </p>
     </div>

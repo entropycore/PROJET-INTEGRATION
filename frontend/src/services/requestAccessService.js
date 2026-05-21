@@ -1,11 +1,6 @@
-import axios from 'axios'
+import api from "./api";
 
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
-
-export const requestAccess = (payload) => apiClient.post('/auth/register', payload)
+export const requestAccess = async (payload) => {
+  const response = await api.post("/auth/register", payload);
+  return response.data;
+};
