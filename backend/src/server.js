@@ -19,6 +19,7 @@ const reportRoutes = require('./routes/reportRoutes');
 const githubRoutes = require('./routes/githubRoutes');
 
 const app = express();
+app.set('trust proxy', 1);
 
 
 app.use(securityHeaders);
