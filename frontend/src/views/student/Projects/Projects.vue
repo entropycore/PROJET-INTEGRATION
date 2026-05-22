@@ -44,7 +44,10 @@ const fetchProjects = async () => {
     const response = await getStudentProjects();
     projects.value = response.data.data;
   } catch (error) {
-    console.warn("API projects indisponible, utilisation des mock data.", error);
+    console.warn(
+      "API projects indisponible, utilisation des mock data.",
+      error,
+    );
   } finally {
     isLoading.value = false;
   }

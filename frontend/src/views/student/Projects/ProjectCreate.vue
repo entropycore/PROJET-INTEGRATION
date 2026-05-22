@@ -1,6 +1,9 @@
 <script setup>
 import { computed, ref } from "vue";
-import { createStudentProject, submitStudentProject } from "@/services/studentProjectsApis";
+import {
+  createStudentProject,
+  submitStudentProject,
+} from "@/services/studentProjectsApis";
 import { RouterLink, useRouter } from "vue-router";
 
 import "@/assets/styles/student-project-edit.css";
@@ -218,25 +221,25 @@ const createAndSubmitProject = async () => {
 
       <div class="edit-header-actions">
         <button
-  type="button"
-  class="secondary-action"
-  :disabled="isSaving"
-  @click="createDraftProject"
->
-  Enregistrer
-</button>
+          type="button"
+          class="secondary-action"
+          :disabled="isSaving"
+          @click="createDraftProject"
+        >
+          Enregistrer
+        </button>
 
-<button
-  type="button"
-  class="primary-action"
-  :disabled="!canSubmit || isSaving"
-  @click="createAndSubmitProject"
->
-  Créer et soumettre
-</button>
-<p v-if="errorMessage" class="edit-error-message">
-  {{ errorMessage }}
-</p>
+        <button
+          type="button"
+          class="primary-action"
+          :disabled="!canSubmit || isSaving"
+          @click="createAndSubmitProject"
+        >
+          Créer et soumettre
+        </button>
+        <p v-if="errorMessage" class="edit-error-message">
+          {{ errorMessage }}
+        </p>
       </div>
     </div>
 

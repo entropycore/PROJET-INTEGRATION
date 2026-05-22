@@ -3,13 +3,9 @@ defineProps({
   search: String,
   status: String,
   type: String,
-})
+});
 
-const emit = defineEmits([
-  'update:search',
-  'update:status',
-  'update:type',
-])
+const emit = defineEmits(["update:search", "update:status", "update:type"]);
 </script>
 
 <template>
@@ -37,10 +33,7 @@ const emit = defineEmits([
       <option value="REJECTED">Refusée</option>
     </select>
 
-    <select
-      :value="type"
-      @change="emit('update:type', $event.target.value)"
-    >
+    <select :value="type" @change="emit('update:type', $event.target.value)">
       <option value="ALL">Tous les types</option>
       <option value="CLUB">Club</option>
       <option value="EVENT">Événement</option>
