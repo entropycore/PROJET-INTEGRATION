@@ -58,9 +58,13 @@ app.use(notFound);
 app.use(handleErrors);
 
 
-const PORT = process.env.BACKEND_PORT;
-app.listen(PORT, () => {
-  logger.info(`Serveur démarré sur le port ${PORT}`);
-  console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
-});
+const PORT = process.env.BACKEND_PORT || 5000;
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    logger.info(`Serveur démarré sur le port ${PORT}`);
+    console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
+  });
+}
+
 module.exports = app;//pour on puisse exporte 
