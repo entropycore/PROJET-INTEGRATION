@@ -1,67 +1,66 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref } from "vue";
 
 import {
   activities,
   addActivity,
   deleteActivity,
   submitActivityValidation,
-} from '@/mockData/studentActivities.store'
+} from "@/mockData/studentActivities.store";
 
-import ActivityCard from '@/components/student/stages/activities/ActivityCard.vue'
-import ActivityFilters from '@/components/student/stages/activities/ActivityFilters.vue'
-import ActivityForm from '@/components/student/stages/activities/ActivityForm.vue'
+import ActivityCard from "@/components/student/stages/activities/ActivityCard.vue";
+import ActivityFilters from "@/components/student/stages/activities/ActivityFilters.vue";
+import ActivityForm from "@/components/student/stages/activities/ActivityForm.vue";
 
-const search = ref('')
-const selectedStatus = ref('ALL')
-const selectedType = ref('ALL')
-const showForm = ref(false)
+const search = ref("");
+const selectedStatus = ref("ALL");
+const selectedType = ref("ALL");
+const showForm = ref(false);
 
 const filteredActivities = computed(() => {
   return activities.value.filter((activity) => {
-    const value = search.value.toLowerCase()
+    const value = search.value.toLowerCase();
 
     const matchesSearch =
       activity.title.toLowerCase().includes(value) ||
       activity.organization.toLowerCase().includes(value) ||
-      activity.description.toLowerCase().includes(value)
+      activity.description.toLowerCase().includes(value);
 
     const matchesStatus =
-      selectedStatus.value === 'ALL' ||
-      activity.validationStatus === selectedStatus.value
+      selectedStatus.value === "ALL" ||
+      activity.validationStatus === selectedStatus.value;
 
     const matchesType =
-      selectedType.value === 'ALL' ||
-      activity.type === selectedType.value
+      selectedType.value === "ALL" || activity.type === selectedType.value;
 
-    return matchesSearch && matchesStatus && matchesType
-  })
-})
+    return matchesSearch && matchesStatus && matchesType;
+  });
+});
 
 const handleAddActivity = (payload) => {
   addActivity({
     id: Date.now(),
     ...payload,
-    validationStatus: 'DRAFT',
-    createdAt: new Date().toISOString().split('T')[0],
-  })
+    validationStatus: "DRAFT",
+    createdAt: new Date().toISOString().split("T")[0],
+  });
 
-  showForm.value = false
-}
+  showForm.value = false;
+};
 
 const handleDeleteActivity = (activityId) => {
   const confirmDelete = window.confirm(
-    'Voulez-vous vraiment supprimer cette activité ?',
-  )
+    "Voulez-vous vraiment supprimer cette activité ?",
+  );
 
-  if (!confirmDelete) return
+  if (!confirmDelete) return;
 
-  deleteActivity(activityId)
-}
+  deleteActivity(activityId);
+};
 
 const handleSubmitValidation = (activityId) => {
-  submitActivityValidation(activityId)
-}
+  submitActivityValidation(activityId);
+};
 </script>
 
 <template>
@@ -75,9 +74,9 @@ const handleSubmitValidation = (activityId) => {
 
       <button class="add-btn" @click="showForm = !showForm">
         <span class="material-icons-round">
-          {{ showForm ? 'close' : 'add' }}
+          {{ showForm ? "close" : "add" }}
         </span>
-        {{ showForm ? 'Fermer' : 'Ajouter une activité' }}
+        {{ showForm ? "Fermer" : "Ajouter une activité" }}
       </button>
     </div>
 
