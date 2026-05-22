@@ -52,6 +52,34 @@ const calculatedDuration = computed(() => {
   return `${months} mois`;
 });
 
+const hasReport = computed(() => {
+  return Boolean(form.report || props.initialStage?.reportUrl);
+});
+
+const missingSubmitFields = computed(() => {
+  const missingFields = [];
+
+  if (!form.title.trim()) missingFields.push("titre");
+  if (!form.company.trim()) missingFields.push("entreprise");
+  if (!form.startDate) missingFields.push("date début");
+  if (!form.endDate) missingFields.push("date fin");
+  if (!form.supervisorName.trim()) missingFields.push("encadrant");
+  if (!calculatedDuration.value) missingFields.push("durée");
+  if (!hasReport.value) missingFields.push("rapport PDF");
+
+  return missingFields;
+});
+
+const canSubmitValidation = computed(() => {
+  return missingSubmitFields.value.length === 0;
+});
+
+const submitRequirementsMessage = computed(() => {
+  if (canSubmitValidation.value) return "";
+
+  return `Pour soumettre le stage, veuillez compléter : ${missingSubmitFields.value.join(", ")}.`;
+});
+
 const formatDateInput = (value) => {
   if (!value) return "";
 
@@ -139,8 +167,8 @@ const saveDraft = () => {
 };
 
 const submitValidation = () => {
-  if (!form.report && !props.initialStage?.reportUrl) {
-    alert("Veuillez ajouter le rapport PDF avant la soumission.");
+  if (!canSubmitValidation.value) {
+    alert(submitRequirementsMessage.value);
     return;
   }
 
@@ -161,11 +189,15 @@ const submitButtonLabel = () => {
         Sauveg. brouillon
       </button>
 
-      <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn btn-primary" :disabled="!canSubmitValidation">
         <span class="material-icons-round">send</span>
         {{ submitButtonLabel() }}
       </button>
     </div>
+
+    <p v-if="submitRequirementsMessage" class="submit-warning-card">
+      {{ submitRequirementsMessage }}
+    </p>
 
     <div class="form-layout">
       <main class="form-main">
@@ -195,8 +227,6 @@ const submitButtonLabel = () => {
                 placeholder="Ex : Capgemini Maroc"
               />
             </div>
-
-            
 
             <div class="form-group">
               <label>Date début</label>
@@ -237,13 +267,12 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Nom de l’encadrant</label>
-                <input
-                  v-model="form.supervisorName"
-                  type="text"
-                  required
-                  placeholder="Ex : Pr. Karim Alaoui"
-                />
-
+              <input
+                v-model="form.supervisorName"
+                type="text"
+                required
+                placeholder="Ex : Pr. Karim Alaoui"
+              />
             </div>
 
             <div class="form-group">
@@ -552,6 +581,18 @@ textarea:focus {
   color: #6d9197;
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.submit-warning-card {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border: 1px solid #f4e8d1;
+  border-radius: 0.75rem;
+  background: #fffaf0;
+  color: #b87518;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .form-actions {
