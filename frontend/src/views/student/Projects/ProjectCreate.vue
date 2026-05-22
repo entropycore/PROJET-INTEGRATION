@@ -1,14 +1,16 @@
 <script setup>
 import { computed, ref } from "vue";
+import { createStudentProject, submitStudentProject } from "@/services/studentProjectsApis";
 import { RouterLink, useRouter } from "vue-router";
 
 import "@/assets/styles/student-project-edit.css";
 
 const router = useRouter();
-
+const isSaving = ref(false);
 const newTechnology = ref("");
 const newLinkLabel = ref("");
 const newLinkUrl = ref("");
+const errorMessage = ref("");
 
 const validators = [
   "Pr. Moussaoui",
@@ -159,18 +161,43 @@ const removeAttachment = (id) => {
   );
 };
 
-const createDraftProject = () => {
-  console.log("Projet brouillon créé :", projectForm.value);
+const createDraftProject = async () => {
+  isSaving.value = true;
+  errorMessage.value = "";
 
-  router.push("/student/projects");
+  try {
+    await createStudentProject(projectForm.value);
+    router.push("/student/projects");
+  } catch (error) {
+    console.error("Erreur création projet :", error);
+    errorMessage.value =
+      error.response?.data?.message || "Impossible de créer le projet.";
+  } finally {
+    isSaving.value = false;
+  }
 };
 
-const createAndSubmitProject = () => {
+const createAndSubmitProject = async () => {
   if (!canSubmit.value) return;
 
-  console.log("Projet créé et soumis :", projectForm.value);
+  isSaving.value = true;
+  errorMessage.value = "";
 
-  router.push("/student/projects");
+  try {
+    const response = await createStudentProject(projectForm.value);
+    const createdProject = response.data.data;
+
+    await submitStudentProject(createdProject.id);
+
+    router.push("/student/projects");
+  } catch (error) {
+    console.error("Erreur création/soumission projet :", error);
+    errorMessage.value =
+      error.response?.data?.message ||
+      "Impossible de créer et soumettre le projet.";
+  } finally {
+    isSaving.value = false;
+  }
 };
 </script>
 
@@ -191,21 +218,25 @@ const createAndSubmitProject = () => {
 
       <div class="edit-header-actions">
         <button
-          type="button"
-          class="secondary-action"
-          @click="createDraftProject"
-        >
-          Enregistrer
-        </button>
+  type="button"
+  class="secondary-action"
+  :disabled="isSaving"
+  @click="createDraftProject"
+>
+  Enregistrer
+</button>
 
-        <button
-          type="button"
-          class="primary-action"
-          :disabled="!canSubmit"
-          @click="createAndSubmitProject"
-        >
-          Créer et soumettre
-        </button>
+<button
+  type="button"
+  class="primary-action"
+  :disabled="!canSubmit || isSaving"
+  @click="createAndSubmitProject"
+>
+  Créer et soumettre
+</button>
+<p v-if="errorMessage" class="edit-error-message">
+  {{ errorMessage }}
+</p>
       </div>
     </div>
 
