@@ -17,6 +17,7 @@ router.get('/credibility-score/details', studentController.getCredibilityScoreDe
 router.get('/profile-completion', studentController.getProfileCompletion);
 router.get('/timeline', studentController.getTimeline);
 router.get('/badges', studentController.getBadges);
+router.get('/recommendations', studentController.getRecommendations);
 router.get('/soft-skills', studentController.getSoftSkills);
 router.post('/soft-skills', studentController.addSoftSkill);
 router.delete('/soft-skills/:studentSkillId', studentController.deleteSoftSkill);
