@@ -4,46 +4,46 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-})
+});
 
-const emit = defineEmits(['delete-activity', 'submit-validation'])
+const emit = defineEmits(["delete-activity", "submit-validation"]);
 
 const statusLabels = {
-  DRAFT: 'Brouillon',
-  PENDING: 'En attente',
-  APPROVED: 'Validée',
-  REJECTED: 'Refusée',
-  CORRECTION_REQUIRED: 'Correction demandée',
-}
+  DRAFT: "Brouillon",
+  PENDING: "En attente",
+  APPROVED: "Validée",
+  REJECTED: "Refusée",
+  CORRECTION_REQUIRED: "Correction demandée",
+};
 
 const typeLabels = {
-  CLUB: 'Club',
-  EVENT: 'Événement',
-  VOLUNTEERING: 'Bénévolat',
-  COMPETITION: 'Compétition',
-  TRAINING: 'Formation',
-  OTHER: 'Autre',
-}
+  CLUB: "Club",
+  EVENT: "Événement",
+  VOLUNTEERING: "Bénévolat",
+  COMPETITION: "Compétition",
+  TRAINING: "Formation",
+  OTHER: "Autre",
+};
 
 const canSubmitValidation = () => {
-  return ['DRAFT', 'CORRECTION_REQUIRED'].includes(
+  return ["DRAFT", "CORRECTION_REQUIRED"].includes(
     props.activity.validationStatus,
-  )
-}
+  );
+};
 
 const canDeleteActivity = () => {
-  return ['DRAFT', 'CORRECTION_REQUIRED', 'REJECTED'].includes(
+  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
     props.activity.validationStatus,
-  )
-}
+  );
+};
 
 const submitValidation = () => {
-  emit('submit-validation', props.activity.id)
-}
+  emit("submit-validation", props.activity.id);
+};
 
 const deleteCurrentActivity = () => {
-  emit('delete-activity', props.activity.id)
-}
+  emit("delete-activity", props.activity.id);
+};
 </script>
 
 <template>
@@ -60,7 +60,9 @@ const deleteCurrentActivity = () => {
         class="status-badge"
         :class="activity.validationStatus.toLowerCase()"
       >
-        {{ statusLabels[activity.validationStatus] || activity.validationStatus }}
+        {{
+          statusLabels[activity.validationStatus] || activity.validationStatus
+        }}
       </span>
     </div>
 
@@ -104,19 +106,15 @@ const deleteCurrentActivity = () => {
         <span>Attestation</span>
         <strong>
           <span class="material-icons-round small-icon">
-            {{ activity.certificateName ? 'task' : 'description' }}
+            {{ activity.certificateName ? "task" : "description" }}
           </span>
-          {{ activity.certificateName || 'Non ajoutée' }}
+          {{ activity.certificateName || "Non ajoutée" }}
         </strong>
       </div>
     </div>
 
     <div class="actions">
-      <button
-        v-if="activity.certificateName"
-        type="button"
-        class="action-btn"
-      >
+      <button v-if="activity.certificateName" type="button" class="action-btn">
         <span class="material-icons-round">visibility</span>
         Attestation
       </button>

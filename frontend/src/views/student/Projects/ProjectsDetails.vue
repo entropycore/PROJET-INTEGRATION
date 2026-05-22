@@ -6,7 +6,6 @@ import {
   getStudentProjectById,
   deleteStudentProject,
 } from "@/services/studentProjectsApis";
-import { mockProjects } from "@/mockData/projects";
 
 import "@/assets/styles/student-project-details.css";
 
@@ -70,10 +69,6 @@ const fetchProject = async () => {
     project.value = response.data.data;
   } catch (error) {
     console.warn("API project detail indisponible.");
-
-    project.value = mockProjects.find(
-      (item) => String(item.id) === String(route.params.id),
-    );
   } finally {
     isLoading.value = false;
   }
