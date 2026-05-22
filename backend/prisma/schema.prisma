@@ -45,6 +45,7 @@ enum Visibility {
 }
 
 enum ValidationStatus {
+  DRAFT
   PENDING
   APPROVED
   REJECTED
@@ -198,6 +199,7 @@ model Professor {
   specialty       String?   @db.VarChar(150)
   department      String?   @db.VarChar(150)
   projectValidations ProjectValidation[]
+  projectsToValidate Project[] @relation("ProjectAssignedValidator")
   supervisedInternships Internship[]        @relation("InternshipSupervisor")
   internshipValidations InternshipValidation[]
 
@@ -316,6 +318,9 @@ model Project {
   description       String               @db.Text
   type              ProjectType
   teamRole          String?              @map("team_role") @db.VarChar(120)
+  teamSize          String?              @map("team_size") @db.VarChar(80)
+  validatorProfessorId String?           @map("validator_professor_id")
+  validatorProfessor Professor?          @relation("ProjectAssignedValidator", fields: [validatorProfessorId], references: [id], onDelete: SetNull)
   githubUrl         String?              @map("github_url") @db.Text
   youtubeUrl        String?              @map("youtube_url") @db.Text
   result            String?              @db.Text
@@ -331,6 +336,7 @@ model Project {
   @@index([studentId])
   @@index([validationStatus])
   @@index([studentId, validationStatus])
+  @@index([validatorProfessorId])
   @@map("projects")
 }
 
@@ -341,6 +347,10 @@ model ProjectMedia {
   mediaType   String    @map("media_type") @db.VarChar(50)
   mediaUrl    String    @map("media_url") @db.Text
   description String?   @db.Text
+  fileName    String?   @map("file_name") @db.VarChar(255)
+  mimeType    String?   @map("mime_type") @db.VarChar(120)
+  fileSize    Int?      @map("file_size")
+  storagePath String?   @map("storage_path") @db.Text
 
   @@index([projectId])
   @@map("project_media")
