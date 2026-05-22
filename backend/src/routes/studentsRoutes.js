@@ -3,17 +3,18 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
-const studentController = require('../controllers/studentController');
+const profileController = require('../controllers/student/profileController');
+const skillController = require('../controllers/student/skillController');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 router.use(checkRoles('STUDENT'));
 
-router.get('/me', studentController.getProfileCompat);
-router.put('/me', studentController.updateProfileCompat);
-router.get('/me/skills', studentController.getSkills);
-router.post('/me/skills', studentController.addSkill);
-router.delete('/me/skills/:studentSkillId', studentController.deleteSkill);
+router.get('/me', profileController.getProfileCompat);
+router.put('/me', profileController.updateProfileCompat);
+router.get('/me/skills', skillController.getSkills);
+router.post('/me/skills', skillController.addSkill);
+router.delete('/me/skills/:studentSkillId', skillController.deleteSkill);
 
 module.exports = router;
