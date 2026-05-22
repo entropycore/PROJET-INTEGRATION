@@ -17,7 +17,10 @@
     "test:coverage": "jest --coverage --forceExit --runInBand",
     "test:integration": "jest tests/integration --runInBand",
     "test:sec": "jest tests/integration/middlewares tests/unit/middlewares --runInBand",
-    "security:scan": "bash scripts/zap-scan.sh"
+    "security:scan": "bash ../scripts/zap-scan.sh",
+
+    "lint": "eslint . --quiet",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
@@ -35,6 +38,7 @@
     "express-validator": "^7.3.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
     "winston": "^3.19.0"
   },
