@@ -46,6 +46,7 @@ enum Visibility {
 }
 
 enum ValidationStatus {
+  DRAFT
   PENDING
   APPROVED
   REJECTED
