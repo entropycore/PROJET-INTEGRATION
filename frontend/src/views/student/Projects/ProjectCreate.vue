@@ -1,203 +1,192 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { RouterLink, useRouter } from 'vue-router'
+import { computed, ref } from "vue";
+import { RouterLink, useRouter } from "vue-router";
 
-import '@/assets/styles/student-project-edit.css'
+import "@/assets/styles/student-project-edit.css";
 
-const router = useRouter()
+const router = useRouter();
 
-const newTechnology = ref('')
-const newLinkLabel = ref('')
-const newLinkUrl = ref('')
+const newTechnology = ref("");
+const newLinkLabel = ref("");
+const newLinkUrl = ref("");
 
 const validators = [
-  'Pr. Moussaoui',
-  'Pr. Benali',
-  'Mme Ghizlan',
-  'Pr. Haddad',
-  'Pr. El Amrani',
-]
+  "Pr. Moussaoui",
+  "Pr. Benali",
+  "Mme Ghizlan",
+  "Pr. Haddad",
+  "Pr. El Amrani",
+];
 
 const projectTypes = [
-  'Module',
-  'Intégration',
-  'Hackathon',
-  'Personnel',
-  'Stage',
-]
+  "Module",
+  "Intégration",
+  "Hackathon",
+  "Personnel",
+  "Stage",
+];
 
 const projectForm = ref({
-  title: '',
-  type: 'Module',
-  description: '',
-  role: '',
-  teamSize: '',
-  validationStatus: 'DRAFT',
+  title: "",
+  type: "Module",
+  description: "",
+  role: "",
+  teamSize: "",
+  validationStatus: "DRAFT",
 
   technologies: [],
 
-  githubUrl: '',
-  demoUrl: '',
-  documentationUrl: '',
-  portfolioUrl: '',
+  githubUrl: "",
+  demoUrl: "",
+  documentationUrl: "",
+  portfolioUrl: "",
 
   extraLinks: [],
 
   screenshots: [],
   attachments: [],
 
-  validatorName: '',
-})
+  validatorName: "",
+});
 
 const canSubmit = computed(() => {
   return (
     projectForm.value.title.trim() &&
     projectForm.value.description.trim() &&
     projectForm.value.validatorName
-  )
-})
+  );
+});
 
 const projectLinks = computed(() => {
   return [
     {
-      key: 'githubUrl',
-      label: 'GitHub Repository',
+      key: "githubUrl",
+      label: "GitHub Repository",
     },
     {
-      key: 'demoUrl',
-      label: 'Démo du projet',
+      key: "demoUrl",
+      label: "Démo du projet",
     },
     {
-      key: 'documentationUrl',
-      label: 'Documentation',
+      key: "documentationUrl",
+      label: "Documentation",
     },
     {
-      key: 'portfolioUrl',
-      label: 'Portfolio',
+      key: "portfolioUrl",
+      label: "Portfolio",
     },
-  ]
-})
+  ];
+});
 
 const addTechnology = () => {
-  const value = newTechnology.value.trim()
+  const value = newTechnology.value.trim();
 
-  if (!value) return
+  if (!value) return;
 
   if (!projectForm.value.technologies.includes(value)) {
-    projectForm.value.technologies.push(value)
+    projectForm.value.technologies.push(value);
   }
 
-  newTechnology.value = ''
-}
+  newTechnology.value = "";
+};
 
 const removeTechnology = (tech) => {
-  projectForm.value.technologies =
-    projectForm.value.technologies.filter(
-      (item) => item !== tech,
-    )
-}
+  projectForm.value.technologies = projectForm.value.technologies.filter(
+    (item) => item !== tech,
+  );
+};
 
 const addCustomLink = () => {
-  const label = newLinkLabel.value.trim()
-  const url = newLinkUrl.value.trim()
+  const label = newLinkLabel.value.trim();
+  const url = newLinkUrl.value.trim();
 
-  if (!label || !url) return
+  if (!label || !url) return;
 
   projectForm.value.extraLinks.push({
     id: Date.now(),
     label,
     url,
-  })
+  });
 
-  newLinkLabel.value = ''
-  newLinkUrl.value = ''
-}
+  newLinkLabel.value = "";
+  newLinkUrl.value = "";
+};
 
 const removeCustomLink = (id) => {
-  projectForm.value.extraLinks =
-    projectForm.value.extraLinks.filter(
-      (link) => link.id !== id,
-    )
-}
+  projectForm.value.extraLinks = projectForm.value.extraLinks.filter(
+    (link) => link.id !== id,
+  );
+};
 
 const handleScreenshotsUpload = (event) => {
-  const files = Array.from(event.target.files || [])
+  const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
     projectForm.value.screenshots.push({
       id: Date.now() + Math.random(),
       title: file.name,
       imageUrl: URL.createObjectURL(file),
-    })
-  })
+    });
+  });
 
-  event.target.value = ''
-}
+  event.target.value = "";
+};
 
 const handleAttachmentsUpload = (event) => {
-  const files = Array.from(event.target.files || [])
+  const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
     projectForm.value.attachments.push({
       id: Date.now() + Math.random(),
       name: file.name,
-      type: file.type || 'FICHIER',
-      url: '#',
-    })
-  })
+      type: file.type || "FICHIER",
+      url: "#",
+    });
+  });
 
-  event.target.value = ''
-}
+  event.target.value = "";
+};
 
 const removeScreenshot = (id) => {
-  projectForm.value.screenshots =
-    projectForm.value.screenshots.filter(
-      (screenshot) => screenshot.id !== id,
-    )
-}
+  projectForm.value.screenshots = projectForm.value.screenshots.filter(
+    (screenshot) => screenshot.id !== id,
+  );
+};
 
 const removeAttachment = (id) => {
-  projectForm.value.attachments =
-    projectForm.value.attachments.filter(
-      (attachment) => attachment.id !== id,
-    )
-}
+  projectForm.value.attachments = projectForm.value.attachments.filter(
+    (attachment) => attachment.id !== id,
+  );
+};
 
 const createDraftProject = () => {
-  console.log('Projet brouillon créé :', projectForm.value)
+  console.log("Projet brouillon créé :", projectForm.value);
 
-  router.push('/student/projects')
-}
+  router.push("/student/projects");
+};
 
 const createAndSubmitProject = () => {
-  if (!canSubmit.value) return
+  if (!canSubmit.value) return;
 
-  console.log('Projet créé et soumis :', projectForm.value)
+  console.log("Projet créé et soumis :", projectForm.value);
 
-  router.push('/student/projects')
-}
+  router.push("/student/projects");
+};
 </script>
 
 <template>
   <section class="project-edit-page">
     <div class="edit-header">
       <div>
-        <RouterLink
-          to="/student/projects"
-          class="back-link"
-        >
-          <span class="material-icons-round">
-            arrow_back
-          </span>
+        <RouterLink to="/student/projects" class="back-link">
+          <span class="material-icons-round"> arrow_back </span>
 
           Retour aux projets
         </RouterLink>
 
-          <h1>Nouveau projet</h1>
+        <h1>Nouveau projet</h1>
 
-        <p>
-          Ajoutez un nouveau projet à votre portfolio académique.
-        </p>
+        <p>Ajoutez un nouveau projet à votre portfolio académique.</p>
       </div>
 
       <div class="edit-header-actions">
@@ -240,11 +229,7 @@ const createAndSubmitProject = () => {
               <span>Type</span>
 
               <select v-model="projectForm.type">
-                <option
-                  v-for="type in projectTypes"
-                  :key="type"
-                  :value="type"
-                >
+                <option v-for="type in projectTypes" :key="type" :value="type">
                   {{ type }}
                 </option>
               </select>
@@ -254,9 +239,7 @@ const createAndSubmitProject = () => {
               <span>Validateur</span>
 
               <select v-model="projectForm.validatorName">
-                <option value="">
-                  Choisir un validateur
-                </option>
+                <option value="">Choisir un validateur</option>
 
                 <option
                   v-for="validator in validators"
@@ -301,7 +284,7 @@ const createAndSubmitProject = () => {
         </section>
 
         <section class="edit-card">
-            <h2>Technologies utilisées</h2>
+          <h2>Technologies utilisées</h2>
 
           <div class="project-tech-list">
             <span
@@ -311,12 +294,7 @@ const createAndSubmitProject = () => {
             >
               {{ tech }}
 
-              <button
-                type="button"
-                @click="removeTechnology(tech)"
-              >
-                ×
-              </button>
+              <button type="button" @click="removeTechnology(tech)">×</button>
             </span>
           </div>
 
@@ -364,11 +342,7 @@ const createAndSubmitProject = () => {
               placeholder="Nom du lien"
             />
 
-            <input
-              v-model="newLinkUrl"
-              type="url"
-              placeholder="https://..."
-            />
+            <input v-model="newLinkUrl" type="url" placeholder="https://..." />
 
             <button
               type="button"
@@ -379,10 +353,7 @@ const createAndSubmitProject = () => {
             </button>
           </div>
 
-          <div
-            v-if="projectForm.extraLinks.length"
-            class="extra-links-list"
-          >
+          <div v-if="projectForm.extraLinks.length" class="extra-links-list">
             <div
               v-for="link in projectForm.extraLinks"
               :key="link.id"
@@ -390,10 +361,7 @@ const createAndSubmitProject = () => {
             >
               <span>{{ link.label }}</span>
 
-              <button
-                type="button"
-                @click="removeCustomLink(link.id)"
-              >
+              <button type="button" @click="removeCustomLink(link.id)">
                 Supprimer
               </button>
             </div>
@@ -406,17 +374,11 @@ const createAndSubmitProject = () => {
           <h2>Captures d’écran</h2>
 
           <label class="file-upload-box">
-            <span class="material-icons-round">
-              add_photo_alternate
-            </span>
+            <span class="material-icons-round"> add_photo_alternate </span>
 
-            <strong>
-              Ajouter des captures
-            </strong>
+            <strong> Ajouter des captures </strong>
 
-            <small>
-              PNG, JPG ou WEBP
-            </small>
+            <small> PNG, JPG ou WEBP </small>
 
             <input
               type="file"
@@ -426,10 +388,7 @@ const createAndSubmitProject = () => {
             />
           </label>
 
-          <div
-            v-if="projectForm.screenshots.length"
-            class="uploaded-list"
-          >
+          <div v-if="projectForm.screenshots.length" class="uploaded-list">
             <div
               v-for="screenshot in projectForm.screenshots"
               :key="screenshot.id"
@@ -437,10 +396,7 @@ const createAndSubmitProject = () => {
             >
               <span>{{ screenshot.title }}</span>
 
-              <button
-                type="button"
-                @click="removeScreenshot(screenshot.id)"
-              >
+              <button type="button" @click="removeScreenshot(screenshot.id)">
                 Supprimer
               </button>
             </div>
@@ -451,29 +407,16 @@ const createAndSubmitProject = () => {
           <h2>Pièces jointes</h2>
 
           <label class="file-upload-box">
-            <span class="material-icons-round">
-              attach_file
-            </span>
+            <span class="material-icons-round"> attach_file </span>
 
-            <strong>
-              Ajouter des fichiers
-            </strong>
+            <strong> Ajouter des fichiers </strong>
 
-            <small>
-              PDF, image ou document
-            </small>
+            <small> PDF, image ou document </small>
 
-            <input
-              type="file"
-              multiple
-              @change="handleAttachmentsUpload"
-            />
+            <input type="file" multiple @change="handleAttachmentsUpload" />
           </label>
 
-          <div
-            v-if="projectForm.attachments.length"
-            class="uploaded-list"
-          >
+          <div v-if="projectForm.attachments.length" class="uploaded-list">
             <div
               v-for="attachment in projectForm.attachments"
               :key="attachment.id"
@@ -481,21 +424,16 @@ const createAndSubmitProject = () => {
             >
               <span>{{ attachment.name }}</span>
 
-              <button
-                type="button"
-                @click="removeAttachment(attachment.id)"
-              >
+              <button type="button" @click="removeAttachment(attachment.id)">
                 Supprimer
               </button>
             </div>
           </div>
         </section>
 
-        <section
-          v-if="!canSubmit"
-          class="edit-warning-card"
-        >
-          Complétez le titre, la description et choisissez un validateur avant de soumettre le projet.
+        <section v-if="!canSubmit" class="edit-warning-card">
+          Complétez le titre, la description et choisissez un validateur avant
+          de soumettre le projet.
         </section>
       </aside>
     </div>
