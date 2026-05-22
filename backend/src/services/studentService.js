@@ -130,7 +130,7 @@ exports.getStudentDashboard = async (userId) => {
     summaryCards: {
       projects: { value: stats.totalProjects, label: 'Projets' },
       internships: { value: stats.totalInternships, label: 'Stages' },
-      activities: { value: stats.totalActivities, label: 'Activites' },
+      activities: { value: stats.totalActivities, label: 'Activités' },
       certificates: { value: stats.totalCertificates, label: 'Certificats' },
       recommendationLetters: {
         value: stats.totalRecommendationLetters,
