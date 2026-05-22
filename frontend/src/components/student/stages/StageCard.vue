@@ -39,11 +39,16 @@ const canEditStage = computed(() => {
 });
 
 const canSubmitValidation = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+  return (
+    ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value) &&
+    isStageCompleteForSubmission.value
+  );
 };
 
 const canDeleteStage = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(stageStatus.value);
+  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
+    stageStatus.value,
+  );
 };
 
 const submitButtonLabel = () => {
@@ -52,7 +57,20 @@ const submitButtonLabel = () => {
     : "Soumettre";
 };
 
+const isStageCompleteForSubmission = computed(() => {
+  return Boolean(
+    props.stage.title?.trim() &&
+      props.stage.company?.trim() &&
+      props.stage.startDate &&
+      props.stage.endDate &&
+      props.stage.duration?.trim() &&
+      props.stage.supervisor?.fullName?.trim() &&
+      props.stage.reportUrl,
+  );
+});
+
 const submitValidation = () => {
+  if (!canSubmitValidation()) return;
   emit("submit-validation", props.stage.id);
 };
 
@@ -147,8 +165,9 @@ const deleteCurrentStage = () => {
         <span class="material-icons-round">delete</span>
       </button>
       <button
-        v-if="canSubmitValidation()"
+        v-if="['DRAFT', 'CORRECTION_REQUIRED'].includes(stageStatus)"
         class="submit-btn"
+        :disabled="!canSubmitValidation()"
         @click="submitValidation"
       >
         <span class="material-icons-round">send</span>
