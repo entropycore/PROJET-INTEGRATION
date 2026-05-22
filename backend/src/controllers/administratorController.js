@@ -2,247 +2,29 @@
 
 const administratorService = require('../services/administratorService');
 const { success, error } = require('../utils/apiResponse');
-
-const VALID_ACCOUNT_STATUSES = new Set(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING']);
-const VALID_USER_ROLES = new Set(['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL']);
-const VALID_VALIDATION_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED']);
-const VALID_VALIDATION_TYPES = new Set([
-  'PROJECT',
-  'INTERNSHIP',
-  'CERTIFICATE_VALIDATION',
-  'RECOMMENDATION_LETTER_VALIDATION',
-  'COMMENT_VALIDATION',
-  'RECOMMENDATION_VALIDATION',
-]);
-const VALID_LEGACY_VALIDATION_TYPES = new Set(['PROJECT', 'INTERNSHIP', 'CERTIFICATE', 'ACTIVITY']);
-const VALID_NOTIFICATION_TYPES = new Set([
-  'ACCESS_REQUEST',
-  'CERTIFICATE_VALIDATION',
-  'RECOMMENDATION_LETTER_VALIDATION',
-  'COMMENT_VALIDATION',
-  'RECOMMENDATION_VALIDATION',
-  'REPORT',
-  'SYSTEM',
-  'INFO',
-  'VALIDATION',
-  'ALERT',
-]);
-const VALID_REPORT_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED']);
-const VALID_REPORT_TARGET_TYPES = new Set([
-  'PORTFOLIO',
-  'COMMENT',
-  'RECOMMENDATION',
-  'PROJECT',
-  'INTERNSHIP',
-  'USER',
-  'OTHER',
-]);
-
-const parseBooleanFilter = (value) => {
-  if (typeof value === 'undefined') return undefined;
-  if (value === 'true') return true;
-  if (value === 'false') return false;
-  return null;
-};
-
-const parsePositiveInt = (value, fallback) => {
-  const parsed = Number.parseInt(value, 10);
-  return Number.isNaN(parsed) || parsed < 1 ? fallback : parsed;
-};
-
-const normalizeRole = (value) => (typeof value === 'string' ? value.toUpperCase() : value);
-const normalizeStatus = (value) => (typeof value === 'string' ? value.toUpperCase() : value);
-const normalizeItemType = (value) =>
-  typeof value === 'string' ? value.trim().toUpperCase().replace(/-/g, '_') : value;
-
-const handleAdminError = (res, err) => {
-  if (err.message === 'REQUEST_NOT_FOUND') {
-    return error(res, 404, 'Demande professionnelle introuvable.');
-  }
-
-  if (err.message === 'USER_NOT_FOUND') {
-    return error(res, 404, 'Utilisateur introuvable.');
-  }
-
-  if (err.message === 'ADMIN_PROFILE_NOT_FOUND') {
-    return error(res, 404, 'Profil administrateur introuvable.');
-  }
-
-  if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
-    return error(res, 404, 'Element du dashboard introuvable.');
-  }
-
-  if (err.message === 'VALIDATION_ITEM_NOT_FOUND') {
-    return error(res, 404, 'Element de validation introuvable.');
-  }
-
-  if (err.message === 'REPORT_NOT_FOUND') {
-    return error(res, 404, 'Signalement introuvable.');
-  }
-
-  if (err.message === 'REPORT_TARGET_NOT_FOUND') {
-    return error(res, 404, 'Cible du signalement introuvable.');
-  }
-
-  if (err.message === 'NOTIFICATION_NOT_FOUND') {
-    return error(res, 404, 'Notification introuvable.');
-  }
-
-  if (err.message === 'BADGE_NOT_FOUND') {
-    return error(res, 404, 'Badge introuvable.');
-  }
-
-  if (err.message === 'INVALID_NOTIFICATION_TYPE') {
-    return error(res, 400, 'Le type de notification est invalide.');
-  }
-
-  if (err.message === 'BADGE_REQUIRED_FIELDS') {
-    return error(res, 400, 'Les champs name et rule sont obligatoires pour un badge.');
-  }
-
-  if (err.message === 'UNSUPPORTED_DASHBOARD_ITEM_TYPE') {
-    return error(res, 400, "Le type d'element du dashboard n'est pas supporte.");
-  }
-
-  if (err.message === 'UNSUPPORTED_VALIDATION_TYPE') {
-    return error(res, 400, "Le type de validation n'est pas supporte.");
-  }
-
-  if (err.message === 'UNSUPPORTED_LEGACY_VALIDATION_TYPE') {
-    return error(res, 400, "Le type de validation legacy n'est pas supporte.");
-  }
-
-  if (err.message === 'UNSUPPORTED_REPORT_TARGET_TYPE') {
-    return error(res, 400, "Le type de cible du signalement n'est pas supporte.");
-  }
-
-  if (err.message === 'INVALID_REPORT_STATUS') {
-    return error(res, 400, 'Le status du signalement est invalide.');
-  }
-
-  if (err.message === 'UNSUPPORTED_DASHBOARD_ACTION_TYPE') {
-    return error(res, 400, "L'action demandee n'est pas supportee pour ce type d'element.");
-  }
-
-  if (err.message === 'DASHBOARD_ITEM_INVALID_STATE') {
-    return error(res, 409, "Cet element du dashboard ne peut pas etre traite dans son etat actuel.");
-  }
-
-  if (err.message === 'VALIDATION_ITEM_INVALID_STATE') {
-    return error(res, 409, 'Cette validation ne peut pas etre traitee dans son etat actuel.');
-  }
-
-  if (err.message === 'REPORT_INVALID_STATE') {
-    return error(res, 409, 'Ce signalement ne peut pas etre traite dans son etat actuel.');
-  }
-
-  if (err.message === 'EMAIL_NOT_VERIFIED') {
-    return error(res, 409, "L'email du professionnel doit etre verifie avant approbation.");
-  }
-
-  if (err.message === 'REQUEST_ALREADY_APPROVED') {
-    return error(res, 409, 'Cette demande a deja ete approuvee.');
-  }
-
-  if (err.message === 'INVALID_REQUEST_STATE') {
-    return error(res, 409, 'Cette demande ne peut pas etre traitee dans son etat actuel.');
-  }
-
-  if (err.message === 'INVALID_ROLE') {
-    return error(res, 400, 'Le role fourni est invalide.');
-  }
-
-  if (err.message === 'INVALID_STATUS') {
-    return error(res, 400, 'Le status fourni est invalide.');
-  }
-
-  if (err.message === 'MISSING_REQUIRED_FIELDS') {
-    return error(res, 400, 'Les champs obligatoires sont manquants.');
-  }
-
-  if (err.message === 'MISSING_STUDENT_FIELDS') {
-    return error(res, 400, 'Les champs major et level sont obligatoires pour un etudiant.');
-  }
-
-  if (err.message === 'EMAIL_ALREADY_EXISTS') {
-    return error(res, 409, 'Cet email est deja utilise.');
-  }
-
-  if (err.message === 'USER_EMAIL_SEND_FAILED') {
-    return error(
-      res,
-      500,
-      "Le compte n'a pas ete conserve car l'envoi des identifiants par email a echoue."
-    );
-  }
-
-  if (err.message === 'USER_RESET_EMAIL_SEND_FAILED') {
-    return error(
-      res,
-      500,
-      "Le mot de passe n'a pas ete modifie car l'envoi du nouvel identifiant par email a echoue."
-    );
-  }
-  
-  if (err.message === 'BADGE_NAME_ALREADY_EXISTS') {
-    return error(res, 409, 'Un badge avec ce nom existe deja.');
-  }
-
-  if (err.message === 'ROLE_CHANGE_REQUIRES_DEDICATED_ENDPOINT') {
-    return error(res, 400, 'Utilisez la route dediee pour changer le role.');
-  }
-
-  if (err.message === 'ROLE_CHANGE_BLOCKED_BY_RELATED_DATA') {
-    return error(
-      res,
-      409,
-      'Le changement de role est bloque car ce compte possede deja des donnees metier liees.'
-    );
-  }
-
-  if (err.message === 'USE_PROFESSIONAL_APPROVAL_FLOW') {
-    return error(res, 409, 'Utilisez le workflow de validation professionnelle pour activer ce compte.');
-  }
-
-  if (err.message === 'CANNOT_DELETE_SELF') {
-    return error(res, 409, 'Vous ne pouvez pas supprimer votre propre compte administrateur.');
-  }
-
-  if (err.message === 'CANNOT_CHANGE_OWN_ROLE') {
-    return error(res, 409, 'Vous ne pouvez pas modifier le role de votre propre compte administrateur.');
-  }
-
-  if (err.message === 'USER_DELETE_BLOCKED_BY_RELATED_DATA') {
-    return error(
-      res,
-      409,
-      'La suppression est impossible car ce compte est encore lie a des donnees metier.'
-    );
-  }
-
-  if (err.message === 'BADGE_FEATURE_UNAVAILABLE') {
-    return error(res, 503, 'Le module badges n est pas disponible sur cette instance.');
-  }
-
-  if (err.code === 'P2002') {
-    return error(res, 409, 'Une valeur unique existe deja en base.');
-  }
-
-  if (err.code === 'P2003') {
-    return error(
-      res,
-      409,
-      'La suppression est impossible car ce compte est encore lie a des donnees metier.'
-    );
-  }
-
-  return null;
-};
+const {
+  VALID_ACCOUNT_STATUSES,
+  VALID_LEGACY_VALIDATION_TYPES,
+  VALID_NOTIFICATION_TYPES,
+  VALID_REPORT_STATUSES,
+  VALID_REPORT_TARGET_TYPES,
+  VALID_USER_ROLES,
+  VALID_VALIDATION_STATUSES,
+  VALID_VALIDATION_TYPES,
+  getReportStatusFilter,
+  handleAdminError,
+  normalizeItemType,
+  normalizeRole,
+  normalizeStatus,
+  parseBooleanFilter,
+  parsePositiveInt,
+  readBodyText,
+} = require('./administratorHelpers');
 
 exports.getDashboard = async (req, res, next) => {
   try {
     const dashboard = await administratorService.getDashboardData();
-    return success(res, 200, 'Tableau de bord administrateur charge.', dashboard);
+    return success(res, 200, 'Tableau de bord administrateur chargé.', dashboard);
   } catch (err) {
     next(err);
   }
@@ -250,12 +32,9 @@ exports.getDashboard = async (req, res, next) => {
 
 exports.getDashboardItemDetail = async (req, res, next) => {
   try {
-    const item = await administratorService.getDashboardItemDetail(
-      req.params.itemType,
-      req.params.itemId
-    );
+    const item = await administratorService.getDashboardItemDetail(req.params.itemType, req.params.itemId);
 
-    return success(res, 200, 'Element du dashboard recupere.', item);
+    return success(res, 200, 'Élément du dashboard récupéré.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -283,7 +62,7 @@ exports.listValidationItems = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Validations recuperees.', data);
+    return success(res, 200, 'Validations récupérées.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -311,7 +90,7 @@ exports.listPendingValidationsLegacy = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Validations en attente recuperees.', data);
+    return success(res, 200, 'Validations en attente récupérées.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -321,7 +100,7 @@ exports.listPendingValidationsLegacy = async (req, res, next) => {
 exports.getPendingValidationCountsLegacy = async (req, res, next) => {
   try {
     const data = await administratorService.getPendingValidationCountsLegacy();
-    return success(res, 200, 'Compteurs des validations en attente recuperes.', data);
+    return success(res, 200, 'Compteurs des validations en attente récupérés.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -330,12 +109,9 @@ exports.getPendingValidationCountsLegacy = async (req, res, next) => {
 
 exports.getValidationItemDetail = async (req, res, next) => {
   try {
-    const item = await administratorService.getValidationItemDetail(
-      req.params.itemType,
-      req.params.itemId
-    );
+    const item = await administratorService.getValidationItemDetail(req.params.itemType, req.params.itemId);
 
-    return success(res, 200, 'Element de validation recupere.', item);
+    return success(res, 200, 'Élément de validation récupéré.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -345,7 +121,7 @@ exports.getValidationItemDetail = async (req, res, next) => {
 exports.getLegacyValidationDetail = async (req, res, next) => {
   try {
     const item = await administratorService.getLegacyValidationDetail(req.params.validationId);
-    return success(res, 200, 'Validation recuperee.', item);
+    return success(res, 200, 'Validation récupérée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -359,10 +135,10 @@ exports.approveValidationItem = async (req, res, next) => {
       req.params.itemId,
       req.user.userId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
 
-    return success(res, 200, 'Validation approuvee.', item);
+    return success(res, 200, 'Validation approuvée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -375,10 +151,10 @@ exports.approveLegacyValidationItem = async (req, res, next) => {
       req.params.validationId,
       req.user.userId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
 
-    return success(res, 200, 'Validation approuvee.', item);
+    return success(res, 200, 'Validation approuvée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -392,10 +168,10 @@ exports.rejectValidationItem = async (req, res, next) => {
       req.params.itemId,
       req.user.userId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
 
-    return success(res, 200, 'Validation rejetee.', item);
+    return success(res, 200, 'Validation rejetée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -408,10 +184,10 @@ exports.rejectLegacyValidationItem = async (req, res, next) => {
       req.params.validationId,
       req.user.userId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
 
-    return success(res, 200, 'Validation rejetee.', item);
+    return success(res, 200, 'Validation rejetée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -424,10 +200,10 @@ exports.requestLegacyValidationChanges = async (req, res, next) => {
       req.params.validationId,
       req.user.userId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
 
-    return success(res, 200, 'Demande de correction envoyee.', item);
+    return success(res, 200, 'Demande de correction envoyée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -437,9 +213,7 @@ exports.requestLegacyValidationChanges = async (req, res, next) => {
 exports.listNotifications = async (req, res, next) => {
   try {
     const type = normalizeItemType(req.query.type);
-    const isRead = parseBooleanFilter(
-      typeof req.query.isRead !== 'undefined' ? req.query.isRead : req.query.read
-    );
+    const isRead = parseBooleanFilter(typeof req.query.isRead !== 'undefined' ? req.query.isRead : req.query.read);
 
     if (type && !VALID_NOTIFICATION_TYPES.has(type)) {
       return error(res, 400, 'Le filtre type est invalide.');
@@ -458,7 +232,7 @@ exports.listNotifications = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Notifications recuperees.', data);
+    return success(res, 200, 'Notifications récupérées.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -468,7 +242,7 @@ exports.listNotifications = async (req, res, next) => {
 exports.getUnreadNotificationsCount = async (req, res, next) => {
   try {
     const count = await administratorService.getUnreadNotificationsCount(req.user.roleId);
-    return success(res, 200, 'Compteur des notifications non lues recupere.', { count });
+    return success(res, 200, 'Compteur des notifications non lues récupéré.', { count });
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -477,12 +251,9 @@ exports.getUnreadNotificationsCount = async (req, res, next) => {
 
 exports.markNotificationAsRead = async (req, res, next) => {
   try {
-    const notification = await administratorService.markNotificationAsRead(
-      req.params.notificationId,
-      req.user.roleId
-    );
+    const notification = await administratorService.markNotificationAsRead(req.params.notificationId, req.user.roleId);
 
-    return success(res, 200, 'Notification marquee comme lue.', notification);
+    return success(res, 200, 'Notification marquée comme lue.', notification);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -491,12 +262,9 @@ exports.markNotificationAsRead = async (req, res, next) => {
 
 exports.deleteNotification = async (req, res, next) => {
   try {
-    const result = await administratorService.deleteNotification(
-      req.params.notificationId,
-      req.user.roleId
-    );
+    const result = await administratorService.deleteNotification(req.params.notificationId, req.user.roleId);
 
-    return success(res, 200, 'Notification supprimee.', result);
+    return success(res, 200, 'Notification supprimée.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -507,7 +275,7 @@ exports.markAllNotificationsAsRead = async (req, res, next) => {
   try {
     const result = await administratorService.markAllNotificationsAsRead(req.user.roleId);
 
-    return success(res, 200, 'Toutes les notifications ont ete marquees comme lues.', result);
+    return success(res, 200, 'Toutes les notifications ont été marquées comme lues.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -516,14 +284,7 @@ exports.markAllNotificationsAsRead = async (req, res, next) => {
 
 exports.listReports = async (req, res, next) => {
   try {
-    const requestedStatus = normalizeStatus(req.query.status);
-    const status = !requestedStatus
-      ? 'PENDING'
-      : requestedStatus === 'ALL'
-        ? null
-        : requestedStatus === 'RESOLVED'
-          ? 'APPROVED'
-          : requestedStatus;
+    const status = getReportStatusFilter(req.query.status);
     const targetType = normalizeItemType(req.query.targetType || req.query.type);
 
     if (status && !VALID_REPORT_STATUSES.has(status)) {
@@ -542,7 +303,7 @@ exports.listReports = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Signalements recuperes.', data);
+    return success(res, 200, 'Signalements récupérés.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -552,7 +313,7 @@ exports.listReports = async (req, res, next) => {
 exports.getPendingReportsCountLegacy = async (req, res, next) => {
   try {
     const count = await administratorService.getPendingReportsCount();
-    return success(res, 200, 'Compteur des signalements en attente recupere.', { count });
+    return success(res, 200, 'Compteur des signalements en attente récupéré.', { count });
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -562,7 +323,7 @@ exports.getPendingReportsCountLegacy = async (req, res, next) => {
 exports.getReportById = async (req, res, next) => {
   try {
     const report = await administratorService.getReportById(req.params.reportId);
-    return success(res, 200, 'Signalement recupere.', report);
+    return success(res, 200, 'Signalement récupéré.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -574,14 +335,10 @@ exports.approveReport = async (req, res, next) => {
     const report = await administratorService.approveReport(
       req.params.reportId,
       req.user.roleId,
-      typeof req.body?.resolutionNote === 'string'
-        ? req.body.resolutionNote.trim() || null
-        : typeof req.body?.comment === 'string'
-          ? req.body.comment.trim() || null
-          : null
+      readBodyText(req.body, ['resolutionNote', 'comment']),
     );
 
-    return success(res, 200, 'Signalement approuve.', report);
+    return success(res, 200, 'Signalement approuvé.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -593,14 +350,10 @@ exports.resolveLegacyReport = async (req, res, next) => {
     const report = await administratorService.resolveReportLegacy(
       req.params.reportId,
       req.user.roleId,
-      typeof req.body?.resolutionNote === 'string'
-        ? req.body.resolutionNote.trim() || null
-        : typeof req.body?.comment === 'string'
-          ? req.body.comment.trim() || null
-          : null
+      readBodyText(req.body, ['resolutionNote', 'comment']),
     );
 
-    return success(res, 200, 'Signalement traite.', report);
+    return success(res, 200, 'Signalement traité.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -612,16 +365,10 @@ exports.rejectReport = async (req, res, next) => {
     const report = await administratorService.rejectReport(
       req.params.reportId,
       req.user.roleId,
-      typeof req.body?.resolutionNote === 'string'
-        ? req.body.resolutionNote.trim() || null
-        : typeof req.body?.reason === 'string'
-          ? req.body.reason.trim() || null
-          : typeof req.body?.comment === 'string'
-            ? req.body.comment.trim() || null
-            : null
+      readBodyText(req.body, ['resolutionNote', 'reason', 'comment']),
     );
 
-    return success(res, 200, 'Signalement rejete.', report);
+    return success(res, 200, 'Signalement rejeté.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -633,14 +380,10 @@ exports.deleteLegacyReportedTarget = async (req, res, next) => {
     const report = await administratorService.deleteReportedTarget(
       req.params.reportId,
       req.user.roleId,
-      typeof req.body?.resolutionNote === 'string'
-        ? req.body.resolutionNote.trim() || null
-        : typeof req.body?.comment === 'string'
-          ? req.body.comment.trim() || null
-          : null
+      readBodyText(req.body, ['resolutionNote', 'comment']),
     );
 
-    return success(res, 200, 'Contenu signale supprime.', report);
+    return success(res, 200, 'Contenu signalé supprimé.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -653,10 +396,10 @@ exports.approveDashboardItem = async (req, res, next) => {
       req.params.itemType,
       req.params.itemId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
 
-    return success(res, 200, 'Element du dashboard approuve.', item);
+    return success(res, 200, 'Élément du dashboard approuvé.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -669,10 +412,10 @@ exports.rejectDashboardItem = async (req, res, next) => {
       req.params.itemType,
       req.params.itemId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
 
-    return success(res, 200, 'Element du dashboard rejete.', item);
+    return success(res, 200, 'Élément du dashboard rejeté.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -682,7 +425,7 @@ exports.rejectDashboardItem = async (req, res, next) => {
 exports.getProfile = async (req, res, next) => {
   try {
     const profile = await administratorService.getAdministratorProfile(req.user.userId);
-    return success(res, 200, 'Profil administrateur charge.', profile);
+    return success(res, 200, 'Profil administrateur chargé.', profile);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -697,7 +440,7 @@ exports.listBadges = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Badges recuperes.', data);
+    return success(res, 200, 'Badges récupérés.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -707,7 +450,7 @@ exports.listBadges = async (req, res, next) => {
 exports.createBadge = async (req, res, next) => {
   try {
     const badge = await administratorService.createBadge(req.body || {});
-    return success(res, 201, 'Badge cree.', badge);
+    return success(res, 201, 'Badge créé.', badge);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -717,7 +460,7 @@ exports.createBadge = async (req, res, next) => {
 exports.updateBadge = async (req, res, next) => {
   try {
     const badge = await administratorService.updateBadge(req.params.badgeId, req.body || {});
-    return success(res, 200, 'Badge mis a jour.', badge);
+    return success(res, 200, 'Badge mis à jour.', badge);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -727,7 +470,7 @@ exports.updateBadge = async (req, res, next) => {
 exports.deleteBadge = async (req, res, next) => {
   try {
     const result = await administratorService.deleteBadge(req.params.badgeId);
-    return success(res, 200, 'Badge supprime.', result);
+    return success(res, 200, 'Badge supprimé.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -740,7 +483,7 @@ exports.listUsers = async (req, res, next) => {
     const status = normalizeStatus(req.query.status);
 
     if (role && !VALID_USER_ROLES.has(role)) {
-      return error(res, 400, 'Le filtre role est invalide.');
+      return error(res, 400, 'Le filtre rôle est invalide.');
     }
 
     if (status && !VALID_ACCOUNT_STATUSES.has(status)) {
@@ -755,7 +498,7 @@ exports.listUsers = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Utilisateurs recuperes.', data);
+    return success(res, 200, 'Utilisateurs récupérés.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -765,7 +508,7 @@ exports.listUsers = async (req, res, next) => {
 exports.getUserById = async (req, res, next) => {
   try {
     const user = await administratorService.getUserById(req.params.userId);
-    return success(res, 200, 'Utilisateur recupere.', user);
+    return success(res, 200, 'Utilisateur récupéré.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -780,7 +523,7 @@ exports.createUser = async (req, res, next) => {
       accountStatus: normalizeStatus(req.body?.accountStatus),
     });
 
-    return success(res, 201, 'Utilisateur cree.', result);
+    return success(res, 201, 'Utilisateur créé.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -794,7 +537,7 @@ exports.updateUser = async (req, res, next) => {
       role: normalizeRole(req.body?.role),
     });
 
-    return success(res, 200, 'Utilisateur mis a jour.', user);
+    return success(res, 200, 'Utilisateur mis à jour.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -812,10 +555,10 @@ exports.updateUserStatus = async (req, res, next) => {
       req.params.userId,
       status,
       req.user.roleId,
-      typeof req.body?.reason === 'string' ? req.body.reason.trim() || null : null
+      readBodyText(req.body, ['reason']),
     );
 
-    return success(res, 200, 'Status utilisateur mis a jour.', user);
+    return success(res, 200, 'Status utilisateur mis à jour.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -826,16 +569,11 @@ exports.updateUserRole = async (req, res, next) => {
   try {
     const role = normalizeRole(req.body?.role);
     if (!role || !VALID_USER_ROLES.has(role)) {
-      return error(res, 400, 'Le role fourni est invalide.');
+      return error(res, 400, 'Le rôle fourni est invalide.');
     }
 
-    const user = await administratorService.updateUserRole(
-      req.params.userId,
-      role,
-      req.body,
-      req.user.userId
-    );
-    return success(res, 200, 'Role utilisateur mis a jour.', user);
+    const user = await administratorService.updateUserRole(req.params.userId, role, req.body, req.user.userId);
+    return success(res, 200, 'Rôle utilisateur mis à jour.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -845,7 +583,7 @@ exports.updateUserRole = async (req, res, next) => {
 exports.resetUserPassword = async (req, res, next) => {
   try {
     const result = await administratorService.resetUserPassword(req.params.userId);
-    return success(res, 200, 'Mot de passe reinitialise.', result);
+    return success(res, 200, 'Mot de passe réinitialisé.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -855,7 +593,7 @@ exports.resetUserPassword = async (req, res, next) => {
 exports.deleteUser = async (req, res, next) => {
   try {
     const result = await administratorService.deleteUser(req.params.userId, req.user.userId);
-    return success(res, 200, 'Utilisateur supprime.', result);
+    return success(res, 200, 'Utilisateur supprimé.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -883,7 +621,7 @@ exports.listProfessionalRequests = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Demandes professionnelles recuperees.', {
+    return success(res, 200, 'Demandes professionnelles récupérées.', {
       filters: { status, emailVerified },
       ...requests,
     });
@@ -896,7 +634,7 @@ exports.listProfessionalRequests = async (req, res, next) => {
 exports.getProfessionalRequest = async (req, res, next) => {
   try {
     const request = await administratorService.getProfessionalRequest(req.params.userId);
-    return success(res, 200, 'Demande professionnelle recuperee.', request);
+    return success(res, 200, 'Demande professionnelle récupérée.', request);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -905,12 +643,9 @@ exports.getProfessionalRequest = async (req, res, next) => {
 
 exports.approveProfessionalRequest = async (req, res, next) => {
   try {
-    const request = await administratorService.approveProfessionalRequest(
-      req.params.userId,
-      req.user.roleId
-    );
+    const request = await administratorService.approveProfessionalRequest(req.params.userId, req.user.roleId);
 
-    return success(res, 200, 'Demande professionnelle approuvee.', request);
+    return success(res, 200, 'Demande professionnelle approuvée.', request);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -919,18 +654,13 @@ exports.approveProfessionalRequest = async (req, res, next) => {
 
 exports.rejectProfessionalRequest = async (req, res, next) => {
   try {
-    const rejectionReason =
-      typeof req.body?.rejectionReason === 'string'
-        ? req.body.rejectionReason.trim() || null
-        : null;
-
     const request = await administratorService.rejectProfessionalRequest(
       req.params.userId,
       req.user.roleId,
-      rejectionReason
+      readBodyText(req.body, ['rejectionReason']),
     );
 
-    return success(res, 200, 'Demande professionnelle rejetee.', request);
+    return success(res, 200, 'Demande professionnelle rejetée.', request);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
