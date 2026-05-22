@@ -1,6 +1,7 @@
 'use strict';
 
 const studentService = require('../services/studentService');
+const studentRecommendationService = require('../services/studentRecommendationService');
 const { handleStudentError } = require('./studentHelpers');
 const { success } = require('../utils/apiResponse');
 
@@ -68,6 +69,19 @@ exports.getBadges = async (req, res, next) => {
   try {
     const badges = await studentService.getStudentBadges(req.user.userId);
     return success(res, 200, 'Badges étudiants chargés.', badges);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getRecommendations = async (req, res, next) => {
+  try {
+    const recommendations = await studentRecommendationService.listStudentRecommendations(
+      req.user.userId,
+      req.query,
+    );
+    return success(res, 200, 'Recommandations étudiantes chargées.', recommendations);
   } catch (err) {
     if (handleStudentError(res, err)) return;
     next(err);
