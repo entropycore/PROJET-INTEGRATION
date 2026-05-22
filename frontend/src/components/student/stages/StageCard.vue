@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import StageValidationBadge from "./StageValidationBadge.vue";
 
@@ -13,34 +14,40 @@ const emit = defineEmits(["delete-stage", "submit-validation"]);
 
 const router = useRouter();
 
+const formatDate = (value) => {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+};
+
+const stageStatus = computed(() => {
+  return String(props.stage.validationStatus || "")
+    .trim()
+    .toUpperCase();
+});
+
 const goToDetails = () => {
   router.push(`/student/stages/${props.stage.id}`);
 };
 
 const goToEdit = () => {
+  if (!canEditStage.value) return;
   router.push(`/student/stages/${props.stage.id}/edit`);
 };
 
-const canEditStage = () => {
-  return ["DRAFT", "PENDING", "CORRECTION_REQUIRED"].includes(
-    props.stage.validationStatus,
-  );
-};
+const canEditStage = computed(() => {
+  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+});
 
 const canSubmitValidation = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED"].includes(
-    props.stage.validationStatus,
-  );
+  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
 };
 
 const canDeleteStage = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
-    props.stage.validationStatus,
-  );
+  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(stageStatus.value);
 };
 
 const submitButtonLabel = () => {
-  return props.stage.validationStatus === "CORRECTION_REQUIRED"
+  return stageStatus.value === "CORRECTION_REQUIRED"
     ? "Resoumettre"
     : "Soumettre";
 };
@@ -59,7 +66,7 @@ const deleteCurrentStage = () => {
     <div class="card-top">
       <h3>{{ stage.title }}</h3>
 
-      <StageValidationBadge :status="stage.validationStatus" />
+      <StageValidationBadge :status="stageStatus" />
     </div>
 
     <div class="company">
@@ -86,7 +93,7 @@ const deleteCurrentStage = () => {
         <span>Période</span>
         <strong>
           <span class="material-icons-round small-icon">calendar_month</span>
-          {{ stage.startDate }} → {{ stage.endDate }}
+          {{ formatDate(stage.startDate) }} → {{ formatDate(stage.endDate) }}
         </strong>
       </div>
 
@@ -128,7 +135,7 @@ const deleteCurrentStage = () => {
         Détails
       </button>
 
-      <button v-if="canEditStage()" class="action-btn" @click="goToEdit">
+      <button v-if="canEditStage" class="action-btn" @click="goToEdit">
         <span class="material-icons-round">edit</span>
         Modifier
       </button>
