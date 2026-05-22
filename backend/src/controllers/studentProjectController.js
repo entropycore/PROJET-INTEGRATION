@@ -5,7 +5,7 @@ const { success, error } = require('../utils/apiResponse');
 
 const handleProjectError = (res, err) => {
   if (err.message === 'STUDENT_PROFILE_NOT_FOUND') {
-    return error(res, 404, 'Profil etudiant introuvable.');
+    return error(res, 404, 'Profil étudiant introuvable.');
   }
 
   if (err.message === 'PROJECT_NOT_FOUND') {
@@ -22,7 +22,7 @@ const handleProjectError = (res, err) => {
 exports.listProjects = async (req, res, next) => {
   try {
     const projects = await studentProjectService.listProjects(req.user.userId);
-    return success(res, 200, 'Projets etudiants charges.', projects);
+    return success(res, 200, 'Projets étudiants chargés.', projects);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
@@ -32,7 +32,7 @@ exports.listProjects = async (req, res, next) => {
 exports.getProjectById = async (req, res, next) => {
   try {
     const project = await studentProjectService.getProjectById(req.user.userId, req.params.projectId);
-    return success(res, 200, 'Projet etudiant charge.', project);
+    return success(res, 200, 'Projet étudiant chargé.', project);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
@@ -42,7 +42,7 @@ exports.getProjectById = async (req, res, next) => {
 exports.createProject = async (req, res, next) => {
   try {
     const project = await studentProjectService.createProject(req.user.userId, req.body);
-    return success(res, 201, 'Projet etudiant cree.', project);
+    return success(res, 201, 'Projet étudiant créé.', project);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
@@ -51,12 +51,8 @@ exports.createProject = async (req, res, next) => {
 
 exports.updateProject = async (req, res, next) => {
   try {
-    const project = await studentProjectService.updateProject(
-      req.user.userId,
-      req.params.projectId,
-      req.body,
-    );
-    return success(res, 200, 'Projet etudiant mis a jour.', project);
+    const project = await studentProjectService.updateProject(req.user.userId, req.params.projectId, req.body);
+    return success(res, 200, 'Projet étudiant mis à jour.', project);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
@@ -66,7 +62,7 @@ exports.updateProject = async (req, res, next) => {
 exports.submitProject = async (req, res, next) => {
   try {
     const project = await studentProjectService.submitProject(req.user.userId, req.params.projectId);
-    return success(res, 200, 'Projet soumis a la validation.', project);
+    return success(res, 200, 'Projet soumis à la validation.', project);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
@@ -76,7 +72,7 @@ exports.submitProject = async (req, res, next) => {
 exports.deleteProject = async (req, res, next) => {
   try {
     const result = await studentProjectService.deleteProject(req.user.userId, req.params.projectId);
-    return success(res, 200, 'Projet supprime.', result);
+    return success(res, 200, 'Projet supprimé.', result);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
