@@ -1,83 +1,8 @@
 'use strict';
 
 const studentService = require('../services/studentService');
-const { success, error } = require('../utils/apiResponse');
-
-const handleStudentError = (res, err) => {
-  if (err.message === 'STUDENT_PROFILE_NOT_FOUND') {
-    return error(res, 404, 'Profil etudiant introuvable.');
-  }
-
-  if (err.message === 'ACADEMIC_PATH_NOT_FOUND') {
-    return error(res, 404, 'Parcours academique introuvable.');
-  }
-
-  if (err.message === 'SOFT_SKILL_NOT_FOUND') {
-    return error(res, 404, 'Competence comportementale introuvable.');
-  }
-
-  if (err.message === 'SOFT_SKILL_NAME_REQUIRED') {
-    return error(res, 400, 'Le nom de la competence comportementale est requis.');
-  }
-
-  if (err.message === 'SKILL_NOT_FOUND') {
-    return error(res, 404, 'Competence introuvable.');
-  }
-
-  if (err.message === 'STUDENT_SKILL_NOT_FOUND') {
-    return error(res, 404, 'Competence etudiante introuvable.');
-  }
-
-  if (err.message === 'STUDENT_NOTIFICATION_NOT_FOUND') {
-    return error(res, 404, 'Notification etudiante introuvable.');
-  }
-
-  if (err.message === 'GITHUB_NOT_CONFIGURED') {
-    return error(res, 503, 'Integration GitHub non configuree.');
-  }
-
-  if (err.message === 'GITHUB_REPOSITORY_NAME_REQUIRED') {
-    return error(res, 400, 'Le nom du depot GitHub est requis.');
-  }
-
-  if (err.message === 'CURRENT_PASSWORD_REQUIRED') {
-    return error(res, 400, 'Le mot de passe actuel est requis.');
-  }
-
-  if (err.message === 'NEW_PASSWORD_REQUIRED') {
-    return error(res, 400, 'Le nouveau mot de passe est requis.');
-  }
-
-  if (err.message === 'NEW_PASSWORD_TOO_SHORT') {
-    return error(res, 400, 'Le nouveau mot de passe doit contenir au moins 8 caracteres.');
-  }
-
-  if (err.message === 'PASSWORD_CONFIRMATION_MISMATCH') {
-    return error(res, 400, 'La confirmation du mot de passe ne correspond pas.');
-  }
-
-  if (err.message === 'CURRENT_PASSWORD_INVALID') {
-    return error(res, 400, 'Le mot de passe actuel est incorrect.');
-  }
-
-  if (err.message === 'NEW_PASSWORD_SAME_AS_CURRENT') {
-    return error(res, 400, 'Le nouveau mot de passe doit etre different du mot de passe actuel.');
-  }
-
-  if (err.message === 'INVALID_PROFILE_VISIBILITY') {
-    return error(res, 400, 'La visibilite du profil est invalide.');
-  }
-
-  if (err.message === 'INVALID_PRIVACY_BOOLEAN_VALUE') {
-    return error(res, 400, 'Les preferences de confidentialite doivent etre booleennes.');
-  }
-
-  if (err.message === 'INVALID_NOTIFICATION_BOOLEAN_VALUE') {
-    return error(res, 400, 'Les preferences de notification doivent etre booleennes.');
-  }
-
-  return null;
-};
+const { handleStudentError } = require('./studentHelpers');
+const { success } = require('../utils/apiResponse');
 
 exports.getDashboard = async (req, res, next) => {
   try {
@@ -191,11 +116,7 @@ exports.createAcademicPath = async (req, res, next) => {
 
 exports.updateAcademicPath = async (req, res, next) => {
   try {
-    const academicPaths = await studentService.updateAcademicPath(
-      req.user.userId,
-      req.params.academicPathId,
-      req.body,
-    );
+    const academicPaths = await studentService.updateAcademicPath(req.user.userId, req.params.academicPathId, req.body);
     return success(res, 200, 'Parcours academique mis a jour.', academicPaths);
   } catch (err) {
     if (handleStudentError(res, err)) return;
@@ -205,10 +126,7 @@ exports.updateAcademicPath = async (req, res, next) => {
 
 exports.deleteAcademicPath = async (req, res, next) => {
   try {
-    const result = await studentService.deleteAcademicPath(
-      req.user.userId,
-      req.params.academicPathId,
-    );
+    const result = await studentService.deleteAcademicPath(req.user.userId, req.params.academicPathId);
     return success(res, 200, 'Parcours academique supprime.', result);
   } catch (err) {
     if (handleStudentError(res, err)) return;
@@ -238,10 +156,7 @@ exports.addSoftSkill = async (req, res, next) => {
 
 exports.deleteSoftSkill = async (req, res, next) => {
   try {
-    const result = await studentService.deleteStudentSoftSkill(
-      req.user.userId,
-      req.params.studentSkillId,
-    );
+    const result = await studentService.deleteStudentSoftSkill(req.user.userId, req.params.studentSkillId);
     return success(res, 200, 'Competence comportementale supprimee.', result);
   } catch (err) {
     if (handleStudentError(res, err)) return;
@@ -371,10 +286,7 @@ exports.getUnreadNotificationsCount = async (req, res, next) => {
 
 exports.markNotificationAsRead = async (req, res, next) => {
   try {
-    const notification = await studentService.markStudentNotificationAsRead(
-      req.user.userId,
-      req.params.notificationId,
-    );
+    const notification = await studentService.markStudentNotificationAsRead(req.user.userId, req.params.notificationId);
     return success(res, 200, 'Notification marquee comme lue.', notification);
   } catch (err) {
     if (handleStudentError(res, err)) return;
@@ -394,10 +306,7 @@ exports.markAllNotificationsAsRead = async (req, res, next) => {
 
 exports.deleteNotification = async (req, res, next) => {
   try {
-    const result = await studentService.deleteStudentNotification(
-      req.user.userId,
-      req.params.notificationId,
-    );
+    const result = await studentService.deleteStudentNotification(req.user.userId, req.params.notificationId);
     return success(res, 200, 'Notification supprimee.', result);
   } catch (err) {
     if (handleStudentError(res, err)) return;
