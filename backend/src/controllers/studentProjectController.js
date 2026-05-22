@@ -1,6 +1,7 @@
 'use strict';
 
 const studentProjectService = require('../services/studentProjectService');
+const studentProjectMediaService = require('../services/studentProjectMediaService');
 const { success, error } = require('../utils/apiResponse');
 
 const handleProjectError = (res, err) => {
@@ -14,6 +15,22 @@ const handleProjectError = (res, err) => {
 
   if (err.message === 'INVALID_PROJECT_TYPE') {
     return error(res, 400, 'Type de projet invalide.');
+  }
+
+  if (err.message === 'PROJECT_VALIDATOR_NOT_FOUND') {
+    return error(res, 400, 'Aucun validateur professeur disponible pour ce projet.');
+  }
+
+  if (err.message === 'PROJECT_MEDIA_NOT_FOUND') {
+    return error(res, 404, 'Média du projet introuvable.');
+  }
+
+  if (err.message === 'PROJECT_MEDIA_FILE_NOT_FOUND') {
+    return error(res, 404, 'Fichier du projet introuvable.');
+  }
+
+  if (err.message === 'PROJECT_MEDIA_UPLOAD_EMPTY') {
+    return error(res, 400, 'Ajoutez au moins un fichier projet.');
   }
 
   return null;
@@ -73,6 +90,73 @@ exports.deleteProject = async (req, res, next) => {
   try {
     const result = await studentProjectService.deleteProject(req.user.userId, req.params.projectId);
     return success(res, 200, 'Projet supprimé.', result);
+  } catch (err) {
+    if (handleProjectError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.uploadProjectMedia = async (req, res, next) => {
+  try {
+    await studentProjectMediaService.uploadProjectMedia(
+      req.user.userId,
+      req.params.projectId,
+      req.files,
+    );
+    const project = await studentProjectService.getProjectById(
+      req.user.userId,
+      req.params.projectId,
+    );
+    return success(res, 201, 'Fichiers du projet ajoutés.', project);
+  } catch (err) {
+    if (handleProjectError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getProjectMediaContent = async (req, res, next) => {
+  try {
+    const media = await studentProjectMediaService.getProjectMediaFile(
+      req.user,
+      req.params.projectId,
+      req.params.mediaId,
+    );
+
+    res.type(media.mimeType);
+    return res.sendFile(media.absolutePath, (err) => {
+      if (err) next(err);
+    });
+  } catch (err) {
+    if (handleProjectError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.downloadProjectMedia = async (req, res, next) => {
+  try {
+    const media = await studentProjectMediaService.getProjectMediaFile(
+      req.user,
+      req.params.projectId,
+      req.params.mediaId,
+    );
+
+    return res.download(media.absolutePath, media.downloadName, (err) => {
+      if (err) next(err);
+    });
+  } catch (err) {
+    if (handleProjectError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteProjectMedia = async (req, res, next) => {
+  try {
+    const result = await studentProjectMediaService.deleteProjectMedia(
+      req.user.userId,
+      req.params.projectId,
+      req.params.mediaId,
+    );
+    return success(res, 200, 'Fichier du projet supprimé.', result);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
