@@ -2,8 +2,11 @@
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
-import { getStudentProjectById } from "@/services/studentProjectsApis";
-import { mockProjects } from "@/mockData/projects";
+import {
+  getStudentProjectById,
+  updateStudentProject,
+  submitStudentProject,
+} from "@/services/studentProjectsApis";
 
 import "@/assets/styles/student-project-edit.css";
 
@@ -16,6 +19,8 @@ const projectForm = ref(null);
 const newTechnology = ref("");
 const newLinkLabel = ref("");
 const newLinkUrl = ref("");
+const isSaving = ref(false);
+const errorMessage = ref("");
 
 const validators = [
   "Pr. Moussaoui",
@@ -42,15 +47,9 @@ const fetchProject = async () => {
 
   try {
     const response = await getStudentProjectById(route.params.id);
-    projectForm.value = structuredClone(response.data);
+    projectForm.value = structuredClone(response.data.data);
   } catch (error) {
-    console.warn("API project detail indisponible, utilisation mock data.");
-
-    const mockProject = mockProjects.find(
-      (item) => String(item.id) === String(route.params.id),
-    );
-
-    projectForm.value = structuredClone(mockProject);
+    console.warn("API project detail indisponible.");
   } finally {
     isLoading.value = false;
   }
@@ -174,16 +173,40 @@ const removeAttachment = (id) => {
   );
 };
 
-const saveProject = () => {
-  console.log("Projet sauvegardé localement :", projectForm.value);
-  router.push(`/student/projects/${route.params.id}`);
+const saveProject = async () => {
+  isSaving.value = true;
+  errorMessage.value = "";
+
+  try {
+    await updateStudentProject(route.params.id, projectForm.value);
+    router.push(`/student/projects/${route.params.id}`);
+  } catch (error) {
+    console.error("Erreur mise à jour projet :", error);
+    errorMessage.value =
+      error.response?.data?.message || "Impossible de modifier le projet.";
+  } finally {
+    isSaving.value = false;
+  }
 };
 
-const submitProject = () => {
+const submitProject = async () => {
   if (!canSubmit.value) return;
 
-  console.log("Projet soumis au validateur :", projectForm.value.validatorName);
-  router.push(`/student/projects/${route.params.id}`);
+  isSaving.value = true;
+  errorMessage.value = "";
+
+  try {
+    await updateStudentProject(route.params.id, projectForm.value);
+    await submitStudentProject(route.params.id);
+
+    router.push(`/student/projects/${route.params.id}`);
+  } catch (error) {
+    console.error("Erreur soumission projet :", error);
+    errorMessage.value =
+      error.response?.data?.message || "Impossible de soumettre le projet.";
+  } finally {
+    isSaving.value = false;
+  }
 };
 
 onMounted(fetchProject);

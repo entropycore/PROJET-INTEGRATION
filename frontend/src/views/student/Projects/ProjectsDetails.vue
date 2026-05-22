@@ -2,8 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
-import { getStudentProjectById } from "@/services/studentProjectsApis";
-import { mockProjects } from "@/mockData/projects";
+import {
+  getStudentProjectById,
+  deleteStudentProject,
+} from "@/services/studentProjectsApis";
 
 import "@/assets/styles/student-project-details.css";
 
@@ -64,13 +66,9 @@ const fetchProject = async () => {
 
   try {
     const response = await getStudentProjectById(route.params.id);
-    project.value = response.data;
+    project.value = response.data.data;
   } catch (error) {
     console.warn("API project detail indisponible.");
-
-    project.value = mockProjects.find(
-      (item) => String(item.id) === String(route.params.id),
-    );
   } finally {
     isLoading.value = false;
   }
@@ -101,14 +99,17 @@ const sortedValidationHistory = computed(() => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 });
-const handleDeleteProject = () => {
+const handleDeleteProject = async () => {
   const confirmed = confirm("Supprimer définitivement ce projet ?");
 
   if (!confirmed) return;
 
-  console.log("Projet supprimé");
-
-  router.push("/student/projects");
+  try {
+    await deleteStudentProject(route.params.id);
+    router.push("/student/projects");
+  } catch (error) {
+    console.error("Erreur suppression projet :", error);
+  }
 };
 
 onMounted(fetchProject);
