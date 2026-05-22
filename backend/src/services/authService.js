@@ -63,7 +63,7 @@ exports.registerProfessional = async (userData) => {
     );
   } catch (err) {
     await prisma.user.delete({ where: { id: newUser.id } });
-    throw new Error("EMAIL_SEND_FAILED");
+    throw new Error("EMAIL_SEND_FAILED", { cause: err });
   }
 
   await notificationService.createAccessRequestNotification({
@@ -136,7 +136,7 @@ exports.requestPasswordReset = async (email) => {
       `Bonjour ${user.firstName},\n\nVous avez demande une reinitialisation de mot de passe.\n\nCliquez ici pour definir un nouveau mot de passe :\n${resetUrl}\n\nSi vous n'etes pas a l'origine de cette demande, vous pouvez ignorer cet email.`
     );
   } catch (err) {
-    throw new Error('EMAIL_SEND_FAILED');
+    throw new Error('EMAIL_SEND_FAILED', { cause: err });
   }
 
   return true;
@@ -149,7 +149,7 @@ exports.resetPassword = async (token, newPassword) => {
   try {
     decoded = jwt.verify(token, PASSWORD_RESET_SECRET);
   } catch (err) {
-    throw new Error('INVALID_RESET_TOKEN');
+    throw new Error('INVALID_RESET_TOKEN', { cause: err });
   }
 
   if (decoded.purpose !== 'password-reset' || !decoded.userId || !decoded.email) {
