@@ -26,6 +26,8 @@ const projectSelect = {
   description: true,
   type: true,
   teamRole: true,
+  teamSize: true,
+  validatorProfessorId: true,
   githubUrl: true,
   youtubeUrl: true,
   result: true,
@@ -43,6 +45,19 @@ const projectSelect = {
       mediaType: true,
       mediaUrl: true,
       description: true,
+      fileName: true,
+      storagePath: true,
+    },
+  },
+  validatorProfessor: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
     },
   },
   technologies: {
@@ -102,6 +117,23 @@ const normalizeProjectType = (type) => {
   return normalized;
 };
 
+const normalizeOptionalText = (value) => {
+  if (value === undefined) return undefined;
+
+  const normalized = String(value || '').trim();
+  return normalized || null;
+};
+
+const keepProjectMediaUrl = (value) => {
+  const url = String(value || '').trim();
+
+  if (!url || url === '#' || url.startsWith('blob:')) {
+    return null;
+  }
+
+  return url;
+};
+
 const mapValidationTitle = (decision) => {
   const titles = {
     PENDING: 'Projet soumis',
@@ -155,7 +187,7 @@ const splitProjectMedia = (media) => {
 
     bucket.attachments.push({
       id: item.id,
-      name: item.description || 'Pièce jointe',
+      name: item.fileName || item.description || 'Pièce jointe',
       type: mediaType || 'ATTACHMENT',
       url: item.mediaUrl,
     });
@@ -166,6 +198,7 @@ const splitProjectMedia = (media) => {
 
 const mapProjectRecord = (project) => {
   const latestValidation = project.validations[0] || null;
+  const validator = project.validatorProfessor || latestValidation?.professor || null;
   const media = splitProjectMedia(project.media);
 
   return {
@@ -174,7 +207,7 @@ const mapProjectRecord = (project) => {
     description: project.description,
     type: mapProjectTypeLabel(project.type),
     role: project.teamRole || '',
-    teamSize: null,
+    teamSize: project.teamSize || '',
     validationStatus: project.validationStatus,
     visibility: project.visibility,
     createdAt: project.createdAt,
@@ -187,7 +220,8 @@ const mapProjectRecord = (project) => {
     extraLinks: media.extraLinks,
     screenshots: media.screenshots,
     attachments: media.attachments,
-    validatorName: latestValidation ? formatFullName(latestValidation.professor.user) : '',
+    validatorId: project.validatorProfessorId || validator?.id || null,
+    validatorName: validator ? formatFullName(validator.user) : '',
     validationComment: latestValidation?.professorFeedback || latestValidation?.comment || '',
     validationHistory: project.validations.map((validation) => ({
       id: validation.id,
@@ -215,6 +249,77 @@ const getStudentOrThrow = async (userId) => {
   }
 
   return student;
+};
+
+const professorValidatorSelect = {
+  id: true,
+  user: {
+    select: {
+      firstName: true,
+      lastName: true,
+    },
+  },
+};
+
+const normalizeValidatorName = (name) =>
+  String(name || '')
+    .trim()
+    .replace(/^(pr|prof|mme|mr|m)\.?\s+/i, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const findProfessorByName = async (validatorName) => {
+  const requestedName = normalizeValidatorName(validatorName);
+
+  if (!requestedName) return null;
+
+  const professors = await prisma.professor.findMany({
+    select: professorValidatorSelect,
+  });
+
+  return (
+    professors.find((professor) => {
+      const fullName = normalizeValidatorName(formatFullName(professor.user));
+      const lastName = normalizeValidatorName(professor.user.lastName);
+
+      return fullName === requestedName || lastName === requestedName;
+    }) || null
+  );
+};
+
+const resolveValidatorProfessorId = async (payload) => {
+  if (payload.validatorId) {
+    const professor = await prisma.professor.findUnique({
+      where: { id: payload.validatorId },
+      select: { id: true },
+    });
+
+    if (!professor) {
+      throw new Error('PROJECT_VALIDATOR_NOT_FOUND');
+    }
+
+    return professor.id;
+  }
+
+  if (!payload.validatorName) {
+    return undefined;
+  }
+
+  return (await findProfessorByName(payload.validatorName))?.id;
+};
+
+const getDefaultValidatorIdOrThrow = async () => {
+  const professor = await prisma.professor.findFirst({
+    orderBy: { id: 'asc' },
+    select: { id: true },
+  });
+
+  if (!professor) {
+    throw new Error('PROJECT_VALIDATOR_NOT_FOUND');
+  }
+
+  return professor.id;
 };
 
 const ensureTechnology = async (name) => {
@@ -248,34 +353,42 @@ const ensureTechnology = async (name) => {
 
 const buildProjectMediaPayload = (payload) => {
   const media = [];
+  const documentationUrl = keepProjectMediaUrl(payload.documentationUrl);
+  const portfolioUrl = keepProjectMediaUrl(payload.portfolioUrl);
 
-  if (payload.documentationUrl) {
+  if (documentationUrl) {
     media.push({
       mediaType: 'DOCUMENTATION',
-      mediaUrl: payload.documentationUrl,
+      mediaUrl: documentationUrl,
       description: 'Documentation',
     });
   }
 
-  if (payload.portfolioUrl) {
+  if (portfolioUrl) {
     media.push({
       mediaType: 'PORTFOLIO',
-      mediaUrl: payload.portfolioUrl,
+      mediaUrl: portfolioUrl,
       description: 'Portfolio',
     });
   }
 
   (payload.extraLinks || []).forEach((link) => {
-    if (!link?.url) return;
+    const mediaUrl = keepProjectMediaUrl(link?.url);
+    if (!mediaUrl) return;
+
     media.push({
       mediaType: 'LINK',
-      mediaUrl: link.url,
+      mediaUrl,
       description: link.label || 'Lien complémentaire',
     });
   });
 
   (payload.screenshots || []).forEach((screenshot) => {
-    const mediaUrl = screenshot?.imageUrl || screenshot?.url || screenshot?.mediaUrl;
+    if (screenshot?.id) return;
+
+    const mediaUrl = keepProjectMediaUrl(
+      screenshot?.imageUrl || screenshot?.url || screenshot?.mediaUrl,
+    );
     if (!mediaUrl) return;
 
     media.push({
@@ -286,11 +399,14 @@ const buildProjectMediaPayload = (payload) => {
   });
 
   (payload.attachments || []).forEach((attachment) => {
-    if (!attachment?.url) return;
+    if (attachment?.id) return;
+
+    const mediaUrl = keepProjectMediaUrl(attachment?.url);
+    if (!mediaUrl) return;
 
     media.push({
       mediaType: attachment.type || 'ATTACHMENT',
-      mediaUrl: attachment.url,
+      mediaUrl,
       description: attachment.name || 'Pièce jointe',
     });
   });
@@ -303,12 +419,15 @@ const buildProjectWriteData = async (payload) => {
   const technologyIds = (
     await Promise.all(technologyNames.map((name) => ensureTechnology(name)))
   ).filter(Boolean);
+  const validatorProfessorId = await resolveValidatorProfessorId(payload);
 
   return {
     title: payload.title,
     description: payload.description,
     type: normalizeProjectType(payload.type),
     teamRole: payload.role || null,
+    teamSize: normalizeOptionalText(payload.teamSize),
+    validatorProfessorId,
     githubUrl: payload.githubUrl || null,
     youtubeUrl: payload.demoUrl || null,
     result: payload.result || null,
@@ -364,6 +483,8 @@ exports.createProject = async (userId, payload) => {
       description: data.description,
       type: data.type,
       teamRole: data.teamRole,
+      teamSize: data.teamSize,
+      validatorProfessorId: data.validatorProfessorId,
       githubUrl: data.githubUrl,
       youtubeUrl: data.youtubeUrl,
       result: data.result,
@@ -398,6 +519,8 @@ exports.updateProject = async (userId, projectId, payload) => {
       description: true,
       type: true,
       teamRole: true,
+      teamSize: true,
+      validatorProfessorId: true,
       githubUrl: true,
       youtubeUrl: true,
       result: true,
@@ -419,6 +542,8 @@ exports.updateProject = async (userId, projectId, payload) => {
       description: data.description ?? existingProject.description,
       type: data.type ?? existingProject.type,
       teamRole: data.teamRole ?? existingProject.teamRole,
+      teamSize: data.teamSize ?? existingProject.teamSize,
+      validatorProfessorId: data.validatorProfessorId ?? existingProject.validatorProfessorId,
       githubUrl: data.githubUrl ?? existingProject.githubUrl,
       youtubeUrl: data.youtubeUrl ?? existingProject.youtubeUrl,
       result: data.result ?? existingProject.result,
@@ -429,7 +554,9 @@ exports.updateProject = async (userId, projectId, payload) => {
         create: data.technologies,
       },
       media: {
-        deleteMany: {},
+        deleteMany: {
+          storagePath: null,
+        },
         create: data.media,
       },
     },
@@ -447,6 +574,8 @@ exports.submitProject = async (userId, projectId) => {
     },
     select: {
       id: true,
+      validationStatus: true,
+      validatorProfessorId: true,
     },
   });
 
@@ -454,12 +583,38 @@ exports.submitProject = async (userId, projectId) => {
     throw new Error('PROJECT_NOT_FOUND');
   }
 
-  await prisma.project.update({
-    where: { id: projectId },
-    data: {
-      validationStatus: 'PENDING',
-      submittedAt: new Date(),
-    },
+  const validatorProfessorId =
+    project.validatorProfessorId || (await getDefaultValidatorIdOrThrow());
+
+  await prisma.$transaction(async (tx) => {
+    await tx.project.update({
+      where: { id: projectId },
+      data: {
+        validationStatus: 'PENDING',
+        validatorProfessorId,
+        submittedAt: new Date(),
+      },
+    });
+
+    const pendingValidation = await tx.projectValidation.findFirst({
+      where: {
+        projectId,
+        professorId: validatorProfessorId,
+        decision: 'PENDING',
+      },
+      select: { id: true },
+    });
+
+    if (!pendingValidation || project.validationStatus !== 'PENDING') {
+      await tx.projectValidation.create({
+        data: {
+          projectId,
+          professorId: validatorProfessorId,
+          decision: 'PENDING',
+          comment: 'Projet soumis pour validation.',
+        },
+      });
+    }
   });
 
   return exports.getProjectById(userId, projectId);
