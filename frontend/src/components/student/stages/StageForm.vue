@@ -196,8 +196,6 @@ const submitButtonLabel = () => {
               />
             </div>
 
-            
-
             <div class="form-group">
               <label>Date début</label>
               <input v-model="form.startDate" type="date" required />
@@ -237,13 +235,12 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Nom de l’encadrant</label>
-                <input
-                  v-model="form.supervisorName"
-                  type="text"
-                  required
-                  placeholder="Ex : Pr. Karim Alaoui"
-                />
-
+              <input
+                v-model="form.supervisorName"
+                type="text"
+                required
+                placeholder="Ex : Pr. Karim Alaoui"
+              />
             </div>
 
             <div class="form-group">

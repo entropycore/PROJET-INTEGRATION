@@ -43,7 +43,9 @@ const canSubmitValidation = () => {
 };
 
 const canDeleteStage = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(stageStatus.value);
+  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
+    stageStatus.value,
+  );
 };
 
 const submitButtonLabel = () => {
