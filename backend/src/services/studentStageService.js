@@ -81,6 +81,7 @@ const decodeInternshipContent = (rawValue, internship) => {
     missions: splitLines(rawValue),
     supervisor: internship.supervisorProfessor
       ? {
+          id: internship.supervisorProfessor.id,
           fullName: formatFullName(internship.supervisorProfessor.user),
           department: internship.supervisorProfessor.department || '',
         }
@@ -156,6 +157,15 @@ const ensureTechnology = async (name) => {
 };
 
 const resolveSupervisorProfessorId = async (supervisor) => {
+  if (supervisor?.id) {
+    const professor = await prisma.professor.findUnique({
+      where: { id: supervisor.id },
+      select: { id: true },
+    });
+
+    return professor?.id || null;
+  }
+
   const supervisorName = String(supervisor?.fullName || '').trim();
 
   if (!supervisorName) return null;
@@ -194,6 +204,7 @@ const mapInternshipRecord = (internship) => {
   const content = decodeInternshipContent(internship.missions, internship);
   const supervisorFromRelation = internship.supervisorProfessor
     ? {
+        id: internship.supervisorProfessor.id,
         fullName: formatFullName(internship.supervisorProfessor.user),
         department: internship.supervisorProfessor.department || '',
       }
