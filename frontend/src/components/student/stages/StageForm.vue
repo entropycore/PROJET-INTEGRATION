@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 
 const props = defineProps({
   initialStage: {
@@ -27,10 +27,69 @@ const form = reactive({
 });
 
 const technologyInput = ref("");
+const calculatedDuration = computed(() => {
+  if (!form.startDate || !form.endDate) return "";
+
+  const start = new Date(form.startDate);
+  const end = new Date(form.endDate);
+
+  if (end < start) return "";
+
+  let months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth());
+
+  const remainingDays = end.getDate() - start.getDate();
+
+  if (remainingDays > 15) {
+    months += 1;
+  }
+
+  if (months <= 0) {
+    months = 1;
+  }
+
+  return `${months} mois`;
+});
+
+const formatDateInput = (value) => {
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+
+  return new Date(value).toISOString().slice(0, 10);
+};
+
+const fillForm = (stage) => {
+  form.title = stage?.title || "";
+  form.company = stage?.company || "";
+  form.duration = stage?.duration || "";
+  form.startDate = formatDateInput(stage?.startDate);
+  form.endDate = formatDateInput(stage?.endDate);
+  form.description = stage?.description || "";
+  form.missions = stage?.missions?.join("\n") || "";
+  form.supervisorName = stage?.supervisor?.fullName || "";
+  form.supervisorDepartment = stage?.supervisor?.department || "";
+  form.technologies = Array.isArray(stage?.technologies)
+    ? [...stage.technologies]
+    : [];
+  form.visibility = stage?.visibility || "PRIVATE";
+  form.report = null;
+  form.images = [];
+};
+
+watch(
+  () => props.initialStage,
+  (stage) => {
+    fillForm(stage);
+  },
+  { immediate: true },
+);
 
 const addTechnology = () => {
   const value = technologyInput.value.trim();
-
   if (!value) return;
 
   if (!form.technologies.includes(value)) {
@@ -56,7 +115,7 @@ const buildPayload = () => {
   return {
     title: form.title,
     company: form.company,
-    duration: form.duration,
+    duration: calculatedDuration.value,
     startDate: form.startDate,
     endDate: form.endDate,
     description: form.description,
@@ -80,6 +139,11 @@ const saveDraft = () => {
 };
 
 const submitValidation = () => {
+  if (!form.report && !props.initialStage?.reportUrl) {
+    alert("Veuillez ajouter le rapport PDF avant la soumission.");
+    return;
+  }
+
   emit("submit-validation", buildPayload());
 };
 
@@ -117,6 +181,7 @@ const submitButtonLabel = () => {
               <input
                 v-model="form.title"
                 type="text"
+                required
                 placeholder="Ex : Développement Frontend Vue.js"
               />
             </div>
@@ -126,35 +191,21 @@ const submitButtonLabel = () => {
               <input
                 v-model="form.company"
                 type="text"
+                required
                 placeholder="Ex : Capgemini Maroc"
               />
             </div>
 
-            <div class="form-group">
-              <label>Durée</label>
-              <input
-                v-model="form.duration"
-                type="text"
-                placeholder="Ex : 2 mois"
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Visibilité</label>
-              <select v-model="form.visibility">
-                <option value="PUBLIC">Publique</option>
-                <option value="PRIVATE">Privée</option>
-              </select>
-            </div>
+            
 
             <div class="form-group">
               <label>Date début</label>
-              <input v-model="form.startDate" type="date" />
+              <input v-model="form.startDate" type="date" required />
             </div>
 
             <div class="form-group">
               <label>Date fin</label>
-              <input v-model="form.endDate" type="date" />
+              <input v-model="form.endDate" type="date" required />
             </div>
           </div>
 
@@ -162,6 +213,7 @@ const submitButtonLabel = () => {
             <label>Description</label>
             <textarea
               v-model="form.description"
+              required
               placeholder="Décrivez le contexte général du stage..."
             ></textarea>
           </div>
@@ -170,6 +222,7 @@ const submitButtonLabel = () => {
             <label>Missions réalisées</label>
             <textarea
               v-model="form.missions"
+              required
               placeholder="Écrivez une mission par ligne..."
             ></textarea>
           </div>
@@ -184,11 +237,13 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Nom de l’encadrant</label>
-              <input
-                v-model="form.supervisorName"
-                type="text"
-                placeholder="Ex : Pr. Karim Alaoui"
-              />
+                <input
+                  v-model="form.supervisorName"
+                  type="text"
+                  required
+                  placeholder="Ex : Pr. Karim Alaoui"
+                />
+
             </div>
 
             <div class="form-group">
@@ -196,6 +251,7 @@ const submitButtonLabel = () => {
               <input
                 v-model="form.supervisorDepartment"
                 type="text"
+                required
                 placeholder="Ex : Génie Informatique"
               />
             </div>
@@ -244,7 +300,7 @@ const submitButtonLabel = () => {
           <label class="upload-box">
             <span class="material-icons-round">add_photo_alternate</span>
             <strong>Ajouter des captures</strong>
-            <small>PNG, JPG ou WEBP</small>
+            <small>PNG, JPG ou WEBP — facultatif</small>
 
             <input
               type="file"
@@ -268,7 +324,7 @@ const submitButtonLabel = () => {
           <label class="upload-box">
             <span class="material-icons-round">attach_file</span>
             <strong>Ajouter le rapport</strong>
-            <small>PDF uniquement</small>
+            <small>PDF uniquement — requis pour validation</small>
 
             <input
               type="file"
@@ -279,6 +335,10 @@ const submitButtonLabel = () => {
 
           <p v-if="form.report" class="file-info">
             {{ form.report.name }}
+          </p>
+
+          <p v-else-if="props.initialStage?.reportUrl" class="file-info">
+            Rapport déjà ajouté.
           </p>
         </section>
       </aside>
