@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
 import { getStudentProjects } from "@/services/studentProjectsApis";
-import { mockProjects } from "@/mockData/projects";
 
 import "@/assets/styles/student-project.css";
 
@@ -43,10 +42,9 @@ const fetchProjects = async () => {
 
   try {
     const response = await getStudentProjects();
-    projects.value = response.data;
+    projects.value = response.data.data;
   } catch (error) {
-    console.warn("API projects indisponible, utilisation des mock data.");
-    projects.value = mockProjects;
+    console.warn("API projects indisponible, utilisation des mock data.", error);
   } finally {
     isLoading.value = false;
   }
