@@ -1,109 +1,109 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref } from "vue";
 
-const selectedFilter = ref('ALL')
+const selectedFilter = ref("ALL");
 
 const badges = ref([
   {
     id: 1,
-    name: 'Web Developer',
-    description: 'Badge pour les étudiants actifs en développement web.',
-    rule: '3 projets web validés',
-    iconUrl: '',
-    iconFallback: '🌐',
-    tone: 'blue',
+    name: "Web Developer",
+    description: "Badge pour les étudiants actifs en développement web.",
+    rule: "3 projets web validés",
+    iconUrl: "",
+    iconFallback: "🌐",
+    tone: "blue",
     isObtained: true,
-    obtainedAt: 'Mars 2025',
+    obtainedAt: "Mars 2025",
     progress: { current: 3, target: 3 },
   },
   {
     id: 2,
-    name: 'DevOps Explorer',
-    description: 'Badge lié aux outils DevOps.',
-    rule: 'Projet avec Docker + pipeline CI/CD + dépôt GitHub',
-    iconUrl: '',
-    iconFallback: '☁️',
-    tone: 'cyan',
+    name: "DevOps Explorer",
+    description: "Badge lié aux outils DevOps.",
+    rule: "Projet avec Docker + pipeline CI/CD + dépôt GitHub",
+    iconUrl: "",
+    iconFallback: "☁️",
+    tone: "cyan",
     isObtained: true,
-    obtainedAt: 'Avr 2025',
+    obtainedAt: "Avr 2025",
     progress: { current: 3, target: 3 },
   },
   {
     id: 3,
-    name: 'Hackathon Participant',
-    description: 'Badge pour participation aux événements.',
-    rule: 'Participation à un hackathon avec attestation vérifiée',
-    iconUrl: '',
-    iconFallback: '👥',
-    tone: 'purple',
+    name: "Hackathon Participant",
+    description: "Badge pour participation aux événements.",
+    rule: "Participation à un hackathon avec attestation vérifiée",
+    iconUrl: "",
+    iconFallback: "👥",
+    tone: "purple",
     isObtained: true,
-    obtainedAt: 'Fév 2025',
+    obtainedAt: "Fév 2025",
     progress: { current: 1, target: 1 },
   },
   {
     id: 4,
-    name: 'Full Stack Developer',
-    description: 'Badge lié aux compétences frontend et backend.',
-    rule: 'Projets frontend ET backend validés',
-    iconUrl: '',
-    iconFallback: '💠',
-    tone: 'green',
+    name: "Full Stack Developer",
+    description: "Badge lié aux compétences frontend et backend.",
+    rule: "Projets frontend ET backend validés",
+    iconUrl: "",
+    iconFallback: "💠",
+    tone: "green",
     isObtained: false,
     obtainedAt: null,
     progress: { current: 1, target: 2 },
   },
   {
     id: 5,
-    name: 'Security Aware',
-    description: 'Badge lié aux bonnes pratiques de cybersécurité.',
-    rule: 'Projet avec bonnes pratiques OWASP documentées',
-    iconUrl: '',
-    iconFallback: '🛡️',
-    tone: 'red',
+    name: "Security Aware",
+    description: "Badge lié aux bonnes pratiques de cybersécurité.",
+    rule: "Projet avec bonnes pratiques OWASP documentées",
+    iconUrl: "",
+    iconFallback: "🛡️",
+    tone: "red",
     isObtained: false,
     obtainedAt: null,
     progress: { current: 0, target: 1 },
   },
   {
     id: 6,
-    name: 'AI / Data',
-    description: 'Badge lié aux projets IA ou Data Science.',
-    rule: 'Projet en IA ou Data Science validé',
-    iconUrl: '',
-    iconFallback: '📊',
-    tone: 'orange',
+    name: "AI / Data",
+    description: "Badge lié aux projets IA ou Data Science.",
+    rule: "Projet en IA ou Data Science validé",
+    iconUrl: "",
+    iconFallback: "📊",
+    tone: "orange",
     isObtained: false,
     obtainedAt: null,
     progress: { current: 0, target: 1 },
   },
-])
+]);
 
 const obtainedBadges = computed(() => {
-  return badges.value.filter((badge) => badge.isObtained)
-})
+  return badges.value.filter((badge) => badge.isObtained);
+});
 
 const lockedBadges = computed(() => {
-  return badges.value.filter((badge) => !badge.isObtained)
-})
+  return badges.value.filter((badge) => !badge.isObtained);
+});
 
 const filteredBadges = computed(() => {
-  if (selectedFilter.value === 'OBTAINED') return obtainedBadges.value
-  if (selectedFilter.value === 'LOCKED') return lockedBadges.value
-  return badges.value
-})
+  if (selectedFilter.value === "OBTAINED") return obtainedBadges.value;
+  if (selectedFilter.value === "LOCKED") return lockedBadges.value;
+  return badges.value;
+});
 
 const completionRate = computed(() => {
-  return Math.round((obtainedBadges.value.length / badges.value.length) * 100)
-})
+  return Math.round((obtainedBadges.value.length / badges.value.length) * 100);
+});
 
 const progressPercent = (badge) => {
-  if (!badge.progress) return 0
+  if (!badge.progress) return 0;
 
   return Math.min(
     Math.round((badge.progress.current / badge.progress.target) * 100),
     100,
-  )
-}
+  );
+};
 </script>
 
 <template>
@@ -169,31 +169,31 @@ const progressPercent = (badge) => {
         :class="{ locked: !badge.isObtained }"
       >
         <div class="badge-top">
-            <div class="badge-title-group">
-                <div class="badge-icon" :class="`tone-${badge.tone}`">
-                <img
-                    v-if="badge.iconUrl"
-                    :src="badge.iconUrl"
-                    :alt="badge.name"
-                    class="badge-image"
-                />
+          <div class="badge-title-group">
+            <div class="badge-icon" :class="`tone-${badge.tone}`">
+              <img
+                v-if="badge.iconUrl"
+                :src="badge.iconUrl"
+                :alt="badge.name"
+                class="badge-image"
+              />
 
-                <span v-else class="badge-fallback">
-                    {{ badge.iconFallback }}
-                </span>
-                </div>
-
-                <h2>{{ badge.name }}</h2>
+              <span v-else class="badge-fallback">
+                {{ badge.iconFallback }}
+              </span>
             </div>
 
-            <span
-                class="badge-status"
-                :class="badge.isObtained ? 'obtained' : 'locked'"
-            >
-                {{ badge.isObtained ? 'Obtenu' : 'À débloquer' }}
-            </span>
-            </div>
-                    <p class="description">
+            <h2>{{ badge.name }}</h2>
+          </div>
+
+          <span
+            class="badge-status"
+            :class="badge.isObtained ? 'obtained' : 'locked'"
+          >
+            {{ badge.isObtained ? "Obtenu" : "À débloquer" }}
+          </span>
+        </div>
+        <p class="description">
           {{ badge.description }}
         </p>
 
@@ -327,7 +327,7 @@ const progressPercent = (badge) => {
   border: 1px solid #dee1dd;
   border-radius: 0.95rem;
   padding: 1.25rem;
-align-items: stretch;
+  align-items: stretch;
   display: flex;
   flex-direction: column;
   gap: 1rem;

@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from "vue";
 // import { onMounted } from "vue";
-import '../../assets/styles/admin-badges.css'
+import "../../assets/styles/admin-badges.css";
 
 /*
   BACKEND À ACTIVER QUAND L’API SERA PRÊTE
@@ -215,7 +215,7 @@ const handleSaveBadge = async () => {
             iconUrl: newBadge.value.iconPreview,
             tone: newBadge.value.tone,
           }
-        : badge
+        : badge,
     );
   } else {
     badges.value.unshift({
@@ -264,9 +264,7 @@ const handleDeleteBadge = async (id) => {
       </button>
     </header>
 
-    <div v-if="loading" class="state-box">
-      Chargement des badges...
-    </div>
+    <div v-if="loading" class="state-box">Chargement des badges...</div>
 
     <div v-else-if="error" class="state-box error">
       {{ error }}
@@ -311,15 +309,11 @@ const handleDeleteBadge = async (id) => {
           {{ badge.description }}
         </p>
 
-        <p class="rule">
-          <strong>Règle :</strong> {{ badge.rule }}
-        </p>
+        <p class="rule"><strong>Règle :</strong> {{ badge.rule }}</p>
 
         <div class="divider"></div>
 
-        <p class="count">
-          🏆 {{ badge.attributionCount }} attributions
-        </p>
+        <p class="count">🏆 {{ badge.attributionCount }} attributions</p>
       </article>
     </div>
 
@@ -328,9 +322,7 @@ const handleDeleteBadge = async (id) => {
         <div class="modal-header">
           <h2>{{ isEditMode ? "Modifier le badge" : "Nouveau badge" }}</h2>
 
-          <button class="close-btn" @click="closeCreateModal">
-            ×
-          </button>
+          <button class="close-btn" @click="closeCreateModal">×</button>
         </div>
 
         <div class="form-group">
@@ -375,9 +367,7 @@ const handleDeleteBadge = async (id) => {
         </div>
 
         <div class="modal-actions">
-          <button class="cancel-btn" @click="closeCreateModal">
-            Annuler
-          </button>
+          <button class="cancel-btn" @click="closeCreateModal">Annuler</button>
 
           <button class="create-btn" @click="handleSaveBadge">
             {{ isEditMode ? "Enregistrer" : "+ Créer" }}
