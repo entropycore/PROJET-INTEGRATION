@@ -1,13 +1,44 @@
 'use strict';
 
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 const prisma = require('../config/prisma');
 const sendEmail = require('../utils/sendEmail');
 const notificationService = require('./notificationService');
+const {
+  formatFullName,
+  mapCertificateRequestDetail,
+  mapCommentValidationItem,
+  mapDashboardAccessRequest,
+  mapDashboardCertificateRequest,
+  mapInternshipValidationItem,
+  mapNotificationItem,
+  mapProfessionalRequestDetail,
+  mapProjectValidationItem,
+  mapRecommendationLetterValidationItem,
+  mapRecommendationValidationItem,
+  mapReportItem,
+  mapUserSummary,
+  mapValidationItemToLegacyShape,
+} = require('./administrator/mappers');
+const {
+  buildPasswordResetEmail,
+  buildProfessionalProfileData,
+  buildRoleCreateData,
+  buildRoleUpdateData,
+  buildTemporaryPassword,
+  buildUserCredentialsEmail,
+  ensureValidRole,
+  ensureValidStatus,
+} = require('./administrator/userHelpers');
+const {
+  certificateDetailSelect,
+  commentValidationSelect,
+  internshipValidationSelect,
+  projectValidationSelect,
+  recommendationLetterValidationSelect,
+  recommendationValidationSelect,
+} = require('./administrator/validationSelects');
 
-const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
-const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
 const VALIDATION_ITEM_TYPES = [
   'PROJECT',
   'INTERNSHIP',
@@ -29,26 +60,8 @@ const NOTIFICATION_TYPES = [
 const LEGACY_NOTIFICATION_TYPES = ['INFO', 'VALIDATION', 'ALERT'];
 const REPORT_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
 const REPORT_TARGET_TYPES = ['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP', 'USER', 'OTHER'];
-const DELETABLE_REPORT_TARGET_TYPES = new Set([
-  'PORTFOLIO',
-  'COMMENT',
-  'RECOMMENDATION',
-  'PROJECT',
-  'INTERNSHIP',
-]);
+const DELETABLE_REPORT_TARGET_TYPES = new Set(['PORTFOLIO', 'COMMENT', 'RECOMMENDATION', 'PROJECT', 'INTERNSHIP']);
 const BCRYPT_ROUNDS = 10;
-const ROLE_LABELS = {
-  STUDENT: 'Etudiant',
-  PROFESSOR: 'Professeur',
-  ADMINISTRATOR: 'Administrateur',
-  PROFESSIONAL: 'Professionnel',
-};
-const STATUS_LABELS = {
-  ACTIVE: 'Actif',
-  INACTIVE: 'Inactif',
-  SUSPENDED: 'Suspendu',
-  PENDING: 'En attente de validation',
-};
 
 const professionalRequestSelect = {
   id: true,
@@ -194,161 +207,6 @@ const badgeSelect = {
   updatedAt: true,
 };
 
-const recommendationLetterValidationSelect = {
-  id: true,
-  validationStatus: true,
-  createdAt: true,
-  validatedAt: true,
-  rejectionReason: true,
-  title: true,
-  content: true,
-  type: true,
-  documentUrl: true,
-  student: {
-    select: {
-      id: true,
-      apogeeCode: true,
-      cne: true,
-      major: true,
-      level: true,
-      city: true,
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          profilePicture: true,
-        },
-      },
-    },
-  },
-  authorUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-      profilePicture: true,
-    },
-  },
-  validatorUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-    },
-  },
-};
-
-const commentValidationSelect = {
-  id: true,
-  status: true,
-  createdAt: true,
-  validatedAt: true,
-  rejectionReason: true,
-  targetType: true,
-  targetId: true,
-  content: true,
-  authorUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-      profilePicture: true,
-    },
-  },
-  validatorUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-    },
-  },
-  portfolio: {
-    select: {
-      id: true,
-      title: true,
-      publicSlug: true,
-      student: {
-        select: {
-          id: true,
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
-const recommendationValidationSelect = {
-  id: true,
-  status: true,
-  createdAt: true,
-  validatedAt: true,
-  rejectionReason: true,
-  title: true,
-  content: true,
-  organization: true,
-  authorJobTitle: true,
-  recommendationType: true,
-  authorUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      phone: true,
-      profilePicture: true,
-    },
-  },
-  validatorUser: {
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-    },
-  },
-  student: {
-    select: {
-      id: true,
-      apogeeCode: true,
-      cne: true,
-      major: true,
-      level: true,
-      city: true,
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
-    },
-  },
-  portfolio: {
-    select: {
-      id: true,
-      title: true,
-      publicSlug: true,
-    },
-  },
-};
-
 const userSelect = {
   id: true,
   lastName: true,
@@ -404,8 +262,7 @@ const userSelect = {
   },
 };
 
-const isStructureMissingError = (err) =>
-  err?.code === 'P2021' || err?.code === 'P2022';
+const isStructureMissingError = (err) => err?.code === 'P2021' || err?.code === 'P2022';
 
 const safeCount = async (runner) => {
   try {
@@ -453,651 +310,6 @@ const safeReadWithFallback = async (primaryRunner, fallbackRunner, defaultValue)
       throw fallbackErr;
     }
   }
-};
-
-const formatFullName = (user) => `${user.firstName} ${user.lastName}`.trim();
-
-const normalizeProfessionalData = (professional) => {
-  if (!professional) {
-    return null;
-  }
-
-  return {
-    emailVerifiedAt: null,
-    approvedAt: null,
-    approvedByAdministratorId: null,
-    rejectedAt: null,
-    rejectedByAdministratorId: null,
-    rejectionReason: null,
-    suspendedAt: null,
-    suspendedByAdministratorId: null,
-    suspensionReason: null,
-    ...professional,
-  };
-};
-
-const getEmailVerifiedValue = (user) => {
-  if (user.role === 'PROFESSIONAL') {
-    return Boolean(user.professional?.isEmailVerified);
-  }
-
-  return true;
-};
-
-const mapUserSummary = (user) => ({
-  id: user.id,
-  firstName: user.firstName,
-  lastName: user.lastName,
-  fullName: formatFullName(user),
-  email: user.email,
-  phone: user.phone,
-  profilePicture: user.profilePicture,
-  role: user.role,
-  accountStatus: user.accountStatus,
-  createdAt: user.createdAt,
-  lastLoginAt: user.lastLoginAt,
-  emailVerified: getEmailVerifiedValue(user),
-  roleDetails: {
-    student: user.student,
-    professor: user.professor,
-    administrator: user.administrator,
-    professional: normalizeProfessionalData(user.professional),
-  },
-});
-
-const mapProfessionalRequestDetail = (user) => {
-  const professional = normalizeProfessionalData(user.professional);
-
-  return {
-    id: user.id,
-    requesterName: formatFullName(user),
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    phone: user.phone,
-    profilePicture: user.profilePicture,
-    accountStatus: user.accountStatus,
-    createdAt: user.createdAt,
-    lastLoginAt: user.lastLoginAt,
-    organization: professional?.company || null,
-    type: 'ACCESS_REQUEST',
-    label: "Demande d'acces",
-    tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
-    professional,
-  };
-};
-
-const mapDashboardAccessRequest = (user) => {
-  const professional = normalizeProfessionalData(user.professional);
-
-  return {
-    id: user.id,
-    type: 'ACCESS_REQUEST',
-    label: "Demande d'acces",
-    requesterName: formatFullName(user),
-    email: user.email,
-    organization: professional?.company || null,
-    createdAt: user.createdAt,
-    tone: user.accountStatus === 'PENDING' ? 'orange' : 'green',
-    status: user.accountStatus,
-    raw: {
-      userId: user.id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      phone: user.phone,
-      profilePicture: user.profilePicture,
-      lastLoginAt: user.lastLoginAt,
-      accountStatus: user.accountStatus,
-      professional,
-    },
-  };
-};
-
-const mapDashboardCertificateRequest = (certificate) => {
-  const requester = certificate.activity?.student?.user;
-
-  return {
-    id: certificate.id,
-    type: 'CERTIFICATE_VALIDATION',
-    label: 'Certificate validation',
-    requesterName: requester ? formatFullName(requester) : 'Etudiant inconnu',
-    email: requester?.email || null,
-    organization: certificate.activity?.organization || null,
-    createdAt: certificate.submittedAt,
-    tone: 'green',
-    status: certificate.validationStatus,
-    raw: {
-      certificateId: certificate.id,
-      documentUrl: certificate.documentUrl,
-      submittedAt: certificate.submittedAt,
-      activityId: certificate.activity?.id || null,
-      activityTitle: certificate.activity?.title || null,
-      studentId: certificate.activity?.student?.id || null,
-    },
-  };
-};
-
-const mapCertificateRequestDetail = (certificate) => {
-  const requester = certificate.activity?.student?.user;
-
-  return {
-    id: certificate.id,
-    type: 'CERTIFICATE_VALIDATION',
-    label: 'Certificate validation',
-    requesterName: requester ? formatFullName(requester) : 'Etudiant inconnu',
-    email: requester?.email || null,
-    organization: certificate.activity?.organization || null,
-    createdAt: certificate.submittedAt,
-    tone: 'green',
-    status: certificate.validationStatus,
-    raw: {
-      certificateId: certificate.id,
-      documentUrl: certificate.documentUrl,
-      submittedAt: certificate.submittedAt,
-      activity: certificate.activity
-        ? {
-            id: certificate.activity.id,
-            title: certificate.activity.title,
-            description: certificate.activity.description || null,
-            type: certificate.activity.type || null,
-            organization: certificate.activity.organization || null,
-            startDate: certificate.activity.startDate || null,
-            endDate: certificate.activity.endDate || null,
-          }
-        : null,
-      student: certificate.activity?.student
-        ? {
-            id: certificate.activity.student.id,
-            apogeeCode: certificate.activity.student.apogeeCode || null,
-            cne: certificate.activity.student.cne || null,
-            major: certificate.activity.student.major,
-            level: certificate.activity.student.level,
-            city: certificate.activity.student.city || null,
-            user: requester
-              ? {
-                  id: requester.id,
-                  firstName: requester.firstName,
-                  lastName: requester.lastName,
-                  email: requester.email,
-                  phone: requester.phone || null,
-                  profilePicture: requester.profilePicture || null,
-                }
-              : null,
-          }
-        : null,
-    },
-  };
-};
-
-const mapRecommendationLetterValidationItem = (letter) => {
-  const studentUser = letter.student?.user;
-  const authorUser = letter.authorUser;
-
-  return {
-    id: letter.id,
-    type: 'RECOMMENDATION_LETTER_VALIDATION',
-    label: 'Recommendation letter validation',
-    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
-    email: studentUser?.email || null,
-    organization: null,
-    createdAt: letter.createdAt,
-    tone: 'green',
-    status: letter.validationStatus,
-    raw: {
-      title: letter.title,
-      content: letter.content,
-      letterType: letter.type,
-      documentUrl: letter.documentUrl,
-      validatedAt: letter.validatedAt,
-      rejectionReason: letter.rejectionReason,
-      authorName: authorUser ? formatFullName(authorUser) : null,
-      authorUser,
-      studentName: studentUser ? formatFullName(studentUser) : null,
-      student: letter.student,
-      validatorUser: letter.validatorUser,
-    },
-  };
-};
-
-const mapCommentValidationItem = (comment) => {
-  const authorUser = comment.authorUser;
-  const studentUser = comment.portfolio?.student?.user;
-
-  return {
-    id: comment.id,
-    type: 'COMMENT_VALIDATION',
-    label: 'Comment validation',
-    requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
-    email: authorUser?.email || null,
-    organization: null,
-    createdAt: comment.createdAt,
-    tone: 'green',
-    status: comment.status,
-    raw: {
-      title: comment.portfolio?.title || null,
-      content: comment.content,
-      targetType: comment.targetType,
-      targetId: comment.targetId,
-      validatedAt: comment.validatedAt,
-      rejectionReason: comment.rejectionReason,
-      authorName: authorUser ? formatFullName(authorUser) : null,
-      authorUser,
-      studentName: studentUser ? formatFullName(studentUser) : null,
-      portfolioTitle: comment.portfolio?.title || null,
-      portfolio: comment.portfolio,
-      validatorUser: comment.validatorUser,
-    },
-  };
-};
-
-const mapRecommendationValidationItem = (recommendation) => {
-  const authorUser = recommendation.authorUser;
-  const studentUser = recommendation.student?.user;
-
-  return {
-    id: recommendation.id,
-    type: 'RECOMMENDATION_VALIDATION',
-    label: 'Recommendation validation',
-    requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
-    email: authorUser?.email || null,
-    organization: recommendation.organization || null,
-    createdAt: recommendation.createdAt,
-    tone: 'green',
-    status: recommendation.status,
-    raw: {
-      title: recommendation.title,
-      content: recommendation.content,
-      authorJobTitle: recommendation.authorJobTitle,
-      recommendationType: recommendation.recommendationType,
-      validatedAt: recommendation.validatedAt,
-      rejectionReason: recommendation.rejectionReason,
-      authorName: authorUser ? formatFullName(authorUser) : null,
-      authorUser,
-      studentName: studentUser ? formatFullName(studentUser) : null,
-      student: recommendation.student,
-      portfolioTitle: recommendation.portfolio?.title || null,
-      portfolio: recommendation.portfolio,
-      validatorUser: recommendation.validatorUser,
-    },
-  };
-};
-
-const extractFileNameFromUrl = (url, fallbackName) => {
-  if (!url) {
-    return fallbackName;
-  }
-
-  try {
-    const pathname = new URL(url).pathname;
-    const fileName = pathname.split('/').filter(Boolean).pop();
-    return fileName || fallbackName;
-  } catch (_) {
-    const fileName = String(url).split('/').filter(Boolean).pop();
-    return fileName || fallbackName;
-  }
-};
-
-const buildLegacyValidationStudent = (student, user, fallbackName, fallbackEmail = null) => ({
-  id: student?.id || null,
-  fullName: user ? formatFullName(user) : fallbackName || 'Utilisateur inconnu',
-  email: user?.email || fallbackEmail || null,
-  profilePicture: user?.profilePicture || null,
-  field: student?.major || null,
-  level: student?.level || null,
-  city: student?.city || null,
-});
-
-const buildLegacyValidationFiles = (url, fallbackName) =>
-  url
-    ? [
-        {
-          id: url,
-          name: extractFileNameFromUrl(url, fallbackName),
-          size: null,
-          url,
-        },
-      ]
-    : [];
-
-const buildLegacyValidationMediaFiles = (media = []) =>
-  Array.isArray(media)
-    ? media
-        .filter((item) => item?.mediaUrl)
-        .map((item, index) => ({
-          id: item.id || item.mediaUrl || `project-media-${index + 1}`,
-          name: extractFileNameFromUrl(
-            item.mediaUrl,
-            item.mediaType ? `${String(item.mediaType).toLowerCase()}-${index + 1}` : `media-${index + 1}`
-          ),
-          size: null,
-          url: item.mediaUrl,
-        }))
-    : [];
-
-const formatTechnologyLabel = (technology) =>
-  technology?.version ? `${technology.name} ${technology.version}` : technology?.name || null;
-
-const mapProjectValidationItem = (project) => {
-  const studentUser = project.student?.user;
-
-  return {
-    id: project.id,
-    type: 'PROJECT',
-    label: 'Project validation',
-    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
-    email: studentUser?.email || null,
-    organization: null,
-    createdAt: project.submittedAt || project.createdAt,
-    tone: 'green',
-    status: project.validationStatus,
-    raw: {
-      title: project.title,
-      description: project.description,
-      projectType: project.type,
-      teamRole: project.teamRole,
-      githubUrl: project.githubUrl,
-      youtubeUrl: project.youtubeUrl,
-      result: project.result,
-      generalFeedback: project.generalFeedback,
-      submittedAt: project.submittedAt,
-      createdAt: project.createdAt,
-      visibility: project.visibility,
-      student: project.student,
-      technologies: project.technologies,
-      media: project.media,
-    },
-  };
-};
-
-const mapInternshipValidationItem = (internship) => {
-  const studentUser = internship.student?.user;
-
-  return {
-    id: internship.id,
-    type: 'INTERNSHIP',
-    label: 'Internship validation',
-    requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
-    email: studentUser?.email || null,
-    organization: internship.hostOrganization || null,
-    createdAt: internship.startDate || internship.endDate || null,
-    tone: 'green',
-    status: internship.validationStatus,
-    raw: {
-      title: internship.hostOrganization ? `Stage - ${internship.hostOrganization}` : 'Stage',
-      description: internship.missions || null,
-      hostOrganization: internship.hostOrganization,
-      duration: internship.duration,
-      startDate: internship.startDate,
-      endDate: internship.endDate,
-      missions: internship.missions,
-      reportUrl: internship.reportUrl,
-      visibility: internship.visibility,
-      student: internship.student,
-      supervisorProfessor: internship.supervisorProfessor,
-      technologies: internship.technologies,
-    },
-  };
-};
-
-const mapValidationItemToLegacyShape = (item) => {
-  switch (item.type) {
-    case 'PROJECT': {
-      const student = item.raw?.student || null;
-      const studentUser = student?.user || null;
-      const title = item.raw?.title || 'Projet';
-
-      return {
-        id: item.id,
-        itemType: item.type,
-        targetType: 'PROJECT',
-        targetId: item.id,
-        title,
-        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
-        status: item.status,
-        submittedAt: item.raw?.submittedAt || item.createdAt,
-        description: item.raw?.description || 'Projet soumis pour validation.',
-        content: {
-          title,
-          description: item.raw?.description || null,
-          files: buildLegacyValidationMediaFiles(item.raw?.media),
-        },
-        targetDetails: {
-          technologies: (item.raw?.technologies || [])
-            .map((entry) => formatTechnologyLabel(entry.technology))
-            .filter(Boolean),
-          visibility: item.raw?.visibility || null,
-          createdAt: item.raw?.createdAt || null,
-        },
-        raw: item.raw,
-      };
-    }
-
-    case 'INTERNSHIP': {
-      const student = item.raw?.student || null;
-      const studentUser = student?.user || null;
-      const title = item.raw?.title || 'Stage';
-
-      return {
-        id: item.id,
-        itemType: item.type,
-        targetType: 'INTERNSHIP',
-        targetId: item.id,
-        title,
-        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
-        status: item.status,
-        submittedAt: item.raw?.startDate || item.createdAt,
-        description: item.raw?.description || item.raw?.missions || 'Stage soumis pour validation.',
-        content: {
-          title,
-          description: item.raw?.missions || item.raw?.description || null,
-          files: buildLegacyValidationFiles(item.raw?.reportUrl, 'rapport-stage'),
-        },
-        targetDetails: {
-          company: item.raw?.hostOrganization || item.organization || null,
-          startDate: item.raw?.startDate || null,
-          endDate: item.raw?.endDate || null,
-        },
-        raw: item.raw,
-      };
-    }
-
-    case 'CERTIFICATE_VALIDATION': {
-      const student = item.raw?.student || null;
-      const studentUser = student?.user || null;
-      const activity = item.raw?.activity || null;
-      const certificateId = item.raw?.certificateId || item.id;
-
-      return {
-        id: item.id,
-        itemType: item.type,
-        targetType: 'CERTIFICATE',
-        targetId: certificateId,
-        title: activity?.title || 'Certificat',
-        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
-        status: item.status,
-        submittedAt: item.raw?.submittedAt || item.createdAt,
-        description: activity?.description || 'Certificat soumis pour validation.',
-        content: {
-          title: activity?.title || 'Certificat',
-          description: activity?.description || null,
-          files: buildLegacyValidationFiles(item.raw?.documentUrl, 'certificat'),
-        },
-        targetDetails: {
-          issuer: activity?.organization || null,
-          issueDate: activity?.startDate || null,
-          expirationDate: activity?.endDate || null,
-          credentialUrl: item.raw?.documentUrl || null,
-        },
-        raw: item.raw,
-      };
-    }
-
-    case 'RECOMMENDATION_LETTER_VALIDATION': {
-      const student = item.raw?.student || null;
-      const studentUser = student?.user || null;
-      const title = item.raw?.title || 'Lettre de recommandation';
-
-      return {
-        id: item.id,
-        itemType: item.type,
-        targetType: 'ACTIVITY',
-        targetId: item.id,
-        title,
-        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
-        status: item.status,
-        submittedAt: item.createdAt,
-        description: item.raw?.content || null,
-        content: {
-          title,
-          description: item.raw?.content || null,
-          files: buildLegacyValidationFiles(item.raw?.documentUrl, 'recommendation-letter'),
-        },
-        targetDetails: {
-          organization: null,
-          role: item.raw?.authorName || null,
-          description: item.raw?.content || null,
-        },
-        raw: item.raw,
-      };
-    }
-
-    case 'COMMENT_VALIDATION': {
-      const student = item.raw?.portfolio?.student || null;
-      const studentUser = student?.user || null;
-      const title = item.raw?.title || 'Commentaire';
-
-      return {
-        id: item.id,
-        itemType: item.type,
-        targetType: 'ACTIVITY',
-        targetId: item.raw?.targetId || item.id,
-        title,
-        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
-        status: item.status,
-        submittedAt: item.createdAt,
-        description: item.raw?.content || null,
-        content: {
-          title,
-          description: item.raw?.content || null,
-          files: [],
-        },
-        targetDetails: {
-          organization: null,
-          role: item.requesterName || null,
-          description: item.raw?.content || null,
-        },
-        raw: item.raw,
-      };
-    }
-
-    case 'RECOMMENDATION_VALIDATION': {
-      const student = item.raw?.student || null;
-      const studentUser = student?.user || null;
-      const title = item.raw?.title || 'Recommendation';
-
-      return {
-        id: item.id,
-        itemType: item.type,
-        targetType: 'ACTIVITY',
-        targetId: item.id,
-        title,
-        student: buildLegacyValidationStudent(student, studentUser, item.requesterName, item.email),
-        status: item.status,
-        submittedAt: item.createdAt,
-        description: item.raw?.content || null,
-        content: {
-          title,
-          description: item.raw?.content || null,
-          files: [],
-        },
-        targetDetails: {
-          organization: item.raw?.organization || item.organization || null,
-          role: item.raw?.authorJobTitle || null,
-          description: item.raw?.content || null,
-        },
-        raw: item.raw,
-      };
-    }
-
-    default:
-      return {
-        id: item.id,
-        itemType: item.type,
-        targetType: 'ACTIVITY',
-        targetId: item.id,
-        title: item.label,
-        student: {
-          id: null,
-          fullName: item.requesterName,
-          email: item.email,
-          profilePicture: null,
-          field: null,
-          level: null,
-          city: null,
-        },
-        status: item.status,
-        submittedAt: item.createdAt,
-        description: null,
-        content: {
-          title: item.label,
-          description: null,
-          files: [],
-        },
-        targetDetails: {},
-        raw: item.raw,
-      };
-  }
-};
-
-const mapReportItem = (report) => {
-  const reporter = report.reporterUser;
-  const reviewer = report.reviewedByAdministrator?.user || null;
-  const reporterFullName = reporter ? formatFullName(reporter) : 'Utilisateur inconnu';
-  const displayStatus = report.status === 'APPROVED' ? 'RESOLVED' : report.status;
-
-  return {
-    id: report.id,
-    type: 'REPORT',
-    label: 'Report',
-    requesterName: reporterFullName,
-    email: reporter?.email || null,
-    organization: null,
-    createdAt: report.createdAt,
-    tone: 'red',
-    status: displayStatus,
-    targetType: report.targetType,
-    targetId: report.targetId,
-    reason: report.reason,
-    description: report.description,
-    reviewedAt: report.reviewedAt,
-    resolutionNote: report.resolutionNote,
-    reportedBy: {
-      id: reporter?.id || null,
-      fullName: reporterFullName,
-      email: reporter?.email || null,
-      phone: reporter?.phone || null,
-      profilePicture: reporter?.profilePicture || null,
-    },
-    reviewedBy: reviewer
-      ? {
-          id: reviewer.id,
-          fullName: formatFullName(reviewer),
-          email: reviewer.email || null,
-        }
-      : null,
-    raw: {
-      status: report.status,
-      targetType: report.targetType,
-      targetId: report.targetId,
-      reason: report.reason,
-      description: report.description,
-      reviewedAt: report.reviewedAt,
-      resolutionNote: report.resolutionNote,
-      reporterUser: reporter,
-      reviewerName: reviewer ? formatFullName(reviewer) : null,
-      reviewerUser: reviewer,
-    },
-  };
 };
 
 const buildUserSearch = (search) => {
@@ -1278,7 +490,10 @@ const paginateItems = (items, page = 1, limit = 10) => {
   };
 };
 
-const normalizeSearch = (value) => String(value || '').trim().toLowerCase();
+const normalizeSearch = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase();
 
 const normalizeRequiredText = (value) => (typeof value === 'string' ? value.trim() : '');
 
@@ -1289,6 +504,16 @@ const normalizeOptionalText = (value) => {
 
   const trimmed = value.trim();
   return trimmed || null;
+};
+
+const readTextValue = (payload, names) => {
+  for (const name of names) {
+    if (typeof payload?.[name] === 'string') {
+      return payload[name].trim() || null;
+    }
+  }
+
+  return null;
 };
 
 const normalizeBadgeTone = (value) => {
@@ -1397,221 +622,6 @@ const matchesValidationSearch = (item, search) => {
   return haystacks.some((value) => value.includes(normalizedSearch));
 };
 
-const getNotificationTone = (type, relatedType = null) => {
-  const effectiveType = relatedType || type;
-
-  switch (effectiveType) {
-    case 'ACCESS_REQUEST':
-      return 'orange';
-    case 'REPORT':
-      return 'red';
-    case 'SYSTEM':
-      return 'blue';
-    default:
-      return 'green';
-  }
-};
-
-const getNotificationLink = (type, relatedType = null) => {
-  const effectiveType = relatedType || type;
-
-  switch (effectiveType) {
-    case 'ACCESS_REQUEST':
-      return '/admin/dashboard';
-    case 'REPORT':
-      return '/admin/reports';
-    case 'CERTIFICATE_VALIDATION':
-    case 'RECOMMENDATION_LETTER_VALIDATION':
-    case 'COMMENT_VALIDATION':
-    case 'RECOMMENDATION_VALIDATION':
-      return '/admin/validations';
-    default:
-      return '/admin/notifications';
-  }
-};
-
-const getLegacyNotificationType = (type, relatedType = null) => {
-  const effectiveType = relatedType || type;
-
-  switch (effectiveType) {
-    case 'REPORT':
-      return 'ALERT';
-    case 'ACCESS_REQUEST':
-    case 'SYSTEM':
-      return 'INFO';
-    default:
-      return 'VALIDATION';
-  }
-};
-
-const mapNotificationItem = (notification) => ({
-  id: notification.id,
-  type: getLegacyNotificationType(notification.type, notification.relatedType),
-  notificationType: notification.type,
-  title: notification.title,
-  message: notification.message,
-  read: notification.isRead,
-  isRead: notification.isRead,
-  createdAt: notification.createdAt,
-  readAt: notification.readAt,
-  tone: getNotificationTone(notification.type, notification.relatedType),
-  link: getNotificationLink(notification.type, notification.relatedType),
-  target:
-    notification.relatedId && (notification.relatedType || notification.type)
-      ? {
-          itemType: notification.relatedType || notification.type,
-          itemId: notification.relatedId,
-        }
-      : null,
-  raw: {
-    administratorId: notification.administratorId,
-    notificationType: notification.type,
-    relatedType: notification.relatedType,
-    relatedId: notification.relatedId,
-  },
-});
-
-const buildProfessionalProfileData = (payload, accountStatus) => {
-  const isPendingApproval = accountStatus === 'PENDING';
-  const now = new Date();
-
-  return {
-    company: payload.company || null,
-    jobTitle: payload.jobTitle || null,
-    sector: payload.sector || null,
-    bio: payload.bio || null,
-    // An admin-created professional does not go through the public email verification flow.
-    isEmailVerified: true,
-    emailVerifiedAt: now,
-    // Pending accounts still require explicit admin approval before activation.
-    isVerified: !isPendingApproval,
-    approvedAt: isPendingApproval ? null : now,
-  };
-};
-
-const ensureValidRole = (role) => {
-  if (!USER_ROLES.includes(role)) {
-    throw new Error('INVALID_ROLE');
-  }
-};
-
-const ensureValidStatus = (status) => {
-  if (!ACCOUNT_STATUSES.includes(status)) {
-    throw new Error('INVALID_STATUS');
-  }
-};
-
-const buildRoleCreateData = (role, payload, accountStatus) => {
-  switch (role) {
-    case 'STUDENT':
-      if (!payload.major || !payload.level) {
-        throw new Error('MISSING_STUDENT_FIELDS');
-      }
-
-      return {
-        student: {
-          create: {
-            apogeeCode: payload.apogeeCode || null,
-            cne: payload.cne || null,
-            major: payload.major,
-            level: payload.level,
-            city: payload.city || null,
-            bio: payload.bio || null,
-            linkedinUrl: payload.linkedinUrl || null,
-          },
-        },
-      };
-
-    case 'PROFESSOR':
-      return {
-        professor: {
-          create: {
-            employeeId: payload.employeeId || null,
-            grade: payload.grade || null,
-            specialty: payload.specialty || null,
-            department: payload.department || null,
-          },
-        },
-      };
-
-    case 'ADMINISTRATOR':
-      return {
-        administrator: {
-          create: {
-            employeeId: payload.employeeId || null,
-            department: payload.department || null,
-            adminLevel: payload.adminLevel || null,
-          },
-        },
-      };
-
-    case 'PROFESSIONAL': {
-      return {
-        professional: {
-          create: buildProfessionalProfileData(payload, accountStatus),
-        },
-      };
-    }
-
-    default:
-      throw new Error('INVALID_ROLE');
-  }
-};
-
-const buildRoleUpdateData = (user, payload) => {
-  if (user.role === 'STUDENT') {
-    return {
-      model: 'student',
-      data: {
-        apogeeCode: payload.apogeeCode,
-        cne: payload.cne,
-        major: payload.major,
-        level: payload.level,
-        city: payload.city,
-        bio: payload.bio,
-        linkedinUrl: payload.linkedinUrl,
-      },
-    };
-  }
-
-  if (user.role === 'PROFESSOR') {
-    return {
-      model: 'professor',
-      data: {
-        employeeId: payload.employeeId,
-        grade: payload.grade,
-        specialty: payload.specialty,
-        department: payload.department,
-      },
-    };
-  }
-
-  if (user.role === 'ADMINISTRATOR') {
-    return {
-      model: 'administrator',
-      data: {
-        employeeId: payload.employeeId,
-        department: payload.department,
-        adminLevel: payload.adminLevel,
-      },
-    };
-  }
-
-  if (user.role === 'PROFESSIONAL') {
-    return {
-      model: 'professional',
-      data: {
-        company: payload.company,
-        jobTitle: payload.jobTitle,
-        sector: payload.sector,
-        bio: payload.bio,
-      },
-    };
-  }
-
-  return null;
-};
-
 const stripUndefined = (payload) =>
   Object.fromEntries(Object.entries(payload).filter(([, value]) => typeof value !== 'undefined'));
 
@@ -1628,153 +638,6 @@ const getUserOrThrow = async (userId) => {
   return user;
 };
 
-const certificateDetailSelect = {
-  id: true,
-  validationStatus: true,
-  submittedAt: true,
-  documentUrl: true,
-  activity: {
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      type: true,
-      organization: true,
-      startDate: true,
-      endDate: true,
-      student: {
-        select: {
-          id: true,
-          apogeeCode: true,
-          cne: true,
-          major: true,
-          level: true,
-          city: true,
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true,
-              profilePicture: true,
-            },
-          },
-        },
-      },
-    },
-  },
-};
-
-const projectValidationSelect = {
-  id: true,
-  title: true,
-  description: true,
-  type: true,
-  teamRole: true,
-  githubUrl: true,
-  youtubeUrl: true,
-  result: true,
-  generalFeedback: true,
-  createdAt: true,
-  submittedAt: true,
-  validationStatus: true,
-  visibility: true,
-  student: {
-    select: {
-      id: true,
-      apogeeCode: true,
-      cne: true,
-      major: true,
-      level: true,
-      city: true,
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          profilePicture: true,
-        },
-      },
-    },
-  },
-  technologies: {
-    select: {
-      technology: {
-        select: {
-          name: true,
-          version: true,
-        },
-      },
-    },
-  },
-  media: {
-    select: {
-      id: true,
-      mediaType: true,
-      mediaUrl: true,
-      description: true,
-    },
-  },
-};
-
-const internshipValidationSelect = {
-  id: true,
-  hostOrganization: true,
-  duration: true,
-  startDate: true,
-  endDate: true,
-  missions: true,
-  reportUrl: true,
-  validationStatus: true,
-  visibility: true,
-  student: {
-    select: {
-      id: true,
-      apogeeCode: true,
-      cne: true,
-      major: true,
-      level: true,
-      city: true,
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          profilePicture: true,
-        },
-      },
-    },
-  },
-  supervisorProfessor: {
-    select: {
-      id: true,
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-        },
-      },
-    },
-  },
-  technologies: {
-    select: {
-      technology: {
-        select: {
-          name: true,
-          version: true,
-        },
-      },
-    },
-  },
-};
-
 const getProfessionalRequestOrThrow = async (userId) => {
   const user = await safeReadWithFallback(
     () =>
@@ -1787,7 +650,7 @@ const getProfessionalRequestOrThrow = async (userId) => {
         where: { id: userId },
         select: professionalRequestLegacySelect,
       }),
-    null
+    null,
   );
 
   if (!user || user.role !== 'PROFESSIONAL' || !user.professional) {
@@ -1805,7 +668,7 @@ const getCertificateRequestOrThrow = async (certificateId) => {
         select: certificateDetailSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!certificate) {
@@ -1835,7 +698,7 @@ const getReportOrThrow = async (reportId) => {
         select: reportSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!report) {
@@ -1846,9 +709,7 @@ const getReportOrThrow = async (reportId) => {
 };
 
 const getNotificationOrThrow = async (notificationId, administratorId = null) => {
-  const scopeConditions = administratorId
-    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
-    : [];
+  const scopeConditions = administratorId ? [{ OR: [{ administratorId }, { administratorId: null }] }] : [];
 
   const notification = await safeReadWithFallback(
     () =>
@@ -1864,7 +725,7 @@ const getNotificationOrThrow = async (notificationId, administratorId = null) =>
         select: notificationSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!notification) {
@@ -1882,7 +743,7 @@ const getRecommendationLetterValidationOrThrow = async (letterId) => {
         select: recommendationLetterValidationSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!letter) {
@@ -1900,7 +761,7 @@ const getCommentValidationOrThrow = async (commentId) => {
         select: commentValidationSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!comment) {
@@ -1918,7 +779,7 @@ const getRecommendationValidationOrThrow = async (recommendationId) => {
         select: recommendationValidationSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!recommendation) {
@@ -1943,32 +804,23 @@ const deleteCurrentProfile = async (tx, user) => {
 const ensureRoleChangeAllowed = async (user) => {
   if (user.role === 'STUDENT' && user.student) {
     const relatedCount = await safeAggregateCount(async () => {
-      const [
-        projectCount,
-        internshipCount,
-        activityCount,
-        pathCount,
-        skillCount,
-        letterCount,
-        recommendationCount,
-      ] = await Promise.all([
-        prisma.project.count({ where: { studentId: user.student.id } }),
-        prisma.internship.count({ where: { studentId: user.student.id } }),
-        prisma.extracurricularActivity.count({ where: { studentId: user.student.id } }),
-        prisma.academicPath.count({ where: { studentId: user.student.id } }),
-        prisma.studentSkill.count({ where: { studentId: user.student.id } }),
-        prisma.recommendationLetter.count({ where: { studentId: user.student.id } }),
-        prisma.recommendation.count({ where: { studentId: user.student.id } }),
-      ]);
+      const [projectCount, internshipCount, activityCount, pathCount, skillCount, letterCount, recommendationCount] =
+        await Promise.all([
+          prisma.project.count({ where: { studentId: user.student.id } }),
+          prisma.internship.count({ where: { studentId: user.student.id } }),
+          prisma.extracurricularActivity.count({
+            where: { studentId: user.student.id },
+          }),
+          prisma.academicPath.count({ where: { studentId: user.student.id } }),
+          prisma.studentSkill.count({ where: { studentId: user.student.id } }),
+          prisma.recommendationLetter.count({
+            where: { studentId: user.student.id },
+          }),
+          prisma.recommendation.count({ where: { studentId: user.student.id } }),
+        ]);
 
       return (
-        projectCount +
-        internshipCount +
-        activityCount +
-        pathCount +
-        skillCount +
-        letterCount +
-        recommendationCount
+        projectCount + internshipCount + activityCount + pathCount + skillCount + letterCount + recommendationCount
       );
     });
 
@@ -1979,14 +831,17 @@ const ensureRoleChangeAllowed = async (user) => {
 
   if (user.role === 'PROFESSOR' && user.professor) {
     const relatedCount = await safeAggregateCount(async () => {
-      const [projectValidationCount, internshipValidationCount, supervisedInternshipCount] =
-        await Promise.all([
-          prisma.projectValidation.count({ where: { professorId: user.professor.id } }),
-          prisma.internshipValidation.count({ where: { professorId: user.professor.id } }),
-          prisma.internship.count({
-            where: { supervisorProfessorId: user.professor.id },
-          }),
-        ]);
+      const [projectValidationCount, internshipValidationCount, supervisedInternshipCount] = await Promise.all([
+        prisma.projectValidation.count({
+          where: { professorId: user.professor.id },
+        }),
+        prisma.internshipValidation.count({
+          where: { professorId: user.professor.id },
+        }),
+        prisma.internship.count({
+          where: { supervisorProfessorId: user.professor.id },
+        }),
+      ]);
 
       return projectValidationCount + internshipValidationCount + supervisedInternshipCount;
     });
@@ -1998,21 +853,20 @@ const ensureRoleChangeAllowed = async (user) => {
 
   if (user.role === 'ADMINISTRATOR' && user.administrator) {
     const relatedCount = await safeAggregateCount(async () => {
-      const [certificateValidationCount, approvedCount, rejectedCount, suspendedCount] =
-        await Promise.all([
-          prisma.certificateValidation.count({
-            where: { administratorId: user.administrator.id },
-          }),
-          prisma.professional.count({
-            where: { approvedByAdministratorId: user.administrator.id },
-          }),
-          prisma.professional.count({
-            where: { rejectedByAdministratorId: user.administrator.id },
-          }),
-          prisma.professional.count({
-            where: { suspendedByAdministratorId: user.administrator.id },
-          }),
-        ]);
+      const [certificateValidationCount, approvedCount, rejectedCount, suspendedCount] = await Promise.all([
+        prisma.certificateValidation.count({
+          where: { administratorId: user.administrator.id },
+        }),
+        prisma.professional.count({
+          where: { approvedByAdministratorId: user.administrator.id },
+        }),
+        prisma.professional.count({
+          where: { rejectedByAdministratorId: user.administrator.id },
+        }),
+        prisma.professional.count({
+          where: { suspendedByAdministratorId: user.administrator.id },
+        }),
+      ]);
 
       return certificateValidationCount + approvedCount + rejectedCount + suspendedCount;
     });
@@ -2082,11 +936,6 @@ const createProfileForRole = async (tx, userId, role, payload, accountStatus) =>
   }
 };
 
-const buildTemporaryPassword = () => {
-  const suffix = crypto.randomBytes(4).toString('hex');
-  return `Temp${suffix}Aa!1`;
-};
-
 const getPendingValidationCounts = async () => {
   const [
     pendingProjects,
@@ -2099,7 +948,11 @@ const getPendingValidationCounts = async () => {
     safeCount(() => prisma.project.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.internship.count({ where: { validationStatus: 'PENDING' } })),
     safeCount(() => prisma.certificate.count({ where: { validationStatus: 'PENDING' } })),
-    safeCount(() => prisma.recommendationLetter.count({ where: { validationStatus: 'PENDING' } })),
+    safeCount(() =>
+      prisma.recommendationLetter.count({
+        where: { validationStatus: 'PENDING' },
+      }),
+    ),
     safeCount(() => prisma.comment.count({ where: { status: 'PENDING' } })),
     safeCount(() => prisma.recommendation.count({ where: { status: 'PENDING' } })),
   ]);
@@ -2151,7 +1004,7 @@ const getRecentProfessionalRequests = async () =>
         take: 5,
         select: professionalRequestLegacySelect,
       }),
-    []
+    [],
   );
 
 const getRecentCertificateRequests = async () =>
@@ -2166,7 +1019,7 @@ const getRecentCertificateRequests = async () =>
         select: recentCertificateSelect,
       }),
     null,
-    []
+    [],
   );
 
 const getRecentReportItems = async () =>
@@ -2181,7 +1034,7 @@ const getRecentReportItems = async () =>
         select: reportSelect,
       }),
     null,
-    []
+    [],
   );
 
 const getRecentDashboardRequests = async () => {
@@ -2222,13 +1075,11 @@ const syncPendingAccessRequestNotifications = async () => {
         take: 100,
         select: professionalRequestLegacySelect,
       }),
-    []
+    [],
   );
 
   await Promise.all(
-    requests.map((request) =>
-      notificationService.ensurePendingItemNotification(mapDashboardAccessRequest(request))
-    )
+    requests.map((request) => notificationService.ensurePendingItemNotification(mapDashboardAccessRequest(request))),
   );
 };
 
@@ -2253,11 +1104,7 @@ const syncPendingValidationNotifications = async () => {
 const syncPendingReportNotifications = async () => {
   const reports = await loadReportItems('PENDING', null);
 
-  await Promise.all(
-    reports.map((report) =>
-      notificationService.ensurePendingItemNotification(mapReportItem(report))
-    )
-  );
+  await Promise.all(reports.map((report) => notificationService.ensurePendingItemNotification(mapReportItem(report))));
 };
 
 const syncAdminNotifications = async () => {
@@ -2286,7 +1133,7 @@ const getProfessionalRequestsList = async (where, skip, take) =>
         take,
         select: professionalRequestLegacySelect,
       }),
-    []
+    [],
   );
 
 const loadCertificateValidationItems = async (status) =>
@@ -2299,7 +1146,7 @@ const loadCertificateValidationItems = async (status) =>
         select: certificateDetailSelect,
       }),
     null,
-    []
+    [],
   );
 
 const loadProjectValidationItems = async (status) =>
@@ -2312,7 +1159,7 @@ const loadProjectValidationItems = async (status) =>
         select: projectValidationSelect,
       }),
     null,
-    []
+    [],
   );
 
 const loadInternshipValidationItems = async (status) =>
@@ -2325,7 +1172,7 @@ const loadInternshipValidationItems = async (status) =>
         select: internshipValidationSelect,
       }),
     null,
-    []
+    [],
   );
 
 const loadRecommendationLetterValidationItems = async (status) =>
@@ -2338,7 +1185,7 @@ const loadRecommendationLetterValidationItems = async (status) =>
         select: recommendationLetterValidationSelect,
       }),
     null,
-    []
+    [],
   );
 
 const loadCommentValidationItems = async (status) =>
@@ -2351,7 +1198,7 @@ const loadCommentValidationItems = async (status) =>
         select: commentValidationSelect,
       }),
     null,
-    []
+    [],
   );
 
 const loadRecommendationValidationItems = async (status) =>
@@ -2364,40 +1211,64 @@ const loadRecommendationValidationItems = async (status) =>
         select: recommendationValidationSelect,
       }),
     null,
-    []
+    [],
   );
 
 const resolveValidationItemTypeById = async (itemId) => {
   const [project, internship, certificate, letter, comment, recommendation] = await Promise.all([
     safeReadWithFallback(
-      () => prisma.project.findUnique({ where: { id: itemId }, select: { id: true } }),
+      () =>
+        prisma.project.findUnique({
+          where: { id: itemId },
+          select: { id: true },
+        }),
       null,
-      null
+      null,
     ),
     safeReadWithFallback(
-      () => prisma.internship.findUnique({ where: { id: itemId }, select: { id: true } }),
+      () =>
+        prisma.internship.findUnique({
+          where: { id: itemId },
+          select: { id: true },
+        }),
       null,
-      null
+      null,
     ),
     safeReadWithFallback(
-      () => prisma.certificate.findUnique({ where: { id: itemId }, select: { id: true } }),
+      () =>
+        prisma.certificate.findUnique({
+          where: { id: itemId },
+          select: { id: true },
+        }),
       null,
-      null
+      null,
     ),
     safeReadWithFallback(
-      () => prisma.recommendationLetter.findUnique({ where: { id: itemId }, select: { id: true } }),
+      () =>
+        prisma.recommendationLetter.findUnique({
+          where: { id: itemId },
+          select: { id: true },
+        }),
       null,
-      null
+      null,
     ),
     safeReadWithFallback(
-      () => prisma.comment.findUnique({ where: { id: itemId }, select: { id: true } }),
+      () =>
+        prisma.comment.findUnique({
+          where: { id: itemId },
+          select: { id: true },
+        }),
       null,
-      null
+      null,
     ),
     safeReadWithFallback(
-      () => prisma.recommendation.findUnique({ where: { id: itemId }, select: { id: true } }),
+      () =>
+        prisma.recommendation.findUnique({
+          where: { id: itemId },
+          select: { id: true },
+        }),
       null,
-      null
+      null,
     ),
   ]);
 
@@ -2424,7 +1295,7 @@ const loadReportItems = async (status, targetType) =>
         select: reportSelect,
       }),
     null,
-    []
+    [],
   );
 
 const approveProjectValidation = async (projectId, feedback = null) => {
@@ -2557,12 +1428,12 @@ const approveCertificateRequest = async (certificateId, administratorId, comment
 
   const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `La validation du certificat de ${
       updatedCertificate.activity?.student?.user
         ? formatFullName(updatedCertificate.activity.student.user)
-        : 'un etudiant'
-    } a ete approuvee.`,
+        : 'un étudiant'
+    } a été approuvée.`,
     relatedType: 'CERTIFICATE_VALIDATION',
     relatedId: certificateId,
   });
@@ -2594,12 +1465,12 @@ const rejectCertificateRequest = async (certificateId, administratorId, comment 
 
   const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `La validation du certificat de ${
       updatedCertificate.activity?.student?.user
         ? formatFullName(updatedCertificate.activity.student.user)
-        : 'un etudiant'
-    } a ete rejetee.`,
+        : 'un étudiant'
+    } a été rejetée.`,
     relatedType: 'CERTIFICATE_VALIDATION',
     relatedId: certificateId,
   });
@@ -2625,10 +1496,10 @@ const approveRecommendationLetterValidation = async (letterId, actorUserId) => {
 
   const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `La lettre de recommandation de ${
-      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
-    } a ete approuvee.`,
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un étudiant'
+    } a été approuvée.`,
     relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
     relatedId: letterId,
   });
@@ -2655,10 +1526,10 @@ const rejectRecommendationLetterValidation = async (letterId, actorUserId, rejec
 
   const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `La lettre de recommandation de ${
-      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
-    } a ete rejetee.`,
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un étudiant'
+    } a été rejetée.`,
     relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
     relatedId: letterId,
   });
@@ -2685,10 +1556,10 @@ const approveCommentValidation = async (commentId, actorUserId) => {
 
   const updatedComment = await getCommentValidationOrThrow(commentId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `Le commentaire de ${
       updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
-    } a ete approuve.`,
+    } a été approuvé.`,
     relatedType: 'COMMENT_VALIDATION',
     relatedId: commentId,
   });
@@ -2715,10 +1586,10 @@ const rejectCommentValidation = async (commentId, actorUserId, rejectionReason =
 
   const updatedComment = await getCommentValidationOrThrow(commentId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `Le commentaire de ${
       updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
-    } a ete rejete.`,
+    } a été rejeté.`,
     relatedType: 'COMMENT_VALIDATION',
     relatedId: commentId,
   });
@@ -2745,12 +1616,10 @@ const approveRecommendationValidation = async (recommendationId, actorUserId) =>
 
   const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `La recommandation de ${
-      updatedRecommendation.authorUser
-        ? formatFullName(updatedRecommendation.authorUser)
-        : 'un utilisateur'
-    } a ete approuvee.`,
+      updatedRecommendation.authorUser ? formatFullName(updatedRecommendation.authorUser) : 'un utilisateur'
+    } a été approuvée.`,
     relatedType: 'RECOMMENDATION_VALIDATION',
     relatedId: recommendationId,
   });
@@ -2758,11 +1627,7 @@ const approveRecommendationValidation = async (recommendationId, actorUserId) =>
   return mapRecommendationValidationItem(updatedRecommendation);
 };
 
-const rejectRecommendationValidation = async (
-  recommendationId,
-  actorUserId,
-  rejectionReason = null
-) => {
+const rejectRecommendationValidation = async (recommendationId, actorUserId, rejectionReason = null) => {
   const recommendation = await getRecommendationValidationOrThrow(recommendationId);
 
   if (recommendation.status !== 'PENDING') {
@@ -2781,12 +1646,10 @@ const rejectRecommendationValidation = async (
 
   const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `La recommandation de ${
-      updatedRecommendation.authorUser
-        ? formatFullName(updatedRecommendation.authorUser)
-        : 'un utilisateur'
-    } a ete rejetee.`,
+      updatedRecommendation.authorUser ? formatFullName(updatedRecommendation.authorUser) : 'un utilisateur'
+    } a été rejetée.`,
     relatedType: 'RECOMMENDATION_VALIDATION',
     relatedId: recommendationId,
   });
@@ -2794,11 +1657,7 @@ const rejectRecommendationValidation = async (
   return mapRecommendationValidationItem(updatedRecommendation);
 };
 
-const requestCertificateValidationChanges = async (
-  certificateId,
-  administratorId,
-  comment = null
-) => {
+const requestCertificateValidationChanges = async (certificateId, administratorId, comment = null) => {
   const certificate = await getValidationCertificateOrThrow(certificateId);
 
   if (certificate.validationStatus !== 'PENDING') {
@@ -2823,11 +1682,11 @@ const requestCertificateValidationChanges = async (
 
   const updatedCertificate = await getValidationCertificateOrThrow(certificateId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour le certificat de ${
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour le certificat de ${
       updatedCertificate.activity?.student?.user
         ? formatFullName(updatedCertificate.activity.student.user)
-        : 'un etudiant'
+        : 'un étudiant'
     }.`,
     relatedType: 'CERTIFICATE_VALIDATION',
     relatedId: certificateId,
@@ -2836,11 +1695,7 @@ const requestCertificateValidationChanges = async (
   return mapCertificateRequestDetail(updatedCertificate);
 };
 
-const requestRecommendationLetterValidationChanges = async (
-  letterId,
-  actorUserId,
-  comment = null
-) => {
+const requestRecommendationLetterValidationChanges = async (letterId, actorUserId, comment = null) => {
   const letter = await getRecommendationLetterValidationOrThrow(letterId);
 
   if (letter.validationStatus !== 'PENDING') {
@@ -2859,9 +1714,9 @@ const requestRecommendationLetterValidationChanges = async (
 
   const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour la lettre de recommandation de ${
-      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour la lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un étudiant'
     }.`,
     relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
     relatedId: letterId,
@@ -2870,11 +1725,7 @@ const requestRecommendationLetterValidationChanges = async (
   return mapRecommendationLetterValidationItem(updatedLetter);
 };
 
-const requestCommentValidationChanges = async (
-  commentId,
-  actorUserId,
-  commentText = null
-) => {
+const requestCommentValidationChanges = async (commentId, actorUserId, commentText = null) => {
   const comment = await getCommentValidationOrThrow(commentId);
 
   if (comment.status !== 'PENDING') {
@@ -2893,8 +1744,8 @@ const requestCommentValidationChanges = async (
 
   const updatedComment = await getCommentValidationOrThrow(commentId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour le commentaire de ${
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour le commentaire de ${
       updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
     }.`,
     relatedType: 'COMMENT_VALIDATION',
@@ -2904,11 +1755,7 @@ const requestCommentValidationChanges = async (
   return mapCommentValidationItem(updatedComment);
 };
 
-const requestRecommendationValidationChanges = async (
-  recommendationId,
-  actorUserId,
-  comment = null
-) => {
+const requestRecommendationValidationChanges = async (recommendationId, actorUserId, comment = null) => {
   const recommendation = await getRecommendationValidationOrThrow(recommendationId);
 
   if (recommendation.status !== 'PENDING') {
@@ -2927,67 +1774,15 @@ const requestRecommendationValidationChanges = async (
 
   const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour la recommandation de ${
-      updatedRecommendation.authorUser
-        ? formatFullName(updatedRecommendation.authorUser)
-        : 'un utilisateur'
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour la recommandation de ${
+      updatedRecommendation.authorUser ? formatFullName(updatedRecommendation.authorUser) : 'un utilisateur'
     }.`,
     relatedType: 'RECOMMENDATION_VALIDATION',
     relatedId: recommendationId,
   });
 
   return mapRecommendationValidationItem(updatedRecommendation);
-};
-
-const buildUserCredentialsEmail = ({ firstName, email, password, role, accountStatus }) => {
-  const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
-  const roleLabel = ROLE_LABELS[role] || role;
-  const statusLabel = STATUS_LABELS[accountStatus] || accountStatus;
-
-  return {
-    subject: 'Vos identifiants Credencia',
-    text: [
-      `Bonjour ${firstName},`,
-      '',
-      'Un compte Credencia a ete cree pour vous.',
-      '',
-      `Role : ${roleLabel}`,
-      `Statut du compte : ${statusLabel}`,
-      `Email : ${email}`,
-      `Mot de passe initial : ${password}`,
-      '',
-      `Connexion : ${loginUrl}`,
-      '',
-      'Si vous recevez plusieurs emails de credentials, utilisez uniquement le mot de passe du dernier message recu.',
-      '',
-      "Nous vous recommandons de changer votre mot de passe apres votre premiere connexion.",
-    ].join('\n'),
-  };
-};
-
-const buildPasswordResetEmail = ({ firstName, email, password, role }) => {
-  const loginUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`;
-  const roleLabel = ROLE_LABELS[role] || role;
-
-  return {
-    subject: 'Votre mot de passe Credencia a ete reinitialise',
-    text: [
-      `Bonjour ${firstName},`,
-      '',
-      'Votre mot de passe Credencia a ete reinitialise par un administrateur.',
-      '',
-      `Role : ${roleLabel}`,
-      `Email : ${email}`,
-      `Nouveau mot de passe temporaire : ${password}`,
-      '',
-      `Connexion : ${loginUrl}`,
-      '',
-      'Si vous recevez plusieurs emails de reinitialisation, utilisez uniquement le mot de passe du dernier message recu.',
-      '',
-      "Nous vous recommandons de changer votre mot de passe apres votre prochaine connexion.",
-    ].join('\n'),
-  };
 };
 
 exports.getDashboardData = async () => {
@@ -3011,7 +1806,7 @@ exports.getDashboardData = async () => {
           role: 'PROFESSIONAL',
           accountStatus: 'PENDING',
         },
-      })
+      }),
     ),
     getPendingValidationCounts(),
     safeCount(() => prisma.report.count({ where: { status: 'PENDING' } })),
@@ -3020,10 +1815,16 @@ exports.getDashboardData = async () => {
 
   return {
     summaryCards: {
-      totalUsers: { value: totalUsers, variation: 'Comptes enregistres' },
-      totalStudents: { value: totalStudents, variation: 'Profils etudiants' },
-      totalProfessors: { value: totalProfessors, variation: 'Profils professeurs' },
-      pendingRequests: { value: pendingRequests, variation: 'Demandes professionnelles' },
+      totalUsers: { value: totalUsers, variation: 'Comptes enregistrés' },
+      totalStudents: { value: totalStudents, variation: 'Profils étudiants' },
+      totalProfessors: {
+        value: totalProfessors,
+        variation: 'Profils professeurs',
+      },
+      pendingRequests: {
+        value: pendingRequests,
+        variation: 'Demandes professionnelles',
+      },
     },
     urgentActions: {
       pendingAccessRequests: pendingRequests,
@@ -3117,7 +1918,7 @@ const getProjectValidationOrThrow = async (projectId) => {
         select: projectValidationSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!project) {
@@ -3135,7 +1936,7 @@ const getInternshipValidationOrThrow = async (internshipId) => {
         select: internshipValidationSelect,
       }),
     null,
-    null
+    null,
   );
 
   if (!internship) {
@@ -3319,9 +2120,7 @@ exports.createUser = async (payload) => {
   }
 
   const providedPassword =
-    typeof payload.password === 'string' && payload.password.trim().length > 0
-      ? payload.password
-      : null;
+    typeof payload.password === 'string' && payload.password.trim().length > 0 ? payload.password : null;
   const initialPassword = providedPassword || buildTemporaryPassword();
   const passwordHash = await bcrypt.hash(initialPassword, BCRYPT_ROUNDS);
 
@@ -3474,30 +2273,6 @@ exports.updateUserRole = async (userId, role, payload = {}, currentUserId = null
   return exports.getUserById(userId);
 };
 
-exports.resetUserPassword = async (userId) => {
-  await getUserOrThrow(userId);
-
-  const temporaryPassword = buildTemporaryPassword();
-  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
-
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: userId },
-      data: { passwordHash },
-    });
-
-    await tx.refreshTokenSession.updateMany({
-      where: { userId, isRevoked: false },
-      data: { isRevoked: true, revokedAt: new Date() },
-    });
-  });
-
-  return {
-    userId,
-    temporaryPassword,
-  };
-};
-
 exports.deleteUser = async (userId, currentUserId) => {
   if (userId === currentUserId) {
     throw new Error('CANNOT_DELETE_SELF');
@@ -3600,8 +2375,8 @@ exports.approveProfessionalRequest = async (userId, administratorId) => {
 
   const updatedRequest = await exports.getProfessionalRequest(userId);
   await notificationService.createAdminActionNotification({
-    title: "Demande d'acces approuvee",
-    message: `La demande d'acces de ${updatedRequest.requesterName} a ete approuvee.`,
+    title: "Demande d'accès approuvée",
+    message: `La demande d'accès de ${updatedRequest.requesterName} a été approuvée.`,
     relatedType: 'ACCESS_REQUEST',
     relatedId: userId,
   });
@@ -3640,8 +2415,8 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
 
   const updatedRequest = await exports.getProfessionalRequest(userId);
   await notificationService.createAdminActionNotification({
-    title: "Demande d'acces rejetee",
-    message: `La demande d'acces de ${updatedRequest.requesterName} a ete rejetee.`,
+    title: "Demande d'accès rejetée",
+    message: `La demande d'accès de ${updatedRequest.requesterName} a été rejetée.`,
     relatedType: 'ACCESS_REQUEST',
     relatedId: userId,
   });
@@ -3665,9 +2440,7 @@ const buildValidationItems = async ({ type, status = 'PENDING', search } = {}) =
   }
 
   if (!normalizedType || normalizedType === 'INTERNSHIP') {
-    loaders.push(
-      loadInternshipValidationItems(status).then((items) => items.map(mapInternshipValidationItem))
-    );
+    loaders.push(loadInternshipValidationItems(status).then((items) => items.map(mapInternshipValidationItem)));
   }
 
   if (!normalizedType || normalizedType === 'CERTIFICATE_VALIDATION') {
@@ -3676,9 +2449,7 @@ const buildValidationItems = async ({ type, status = 'PENDING', search } = {}) =
 
   if (!normalizedType || normalizedType === 'RECOMMENDATION_LETTER_VALIDATION') {
     loaders.push(
-      loadRecommendationLetterValidationItems(status).then((items) =>
-        items.map(mapRecommendationLetterValidationItem)
-      )
+      loadRecommendationLetterValidationItems(status).then((items) => items.map(mapRecommendationLetterValidationItem)),
     );
   }
 
@@ -3687,11 +2458,7 @@ const buildValidationItems = async ({ type, status = 'PENDING', search } = {}) =
   }
 
   if (!normalizedType || normalizedType === 'RECOMMENDATION_VALIDATION') {
-    loaders.push(
-      loadRecommendationValidationItems(status).then((items) =>
-        items.map(mapRecommendationValidationItem)
-      )
-    );
+    loaders.push(loadRecommendationValidationItems(status).then((items) => items.map(mapRecommendationValidationItem)));
   }
 
   const mergedItems = (await Promise.all(loaders))
@@ -3706,7 +2473,11 @@ const buildValidationItems = async ({ type, status = 'PENDING', search } = {}) =
 };
 
 exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
-  const { type: normalizedType, items } = await buildValidationItems({ type, status, search });
+  const { type: normalizedType, items } = await buildValidationItems({
+    type,
+    status,
+    search,
+  });
   const paginated = paginateItems(items, page, limit);
 
   return {
@@ -3719,13 +2490,7 @@ exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit
   };
 };
 
-exports.listPendingValidationsLegacy = async ({
-  type,
-  status = 'PENDING',
-  page = 1,
-  limit = 10,
-  search,
-} = {}) => {
+exports.listPendingValidationsLegacy = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
   const normalizedLegacyType = type ? normalizeLegacyValidationType(type) : null;
 
   if (normalizedLegacyType) {
@@ -3790,9 +2555,7 @@ exports.getValidationItemDetail = async (itemType, itemId) => {
       return mapCertificateRequestDetail(await getValidationCertificateOrThrow(itemId));
 
     case 'RECOMMENDATION_LETTER_VALIDATION':
-      return mapRecommendationLetterValidationItem(
-        await getRecommendationLetterValidationOrThrow(itemId)
-      );
+      return mapRecommendationLetterValidationItem(await getRecommendationLetterValidationOrThrow(itemId));
 
     case 'COMMENT_VALIDATION':
       return mapCommentValidationItem(await getCommentValidationOrThrow(itemId));
@@ -3810,33 +2573,20 @@ exports.getLegacyValidationDetail = async (itemId) => {
   return mapValidationItemToLegacyShape(await exports.getValidationItemDetail(itemType, itemId));
 };
 
-exports.approveValidationItem = async (
-  itemType,
-  itemId,
-  actorUserId,
-  administratorId,
-  payload = {}
-) => {
+exports.approveValidationItem = async (itemType, itemId, actorUserId, administratorId, payload = {}) => {
   const normalizedType = normalizeValidationType(itemType);
   ensureValidValidationType(normalizedType);
 
   switch (normalizedType) {
     case 'PROJECT':
-      return approveProjectValidation(
-        itemId,
-        typeof payload.comment === 'string' ? payload.comment.trim() || null : null
-      );
+      return approveProjectValidation(itemId, readTextValue(payload, ['comment']));
 
     case 'INTERNSHIP':
       return approveInternshipValidation(itemId);
 
     case 'CERTIFICATE_VALIDATION':
       try {
-        return await approveCertificateRequest(
-          itemId,
-          administratorId,
-          typeof payload.comment === 'string' ? payload.comment.trim() || null : null
-        );
+        return await approveCertificateRequest(itemId, administratorId, readTextValue(payload, ['comment']));
       } catch (err) {
         if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
           throw new Error('VALIDATION_ITEM_NOT_FOUND', { cause: err });
@@ -3859,24 +2609,11 @@ exports.approveValidationItem = async (
   }
 };
 
-exports.rejectValidationItem = async (
-  itemType,
-  itemId,
-  actorUserId,
-  administratorId,
-  payload = {}
-) => {
+exports.rejectValidationItem = async (itemType, itemId, actorUserId, administratorId, payload = {}) => {
   const normalizedType = normalizeValidationType(itemType);
   ensureValidValidationType(normalizedType);
 
-  const normalizedReason =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim() || null
-      : typeof payload.rejectionReason === 'string'
-        ? payload.rejectionReason.trim() || null
-        : typeof payload.reason === 'string'
-          ? payload.reason.trim() || null
-          : null;
+  const normalizedReason = readTextValue(payload, ['comment', 'rejectionReason', 'reason']);
 
   switch (normalizedType) {
     case 'PROJECT':
@@ -3910,24 +2647,11 @@ exports.rejectValidationItem = async (
   }
 };
 
-exports.requestValidationChangesItem = async (
-  itemType,
-  itemId,
-  actorUserId,
-  administratorId,
-  payload = {}
-) => {
+exports.requestValidationChangesItem = async (itemType, itemId, actorUserId, administratorId, payload = {}) => {
   const normalizedType = normalizeValidationType(itemType);
   ensureValidValidationType(normalizedType);
 
-  const normalizedComment =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim() || null
-      : typeof payload.rejectionReason === 'string'
-        ? payload.rejectionReason.trim() || null
-        : typeof payload.reason === 'string'
-          ? payload.reason.trim() || null
-          : null;
+  const normalizedComment = readTextValue(payload, ['comment', 'rejectionReason', 'reason']);
 
   switch (normalizedType) {
     case 'PROJECT':
@@ -3995,7 +2719,6 @@ exports.resetUserPassword = async (userId) => {
     }
   });
 
- 
   try {
     const emailPayload = buildPasswordResetEmail({
       firstName: user.firstName,
@@ -4028,8 +2751,7 @@ exports.resetUserPassword = async (userId) => {
     temporaryPassword,
     credentialsSent: true,
   };
-}; 
-
+};
 
 exports.approveLegacyValidationItem = async (itemId, actorUserId, administratorId, payload = {}) => {
   const itemType = await resolveValidationItemTypeById(itemId);
@@ -4048,7 +2770,7 @@ exports.requestLegacyValidationChanges = async (itemId, actorUserId, administrat
     itemId,
     actorUserId,
     administratorId,
-    payload
+    payload,
   );
 
   return mapValidationItemToLegacyShape(updatedItem);
@@ -4081,9 +2803,24 @@ exports.listNotifications = async ({ administratorId, type, isRead, page = 1, li
               ? [
                   {
                     OR: [
-                      { title: { contains: normalizedSearch, mode: 'insensitive' } },
-                      { message: { contains: normalizedSearch, mode: 'insensitive' } },
-                      { relatedType: { contains: normalizedSearch, mode: 'insensitive' } },
+                      {
+                        title: {
+                          contains: normalizedSearch,
+                          mode: 'insensitive',
+                        },
+                      },
+                      {
+                        message: {
+                          contains: normalizedSearch,
+                          mode: 'insensitive',
+                        },
+                      },
+                      {
+                        relatedType: {
+                          contains: normalizedSearch,
+                          mode: 'insensitive',
+                        },
+                      },
                     ],
                   },
                 ]
@@ -4105,7 +2842,7 @@ exports.listNotifications = async ({ administratorId, type, isRead, page = 1, li
             : {}),
           isRead: false,
         },
-      })
+      }),
     ),
     safeCount(() =>
       prisma.notification.count({
@@ -4114,7 +2851,7 @@ exports.listNotifications = async ({ administratorId, type, isRead, page = 1, li
               AND: scopeConditions,
             }
           : undefined,
-      })
+      }),
     ),
     safeReadWithFallback(
       () =>
@@ -4126,11 +2863,10 @@ exports.listNotifications = async ({ administratorId, type, isRead, page = 1, li
           select: notificationSelect,
         }),
       null,
-      []
+      [],
     ),
   ]);
 
-  
   return {
     filters: {
       type: normalizedType,
@@ -4145,7 +2881,7 @@ exports.listNotifications = async ({ administratorId, type, isRead, page = 1, li
     items: notifications.map(mapNotificationItem),
     pagination: buildPagination(safePage, safeLimit, total),
   };
-}; 
+};
 
 exports.getUnreadNotificationsCount = async (administratorId) => {
   const scopeConditions = administratorId
@@ -4162,7 +2898,7 @@ exports.getUnreadNotificationsCount = async (administratorId) => {
             }
           : {}),
       },
-    })
+    }),
   );
 };
 
@@ -4251,9 +2987,7 @@ exports.markAllNotificationsAsRead = async (administratorId) => {
 exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit = 10, search } = {}) => {
   await syncPendingReportNotifications();
 
-  const normalizedTargetType = targetType
-    ? String(targetType).trim().toUpperCase().replace(/-/g, '_')
-    : null;
+  const normalizedTargetType = targetType ? String(targetType).trim().toUpperCase().replace(/-/g, '_') : null;
   const normalizedStatus = status ? String(status).trim().toUpperCase() : null;
 
   if (normalizedStatus) {
@@ -4265,9 +2999,7 @@ exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit =
   }
 
   const reports = await loadReportItems(normalizedStatus, normalizedTargetType);
-  const filteredReports = reports
-    .map(mapReportItem)
-    .filter((item) => matchesValidationSearch(item, search));
+  const filteredReports = reports.map(mapReportItem).filter((item) => matchesValidationSearch(item, search));
 
   const paginated = paginateItems(filteredReports, page, limit);
 
@@ -4285,7 +3017,7 @@ exports.getPendingReportsCount = async () =>
   safeCount(() =>
     prisma.report.count({
       where: { status: 'PENDING' },
-    })
+    }),
   );
 
 exports.getReportById = async (reportId) => mapReportItem(await getReportOrThrow(reportId));
@@ -4310,7 +3042,7 @@ exports.approveReport = async (reportId, administratorId, resolutionNote = null)
   const updatedReport = await exports.getReportById(reportId);
   await notificationService.createAdminActionNotification({
     title: 'Signalement approuve',
-    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete approuve.`,
+    message: `Le signalement lié à ${report.targetType.toLowerCase()} a été approuvé.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
@@ -4319,11 +3051,7 @@ exports.approveReport = async (reportId, administratorId, resolutionNote = null)
 };
 
 exports.resolveReportLegacy = async (reportId, administratorId, resolutionNote = null) =>
-  exports.approveReport(
-    reportId,
-    administratorId,
-    resolutionNote || 'Signalement marque comme traite.'
-  );
+  exports.approveReport(reportId, administratorId, resolutionNote || 'Signalement marqué comme traité.');
 
 exports.rejectReport = async (reportId, administratorId, resolutionNote = null) => {
   const report = await getReportOrThrow(reportId);
@@ -4345,7 +3073,7 @@ exports.rejectReport = async (reportId, administratorId, resolutionNote = null) 
   const updatedReport = await exports.getReportById(reportId);
   await notificationService.createAdminActionNotification({
     title: 'Signalement rejete',
-    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete rejete.`,
+    message: `Le signalement lié à ${report.targetType.toLowerCase()} a été rejeté.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
@@ -4370,8 +3098,8 @@ exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote 
     if (!appliedResolutionNote) {
       appliedResolutionNote =
         deletionOutcome === 'deleted'
-          ? 'Contenu signale supprime.'
-          : 'Signalement traite sans suppression automatique de la cible.';
+          ? 'Contenu signalé supprimé.'
+          : 'Signalement traité sans suppression automatique de la cible.';
     }
 
     await tx.report.update({
@@ -4387,14 +3115,11 @@ exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote 
 
   const updatedReport = await exports.getReportById(reportId);
   await notificationService.createAdminActionNotification({
-    title:
-      deletionOutcome === 'deleted'
-        ? 'Contenu signale supprime'
-        : 'Signalement traite',
+    title: deletionOutcome === 'deleted' ? 'Contenu signalé supprimé' : 'Signalement traité',
     message:
       deletionOutcome === 'deleted'
-        ? `Le contenu signale lie a ${report.targetType.toLowerCase()} a ete supprime.`
-        : `Le signalement lie a ${report.targetType.toLowerCase()} a ete traite sans suppression automatique de la cible.`,
+        ? `Le contenu signalé lié à ${report.targetType.toLowerCase()} a été supprimé.`
+        : `Le signalement lié à ${report.targetType.toLowerCase()} a été traité sans suppression automatique de la cible.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
@@ -4438,22 +3163,10 @@ exports.approveDashboardItem = async (itemType, itemId, administratorId, payload
       return exports.approveProfessionalRequest(itemId, administratorId);
 
     case 'CERTIFICATE_VALIDATION':
-      return approveCertificateRequest(
-        itemId,
-        administratorId,
-        typeof payload.comment === 'string' ? payload.comment.trim() || null : null
-      );
+      return approveCertificateRequest(itemId, administratorId, readTextValue(payload, ['comment']));
 
     case 'REPORT':
-      return exports.approveReport(
-        itemId,
-        administratorId,
-        typeof payload.resolutionNote === 'string'
-          ? payload.resolutionNote.trim() || null
-          : typeof payload.comment === 'string'
-            ? payload.comment.trim() || null
-            : null
-      );
+      return exports.approveReport(itemId, administratorId, readTextValue(payload, ['resolutionNote', 'comment']));
 
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
@@ -4466,14 +3179,7 @@ exports.rejectDashboardItem = async (itemType, itemId, administratorId, payload 
     .toUpperCase()
     .replace(/-/g, '_');
 
-  const normalizedComment =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim() || null
-      : typeof payload.rejectionReason === 'string'
-        ? payload.rejectionReason.trim() || null
-        : typeof payload.reason === 'string'
-          ? payload.reason.trim() || null
-          : null;
+  const normalizedComment = readTextValue(payload, ['comment', 'rejectionReason', 'reason']);
 
   switch (normalizedType) {
     case 'ACCESS_REQUEST':
