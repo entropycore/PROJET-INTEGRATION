@@ -1,32 +1,52 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import { stages, addStage, updateStage } from "@/mockData/studentStages.store";
+import {
+  getStudentStageById,
+  createStudentStage,
+  updateStudentStage,
+  submitStudentStageValidation,
+} from "@/services/studentstageService";
 
 import StageForm from "@/components/student/stages/StageForm.vue";
 
 const route = useRoute();
 const router = useRouter();
 
+const currentStage = ref(null);
 const isEditMode = computed(() => Boolean(route.params.id));
+const isLoading = ref(isEditMode.value);
 
-const currentStage = computed(() => {
-  if (!isEditMode.value) return null;
+const extractData = (response) => {
+  return response.data?.data || response.data;
+};
 
-  return stages.value.find((stage) => stage.id === route.params.id);
+const fetchStage = async () => {
+  if (!isEditMode.value) return;
+
+  isLoading.value = true;
+
+  try {
+    const response = await getStudentStageById(route.params.id);
+    currentStage.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement stage :", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStage();
 });
 
 const goBack = () => {
   router.push("/student/stages");
 };
 
-const createLocalStage = (payload, validationStatus = "DRAFT") => {
-  const today = new Date().toISOString().split("T")[0];
-
+const buildStagePayload = (payload) => {
   return {
-    id: isEditMode.value ? route.params.id : Date.now().toString(),
-
     title: payload.title,
     company: payload.company,
     duration: payload.duration,
@@ -36,142 +56,68 @@ const createLocalStage = (payload, validationStatus = "DRAFT") => {
     missions: payload.missions,
     supervisor: payload.supervisor,
     technologies: payload.technologies,
-    visibility: payload.visibility,
-    validationStatus,
 
-    reportUrl: payload.report
-      ? URL.createObjectURL(payload.report)
-      : currentStage.value?.reportUrl || "",
-
-    images: payload.images?.length
-      ? payload.images.map((image, index) => ({
-          id: index + 1,
-          title: image.name,
-          url: URL.createObjectURL(image),
-        }))
-      : currentStage.value?.images || [],
-
-    validationHistory: [
-      {
-        status: validationStatus,
-        comment:
-          validationStatus === "PENDING"
-            ? "Stage soumis pour validation."
-            : "Stage enregistré comme brouillon.",
-        createdAt: today,
-      },
-      ...(currentStage.value?.validationHistory || []),
-    ],
-
-    createdAt: currentStage.value?.createdAt || today,
-    updatedAt: today,
+    // RÈGLE MÉTIER :
+    // À la création/modification du formulaire, le stage reste privé.
+    // La visibilité PUBLIC sera gérée seulement après validation APPROVED
+    // depuis la page détails.
+    visibility: currentStage.value?.visibility || "PRIVATE",
   };
 };
 
-const handleSaveDraft = (payload) => {
-  /*
-  BACKEND PLUS TARD :
+const handleSaveDraft = async (payload) => {
+  try {
+    const stagePayload = buildStagePayload(payload);
 
-  const formData = new FormData()
+    if (isEditMode.value) {
+      await updateStudentStage(route.params.id, stagePayload);
+    } else {
+      await createStudentStage(stagePayload);
+    }
 
-  formData.append('title', payload.title)
-  formData.append('company', payload.company)
-  formData.append('duration', payload.duration)
-  formData.append('startDate', payload.startDate)
-  formData.append('endDate', payload.endDate)
-  formData.append('description', payload.description)
-  formData.append('missions', JSON.stringify(payload.missions))
-  formData.append('supervisor', JSON.stringify(payload.supervisor))
-  formData.append('technologies', JSON.stringify(payload.technologies))
-  formData.append('visibility', payload.visibility)
-
-  if (payload.report) {
-    formData.append('report', payload.report)
+    router.push("/student/stages");
+  } catch (error) {
+    console.error("Erreur sauvegarde brouillon :", error);
   }
-
-  payload.images.forEach((image) => {
-    formData.append('images', image)
-  })
-
-  if (isEditMode.value) {
-    await updateStudentStage(route.params.id, formData)
-  } else {
-    await createStudentStage(formData)
-  }
-
-  await fetchStages()
-  router.push('/student/stages')
-
-  À SUPPRIMER quand backend prêt :
-  - createLocalStage(...)
-  - addStage(...)
-  - updateStage(...)
-  */
-
-  const localStage = createLocalStage(payload, "DRAFT");
-
-  if (isEditMode.value) {
-    updateStage(localStage);
-  } else {
-    addStage(localStage);
-  }
-
-  router.push("/student/stages");
 };
 
-const handleSubmitValidation = (payload) => {
-  /*
-  BACKEND PLUS TARD :
+const handleSubmitValidation = async (payload) => {
+  try {
+    const stagePayload = buildStagePayload(payload);
 
-  const formData = new FormData()
+    let stageId = route.params.id;
 
-  formData.append('title', payload.title)
-  formData.append('company', payload.company)
-  formData.append('duration', payload.duration)
-  formData.append('startDate', payload.startDate)
-  formData.append('endDate', payload.endDate)
-  formData.append('description', payload.description)
-  formData.append('missions', JSON.stringify(payload.missions))
-  formData.append('supervisor', JSON.stringify(payload.supervisor))
-  formData.append('technologies', JSON.stringify(payload.technologies))
-  formData.append('visibility', payload.visibility)
+    if (isEditMode.value) {
+      await updateStudentStage(stageId, stagePayload);
+    } else {
+      const response = await createStudentStage(stagePayload);
+      const createdStage = extractData(response);
+      stageId = createdStage.id;
+    }
 
-  if (payload.report) {
-    formData.append('report', payload.report)
+    /*
+    BACKEND PDF PLUS TARD :
+    Quand le backend supportera réellement l’upload PDF :
+
+    const reportFormData = new FormData()
+    reportFormData.append("report", payload.report)
+    await uploadStudentStageReport(stageId, reportFormData)
+
+    Pour les images :
+    attendre une API backend dédiée, par exemple :
+    POST /student/stages/:id/images
+
+    Actuellement :
+    - create/update attend du JSON
+    - report/images ne sont pas envoyés ici
+    */
+
+    await submitStudentStageValidation(stageId);
+
+    router.push("/student/stages");
+  } catch (error) {
+    console.error("Erreur soumission validation :", error);
   }
-
-  payload.images.forEach((image) => {
-    formData.append('images', image)
-  })
-
-  let stageId = route.params.id
-
-  if (isEditMode.value) {
-    await updateStudentStage(stageId, formData)
-  } else {
-    const response = await createStudentStage(formData)
-    stageId = response.data.id
-  }
-
-  await submitStudentStageValidation(stageId)
-  await fetchStages()
-  router.push('/student/stages')
-
-  À SUPPRIMER quand backend prêt :
-  - createLocalStage(...)
-  - addStage(...)
-  - updateStage(...)
-  */
-
-  const localStage = createLocalStage(payload, "PENDING");
-
-  if (isEditMode.value) {
-    updateStage(localStage);
-  } else {
-    addStage(localStage);
-  }
-
-  router.push("/student/stages");
 };
 </script>
 
@@ -196,7 +142,12 @@ const handleSubmitValidation = (payload) => {
       </p>
     </div>
 
+    <div v-if="isLoading" class="loading-state">
+      Chargement du stage...
+    </div>
+
     <StageForm
+      v-else
       :initial-stage="currentStage"
       @save-draft="handleSaveDraft"
       @submit-validation="handleSubmitValidation"
@@ -244,6 +195,16 @@ p {
   line-height: 1.6;
   margin: 0;
   max-width: 46rem;
+}
+
+.loading-state {
+  background: #ffffff;
+  border: 1px solid #dee1dd;
+  border-radius: 0.875rem;
+  padding: 1.5rem;
+  color: #6d9197;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 @media (max-width: 700px) {

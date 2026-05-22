@@ -1,39 +1,67 @@
 <script setup>
-import { computed, ref } from "vue";
-import StageImagesModal from "@/components/student/stages/StageImagesModal.vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import { stages } from "@/mockData/studentStages.store";
+import StageImagesModal from "@/components/student/stages/StageImagesModal.vue";
+
+import {
+  getStudentStageById,
+  updateStudentStageVisibility,
+} from "@/services/studentstageService";
 
 const route = useRoute();
 const router = useRouter();
 
-const stage = computed(() => {
-  return stages.value.find((item) => item.id === route.params.id);
+const stage = ref(null);
+const isLoading = ref(false);
+
+const extractData = (response) => {
+  return response.data?.data || response.data;
+};
+
+const fetchStage = async () => {
+  isLoading.value = true;
+
+  try {
+    const response = await getStudentStageById(route.params.id);
+    stage.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement détail stage :", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStage();
 });
 
 const canEditStage = computed(() => {
-  return ["DRAFT", "PENDING", "CORRECTION_REQUIRED"].includes(
-    stage.value?.validationStatus,
-  );
+  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+});
+
+const stageStatus = computed(() => {
+  return String(stage.value?.validationStatus || "PENDING")
+    .trim()
+    .toUpperCase();
 });
 
 const statusText = computed(() => {
   if (!stage.value) return "";
 
-  if (stage.value.validationStatus === "APPROVED") {
-    return `Validé par ${stage.value.supervisor.fullName}`;
+  if (stageStatus.value === "APPROVED") {
+    return `Validé par ${stage.value.supervisor?.fullName || "l’encadrant"}`;
   }
 
-  if (stage.value.validationStatus === "PENDING") {
+  if (stageStatus.value === "PENDING") {
     return "En attente de validation";
   }
 
-  if (stage.value.validationStatus === "DRAFT") {
+  if (stageStatus.value === "DRAFT") {
     return "Brouillon";
   }
 
-  if (stage.value.validationStatus === "REJECTED") {
+  if (stageStatus.value === "REJECTED") {
     return "Refusé";
   }
 
@@ -41,8 +69,13 @@ const statusText = computed(() => {
 });
 
 const statusClass = computed(() => {
-  return stage.value?.validationStatus || "PENDING";
+  return stageStatus.value;
 });
+
+const formatDate = (value) => {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+};
 
 const getTimelineTitle = (status) => {
   const titles = {
@@ -51,17 +84,14 @@ const getTimelineTitle = (status) => {
     APPROVED: "Stage validé",
     REJECTED: "Stage refusé",
     CORRECTION_REQUIRED: "Correction demandée",
+    CHANGES_REQUESTED: "Correction demandée",
   };
 
   return titles[status] || "Mise à jour";
 };
 
-const getTimelineAuthor = (status) => {
-  if (status === "APPROVED") return "Encadrant académique";
-  if (status === "REJECTED") return "Encadrant académique";
-  if (status === "CORRECTION_REQUIRED") return "Encadrant académique";
-
-  return "Étudiant";
+const getTimelineAuthor = (item) => {
+  return item.actorName || item.actorRole || "Étudiant";
 };
 
 const getTimelineIcon = (status) => {
@@ -71,11 +101,12 @@ const getTimelineIcon = (status) => {
     APPROVED: "check_circle",
     REJECTED: "cancel",
     CORRECTION_REQUIRED: "priority_high",
+    CHANGES_REQUESTED: "priority_high",
   };
 
   return icons[status] || "history";
 };
-//pour la boite modal des images
+
 const showImagesModal = ref(false);
 
 const visibleImages = computed(() => {
@@ -94,6 +125,24 @@ const closeImagesModal = () => {
   showImagesModal.value = false;
 };
 
+const toggleVisibility = async () => {
+  if (!stage.value || stage.value.validationStatus !== "APPROVED") return;
+
+  const newVisibility =
+    stage.value.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC";
+
+  try {
+    const response = await updateStudentStageVisibility(
+      stage.value.id,
+      newVisibility,
+    );
+
+    stage.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur changement visibilité :", error);
+  }
+};
+
 const goBack = () => {
   router.push("/student/stages");
 };
@@ -104,273 +153,261 @@ const goToEdit = () => {
 </script>
 
 <template>
-  <section v-if="stage" class="stage-details-page">
-    <button class="back-btn" @click="goBack">
-      <span class="material-icons-round">arrow_back</span>
-      Retour aux stages
-    </button>
-
-    <!-- HEADER -->
-
-    <div class="hero-card">
-      <div>
-        <h1>{{ stage.title }}</h1>
-
-        <div class="company-line">
-          <span class="material-icons-round">business_center</span>
-
-          <strong>{{ stage.company }}</strong>
-        </div>
-      </div>
-
-      <button v-if="canEditStage" class="edit-btn" @click="goToEdit">
-        <span class="material-icons-round">edit</span>
-        Modifier
-      </button>
+  <section class="stage-details-page">
+    <div v-if="isLoading" class="content-card">
+      Chargement du stage...
     </div>
 
-    <!-- CONTENT -->
+    <div v-else-if="!stage" class="content-card">
+      Stage introuvable.
+    </div>
 
-    <div class="details-layout">
-      <main class="main-column">
-        <!-- DESCRIPTION -->
+    <template v-else>
+      <button class="back-btn" @click="goBack">
+        <span class="material-icons-round">arrow_back</span>
+        Retour aux stages
+      </button>
 
-        <div class="content-card">
-          <h2>
-            <span class="material-icons-round">description</span>
-            Description complète
-          </h2>
+      <div class="hero-card">
+        <div>
+          <h1>{{ stage.title }}</h1>
 
-          <p class="description-text">
-            {{ stage.description }}
-          </p>
-
-          <div class="divider"></div>
-
-          <h3>
-            <span class="material-icons-round">code</span>
-            Technologies
-          </h3>
-
-          <div class="tech-list">
-            <span
-              v-for="tech in stage.technologies"
-              :key="tech"
-              class="tech-tag"
-            >
-              {{ tech }}
-            </span>
+          <div class="company-line">
+            <span class="material-icons-round">business_center</span>
+            <strong>{{ stage.company }}</strong>
           </div>
         </div>
 
-        <!-- IMAGES -->
+        <button v-if="canEditStage" class="edit-btn" @click="goToEdit">
+          <span class="material-icons-round">edit</span>
+          Modifier
+        </button>
+      </div>
 
-        <div class="content-card">
-          <div class="section-header">
+      <div class="details-layout">
+        <main class="main-column">
+          <div class="content-card">
             <h2>
-              <span class="material-icons-round">image</span>
-              Captures d’écran
+              <span class="material-icons-round">description</span>
+              Description complète
             </h2>
 
+            <p class="description-text">
+              {{ stage.description }}
+            </p>
+
+            <div class="divider"></div>
+
+            <h3>
+              <span class="material-icons-round">code</span>
+              Technologies
+            </h3>
+
+            <div class="tech-list">
+              <span
+                v-for="tech in stage.technologies || []"
+                :key="tech"
+                class="tech-tag"
+              >
+                {{ tech }}
+              </span>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <div class="section-header">
+              <h2>
+                <span class="material-icons-round">image</span>
+                Captures d’écran
+              </h2>
+
+              <button
+                v-if="hasMoreImages"
+                class="view-all-btn"
+                @click="openImagesModal"
+              >
+                Voir toutes les images
+              </button>
+            </div>
+
+            <div v-if="stage.images?.length" class="screens-grid">
+              <div
+                v-for="image in visibleImages"
+                :key="image.id"
+                class="screen-card"
+              >
+                <img :src="image.url" :alt="image.title" />
+                <span>{{ image.title }}</span>
+              </div>
+            </div>
+
+            <div v-else class="empty-screens">
+              <span class="material-icons-round">image_not_supported</span>
+              <p>Aucune capture d’écran ajoutée pour ce stage.</p>
+            </div>
+          </div>
+
+          <div class="content-card">
+            <h2>
+              <span class="material-icons-round">task_alt</span>
+              Missions réalisées
+            </h2>
+
+            <ul class="missions-list">
+              <li v-for="mission in stage.missions || []" :key="mission">
+                {{ mission }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="content-card">
+            <h2>
+              <span class="material-icons-round">timeline</span>
+              Historique de validation
+            </h2>
+
+            <div class="timeline">
+              <div
+                v-for="item in stage.validationHistory || []"
+                :key="item.id || item.createdAt"
+                class="timeline-item"
+              >
+                <div class="timeline-icon" :class="item.status">
+                  <span class="material-icons-round">
+                    {{ getTimelineIcon(item.status) }}
+                  </span>
+                </div>
+
+                <div class="timeline-card">
+                  <div class="timeline-header">
+                    <div>
+                      <h4>
+                        {{ item.title || getTimelineTitle(item.status) }}
+                      </h4>
+
+                      <span>
+                        {{ getTimelineAuthor(item) }}
+                      </span>
+                    </div>
+
+                    <time>
+                      {{ formatDate(item.createdAt) }}
+                    </time>
+                  </div>
+
+                  <p>
+                    {{ item.comment }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <aside class="side-column">
+          <div class="side-card">
+            <h3>
+              <span class="material-icons-round">info</span>
+              Informations générales
+            </h3>
+
+            <div class="info-row">
+              <span>Statut</span>
+
+              <strong class="status-info" :class="statusClass">
+                <span class="status-dot"></span>
+                {{ statusText }}
+              </strong>
+            </div>
+
+            <div class="info-row">
+              <span>Durée</span>
+              <strong>{{ stage.duration }}</strong>
+            </div>
+
+            <div class="info-row">
+              <span>Date début</span>
+              <strong>{{ formatDate(stage.startDate) }}</strong>
+            </div>
+
+            <div class="info-row">
+              <span>Date fin</span>
+              <strong>{{ formatDate(stage.endDate) }}</strong>
+            </div>
+
+            <div class="info-row">
+              <span>Visibilité</span>
+
+              <strong>
+                <span class="material-icons-round small-icon">
+                  {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
+                </span>
+
+                {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
+              </strong>
+            </div>
+
             <button
-              v-if="hasMoreImages"
-              class="view-all-btn"
-              @click="openImagesModal"
+              v-if="stage.validationStatus === 'APPROVED'"
+              class="portfolio-btn"
+              @click="toggleVisibility"
             >
-              Voir toutes les images
+              <span class="material-icons-round">
+                {{ stage.visibility === "PUBLIC" ? "visibility_off" : "public" }}
+              </span>
+
+              {{
+                stage.visibility === "PUBLIC"
+                  ? "Retirer du portfolio"
+                  : "Afficher dans le portfolio"
+              }}
             </button>
           </div>
 
-          <div v-if="stage.images?.length" class="screens-grid">
-            <div
-              v-for="image in visibleImages"
-              :key="image.id"
-              class="screen-card"
-            >
-              <img :src="image.url" :alt="image.title" />
-              <span>{{ image.title }}</span>
+          <div class="side-card">
+            <h3>
+              <span class="material-icons-round">person</span>
+              Encadrant
+            </h3>
+
+            <div class="info-row">
+              <span>Nom complet</span>
+              <strong>{{ stage.supervisor?.fullName }}</strong>
+            </div>
+
+            <div class="info-row">
+              <span>Département</span>
+              <strong>{{ stage.supervisor?.department }}</strong>
             </div>
           </div>
 
-          <div v-else class="empty-screens">
-            <span class="material-icons-round">image_not_supported</span>
-            <p>Aucune capture d’écran ajoutée pour ce stage.</p>
-          </div>
-        </div>
+          <div class="side-card">
+            <h3>
+              <span class="material-icons-round"> picture_as_pdf </span>
+              Rapport PDF
+            </h3>
 
-        <!-- MISSIONS -->
-
-        <div class="content-card">
-          <h2>
-            <span class="material-icons-round">task_alt</span>
-            Missions réalisées
-          </h2>
-
-          <ul class="missions-list">
-            <li v-for="mission in stage.missions" :key="mission">
-              {{ mission }}
-            </li>
-          </ul>
-        </div>
-
-        <!-- TIMELINE -->
-
-        <div class="content-card">
-          <h2>
-            <span class="material-icons-round">timeline</span>
-            Historique de validation
-          </h2>
-
-          <div class="timeline">
-            <div
-              v-for="item in stage.validationHistory"
-              :key="item.createdAt"
-              class="timeline-item"
+            <a
+              v-if="stage.reportUrl"
+              :href="stage.reportUrl"
+              target="_blank"
+              class="report-btn"
             >
-              <div class="timeline-icon" :class="item.status">
-                <span class="material-icons-round">
-                  {{ getTimelineIcon(item.status) }}
-                </span>
-              </div>
+              <span class="material-icons-round"> open_in_new </span>
+              Voir le rapport
+            </a>
 
-              <div class="timeline-card">
-                <div class="timeline-header">
-                  <div>
-                    <h4>
-                      {{ getTimelineTitle(item.status) }}
-                    </h4>
-
-                    <span>
-                      {{ getTimelineAuthor(item.status) }}
-                    </span>
-                  </div>
-
-                  <time>
-                    {{ item.createdAt }}
-                  </time>
-                </div>
-
-                <p>
-                  {{ item.comment }}
-                </p>
-              </div>
-            </div>
+            <p v-else class="muted">Aucun rapport ajouté.</p>
           </div>
-        </div>
-      </main>
+        </aside>
+      </div>
 
-      <!-- SIDEBAR -->
-
-      <aside class="side-column">
-        <!-- INFOS -->
-
-        <div class="side-card">
-          <h3>
-            <span class="material-icons-round">info</span>
-            Informations générales
-          </h3>
-
-          <div class="info-row">
-            <span>Statut</span>
-
-            <strong class="status-info" :class="statusClass">
-              <span class="status-dot"></span>
-              {{ statusText }}
-            </strong>
-          </div>
-
-          <div class="info-row">
-            <span>Durée</span>
-
-            <strong>
-              {{ stage.duration }}
-            </strong>
-          </div>
-
-          <div class="info-row">
-            <span>Date début</span>
-
-            <strong>
-              {{ stage.startDate }}
-            </strong>
-          </div>
-
-          <div class="info-row">
-            <span>Date fin</span>
-
-            <strong>
-              {{ stage.endDate }}
-            </strong>
-          </div>
-
-          <div class="info-row">
-            <span>Visibilité</span>
-
-            <strong>
-              <span class="material-icons-round small-icon">
-                {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
-              </span>
-
-              {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
-            </strong>
-          </div>
-        </div>
-
-        <!-- SUPERVISOR -->
-
-        <div class="side-card">
-          <h3>
-            <span class="material-icons-round">person</span>
-            Encadrant
-          </h3>
-
-          <div class="info-row">
-            <span>Nom complet</span>
-
-            <strong>
-              {{ stage.supervisor.fullName }}
-            </strong>
-          </div>
-
-          <div class="info-row">
-            <span>Département</span>
-
-            <strong>
-              {{ stage.supervisor.department }}
-            </strong>
-          </div>
-        </div>
-
-        <!-- PDF -->
-
-        <div class="side-card">
-          <h3>
-            <span class="material-icons-round"> picture_as_pdf </span>
-
-            Rapport PDF
-          </h3>
-
-          <a
-            v-if="stage.reportUrl"
-            :href="stage.reportUrl"
-            target="_blank"
-            class="report-btn"
-          >
-            <span class="material-icons-round"> open_in_new </span>
-
-            Voir le rapport
-          </a>
-
-          <p v-else class="muted">Aucun rapport ajouté.</p>
-        </div>
-      </aside>
-    </div>
-    <!-- modal de image -->
-    <StageImagesModal
-      v-if="showImagesModal"
-      :images="stage.images"
-      @close="closeImagesModal"
-    />
+      <StageImagesModal
+        v-if="showImagesModal"
+        :images="stage.images"
+        @close="closeImagesModal"
+      />
+    </template>
   </section>
 </template>
 
@@ -851,6 +888,37 @@ h3 .material-icons-round {
 
 .section-header h2 {
   margin-bottom: 0;
+}
+.portfolio-btn {
+  width: 100%;
+  min-height: 2.75rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  margin-top: 1rem;
+
+  border: none;
+  border-radius: 0.7rem;
+
+  background: #2f575d;
+  color: #ffffff;
+
+  font-size: 0.9rem;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.portfolio-btn:hover {
+  background: #26494d;
+}
+
+.portfolio-btn .material-icons-round {
+  color: #ffffff;
+  font-size: 1.1rem;
 }
 
 .view-all-btn {
