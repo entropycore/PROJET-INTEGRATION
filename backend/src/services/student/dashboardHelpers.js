@@ -14,8 +14,8 @@ const BADGE_CATALOG = [
   {
     id: 'web-developer',
     name: 'Web Developer',
-    description: 'Badge pour les etudiants actifs en developpement web.',
-    rule: '3 projets valides',
+    description: 'Badge pour les étudiants actifs en développement web.',
+    rule: '3 projets validés',
     iconUrl: '',
     iconFallback: 'WD',
     tone: 'blue',
@@ -25,7 +25,7 @@ const BADGE_CATALOG = [
   {
     id: 'devops-explorer',
     name: 'DevOps Explorer',
-    description: 'Badge lie aux outils DevOps.',
+    description: 'Badge lié aux outils DevOps.',
     rule: '2 projets avec plusieurs technologies',
     iconUrl: '',
     iconFallback: 'DX',
@@ -36,8 +36,8 @@ const BADGE_CATALOG = [
   {
     id: 'hackathon-participant',
     name: 'Hackathon Participant',
-    description: 'Badge pour participation aux evenements.',
-    rule: '1 activite de type hackathon',
+    description: 'Badge pour participation aux événements.',
+    rule: '1 activité de type hackathon',
     iconUrl: '',
     iconFallback: 'HP',
     tone: 'purple',
@@ -47,8 +47,8 @@ const BADGE_CATALOG = [
   {
     id: 'full-stack-developer',
     name: 'Full Stack Developer',
-    description: 'Badge lie aux competences frontend et backend.',
-    rule: '2 projets valides avec plusieurs technologies',
+    description: 'Badge lié aux compétences frontend et backend.',
+    rule: '2 projets validés avec plusieurs technologies',
     iconUrl: '',
     iconFallback: 'FS',
     tone: 'green',
@@ -58,8 +58,8 @@ const BADGE_CATALOG = [
   {
     id: 'security-aware',
     name: 'Security Aware',
-    description: 'Badge lie aux bonnes pratiques de securite.',
-    rule: '1 projet valide documente',
+    description: 'Badge lié aux bonnes pratiques de sécurité.',
+    rule: '1 projet validé documenté',
     iconUrl: '',
     iconFallback: 'SA',
     tone: 'red',
@@ -69,8 +69,8 @@ const BADGE_CATALOG = [
   {
     id: 'ai-data',
     name: 'AI / Data',
-    description: 'Badge lie aux projets IA ou Data Science.',
-    rule: '1 projet ou activite de type data valide',
+    description: 'Badge lié aux projets IA ou Data Science.',
+    rule: '1 projet ou activité de type data validé',
     iconUrl: '',
     iconFallback: 'AI',
     tone: 'orange',
@@ -144,7 +144,7 @@ const buildCredibility = (stats, profileCompletionRate) => {
 
   const score = details.reduce((total, item) => total + item.value, 0);
 
-  let label = 'Debutant';
+  let label = 'Débutant';
   if (score >= 80) label = 'Excellent';
   else if (score >= 60) label = 'Solide';
   else if (score >= 40) label = 'En progression';
@@ -204,8 +204,8 @@ const buildDashboardNotifications = (stats) => {
   if (stats.badgesCount > 0) {
     notifications.push({
       id: 'student-badges',
-      title: 'Badge debloque',
-      message: `${stats.badgesCount} badge(s) deja obtenu(s) sur votre espace etudiant.`,
+      title: 'Badge débloqué',
+      message: `${stats.badgesCount} badge(s) déjà obtenu(s) sur votre espace étudiant.`,
       type: 'BADGE',
       read: true,
       createdAt: now,
@@ -215,8 +215,8 @@ const buildDashboardNotifications = (stats) => {
   if (stats.validatedProjects > 0) {
     notifications.push({
       id: 'validated-projects',
-      title: 'Projet valide',
-      message: `${stats.validatedProjects} projet(s) valide(s) peuvent enrichir votre portfolio.`,
+      title: 'Projet validé',
+      message: `${stats.validatedProjects} projet(s) validé(s) peuvent enrichir votre portfolio.`,
       type: 'SUCCESS',
       read: true,
       createdAt: now,
