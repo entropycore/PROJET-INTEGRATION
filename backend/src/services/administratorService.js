@@ -1262,7 +1262,7 @@ const deleteReportTargetRecord = async (tx, report) => {
     }
   } catch (err) {
     if (err?.code === 'P2025') {
-      throw new Error('REPORT_TARGET_NOT_FOUND');
+      throw new Error('REPORT_TARGET_NOT_FOUND', { cause: err });
     }
 
     throw err;
@@ -1329,7 +1329,7 @@ const getBadgeOrThrow = async (badgeId) => {
     });
   } catch (err) {
     if (isStructureMissingError(err)) {
-      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+      throw new Error('BADGE_FEATURE_UNAVAILABLE', { cause: err });
     }
 
     throw err;
@@ -1363,7 +1363,7 @@ const ensureUniqueBadgeName = async (name, excludedBadgeId = null) => {
     }
   } catch (err) {
     if (isStructureMissingError(err)) {
-      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+      throw new Error('BADGE_FEATURE_UNAVAILABLE', { cause: err });
     }
 
     throw err;
@@ -1820,7 +1820,7 @@ const getValidationCertificateOrThrow = async (certificateId) => {
     return await getCertificateRequestOrThrow(certificateId);
   } catch (err) {
     if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
-      throw new Error('VALIDATION_ITEM_NOT_FOUND');
+      throw new Error('VALIDATION_ITEM_NOT_FOUND', { cause: err });
     }
 
     throw err;
@@ -3170,11 +3170,11 @@ exports.createBadge = async (payload = {}) => {
     return mapBadgeItem(badge);
   } catch (err) {
     if (isStructureMissingError(err)) {
-      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+      throw new Error('BADGE_FEATURE_UNAVAILABLE', { cause: err });
     }
 
     if (err?.code === 'P2002') {
-      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+      throw new Error('BADGE_NAME_ALREADY_EXISTS', { cause: err });
     }
 
     throw err;
@@ -3219,15 +3219,15 @@ exports.updateBadge = async (badgeId, payload = {}) => {
     return mapBadgeItem(updatedBadge);
   } catch (err) {
     if (isStructureMissingError(err)) {
-      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+      throw new Error('BADGE_FEATURE_UNAVAILABLE', { cause: err });
     }
 
     if (err?.code === 'P2025') {
-      throw new Error('BADGE_NOT_FOUND');
+      throw new Error('BADGE_NOT_FOUND', { cause: err });
     }
 
     if (err?.code === 'P2002') {
-      throw new Error('BADGE_NAME_ALREADY_EXISTS');
+      throw new Error('BADGE_NAME_ALREADY_EXISTS', { cause: err });
     }
 
     throw err;
@@ -3243,11 +3243,11 @@ exports.deleteBadge = async (badgeId) => {
     });
   } catch (err) {
     if (isStructureMissingError(err)) {
-      throw new Error('BADGE_FEATURE_UNAVAILABLE');
+      throw new Error('BADGE_FEATURE_UNAVAILABLE', { cause: err });
     }
 
     if (err?.code === 'P2025') {
-      throw new Error('BADGE_NOT_FOUND');
+      throw new Error('BADGE_NOT_FOUND', { cause: err });
     }
 
     throw err;
@@ -3355,7 +3355,7 @@ exports.createUser = async (payload) => {
       where: { id: createdUser.id },
     });
 
-    throw new Error('USER_EMAIL_SEND_FAILED');
+    throw new Error('USER_EMAIL_SEND_FAILED', { cause: err });
   }
 
   return {
@@ -3511,7 +3511,7 @@ exports.deleteUser = async (userId, currentUserId) => {
     });
   } catch (err) {
     if (err?.code === 'P2003') {
-      throw new Error('USER_DELETE_BLOCKED_BY_RELATED_DATA');
+      throw new Error('USER_DELETE_BLOCKED_BY_RELATED_DATA', { cause: err });
     }
 
     throw err;
@@ -3839,7 +3839,7 @@ exports.approveValidationItem = async (
         );
       } catch (err) {
         if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
-          throw new Error('VALIDATION_ITEM_NOT_FOUND');
+          throw new Error('VALIDATION_ITEM_NOT_FOUND', { cause: err });
         }
 
         throw err;
@@ -3890,7 +3890,7 @@ exports.rejectValidationItem = async (
         return await rejectCertificateRequest(itemId, administratorId, normalizedReason);
       } catch (err) {
         if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
-          throw new Error('VALIDATION_ITEM_NOT_FOUND');
+          throw new Error('VALIDATION_ITEM_NOT_FOUND', { cause: err });
         }
 
         throw err;
@@ -4020,7 +4020,7 @@ exports.resetUserPassword = async (userId) => {
       }
     });
 
-    throw new Error('USER_RESET_EMAIL_SEND_FAILED');
+    throw new Error('USER_RESET_EMAIL_SEND_FAILED', { cause: err });
   }
 
   return {
@@ -4179,7 +4179,7 @@ exports.markNotificationAsRead = async (notificationId, administratorId) => {
     });
   } catch (err) {
     if (isStructureMissingError(err)) {
-      throw new Error('NOTIFICATION_NOT_FOUND');
+      throw new Error('NOTIFICATION_NOT_FOUND', { cause: err });
     }
 
     throw err;
@@ -4197,7 +4197,7 @@ exports.deleteNotification = async (notificationId, administratorId) => {
     });
   } catch (err) {
     if (isStructureMissingError(err) || err?.code === 'P2025') {
-      throw new Error('NOTIFICATION_NOT_FOUND');
+      throw new Error('NOTIFICATION_NOT_FOUND', { cause: err });
     }
 
     throw err;
