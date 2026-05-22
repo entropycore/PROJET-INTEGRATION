@@ -506,6 +506,16 @@ const normalizeOptionalText = (value) => {
   return trimmed || null;
 };
 
+const readTextValue = (payload, names) => {
+  for (const name of names) {
+    if (typeof payload?.[name] === 'string') {
+      return payload[name].trim() || null;
+    }
+  }
+
+  return null;
+};
+
 const normalizeBadgeTone = (value) => {
   const normalized = normalizeRequiredText(value);
   return normalized || 'blue';
@@ -2569,21 +2579,14 @@ exports.approveValidationItem = async (itemType, itemId, actorUserId, administra
 
   switch (normalizedType) {
     case 'PROJECT':
-      return approveProjectValidation(
-        itemId,
-        typeof payload.comment === 'string' ? payload.comment.trim() || null : null,
-      );
+      return approveProjectValidation(itemId, readTextValue(payload, ['comment']));
 
     case 'INTERNSHIP':
       return approveInternshipValidation(itemId);
 
     case 'CERTIFICATE_VALIDATION':
       try {
-        return await approveCertificateRequest(
-          itemId,
-          administratorId,
-          typeof payload.comment === 'string' ? payload.comment.trim() || null : null,
-        );
+        return await approveCertificateRequest(itemId, administratorId, readTextValue(payload, ['comment']));
       } catch (err) {
         if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
           throw new Error('VALIDATION_ITEM_NOT_FOUND', { cause: err });
@@ -2610,14 +2613,7 @@ exports.rejectValidationItem = async (itemType, itemId, actorUserId, administrat
   const normalizedType = normalizeValidationType(itemType);
   ensureValidValidationType(normalizedType);
 
-  const normalizedReason =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim() || null
-      : typeof payload.rejectionReason === 'string'
-        ? payload.rejectionReason.trim() || null
-        : typeof payload.reason === 'string'
-          ? payload.reason.trim() || null
-          : null;
+  const normalizedReason = readTextValue(payload, ['comment', 'rejectionReason', 'reason']);
 
   switch (normalizedType) {
     case 'PROJECT':
@@ -2655,14 +2651,7 @@ exports.requestValidationChangesItem = async (itemType, itemId, actorUserId, adm
   const normalizedType = normalizeValidationType(itemType);
   ensureValidValidationType(normalizedType);
 
-  const normalizedComment =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim() || null
-      : typeof payload.rejectionReason === 'string'
-        ? payload.rejectionReason.trim() || null
-        : typeof payload.reason === 'string'
-          ? payload.reason.trim() || null
-          : null;
+  const normalizedComment = readTextValue(payload, ['comment', 'rejectionReason', 'reason']);
 
   switch (normalizedType) {
     case 'PROJECT':
@@ -3174,22 +3163,10 @@ exports.approveDashboardItem = async (itemType, itemId, administratorId, payload
       return exports.approveProfessionalRequest(itemId, administratorId);
 
     case 'CERTIFICATE_VALIDATION':
-      return approveCertificateRequest(
-        itemId,
-        administratorId,
-        typeof payload.comment === 'string' ? payload.comment.trim() || null : null,
-      );
+      return approveCertificateRequest(itemId, administratorId, readTextValue(payload, ['comment']));
 
     case 'REPORT':
-      return exports.approveReport(
-        itemId,
-        administratorId,
-        typeof payload.resolutionNote === 'string'
-          ? payload.resolutionNote.trim() || null
-          : typeof payload.comment === 'string'
-            ? payload.comment.trim() || null
-            : null,
-      );
+      return exports.approveReport(itemId, administratorId, readTextValue(payload, ['resolutionNote', 'comment']));
 
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
@@ -3202,14 +3179,7 @@ exports.rejectDashboardItem = async (itemType, itemId, administratorId, payload 
     .toUpperCase()
     .replace(/-/g, '_');
 
-  const normalizedComment =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim() || null
-      : typeof payload.rejectionReason === 'string'
-        ? payload.rejectionReason.trim() || null
-        : typeof payload.reason === 'string'
-          ? payload.reason.trim() || null
-          : null;
+  const normalizedComment = readTextValue(payload, ['comment', 'rejectionReason', 'reason']);
 
   switch (normalizedType) {
     case 'ACCESS_REQUEST':
