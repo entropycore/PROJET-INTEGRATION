@@ -17,11 +17,7 @@
     "test:coverage": "jest --coverage --forceExit --runInBand",
     "test:integration": "jest tests/integration --runInBand",
     "test:sec": "jest tests/integration/middlewares tests/unit/middlewares --runInBand",
-<<<<<<< HEAD
-    "security:scan": "bash scripts/zap-scan.sh",
-=======
     "security:scan": "bash ../scripts/zap-scan.sh",
->>>>>>> a965ded02ba99e83f2122c3bb802ac02f3eaca2c
 
     "lint": "eslint . --quiet",
     "format": "prettier --write ."
