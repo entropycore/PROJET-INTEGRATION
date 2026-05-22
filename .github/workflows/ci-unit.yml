@@ -44,6 +44,11 @@ jobs:
       run:
         working-directory: backend
 
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
+        
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -55,6 +60,9 @@ jobs:
 
       - name: Install backend dependencies
         run: npm install
+
+      - name: Generate Prisma client
+        run: npx prisma generate
 
       - name: Run backend lint
         run: npm run lint
