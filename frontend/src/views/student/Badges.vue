@@ -1,9 +1,12 @@
-<script setup>
-import { computed, ref } from "vue";
+﻿<script setup>
+import { computed, onMounted, ref } from "vue";
+
+import { getStudentBadges } from "@/services/studentDashboardService";
 
 const selectedFilter = ref("ALL");
+const isLoading = ref(false);
 
-const badges = ref([
+const mockBadges = [
   {
     id: 1,
     name: "Web Developer",
@@ -76,7 +79,29 @@ const badges = ref([
     obtainedAt: null,
     progress: { current: 0, target: 1 },
   },
-]);
+];
+
+const badges = ref([]);
+
+const extractData = (response) => {
+  return response.data?.data || response.data || [];
+};
+
+const fetchBadges = async () => {
+  isLoading.value = true;
+
+  try {
+    const response = await getStudentBadges();
+    badges.value = extractData(response);
+  } catch (error) {
+    console.warn("API badges indisponible, utilisation des mock data.");
+    badges.value = mockBadges;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(fetchBadges);
 
 const obtainedBadges = computed(() => {
   return badges.value.filter((badge) => badge.isObtained);
@@ -93,6 +118,8 @@ const filteredBadges = computed(() => {
 });
 
 const completionRate = computed(() => {
+  if (!badges.value.length) return 0;
+
   return Math.round((obtainedBadges.value.length / badges.value.length) * 100);
 });
 
@@ -161,7 +188,35 @@ const progressPercent = (badge) => {
       </button>
     </div>
 
-    <div class="badges-grid">
+    <div v-if="isLoading" class="empty-state">
+      <span class="material-icons-round">hourglass_top</span>
+      <h3>Chargement des badges...</h3>
+      <p>Nous récupérons vos distinctions académiques.</p>
+    </div>
+
+    <div v-else-if="!filteredBadges.length" class="empty-state">
+      <span class="material-icons-round">
+        {{ selectedFilter === "OBTAINED" ? "emoji_events" : "lock_open" }}
+      </span>
+
+      <h3>
+        {{
+          selectedFilter === "OBTAINED"
+            ? "Aucun badge obtenu pour le moment"
+            : "Aucun badge dans cette catégorie"
+        }}
+      </h3>
+
+      <p>
+        {{
+          selectedFilter === "OBTAINED"
+            ? "Continuez à valider vos projets, stages et activités pour débloquer vos premiers badges."
+            : "Explorez les badges disponibles et suivez les règles d’obtention pour progresser."
+        }}
+      </p>
+    </div>
+
+    <div v-else class="badges-grid">
       <article
         v-for="badge in filteredBadges"
         :key="badge.id"
@@ -513,6 +568,48 @@ const progressPercent = (badge) => {
   font-size: 0.85rem;
   font-weight: 700;
   margin: 0.8rem 0 0;
+}
+.empty-state {
+  background: #ffffff;
+  border: 1px solid #dee1dd;
+  border-radius: 0.95rem;
+  padding: 3rem 1.5rem;
+
+  text-align: center;
+  color: #6d9197;
+}
+
+.empty-state .material-icons-round {
+  width: 3.5rem;
+  height: 3.5rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #edf2f0;
+  color: #2f575d;
+
+  font-size: 1.8rem;
+
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #28363d;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 0.45rem;
+}
+
+.empty-state p {
+  max-width: 32rem;
+  margin: 0 auto;
+  color: #6d9197;
+  font-size: 0.95rem;
+  line-height: 1.6;
 }
 
 @media (max-width: 1100px) {
