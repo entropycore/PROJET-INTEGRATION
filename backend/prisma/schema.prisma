@@ -173,7 +173,10 @@ model Student {
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
   githubAccessToken String? @map("github_access_token") @db.Text
+  
   academicPaths   AcademicPath[]
+  academicTimelineEntries AcademicTimelineEntry[]
+
   studentSkills   StudentSkill[]
   projects        Project[]
   internships     Internship[]
@@ -568,7 +571,7 @@ model Recommendation {
 }
 model AcademicTimelineEntry {
   id          Int       @id @default(autoincrement())
-  studentId   Int       @map("student_id")
+  studentId   String    @map("student_id") 
   title       String    @db.VarChar(255)
   institution String    @db.VarChar(255)
   startDate   DateTime  @map("start_date") @db.Date
