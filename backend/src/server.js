@@ -49,6 +49,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/professor', professorRoutes);
 
 app.use('/api/admin', administratorRoutes);
+app.use('/api/timeline', require('./routes/timelineRoutes'));
 app.use('/api/reports', reportRoutes);
 
 
