@@ -1428,12 +1428,12 @@ const approveCertificateRequest = async (certificateId, administratorId, comment
 
   const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `La validation du certificat de ${
       updatedCertificate.activity?.student?.user
         ? formatFullName(updatedCertificate.activity.student.user)
-        : 'un etudiant'
-    } a ete approuvee.`,
+        : 'un étudiant'
+    } a été approuvée.`,
     relatedType: 'CERTIFICATE_VALIDATION',
     relatedId: certificateId,
   });
@@ -1465,12 +1465,12 @@ const rejectCertificateRequest = async (certificateId, administratorId, comment 
 
   const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `La validation du certificat de ${
       updatedCertificate.activity?.student?.user
         ? formatFullName(updatedCertificate.activity.student.user)
-        : 'un etudiant'
-    } a ete rejetee.`,
+        : 'un étudiant'
+    } a été rejetée.`,
     relatedType: 'CERTIFICATE_VALIDATION',
     relatedId: certificateId,
   });
@@ -1496,10 +1496,10 @@ const approveRecommendationLetterValidation = async (letterId, actorUserId) => {
 
   const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `La lettre de recommandation de ${
-      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
-    } a ete approuvee.`,
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un étudiant'
+    } a été approuvée.`,
     relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
     relatedId: letterId,
   });
@@ -1526,10 +1526,10 @@ const rejectRecommendationLetterValidation = async (letterId, actorUserId, rejec
 
   const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `La lettre de recommandation de ${
-      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
-    } a ete rejetee.`,
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un étudiant'
+    } a été rejetée.`,
     relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
     relatedId: letterId,
   });
@@ -1556,10 +1556,10 @@ const approveCommentValidation = async (commentId, actorUserId) => {
 
   const updatedComment = await getCommentValidationOrThrow(commentId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `Le commentaire de ${
       updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
-    } a ete approuve.`,
+    } a été approuvé.`,
     relatedType: 'COMMENT_VALIDATION',
     relatedId: commentId,
   });
@@ -1586,10 +1586,10 @@ const rejectCommentValidation = async (commentId, actorUserId, rejectionReason =
 
   const updatedComment = await getCommentValidationOrThrow(commentId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `Le commentaire de ${
       updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
-    } a ete rejete.`,
+    } a été rejeté.`,
     relatedType: 'COMMENT_VALIDATION',
     relatedId: commentId,
   });
@@ -1616,10 +1616,10 @@ const approveRecommendationValidation = async (recommendationId, actorUserId) =>
 
   const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation approuvee',
+    title: 'Validation approuvée',
     message: `La recommandation de ${
       updatedRecommendation.authorUser ? formatFullName(updatedRecommendation.authorUser) : 'un utilisateur'
-    } a ete approuvee.`,
+    } a été approuvée.`,
     relatedType: 'RECOMMENDATION_VALIDATION',
     relatedId: recommendationId,
   });
@@ -1646,10 +1646,10 @@ const rejectRecommendationValidation = async (recommendationId, actorUserId, rej
 
   const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
   await notificationService.createAdminActionNotification({
-    title: 'Validation rejetee',
+    title: 'Validation rejetée',
     message: `La recommandation de ${
       updatedRecommendation.authorUser ? formatFullName(updatedRecommendation.authorUser) : 'un utilisateur'
-    } a ete rejetee.`,
+    } a été rejetée.`,
     relatedType: 'RECOMMENDATION_VALIDATION',
     relatedId: recommendationId,
   });
@@ -1682,11 +1682,11 @@ const requestCertificateValidationChanges = async (certificateId, administratorI
 
   const updatedCertificate = await getValidationCertificateOrThrow(certificateId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour le certificat de ${
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour le certificat de ${
       updatedCertificate.activity?.student?.user
         ? formatFullName(updatedCertificate.activity.student.user)
-        : 'un etudiant'
+        : 'un étudiant'
     }.`,
     relatedType: 'CERTIFICATE_VALIDATION',
     relatedId: certificateId,
@@ -1714,9 +1714,9 @@ const requestRecommendationLetterValidationChanges = async (letterId, actorUserI
 
   const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour la lettre de recommandation de ${
-      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour la lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un étudiant'
     }.`,
     relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
     relatedId: letterId,
@@ -1744,8 +1744,8 @@ const requestCommentValidationChanges = async (commentId, actorUserId, commentTe
 
   const updatedComment = await getCommentValidationOrThrow(commentId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour le commentaire de ${
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour le commentaire de ${
       updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
     }.`,
     relatedType: 'COMMENT_VALIDATION',
@@ -1774,8 +1774,8 @@ const requestRecommendationValidationChanges = async (recommendationId, actorUse
 
   const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
   await notificationService.createAdminActionNotification({
-    title: 'Correction demandee',
-    message: `Une correction a ete demandee pour la recommandation de ${
+    title: 'Correction demandée',
+    message: `Une correction a été demandée pour la recommandation de ${
       updatedRecommendation.authorUser ? formatFullName(updatedRecommendation.authorUser) : 'un utilisateur'
     }.`,
     relatedType: 'RECOMMENDATION_VALIDATION',
@@ -1815,8 +1815,8 @@ exports.getDashboardData = async () => {
 
   return {
     summaryCards: {
-      totalUsers: { value: totalUsers, variation: 'Comptes enregistres' },
-      totalStudents: { value: totalStudents, variation: 'Profils etudiants' },
+      totalUsers: { value: totalUsers, variation: 'Comptes enregistrés' },
+      totalStudents: { value: totalStudents, variation: 'Profils étudiants' },
       totalProfessors: {
         value: totalProfessors,
         variation: 'Profils professeurs',
@@ -2375,8 +2375,8 @@ exports.approveProfessionalRequest = async (userId, administratorId) => {
 
   const updatedRequest = await exports.getProfessionalRequest(userId);
   await notificationService.createAdminActionNotification({
-    title: "Demande d'acces approuvee",
-    message: `La demande d'acces de ${updatedRequest.requesterName} a ete approuvee.`,
+    title: "Demande d'accès approuvée",
+    message: `La demande d'accès de ${updatedRequest.requesterName} a été approuvée.`,
     relatedType: 'ACCESS_REQUEST',
     relatedId: userId,
   });
@@ -2415,8 +2415,8 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
 
   const updatedRequest = await exports.getProfessionalRequest(userId);
   await notificationService.createAdminActionNotification({
-    title: "Demande d'acces rejetee",
-    message: `La demande d'acces de ${updatedRequest.requesterName} a ete rejetee.`,
+    title: "Demande d'accès rejetée",
+    message: `La demande d'accès de ${updatedRequest.requesterName} a été rejetée.`,
     relatedType: 'ACCESS_REQUEST',
     relatedId: userId,
   });
@@ -3042,7 +3042,7 @@ exports.approveReport = async (reportId, administratorId, resolutionNote = null)
   const updatedReport = await exports.getReportById(reportId);
   await notificationService.createAdminActionNotification({
     title: 'Signalement approuve',
-    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete approuve.`,
+    message: `Le signalement lié à ${report.targetType.toLowerCase()} a été approuvé.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
@@ -3051,7 +3051,7 @@ exports.approveReport = async (reportId, administratorId, resolutionNote = null)
 };
 
 exports.resolveReportLegacy = async (reportId, administratorId, resolutionNote = null) =>
-  exports.approveReport(reportId, administratorId, resolutionNote || 'Signalement marque comme traite.');
+  exports.approveReport(reportId, administratorId, resolutionNote || 'Signalement marqué comme traité.');
 
 exports.rejectReport = async (reportId, administratorId, resolutionNote = null) => {
   const report = await getReportOrThrow(reportId);
@@ -3073,7 +3073,7 @@ exports.rejectReport = async (reportId, administratorId, resolutionNote = null) 
   const updatedReport = await exports.getReportById(reportId);
   await notificationService.createAdminActionNotification({
     title: 'Signalement rejete',
-    message: `Le signalement lie a ${report.targetType.toLowerCase()} a ete rejete.`,
+    message: `Le signalement lié à ${report.targetType.toLowerCase()} a été rejeté.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });
@@ -3098,8 +3098,8 @@ exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote 
     if (!appliedResolutionNote) {
       appliedResolutionNote =
         deletionOutcome === 'deleted'
-          ? 'Contenu signale supprime.'
-          : 'Signalement traite sans suppression automatique de la cible.';
+          ? 'Contenu signalé supprimé.'
+          : 'Signalement traité sans suppression automatique de la cible.';
     }
 
     await tx.report.update({
@@ -3115,11 +3115,11 @@ exports.deleteReportedTarget = async (reportId, administratorId, resolutionNote 
 
   const updatedReport = await exports.getReportById(reportId);
   await notificationService.createAdminActionNotification({
-    title: deletionOutcome === 'deleted' ? 'Contenu signale supprime' : 'Signalement traite',
+    title: deletionOutcome === 'deleted' ? 'Contenu signalé supprimé' : 'Signalement traité',
     message:
       deletionOutcome === 'deleted'
-        ? `Le contenu signale lie a ${report.targetType.toLowerCase()} a ete supprime.`
-        : `Le signalement lie a ${report.targetType.toLowerCase()} a ete traite sans suppression automatique de la cible.`,
+        ? `Le contenu signalé lié à ${report.targetType.toLowerCase()} a été supprimé.`
+        : `Le signalement lié à ${report.targetType.toLowerCase()} a été traité sans suppression automatique de la cible.`,
     relatedType: 'REPORT',
     relatedId: reportId,
   });

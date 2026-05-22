@@ -5,7 +5,7 @@ const crypto = require('crypto');
 const USER_ROLES = ['STUDENT', 'PROFESSOR', 'ADMINISTRATOR', 'PROFESSIONAL'];
 const ACCOUNT_STATUSES = ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING'];
 const ROLE_LABELS = {
-  STUDENT: 'Etudiant',
+  STUDENT: 'Étudiant',
   PROFESSOR: 'Professeur',
   ADMINISTRATOR: 'Administrateur',
   PROFESSIONAL: 'Professionnel',
@@ -170,18 +170,18 @@ const buildUserCredentialsEmail = ({ firstName, email, password, role, accountSt
     text: [
       `Bonjour ${firstName},`,
       '',
-      'Un compte Credencia a ete cree pour vous.',
+      'Un compte Credencia a été créé pour vous.',
       '',
-      `Role : ${roleLabel}`,
+      `Rôle : ${roleLabel}`,
       `Statut du compte : ${statusLabel}`,
       `Email : ${email}`,
       `Mot de passe initial : ${password}`,
       '',
       `Connexion : ${loginUrl}`,
       '',
-      'Si vous recevez plusieurs emails de credentials, utilisez uniquement le mot de passe du dernier message recu.',
+      'Si vous recevez plusieurs emails de credentials, utilisez uniquement le mot de passe du dernier message reçu.',
       '',
-      'Nous vous recommandons de changer votre mot de passe apres votre premiere connexion.',
+      'Nous vous recommandons de changer votre mot de passe après votre première connexion.',
     ].join('\n'),
   };
 };
@@ -191,21 +191,21 @@ const buildPasswordResetEmail = ({ firstName, email, password, role }) => {
   const roleLabel = ROLE_LABELS[role] || role;
 
   return {
-    subject: 'Votre mot de passe Credencia a ete reinitialise',
+    subject: 'Votre mot de passe Credencia a été réinitialisé',
     text: [
       `Bonjour ${firstName},`,
       '',
-      'Votre mot de passe Credencia a ete reinitialise par un administrateur.',
+      'Votre mot de passe Credencia a été réinitialisé par un administrateur.',
       '',
-      `Role : ${roleLabel}`,
+      `Rôle : ${roleLabel}`,
       `Email : ${email}`,
       `Nouveau mot de passe temporaire : ${password}`,
       '',
       `Connexion : ${loginUrl}`,
       '',
-      'Si vous recevez plusieurs emails de reinitialisation, utilisez uniquement le mot de passe du dernier message recu.',
+      'Si vous recevez plusieurs emails de réinitialisation, utilisez uniquement le mot de passe du dernier message reçu.',
       '',
-      'Nous vous recommandons de changer votre mot de passe apres votre prochaine connexion.',
+      'Nous vous recommandons de changer votre mot de passe après votre prochaine connexion.',
     ].join('\n'),
   };
 };
