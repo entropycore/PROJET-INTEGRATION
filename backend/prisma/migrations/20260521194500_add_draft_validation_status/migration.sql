@@ -1,0 +1,1 @@
+ALTER TYPE "ValidationStatus" ADD VALUE IF NOT EXISTS 'DRAFT';
