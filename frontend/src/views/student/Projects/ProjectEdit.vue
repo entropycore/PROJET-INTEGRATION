@@ -49,13 +49,7 @@ const fetchProject = async () => {
     const response = await getStudentProjectById(route.params.id);
     projectForm.value = structuredClone(response.data.data);
   } catch (error) {
-    console.warn("API project detail indisponible, utilisation mock data.");
-
-    const mockProject = mockProjects.find(
-      (item) => String(item.id) === String(route.params.id),
-    );
-
-    projectForm.value = structuredClone(mockProject);
+    console.warn("API project detail indisponible.");
   } finally {
     isLoading.value = false;
   }

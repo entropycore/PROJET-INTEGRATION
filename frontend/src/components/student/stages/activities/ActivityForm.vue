@@ -1,43 +1,43 @@
 <script setup>
-import { reactive } from 'vue'
+import { reactive } from "vue";
 
-const emit = defineEmits(['save-activity', 'cancel'])
+const emit = defineEmits(["save-activity", "cancel"]);
 
 const form = reactive({
-  title: '',
-  type: 'CLUB',
-  organization: '',
-  date: '',
-  duration: '',
-  location: '',
-  description: '',
+  title: "",
+  type: "CLUB",
+  organization: "",
+  date: "",
+  duration: "",
+  location: "",
+  description: "",
   certificate: null,
-  certificateName: '',
-})
+  certificateName: "",
+});
 
 const handleCertificateUpload = (event) => {
-  const file = event.target.files[0]
+  const file = event.target.files[0];
 
-  if (!file) return
+  if (!file) return;
 
-  form.certificate = file
-  form.certificateName = file.name
-}
+  form.certificate = file;
+  form.certificateName = file.name;
+};
 
 const resetForm = () => {
-  form.title = ''
-  form.type = 'CLUB'
-  form.organization = ''
-  form.date = ''
-  form.duration = ''
-  form.location = ''
-  form.description = ''
-  form.certificate = null
-  form.certificateName = ''
-}
+  form.title = "";
+  form.type = "CLUB";
+  form.organization = "";
+  form.date = "";
+  form.duration = "";
+  form.location = "";
+  form.description = "";
+  form.certificate = null;
+  form.certificateName = "";
+};
 
 const submitForm = () => {
-  emit('save-activity', {
+  emit("save-activity", {
     title: form.title,
     type: form.type,
     organization: form.organization,
@@ -47,10 +47,10 @@ const submitForm = () => {
     description: form.description,
     certificate: form.certificate,
     certificateName: form.certificateName,
-  })
+  });
 
-  resetForm()
-}
+  resetForm();
+};
 </script>
 
 <template>
