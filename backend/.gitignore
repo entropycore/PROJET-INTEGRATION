@@ -4,3 +4,6 @@ node_modules/
 uploads/
 src/logs/*.log
 coverage/
+reports/
+cookies.txt
+cookies.txt
