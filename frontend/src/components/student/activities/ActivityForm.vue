@@ -1,40 +1,71 @@
 <script setup>
-import { reactive } from "vue";
+import { reactive, watch } from 'vue'
+
+const props = defineProps({
+  initialActivity: {
+    type: Object,
+    default: null,
+  },
+  submitLabel: {
+    type: String,
+    default: 'Enregistrer',
+  },
+})
 
 const emit = defineEmits(["save-activity", "cancel"]);
 
 const form = reactive({
-  title: "",
-  type: "CLUB",
-  organization: "",
-  date: "",
-  duration: "",
-  location: "",
-  description: "",
-  certificate: null,
-  certificateName: "",
-});
+  title: props.initialActivity?.title || '',
+  type: props.initialActivity?.type || 'CLUB',
+  organization: props.initialActivity?.organization || '',
+  date: props.initialActivity?.date || '',
+  duration: props.initialActivity?.duration || '',
+  location: props.initialActivity?.location || '',
+  description: props.initialActivity?.description || '',
+  certificate: props.initialActivity?.certificate || null,
+  certificateName: props.initialActivity?.certificateName || '',
+  certificateUrl: props.initialActivity?.certificateUrl || '',
+})
 
+watch(
+  () => props.initialActivity,
+  (activity) => {
+    form.title = activity?.title || ''
+    form.type = activity?.type || 'CLUB'
+    form.organization = activity?.organization || ''
+    form.date = activity?.date || ''
+    form.duration = activity?.duration || ''
+    form.location = activity?.location || ''
+    form.description = activity?.description || ''
+    form.certificate = activity?.certificate || null
+    form.certificateName = activity?.certificateName || ''
+    form.certificateUrl = activity?.certificateUrl || ''
+  },
+)
+
+const handleCertificateUpload = (event) => {
 const handleCertificateUpload = (event) => {
   const file = event.target.files[0];
 
   if (!file) return;
 
-  form.certificate = file;
-  form.certificateName = file.name;
-};
+  form.certificate = file
+  form.certificateName = file.name
+  form.certificateUrl = URL.createObjectURL(file)
+}
 
 const resetForm = () => {
-  form.title = "";
-  form.type = "CLUB";
-  form.organization = "";
-  form.date = "";
-  form.duration = "";
-  form.location = "";
-  form.description = "";
-  form.certificate = null;
-  form.certificateName = "";
-};
+  form.title = ''
+  form.type = 'CLUB'
+  form.organization = ''
+  form.date = ''
+  form.duration = ''
+  form.location = ''
+  form.description = ''
+  form.certificate = null
+  form.certificateName = ''
+  form.certificateUrl = ''
+}
 
 const submitForm = () => {
   emit("save-activity", {
@@ -47,7 +78,8 @@ const submitForm = () => {
     description: form.description,
     certificate: form.certificate,
     certificateName: form.certificateName,
-  });
+    certificateUrl: form.certificateUrl,
+  })
 
   resetForm();
 };
@@ -60,7 +92,7 @@ const submitForm = () => {
         <div>
           <h2>
             <span class="material-icons-round">add_circle</span>
-            Nouvelle activité
+            {{ initialActivity ? 'Modifier l’activité' : 'Nouvelle activité' }}
           </h2>
           <p>Renseignez les informations et ajoutez votre attestation.</p>
         </div>
@@ -161,7 +193,7 @@ const submitForm = () => {
 
         <button type="submit" class="btn btn-primary">
           <span class="material-icons-round">save</span>
-          Enregistrer
+          {{ submitLabel }}
         </button>
       </div>
     </section>
