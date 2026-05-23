@@ -4,6 +4,7 @@ import "@/assets/styles/PorftolioFullView.css";
 import { useRouter } from "vue-router";
 import {
   exportMyPortfolioPdf,
+  getGeneratedPortfolioConfig,
   getStudentPortfolioData,
 } from "@/services/studentPortfolioService";
 
@@ -35,11 +36,47 @@ const animateValue = (from, to, duration, onUpdate) => {
   requestAnimationFrame(tick);
 };
 
+const filterBySelectedIds = (items = [], selectedIds = []) => {
+  const selectedIdSet = new Set(selectedIds.map(String));
+  return items.filter((item) => selectedIdSet.has(String(item.id)));
+};
+
+const applyGeneratedPortfolioConfig = (data) => {
+  const config = getGeneratedPortfolioConfig();
+
+  if (!config) return data;
+
+  const includedSections = new Set(config.includedSections || []);
+  const includedItems = config.includedItems || {};
+
+  return {
+    ...data,
+    skills: includedSections.has("skills") ? data.skills || [] : [],
+    softSkills: includedSections.has("softSkills") ? data.softSkills || [] : [],
+    badges: includedSections.has("badges") ? data.badges || [] : [],
+    projects: filterBySelectedIds(data.projects, includedItems.projects),
+    internships: filterBySelectedIds(
+      data.internships,
+      includedItems.internships,
+    ),
+    activities: filterBySelectedIds(data.activities, includedItems.activities),
+    recommendationLetters: filterBySelectedIds(
+      data.recommendationLetters,
+      includedItems.recommendationLetters,
+    ),
+    recommendations: filterBySelectedIds(
+      data.recommendations,
+      includedItems.recommendations,
+    ),
+  };
+};
+
 const fetchPortfolio = async () => {
   isLoading.value = true;
 
   try {
-    portfolioData.value = await getStudentPortfolioData();
+    const data = await getStudentPortfolioData();
+    portfolioData.value = applyGeneratedPortfolioConfig(data);
 
     animatedScore.value = 0;
     animatedScoreProgress.value = 0;

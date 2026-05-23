@@ -1,6 +1,8 @@
 import api from "./api";
 import { studentPortfolioMock } from "@/mockData/studentPortfolio.mock";
 
+const GENERATED_PORTFOLIO_CONFIG_KEY = "student.generatedPortfolioConfig";
+
 export const getMyPortfolio = () => {
   return api.get("/portfolios/me");
 };
@@ -35,6 +37,23 @@ export const exportMyPortfolioPdf = () => {
 
 export const createPortfolioShareLink = (data = {}) => {
   return api.post("/portfolios/me/share-link", data);
+};
+
+export const saveGeneratedPortfolioConfig = (config) => {
+  localStorage.setItem(GENERATED_PORTFOLIO_CONFIG_KEY, JSON.stringify(config));
+};
+
+export const getGeneratedPortfolioConfig = () => {
+  const storedConfig = localStorage.getItem(GENERATED_PORTFOLIO_CONFIG_KEY);
+
+  if (!storedConfig) return null;
+
+  try {
+    return JSON.parse(storedConfig);
+  } catch {
+    localStorage.removeItem(GENERATED_PORTFOLIO_CONFIG_KEY);
+    return null;
+  }
 };
 
 export const getStudentPortfolioData = async () => {
