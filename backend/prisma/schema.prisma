@@ -7,7 +7,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 
@@ -197,6 +196,7 @@ model Professor {
   specialty       String?   @db.VarChar(150)
   department      String?   @db.VarChar(150)
   projectValidations ProjectValidation[]
+  projectsToValidate Project[] @relation("ProjectAssignedValidator")
   supervisedInternships Internship[]        @relation("InternshipSupervisor")
   internshipValidations InternshipValidation[]
 
@@ -269,13 +269,29 @@ model AcademicPath {
   @@map("academic_paths")
 }
 
+model SkillDomain {
+  id           String  @id @default(uuid()) @map("id_skill_domain")
+  name         String  @unique @db.VarChar(120)
+  slug         String  @unique @db.VarChar(120)
+  description  String? @db.Text
+  displayOrder Int     @default(0) @map("display_order")
+
+  skills Skill[]
+
+  @@index([displayOrder])
+  @@map("skill_domains")
+}
+
 model Skill {
   id          String       @id @default(uuid()) @map("id_skill")
   name        String       @unique @map("name") @db.VarChar(120)
   type        SkillType
   description String?      @db.Text
+  domainId    String?      @map("domain_id")
+  domain      SkillDomain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
   studentSkills StudentSkill[]
 
+  @@index([domainId])
   @@map("skills")
 }
 
@@ -315,6 +331,9 @@ model Project {
   description       String               @db.Text
   type              ProjectType
   teamRole          String?              @map("team_role") @db.VarChar(120)
+  teamSize          String?              @map("team_size") @db.VarChar(80)
+  validatorProfessorId String?           @map("validator_professor_id")
+  validatorProfessor Professor?          @relation("ProjectAssignedValidator", fields: [validatorProfessorId], references: [id], onDelete: SetNull)
   githubUrl         String?              @map("github_url") @db.Text
   youtubeUrl        String?              @map("youtube_url") @db.Text
   result            String?              @db.Text
@@ -330,6 +349,7 @@ model Project {
   @@index([studentId])
   @@index([validationStatus])
   @@index([studentId, validationStatus])
+  @@index([validatorProfessorId])
   @@map("projects")
 }
 
@@ -340,6 +360,10 @@ model ProjectMedia {
   mediaType   String    @map("media_type") @db.VarChar(50)
   mediaUrl    String    @map("media_url") @db.Text
   description String?   @db.Text
+  fileName    String?   @map("file_name") @db.VarChar(255)
+  mimeType    String?   @map("mime_type") @db.VarChar(120)
+  fileSize    Int?      @map("file_size")
+  storagePath String?   @map("storage_path") @db.Text
 
   @@index([projectId])
   @@map("project_media")
@@ -610,8 +634,22 @@ model Notification {
   @@index([isRead, createdAt])
   @@index([relatedType, relatedId])
   @@map("notifications")
-  }
-  
+}
+
+model Badge {
+  id          String   @id @default(uuid()) @map("id_badge")
+  name        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  rule        String   @db.Text
+  iconUrl     String?  @map("icon_url") @db.Text
+  tone        String   @default("blue") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([createdAt])
+  @@map("badges")
+}
+
 model SystemSettings {
   id                       String   @id @default(uuid()) @map("id_system_settings")
   
