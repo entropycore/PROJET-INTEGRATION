@@ -186,10 +186,10 @@ onMounted(fetchPortfolio);
 <template>
   <section class="portfolio-full-page" :class="pageThemeClass">
     <header class="portfolio-topbar">
-      <div class="brand">
-        <span class="material-icons-round">verified_user</span>
-        Credencia
-      </div>
+      <button class="back-home-btn" @click="goBack">
+        <span class="material-icons-round">arrow_back</span>
+        Mon espace
+      </button>
 
       <div class="top-actions">
         <button @click="copyLink">
@@ -205,11 +205,6 @@ onMounted(fetchPortfolio);
         <button @click="sharePortfolio">
           <span class="material-icons-round">share</span>
           Partager
-        </button>
-
-        <button @click="goBack">
-          <span class="material-icons-round">arrow_back</span>
-          Mon espace
         </button>
       </div>
     </header>
@@ -662,6 +657,13 @@ onMounted(fetchPortfolio);
           </PortfolioSection>
         </div>
       </template>
+
+      <footer class="portfolio-footer">
+        <p>
+          Portfolio généré avec <strong>Credencia</strong> — Plateforme académique
+          de valorisation des parcours étudiants.
+        </p>
+      </footer>
     </main>
 
     <!-- MODAL DÉTAILS -->
