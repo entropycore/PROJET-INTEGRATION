@@ -30,12 +30,31 @@ const sections = computed(() => {
   return sidebarConfig[user.value?.role] || [];
 });
 
+const profilePath = computed(() => {
+  const paths = {
+    ADMINISTRATOR: "/admin/profile",
+    STUDENT: "/student/profile",
+    PROFESSOR: "/professor/profile",
+    PROFESSIONAL: "/professional/profile",
+  };
+
+  return paths[user.value?.role] || "/profile";
+});
+
+const userDisplayName = computed(() => {
+  const fullName = `${user.value?.firstName || ""} ${
+    user.value?.lastName || ""
+  }`.trim();
+
+  return fullName || user.value?.email || "Utilisateur";
+});
+
 const getIcon = (icon) => {
   return new URL(`../../assets/icons/${icon}`, import.meta.url).href;
 };
 
 const userInitial = computed(() => {
-  return user.value?.firstName?.charAt(0)?.toUpperCase() || "A";
+  return userDisplayName.value.charAt(0).toUpperCase() || "U";
 });
 
 const handleLogout = async () => {
@@ -60,12 +79,14 @@ const toggleDropdown = (label) => {
     <div>
       <!-- USER -->
       <div class="sidebar-user">
-        <div class="sidebar-avatar">{{ userInitial }}</div>
+        <RouterLink :to="profilePath" class="sidebar-user-profile">
+          <div class="sidebar-avatar">{{ userInitial }}</div>
 
-        <div class="sidebar-user-info">
-          <h3>{{ user?.firstName }} {{ user?.lastName }}</h3>
-          <p>{{ user?.role }}</p>
-        </div>
+          <div class="sidebar-user-info">
+            <h3>{{ userDisplayName }}</h3>
+            <p>{{ user?.role }}</p>
+          </div>
+        </RouterLink>
 
         <button
           class="sidebar-collapse-btn"
