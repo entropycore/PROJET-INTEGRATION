@@ -519,6 +519,39 @@
   font-size: 0.85rem;
   font-weight: 900;
 }
+.portfolio-topbar {
+  justify-content: space-between;
+}
+
+.back-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--portfolio-border);
+  background: var(--portfolio-surface);
+  color: var(--portfolio-heading);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.back-home-btn .material-icons-round {
+  font-size: 1.2rem;
+}
+
+.portfolio-footer {
+  margin-top: 3rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--portfolio-muted);
+  font-size: 0.95rem;
+  border-top: 1px solid var(--portfolio-border);
+}
+
+.portfolio-footer strong {
+  color: var(--portfolio-primary);
+}
 
 .theme-neo-brutalist .hello-text {
   color: var(--portfolio-muted);
