@@ -11,6 +11,7 @@ const recommendationRoutes = require('./student/recommendationRoutes');
 const settingsRoutes = require('./student/settingsRoutes');
 const skillRoutes = require('./student/skillRoutes');
 const stageRoutes = require('./student/stageRoutes');
+const activitiesRoutes = require('./student/activitiesRoutes');
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.use(settingsRoutes);
 router.use(notificationRoutes);
 router.use(githubImportRoutes);
 router.use(stageRoutes);
+router.use(activitiesRoutes);
 
 module.exports = router;
