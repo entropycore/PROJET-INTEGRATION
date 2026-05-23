@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { computed, ref, onMounted } from "vue";
 import {
   getMySkills,
   addSkill,
@@ -9,6 +9,7 @@ import {
   addSoftSkill,
   deleteSoftSkill,
 } from "../../services/studentSkillsService";
+import "@/assets/styles/student-skills.css";
 
 const mySkills = ref([]);
 const softSkills = ref([]);
@@ -19,68 +20,156 @@ const showAddSkill = ref(false);
 const showAddSoft = ref(false);
 const newSoftName = ref("");
 const searchQuery = ref("");
-const selectedCategory = ref("all");
 
 const newSkill = ref({
   skillId: "",
-  level: 50,
-  source: "",
 });
 
-const categories = [
-  { value: "all", label: "Toutes" },
-  { value: "TECHNICAL", label: "Techniques" },
-  { value: "FRAMEWORK", label: "Frameworks" },
-  { value: "DEVOPS", label: "DevOps" },
-  { value: "DATABASE", label: "Bases de données" },
-];
+const technicalDomains = ["Web", "Backend", "DevOps", "Security", "AI/Data"];
 
-const mockSkills = [
-  {
-    id: "1",
-    name: "Node.js",
-    level: 80,
-    source: "Projet Integration",
-    type: "TECHNICAL",
-  },
-  {
-    id: "2",
-    name: "Vue.js",
-    level: 70,
-    source: "Projet Integration",
-    type: "FRAMEWORK",
-  },
-  {
-    id: "3",
-    name: "PostgreSQL",
-    level: 65,
-    source: "Cours BD",
-    type: "DATABASE",
-  },
-  {
-    id: "4",
-    name: "Docker",
-    level: 60,
-    source: "Projet DevOps",
-    type: "DEVOPS",
-  },
-  {
-    id: "5",
-    name: "Express.js",
-    level: 75,
-    source: "Projet Integration",
-    type: "FRAMEWORK",
-  },
-];
+// Radar temporaire côté front en attendant GET /api/student/skills/stats.
+// Le mapping définitif doit venir du backend avec SkillDomain.
+const skillDomainMap = {
+  "Vue.js": "Web",
+  React: "Web",
+  HTML: "Web",
+  CSS: "Web",
+  JavaScript: "Web",
 
-const mockSoftSkills = [
-  { id: "1", name: "Travail en équipe" },
-  { id: "2", name: "Communication" },
-  { id: "3", name: "Organisation" },
-];
+  "Node.js": "Backend",
+  "Express.js": "Backend",
+  Prisma: "Backend",
+  PostgreSQL: "Backend",
+
+  Docker: "DevOps",
+  "GitHub Actions": "DevOps",
+  "CI/CD": "DevOps",
+  Kubernetes: "DevOps",
+
+  JWT: "Security",
+  OWASP: "Security",
+  Firewall: "Security",
+
+  Python: "AI/Data",
+  "Machine Learning": "AI/Data",
+  "Data Analysis": "AI/Data",
+};
+
+const normalizeScore = (value) => {
+  const score = Number(value);
+  if (!Number.isFinite(score)) return null;
+
+  return Math.min(100, Math.max(0, Math.round(score)));
+};
+
+const getSkillScore = (skill) => {
+  return normalizeScore(skill.level ?? skill.masteryLevel);
+};
+
+const getRadarSkillScore = (skill) => {
+  const score = getSkillScore(skill);
+  return score ? score : 55;
+};
+
+const domainStats = computed(() => {
+  const buckets = technicalDomains.map((domain) => ({
+    name: domain,
+    scores: [],
+  }));
+
+  mySkills.value.forEach((skill) => {
+    const domain = skillDomainMap[skill.name];
+    if (!domain) return;
+
+    const bucket = buckets.find((item) => item.name === domain);
+    if (!bucket) return;
+
+    bucket.scores.push(getRadarSkillScore(skill));
+  });
+
+  return buckets.map((bucket) => ({
+    name: bucket.name,
+    score: bucket.scores.length
+      ? Math.round(
+          bucket.scores.reduce((total, score) => total + score, 0) /
+            bucket.scores.length,
+        )
+      : 0,
+    count: bucket.scores.length,
+  }));
+});
+
+const radarPoints = computed(() => {
+  const center = 50;
+  const maxRadius = 34;
+
+  return domainStats.value
+    .map((domain, index) => {
+      const angle =
+        -Math.PI / 2 + (index * 2 * Math.PI) / domainStats.value.length;
+      const radius = (domain.score / 100) * maxRadius;
+      const x = center + Math.cos(angle) * radius;
+      const y = center + Math.sin(angle) * radius;
+
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+});
+
+const radarLabelPositions = computed(() => {
+  const center = 50;
+  const radius = 45;
+
+  return domainStats.value.map((domain, index) => {
+    const angle =
+      -Math.PI / 2 + (index * 2 * Math.PI) / domainStats.value.length;
+
+    return {
+      ...domain,
+      x: center + Math.cos(angle) * radius,
+      y: center + Math.sin(angle) * radius,
+    };
+  });
+});
+
+const weakestDomain = computed(() => {
+  return [...domainStats.value].sort(
+    (left, right) => left.score - right.score,
+  )[0];
+});
+
+const improvementSuggestions = computed(() => {
+  const domain = weakestDomain.value?.name || "Web";
+  const suggestionsByDomain = {
+    Web: ["Vue.js", "React", "JavaScript"],
+    Backend: ["Node.js", "Express.js", "Prisma"],
+    DevOps: ["Docker", "GitHub Actions", "CI/CD"],
+    Security: ["JWT", "OWASP", "Secure API"],
+    "AI/Data": ["Python", "Machine Learning", "Data Analysis"],
+  };
+
+  return [
+    {
+      id: "weak-domain",
+      title: `Renforcer le domaine ${domain}`,
+      text: `Ajoutez une compétence comme ${suggestionsByDomain[domain]
+        .slice(0, 2)
+        .join(" ou ")} pour améliorer ce profil.`,
+      icon: "trending_up",
+    },
+    {
+      id: "project-proof",
+      title: "Ajouter une preuve projet",
+      text: `Créez ou complétez un projet lié au domaine ${domain} pour rendre cette progression plus crédible.`,
+      icon: "verified",
+    },
+  ];
+});
 
 const loadAll = async () => {
   isLoading.value = true;
+  errorMessage.value = "";
+
   try {
     const [skillsRes, softRes] = await Promise.all([
       getMySkills(),
@@ -89,8 +178,9 @@ const loadAll = async () => {
     mySkills.value = skillsRes.data || [];
     softSkills.value = softRes.data || [];
   } catch {
-    mySkills.value = mockSkills;
-    softSkills.value = mockSoftSkills;
+    mySkills.value = [];
+    softSkills.value = [];
+    errorMessage.value = "Impossible de charger les compétences.";
   } finally {
     isLoading.value = false;
   }
@@ -101,26 +191,18 @@ const loadCatalog = async () => {
     const res = await getSkillsCatalog(searchQuery.value);
     catalog.value = res.data || [];
   } catch {
-    catalog.value = [
-      { id: "c1", name: "React", type: "FRAMEWORK" },
-      { id: "c2", name: "Python", type: "TECHNICAL" },
-      { id: "c3", name: "MongoDB", type: "DATABASE" },
-      { id: "c4", name: "Kubernetes", type: "DEVOPS" },
-    ];
+    catalog.value = [];
+    errorMessage.value = "Impossible de charger le catalogue des compétences.";
   }
 };
 
-const filteredSkills = computed(() => {
-  if (selectedCategory.value === "all") return mySkills.value;
-  return mySkills.value.filter((s) => s.type === selectedCategory.value);
-});
-
 const handleAddSkill = async () => {
   if (!newSkill.value.skillId) return;
+
   try {
     await addSkill(newSkill.value);
     showAddSkill.value = false;
-    newSkill.value = { skillId: "", level: 50, source: "" };
+    newSkill.value = { skillId: "" };
     await loadAll();
   } catch {
     errorMessage.value = "Erreur lors de l'ajout.";
@@ -157,18 +239,6 @@ const handleDeleteSoft = async (id) => {
   }
 };
 
-const getLevelColor = (level) => {
-  if (level >= 80) return "#2F575D";
-  if (level >= 60) return "#6D9197";
-  return "#99AEAD";
-};
-
-const getLevelLabel = (level) => {
-  if (level >= 80) return "Avancé";
-  if (level >= 60) return "Intermédiaire";
-  return "Débutant";
-};
-
 const openAddSkill = async () => {
   showAddSkill.value = true;
   await loadCatalog();
@@ -197,42 +267,26 @@ onMounted(loadAll);
       <!-- Formulaire ajout compétence technique -->
       <div v-if="showAddSkill" class="content-card add-form-card">
         <h3 class="card-title">Ajouter une compétence technique</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Compétence</label>
-            <select v-model="newSkill.skillId" class="form-select">
-              <option value="">Sélectionner...</option>
-              <option v-for="item in catalog" :key="item.id" :value="item.id">
-                {{ item.name }} — {{ item.type }}
-              </option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Source</label>
-            <input
-              v-model="newSkill.source"
-              type="text"
-              placeholder="Ex: Projet Integration"
-            />
-          </div>
-        </div>
+
         <div class="form-group">
-          <label>Niveau : {{ newSkill.level }}%</label>
-          <input
-            v-model="newSkill.level"
-            type="range"
-            min="0"
-            max="100"
-            class="range-input"
-          />
-          <div class="range-labels">
-            <span>Débutant</span>
-            <span>Intermédiaire</span>
-            <span>Avancé</span>
-          </div>
+          <label>Compétence</label>
+          <select v-model="newSkill.skillId" class="form-select">
+            <option value="">Sélectionner...</option>
+            <option v-for="item in catalog" :key="item.id" :value="item.id">
+              {{ item.name }}
+            </option>
+          </select>
+          <p v-if="!catalog.length" class="form-hint">
+            Aucune compétence technique disponible dans le catalogue.
+          </p>
         </div>
+
         <div class="flex-gap">
-          <button class="btn btn-primary btn-sm" @click="handleAddSkill">
+          <button
+            class="btn btn-primary btn-sm"
+            :disabled="!newSkill.skillId"
+            @click="handleAddSkill"
+          >
             Ajouter
           </button>
           <button
@@ -248,39 +302,18 @@ onMounted(loadAll);
       <div class="content-card">
         <div class="flex-between mb-16">
           <h3 class="card-title" style="margin: 0">Compétences techniques</h3>
-          <div class="chips-row">
-            <span
-              v-for="cat in categories"
-              :key="cat.value"
-              class="filter-chip"
-              :class="{ active: selectedCategory === cat.value }"
-              @click="selectedCategory = cat.value"
-            >
-              {{ cat.label }}
-            </span>
-          </div>
         </div>
 
-        <div v-if="filteredSkills.length > 0" class="skills-grid">
-          <div
-            v-for="skill in filteredSkills"
-            :key="skill.id"
-            class="skill-card"
-          >
+        <div v-if="mySkills.length > 0" class="skills-grid">
+          <div v-for="skill in mySkills" :key="skill.id" class="skill-card">
             <div class="skill-header">
               <div>
                 <div class="skill-name">{{ skill.name }}</div>
-                <div class="skill-source">{{ skill.source }}</div>
+                <div class="skill-source">Compétence technique</div>
               </div>
               <div class="skill-right">
-                <span
-                  class="level-badge"
-                  :style="{
-                    background: getLevelColor(skill.level) + '20',
-                    color: getLevelColor(skill.level),
-                  }"
-                >
-                  {{ getLevelLabel(skill.level) }}
+                <span v-if="getSkillScore(skill) !== null" class="skill-score">
+                  {{ getSkillScore(skill) }}%
                 </span>
                 <button
                   class="icon-btn"
@@ -291,16 +324,18 @@ onMounted(loadAll);
                 </button>
               </div>
             </div>
-            <div class="progress-bar">
+            <div
+              class="skill-progress"
+              :class="{ empty: getSkillScore(skill) === null }"
+            >
               <div
-                class="progress-fill"
-                :style="{
-                  width: skill.level + '%',
-                  background: getLevelColor(skill.level),
-                }"
+                class="skill-progress-fill"
+                :style="{ width: `${getSkillScore(skill) || 0}%` }"
               ></div>
             </div>
-            <div class="progress-value">{{ skill.level }}%</div>
+            <div v-if="getSkillScore(skill) === null" class="skill-progress-note">
+              Score non renseigné
+            </div>
           </div>
         </div>
 
@@ -361,330 +396,96 @@ onMounted(loadAll);
           <p>Ajoutez vos soft skills pour compléter votre profil.</p>
         </div>
       </div>
+
+      <div class="insights-layout">
+        <div class="content-card radar-card">
+          <div class="flex-between mb-16">
+            <h3 class="card-title" style="margin: 0">
+              Aperçu du profil technique
+            </h3>
+            <span class="radar-badge">Prototype</span>
+          </div>
+
+          <p class="radar-note">
+            Radar temporaire calculé côté front à partir des compétences
+            techniques ajoutées.
+          </p>
+
+          <div class="radar-wrap">
+            <svg class="radar-chart" viewBox="0 0 100 100" aria-hidden="true">
+              <polygon
+                points="50,8 89.9,37 74.7,84 25.3,84 10.1,37"
+                class="radar-grid-line"
+              />
+              <polygon
+                points="50,22 76.6,41.3 66.5,72.3 33.5,72.3 23.4,41.3"
+                class="radar-grid-line radar-grid-line-inner"
+              />
+              <line x1="50" y1="50" x2="50" y2="8" class="radar-axis" />
+              <line x1="50" y1="50" x2="89.9" y2="37" class="radar-axis" />
+              <line x1="50" y1="50" x2="74.7" y2="84" class="radar-axis" />
+              <line x1="50" y1="50" x2="25.3" y2="84" class="radar-axis" />
+              <line x1="50" y1="50" x2="10.1" y2="37" class="radar-axis" />
+              <polygon :points="radarPoints" class="radar-shape" />
+              <circle cx="50" cy="50" r="2.1" class="radar-center" />
+              <text
+                v-for="label in radarLabelPositions"
+                :key="label.name"
+                :x="label.x"
+                :y="label.y"
+                class="radar-label"
+              >
+                {{ label.name }}
+              </text>
+            </svg>
+
+            <div class="domain-bars">
+              <div
+                v-for="domain in domainStats"
+                :key="domain.name"
+                class="domain-row"
+              >
+                <div class="domain-row-head">
+                  <span>{{ domain.name }}</span>
+                  <strong>{{ domain.score }}%</strong>
+                </div>
+                <div class="domain-track">
+                  <div
+                    class="domain-fill"
+                    :style="{ width: `${domain.score}%` }"
+                  ></div>
+                </div>
+                <small>
+                  {{
+                    domain.count
+                      ? `${domain.count} compétence(s)`
+                      : "Aucune compétence"
+                  }}
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-card suggestions-card">
+          <h3 class="card-title">Suggestions d’amélioration</h3>
+          <div class="suggestions-list">
+            <div
+              v-for="suggestion in improvementSuggestions"
+              :key="suggestion.id"
+              class="suggestion-item"
+            >
+              <span class="material-icons-round suggestion-icon">
+                {{ suggestion.icon }}
+              </span>
+              <div>
+                <strong>{{ suggestion.title }}</strong>
+                <p>{{ suggestion.text }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.skills-page {
-  font-family: "DM Sans", sans-serif;
-  color: #28363d;
-}
-
-.page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-.page-header h1 {
-  font-family: "DM Serif Display", serif;
-  font-size: 26px;
-  font-weight: 400;
-  color: #28363d;
-  line-height: 1.2;
-}
-.sub {
-  font-size: 13px;
-  color: #99aead;
-  margin-top: 3px;
-  font-style: italic;
-}
-
-.content-card {
-  background: #fff;
-  border: 1px solid #dee1dd;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.card-title {
-  font-size: 15px;
-  color: #28363d;
-  font-family: "DM Serif Display", serif;
-  font-weight: 400;
-  margin-bottom: 12px;
-}
-.add-form-card {
-  border-color: #2f575d;
-  border-style: dashed;
-}
-
-.chips-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-.filter-chip {
-  padding: 5px 12px;
-  border-radius: 20px;
-  border: 1px solid #c4cdc1;
-  font-size: 12px;
-  cursor: pointer;
-  color: #6d9197;
-  transition: all 0.15s;
-}
-.filter-chip:hover {
-  border-color: #6d9197;
-}
-.filter-chip.active {
-  background: #2f575d;
-  color: #fff;
-  border-color: #2f575d;
-}
-
-.skills-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-.skill-card {
-  background: #f8f9f8;
-  border: 1px solid #dee1dd;
-  border-radius: 10px;
-  padding: 16px;
-}
-.skill-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.skill-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: #28363d;
-}
-.skill-source {
-  font-size: 12px;
-  color: #99aead;
-  margin-top: 2px;
-}
-.skill-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.level-badge {
-  padding: 3px 8px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 500;
-}
-.progress-bar {
-  height: 6px;
-  background: #dee1dd;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 4px;
-}
-.progress-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s;
-}
-.progress-value {
-  font-size: 11.5px;
-  color: #99aead;
-  text-align: right;
-}
-
-.soft-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-.soft-card {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f8f9f8;
-  border: 1px solid #dee1dd;
-  border-radius: 8px;
-  padding: 10px 14px;
-}
-.check-icon {
-  font-size: 18px;
-  color: #2f575d;
-}
-.soft-name {
-  flex: 1;
-  font-size: 13.5px;
-  color: #28363d;
-  font-weight: 500;
-}
-
-.icon-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #99aead;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  transition: color 0.15s;
-}
-.icon-btn:hover {
-  color: #c0392b;
-}
-.icon-btn .material-icons-round {
-  font-size: 16px;
-}
-
-.form-group {
-  margin-bottom: 16px;
-}
-.form-group label {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #6d9197;
-  margin-bottom: 5px;
-}
-.form-group input,
-.form-group textarea {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid #c4cdc1;
-  border-radius: 8px;
-  background: #fff;
-  font-family: "DM Sans", sans-serif;
-  font-size: 13.5px;
-  color: #28363d;
-  outline: none;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-}
-.form-group input:focus {
-  border-color: #2f575d;
-}
-.form-select {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid #c4cdc1;
-  border-radius: 8px;
-  background: #fff;
-  font-family: "DM Sans", sans-serif;
-  font-size: 13.5px;
-  color: #28363d;
-  outline: none;
-  cursor: pointer;
-}
-.form-select:focus {
-  border-color: #2f575d;
-}
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.range-input {
-  width: 100%;
-  accent-color: #2f575d;
-  cursor: pointer;
-}
-.range-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: #99aead;
-  margin-top: 4px;
-}
-
-.skill-input {
-  flex: 1;
-  padding: 7px 10px;
-  border: 1px solid #c4cdc1;
-  border-radius: 8px;
-  font-size: 13px;
-  outline: none;
-  font-family: "DM Sans", sans-serif;
-  color: #28363d;
-  background: #fff;
-}
-.skill-input:focus {
-  border-color: #2f575d;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px 24px;
-  color: #99aead;
-}
-.empty-state .material-icons-round {
-  font-size: 48px;
-  color: #c4cdc1;
-  margin-bottom: 12px;
-  display: block;
-}
-.empty-state h4 {
-  font-size: 16px;
-  color: #6d9197;
-  font-weight: 500;
-  margin-bottom: 6px;
-}
-.empty-state p {
-  font-size: 13px;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 18px;
-  border-radius: 8px;
-  font-family: "DM Sans", sans-serif;
-  font-size: 13.5px;
-  font-weight: 500;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s;
-}
-.btn-primary {
-  background: #2f575d;
-  color: #fff;
-  border-color: #2f575d;
-}
-.btn-primary:hover {
-  background: #245055;
-}
-.btn-secondary {
-  background: #fff;
-  color: #2f575d;
-  border-color: #c4cdc1;
-}
-.btn-secondary:hover {
-  background: #f8f9f8;
-}
-.btn-sm {
-  padding: 6px 12px;
-  font-size: 12.5px;
-}
-.btn .material-icons-round {
-  font-size: 16px;
-}
-
-.flex-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.flex-gap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.mb-16 {
-  margin-bottom: 16px;
-}
-.text-muted {
-  color: #99aead;
-  font-size: 13px;
-}
-.error-msg {
-  color: #c0392b;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-</style>
