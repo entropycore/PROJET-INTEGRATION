@@ -328,7 +328,7 @@ model Project {
   generalFeedback   String?              @map("general_feedback") @db.Text
   createdAt         DateTime             @default(now()) @map("created_at")
   submittedAt       DateTime?            @map("submitted_at")
-  validationStatus  ValidationStatus     @default(PENDING) @map("validation_status")
+  validationStatus  ValidationStatus     @default(DRAFT) @map("validation_status")
   visibility        Visibility           @default(PRIVATE)
   media             ProjectMedia[]
   technologies      ProjectTechnology[]
