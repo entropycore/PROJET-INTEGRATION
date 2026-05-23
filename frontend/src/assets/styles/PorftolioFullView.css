@@ -844,6 +844,150 @@ blockquote {
   font-size: 0.75rem;
 }
 
+/* GITHUB ACTIVITY */
+
+.portfolio-github-calendar {
+  display: grid;
+  gap: 0.9rem;
+  justify-items: center;
+}
+
+.portfolio-github-chart-wrap {
+  width: 100%;
+  max-width: 1150px;
+  overflow-x: auto;
+  padding: 0.35rem 0 0.15rem;
+}
+
+.portfolio-github-chart {
+  display: block;
+  width: 100%;
+  min-width: 760px;
+  max-width: 1150px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.portfolio-github-legend {
+  width: 100%;
+  max-width: 1150px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.28rem;
+  color: var(--portfolio-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.portfolio-github-legend i {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.18rem;
+  background: #ebedf0;
+  border: 1px solid rgba(47, 87, 93, 0.08);
+}
+
+.portfolio-github-legend i.l1 {
+  background: #7fa8ad;
+}
+
+.portfolio-github-legend i.l2 {
+  background: #668f96;
+}
+
+.portfolio-github-legend i.l3 {
+  background: #4c747b;
+}
+
+.portfolio-github-legend i.l4 {
+  background: #2f575d;
+}
+
+.theme-code-dark .portfolio-github-legend,
+.theme-pixel-tech .portfolio-github-legend {
+  color: #9fb2aa;
+}
+
+.theme-code-dark .portfolio-github-chart-wrap {
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.theme-code-dark .portfolio-github-legend {
+  color: #8b949e;
+}
+
+.theme-code-dark .portfolio-github-legend i {
+  background: #161b22;
+  border-color: #30363d;
+}
+
+.theme-code-dark .portfolio-github-legend i.l1 {
+  background: #0e4429;
+}
+
+.theme-code-dark .portfolio-github-legend i.l2 {
+  background: #006d32;
+}
+
+.theme-code-dark .portfolio-github-legend i.l3 {
+  background: #26a641;
+}
+
+.theme-code-dark .portfolio-github-legend i.l4 {
+  background: #39d353;
+}
+
+.theme-pixel-tech .portfolio-github-legend i {
+  background: #ebedf0;
+  border-color: rgba(240, 246, 252, 0.12);
+}
+
+.theme-pixel-tech .portfolio-github-legend i.l1 {
+  background: #cbece4;
+}
+
+.theme-pixel-tech .portfolio-github-legend i.l2 {
+  background: #9ad8cb;
+}
+
+.theme-pixel-tech .portfolio-github-legend i.l3 {
+  background: #66bca9;
+}
+
+.theme-pixel-tech .portfolio-github-legend i.l4 {
+  background: #7bc6b2;
+}
+
+.theme-neo-brutalist .portfolio-github-legend {
+  color: #111111;
+}
+
+.theme-neo-brutalist .portfolio-github-legend i {
+  background: #f3eadb;
+  border: 2px solid #111111;
+  box-shadow: 2px 2px 0 #111111;
+}
+
+.theme-neo-brutalist .portfolio-github-legend i.l1 {
+  background: #ead7aa;
+}
+
+.theme-neo-brutalist .portfolio-github-legend i.l2 {
+  background: #dfbf73;
+}
+
+.theme-neo-brutalist .portfolio-github-legend i.l3 {
+  background: #d0aa52;
+}
+
+.theme-neo-brutalist .portfolio-github-legend i.l4 {
+  background: #c89b3c;
+}
+
 /* ACADEMIC TIMELINE */
 
 .academic-timeline {
@@ -1919,6 +2063,11 @@ blockquote {
 }
 
 @media (max-width: 680px) {
+  .portfolio-github-legend {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
   .academic-timeline {
     gap: 1.25rem;
   }
