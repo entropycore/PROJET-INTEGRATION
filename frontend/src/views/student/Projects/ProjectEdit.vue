@@ -6,6 +6,7 @@ import {
   getStudentProjectById,
   updateStudentProject,
   submitStudentProject,
+  uploadStudentProjectMedia,
 } from "@/services/studentProjectsApis";
 
 import "@/assets/styles/student-project-edit.css";
@@ -21,26 +22,33 @@ const newLinkLabel = ref("");
 const newLinkUrl = ref("");
 const isSaving = ref(false);
 const errorMessage = ref("");
-
-const validators = [
-  "Pr. Moussaoui",
-  "Pr. Benali",
-  "Mme Ghizlan",
-  "Pr. Haddad",
-  "Pr. El Amrani",
-];
+const selectedScreenshots = ref([]);
+const selectedAttachments = ref([]);
 
 const projectTypes = [
-  "Module",
-  "Intégration",
-  "Hackathon",
-  "Personnel",
-  "Stage",
+  { label: "Module", value: "MODULE" },
+  { label: "Intégration", value: "INTEGRATION" },
+  { label: "Hackathon", value: "HACKATHON" },
+  { label: "Personnel", value: "PERSONAL" },
+  { label: "Stage", value: "INTERNSHIP" },
 ];
 
 const canSubmit = computed(() => {
   return Boolean(projectForm.value?.validatorName);
 });
+
+const buildProjectPayload = () => {
+  const payload = { ...projectForm.value };
+
+  delete payload.screenshots;
+  delete payload.attachments;
+  delete payload.validatorId;
+  delete payload.validationHistory;
+  delete payload.createdAt;
+  delete payload.updatedAt;
+
+  return payload;
+};
 
 const fetchProject = async () => {
   isLoading.value = true;
@@ -132,11 +140,16 @@ const handleScreenshotsUpload = (event) => {
   }
 
   files.forEach((file) => {
+    const id = `local-${Date.now()}-${Math.random()}`;
+
     projectForm.value.screenshots.push({
-      id: Date.now() + Math.random(),
+      id,
       title: file.name,
-      imageUrl: URL.createObjectURL(file),
+      isLocal: true,
     });
+
+    file.localMediaId = id;
+    selectedScreenshots.value.push(file);
   });
 
   event.target.value = "";
@@ -150,12 +163,17 @@ const handleAttachmentsUpload = (event) => {
   }
 
   files.forEach((file) => {
+    const id = `local-${Date.now()}-${Math.random()}`;
+
     projectForm.value.attachments.push({
-      id: Date.now() + Math.random(),
+      id,
       name: file.name,
       type: file.type || "FICHIER",
-      url: "#",
+      isLocal: true,
     });
+
+    file.localMediaId = id;
+    selectedAttachments.value.push(file);
   });
 
   event.target.value = "";
@@ -165,12 +183,29 @@ const removeScreenshot = (id) => {
   projectForm.value.screenshots = projectForm.value.screenshots.filter(
     (screenshot) => screenshot.id !== id,
   );
+  selectedScreenshots.value = selectedScreenshots.value.filter(
+    (file) => file.localMediaId !== id,
+  );
 };
 
 const removeAttachment = (id) => {
   projectForm.value.attachments = projectForm.value.attachments.filter(
     (attachment) => attachment.id !== id,
   );
+  selectedAttachments.value = selectedAttachments.value.filter(
+    (file) => file.localMediaId !== id,
+  );
+};
+
+const uploadPendingMedia = async () => {
+  if (!selectedScreenshots.value.length && !selectedAttachments.value.length) {
+    return;
+  }
+
+  await uploadStudentProjectMedia(route.params.id, {
+    screenshots: selectedScreenshots.value,
+    attachments: selectedAttachments.value,
+  });
 };
 
 const saveProject = async () => {
@@ -178,7 +213,9 @@ const saveProject = async () => {
   errorMessage.value = "";
 
   try {
-    await updateStudentProject(route.params.id, projectForm.value);
+    await updateStudentProject(route.params.id, buildProjectPayload());
+    await uploadPendingMedia();
+
     router.push(`/student/projects/${route.params.id}`);
   } catch (error) {
     console.error("Erreur mise à jour projet :", error);
@@ -196,9 +233,9 @@ const submitProject = async () => {
   errorMessage.value = "";
 
   try {
-    await updateStudentProject(route.params.id, projectForm.value);
+    await updateStudentProject(route.params.id, buildProjectPayload());
+    await uploadPendingMedia();
     await submitStudentProject(route.params.id);
-
     router.push(`/student/projects/${route.params.id}`);
   } catch (error) {
     console.error("Erreur soumission projet :", error);
@@ -271,26 +308,21 @@ onMounted(fetchProject);
                 <select v-model="projectForm.type">
                   <option
                     v-for="type in projectTypes"
-                    :key="type"
-                    :value="type"
+                    :key="type.value"
+                    :value="type.value"
                   >
-                    {{ type }}
+                    {{ type.label }}
                   </option>
                 </select>
               </label>
 
               <label class="form-field">
                 <span>Validateur</span>
-                <select v-model="projectForm.validatorName">
-                  <option value="">Choisir un validateur</option>
-                  <option
-                    v-for="validator in validators"
-                    :key="validator"
-                    :value="validator"
-                  >
-                    {{ validator }}
-                  </option>
-                </select>
+                <input
+                  v-model="projectForm.validatorName"
+                  type="text"
+                  placeholder="Nom du validateur"
+                />
               </label>
 
               <label class="form-field full">
