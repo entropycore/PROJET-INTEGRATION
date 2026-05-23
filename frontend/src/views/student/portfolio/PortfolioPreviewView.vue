@@ -31,14 +31,6 @@ const config = reactive({
   },
 });
 
-const goals = [
-  { value: "WEB_DEVELOPER", label: "Développeur Web" },
-  { value: "DEVOPS", label: "DevOps" },
-  { value: "DATA_SCIENCE", label: "Data Science" },
-  { value: "CYBERSECURITY", label: "Cybersécurité" },
-  { value: "MASTER_PHD", label: "Master / Doctorat" },
-  { value: "INTERNSHIP_EMPLOYMENT", label: "Stage / Emploi" },
-];
 
 const themes = [
   {
@@ -98,6 +90,19 @@ const selectedCount = computed(() => {
     config.includedItems.recommendations.length
   );
 });
+const currentGoalLabel = computed(() => {
+  return (
+    portfolioData.value?.student?.professionalObjective?.label ||
+    portfolioData.value?.student?.professionalObjective ||
+    portfolioData.value?.student?.goal?.label ||
+    portfolioData.value?.student?.goal ||
+    "Objectif professionnel non défini"
+  );
+});
+
+const hasProfessionalGoal = computed(() => {
+  return currentGoalLabel.value !== "Objectif professionnel non défini";
+});
 
 const toggleItem = (section, id) => {
   const list = config.includedItems[section];
@@ -117,7 +122,12 @@ const generatePortfolio = async () => {
   isGenerating.value = true;
 
   const payload = {
-    goal: config.goal,
+    goal:
+        portfolioData.value?.student?.professionalObjective?.value ||
+        portfolioData.value?.student?.professionalObjective ||
+        portfolioData.value?.student?.goal?.value ||
+        portfolioData.value?.student?.goal ||
+        null,
     theme: config.theme,
     includedSections: [
       config.includeSkills ? "skills" : null,
@@ -222,18 +232,33 @@ onMounted(fetchPortfolio);
       </div>
 
       <div class="config-grid">
-        <div class="content-card">
-          <h3>Objectif du portfolio</h3>
+        <div class="content-card objective-card">
+        <h3>
+            <span class="material-icons-round">track_changes</span>
+            Objectif du portfolio
+        </h3>
 
-          <select v-model="config.goal" class="select-input">
-            <option v-for="goal in goals" :key="goal.value" :value="goal.value">
-              {{ goal.label }}
-            </option>
-          </select>
-          <p class="objective-description">
-            L’objectif choisi permettra d’organiser votre portfolio pour mieux attirer
-            les recruteurs et mettre en avant les expériences les plus pertinentes.
-          </p>
+        <div class="objective-preview">
+            <strong>{{ currentGoalLabel }}</strong>
+            <p class="objective-description">
+                L’objectif choisi permettra d’organiser votre portfolio pour mieux attirer
+                les recruteurs et mettre en avant les expériences les plus pertinentes.
+            </p>
+        </div>
+
+        <div class="objective-note">
+            <span class="material-icons-round">info</span>
+
+            <p v-if="hasProfessionalGoal">
+                Pour modifier votre objectif professionnel, rendez-vous dans
+                <RouterLink to="/student/profile" class="profile-link">votre profil</RouterLink>.
+            </p>
+
+            <p v-else>
+                Aucun objectif professionnel n’est encore défini. Veuillez le choisir dans
+                <RouterLink to="/student/profile" class="profile-link">votre profil</RouterLink>.
+            </p>
+        </div>
         </div>
 
         <div class="content-card">
@@ -764,13 +789,70 @@ onMounted(fetchPortfolio);
   color: #658b6f;
   text-decoration: underline;
 }
+.objective-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  flex-wrap: wrap;
+}
+
+.objective-card h3::after {
+  content: "";
+  flex-basis: 100%;
+  width: 2.7rem;
+  height: 3px;
+  margin-top: 0.45rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2f575d, #8aa78d);
+}
+
+.objective-preview {
+  border: 1px solid #dfe7e2;
+  border-radius: 0.9rem;
+  padding: 1.2rem;
+  background: linear-gradient(135deg, #ffffff, #f8fbfa);
+}
+
+.objective-preview strong {
+  display: block;
+  color: #1f2933;
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.objective-source {
+  margin: 0.35rem 0 0;
+  color: #8b9f9e;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
 .objective-description {
-    margin-top: 1rem;
-    margin-left: 1rem;
-    color: #6b7280;
-    font-size: 0.95rem;
-    line-height: 1.5;
-    max-width: 500px;
+  margin: 1rem 0 0;
+  color: #5f6f73;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 620px;
+}
+
+.objective-note {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #dcece6;
+  border-radius: 0.85rem;
+  background: #f7fcfa;
+  color: #2f575d;
+}
+
+.objective-note p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.5;
 }
 </style>
 
