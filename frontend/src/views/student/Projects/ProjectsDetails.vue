@@ -1,11 +1,12 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 import {
   getStudentProjectById,
   deleteStudentProject,
 } from "@/services/studentProjectsApis";
+import api from "@/services/api";
 
 import "@/assets/styles/student-project-details.css";
 
@@ -14,6 +15,16 @@ const router = useRouter();
 
 const project = ref(null);
 const isLoading = ref(false);
+const brokenScreenshotIds = ref(new Set());
+const screenshotObjectUrls = ref({});
+const handleScreenshotError = (id) => {
+  brokenScreenshotIds.value = new Set([...brokenScreenshotIds.value, id]);
+};
+
+const getAttachmentDownloadUrl = (attachment) => {
+  return getMediaUrl(attachment, "download");
+};
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const statusLabels = {
   DRAFT: "Brouillon",
@@ -67,6 +78,7 @@ const fetchProject = async () => {
   try {
     const response = await getStudentProjectById(route.params.id);
     project.value = response.data.data;
+    await loadScreenshotObjectUrls();
   } catch (error) {
     console.warn("API project detail indisponible.");
   } finally {
@@ -74,16 +86,92 @@ const fetchProject = async () => {
   }
 };
 
+const buildBackendUrl = (url) => {
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `${apiBaseUrl}${url.startsWith("/") ? url : `/${url}`}`;
+};
+
+const buildApiRequestUrl = (url) => {
+  if (!url) return "";
+
+  const normalizedBaseUrl = apiBaseUrl.replace(/\/$/, "");
+  const apiPrefix = `${normalizedBaseUrl}/api`;
+
+  if (normalizedBaseUrl && url.startsWith(`${apiPrefix}/`)) {
+    return url.slice(apiPrefix.length);
+  }
+
+  if (url.startsWith("/api/")) {
+    return url.slice(4);
+  }
+
+  return url;
+};
+
+const getMediaUrl = (media, action) => {
+  const existingUrl = media?.mediaUrl || media?.imageUrl || media?.url;
+
+  if (existingUrl) {
+    return buildBackendUrl(existingUrl);
+  }
+
+  if (!project.value?.id || !media?.id) return "";
+
+  return buildBackendUrl(
+    `/api/projects/${project.value.id}/media/${media.id}/${action}`,
+  );
+};
+
 const displayScreenshots = computed(() => {
-  const screenshots = project.value?.screenshots || [];
+  const screenshots = (project.value?.screenshots || []).map((screenshot) => ({
+    ...screenshot,
+    src: screenshotObjectUrls.value[screenshot.id] || null,
+  }));
+
   const placeholders = [
-    { id: "placeholder-1", title: "Capture 1", imageUrl: null },
-    { id: "placeholder-2", title: "Capture 2", imageUrl: null },
-    { id: "placeholder-3", title: "Capture 3", imageUrl: null },
+    { id: "placeholder-1", title: "Capture 1", src: null },
+    { id: "placeholder-2", title: "Capture 2", src: null },
+    { id: "placeholder-3", title: "Capture 3", src: null },
   ];
 
   return [...screenshots, ...placeholders].slice(0, 3);
 });
+
+const revokeScreenshotObjectUrls = () => {
+  Object.values(screenshotObjectUrls.value).forEach((objectUrl) => {
+    URL.revokeObjectURL(objectUrl);
+  });
+
+  screenshotObjectUrls.value = {};
+};
+
+const loadScreenshotObjectUrls = async () => {
+  revokeScreenshotObjectUrls();
+  brokenScreenshotIds.value = new Set();
+
+  const screenshots = project.value?.screenshots || [];
+  const entries = await Promise.all(
+    screenshots.map(async (screenshot) => {
+      if (!screenshot.id || !screenshot.imageUrl) {
+        return null;
+      }
+
+      try {
+        const response = await api.get(buildApiRequestUrl(screenshot.imageUrl), {
+          responseType: "blob",
+        });
+
+        return [screenshot.id, URL.createObjectURL(response.data)];
+      } catch (error) {
+        handleScreenshotError(screenshot.id);
+        return null;
+      }
+    }),
+  );
+
+  screenshotObjectUrls.value = Object.fromEntries(entries.filter(Boolean));
+};
 
 const formatDate = (date) => {
   if (!date) return "—";
@@ -113,6 +201,7 @@ const handleDeleteProject = async () => {
 };
 
 onMounted(fetchProject);
+onUnmounted(revokeScreenshotObjectUrls);
 </script>
 
 <template>
@@ -289,7 +378,14 @@ onMounted(fetchProject);
                   </div>
                 </div>
 
-                <button class="secondary-action">Télécharger</button>
+                <a
+                  v-if="getAttachmentDownloadUrl(attachment)"
+                  class="secondary-action"
+                  :href="getAttachmentDownloadUrl(attachment)"
+                  download
+                >
+                  Télécharger
+                </a>
               </div>
               <p
                 v-if="!project.attachments?.length"
@@ -378,7 +474,7 @@ onMounted(fetchProject);
           <section class="details-card">
             <div class="section-title">Captures d'écran</div>
 
-            <div class="screenshots-grid">
+            <div v-if="displayScreenshots.length" class="screenshots-grid">
               <button
                 v-for="(screenshot, index) in displayScreenshots"
                 :key="screenshot.id"
@@ -386,20 +482,27 @@ onMounted(fetchProject);
                 class="screenshot-card"
               >
                 <img
-                  v-if="screenshot.imageUrl"
-                  :src="screenshot.imageUrl"
+                  v-if="
+                    screenshot.src && !brokenScreenshotIds.has(screenshot.id)
+                  "
+                  :src="screenshot.src"
                   :alt="screenshot.title"
+                  @error="handleScreenshotError(screenshot.id)"
                 />
 
                 <div
-                  v-else
-                  class="screenshot-placeholder"
-                  :class="`variant-${(index % 3) + 1}`"
-                >
-                  {{ screenshot.title }}
-                </div>
+  v-else
+  class="screenshot-placeholder"
+  :class="`variant-${(index % 3) + 1}`"
+>
+  {{ screenshot.title || `Capture ${index + 1}` }}
+</div>
               </button>
             </div>
+
+            <p v-else class="empty-section-message">
+              Aucune capture d’écran ajoutée.
+            </p>
           </section>
 
           <section class="details-card">

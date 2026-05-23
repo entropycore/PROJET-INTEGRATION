@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import {
   createStudentProject,
   submitStudentProject,
+  uploadStudentProjectMedia,
 } from "@/services/studentProjectsApis";
 import { RouterLink, useRouter } from "vue-router";
 
@@ -14,26 +15,20 @@ const newTechnology = ref("");
 const newLinkLabel = ref("");
 const newLinkUrl = ref("");
 const errorMessage = ref("");
-
-const validators = [
-  "Pr. Moussaoui",
-  "Pr. Benali",
-  "Mme Ghizlan",
-  "Pr. Haddad",
-  "Pr. El Amrani",
-];
+const selectedScreenshots = ref([]);
+const selectedAttachments = ref([]);
 
 const projectTypes = [
-  "Module",
-  "Intégration",
-  "Hackathon",
-  "Personnel",
-  "Stage",
+  { label: "Module", value: "MODULE" },
+  { label: "Intégration", value: "INTEGRATION" },
+  { label: "Hackathon", value: "HACKATHON" },
+  { label: "Personnel", value: "PERSONAL" },
+  { label: "Stage", value: "INTERNSHIP" },
 ];
 
 const projectForm = ref({
   title: "",
-  type: "Module",
+  type: "MODULE",
   description: "",
   role: "",
   teamSize: "",
@@ -55,12 +50,20 @@ const projectForm = ref({
 });
 
 const canSubmit = computed(() => {
-  return (
+  return Boolean(
     projectForm.value.title.trim() &&
-    projectForm.value.description.trim() &&
-    projectForm.value.validatorName
+      projectForm.value.description.trim(),
   );
 });
+
+const buildProjectPayload = () => {
+  const payload = { ...projectForm.value };
+
+  delete payload.screenshots;
+  delete payload.attachments;
+
+  return payload;
+};
 
 const projectLinks = computed(() => {
   return [
@@ -127,10 +130,9 @@ const handleScreenshotsUpload = (event) => {
   const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
+    selectedScreenshots.value.push(file);
     projectForm.value.screenshots.push({
-      id: Date.now() + Math.random(),
       title: file.name,
-      imageUrl: URL.createObjectURL(file),
     });
   });
 
@@ -141,27 +143,38 @@ const handleAttachmentsUpload = (event) => {
   const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
+    selectedAttachments.value.push(file);
     projectForm.value.attachments.push({
-      id: Date.now() + Math.random(),
       name: file.name,
       type: file.type || "FICHIER",
-      url: "#",
     });
   });
 
   event.target.value = "";
 };
 
-const removeScreenshot = (id) => {
-  projectForm.value.screenshots = projectForm.value.screenshots.filter(
-    (screenshot) => screenshot.id !== id,
-  );
+const removeScreenshot = (index) => {
+  projectForm.value.screenshots.splice(index, 1);
+  selectedScreenshots.value.splice(index, 1);
 };
 
-const removeAttachment = (id) => {
-  projectForm.value.attachments = projectForm.value.attachments.filter(
-    (attachment) => attachment.id !== id,
-  );
+const removeAttachment = (index) => {
+  projectForm.value.attachments.splice(index, 1);
+  selectedAttachments.value.splice(index, 1);
+};
+
+const uploadPendingMedia = async (projectId) => {
+  if (
+    !selectedScreenshots.value.length &&
+    !selectedAttachments.value.length
+  ) {
+    return;
+  }
+
+  await uploadStudentProjectMedia(projectId, {
+    screenshots: selectedScreenshots.value,
+    attachments: selectedAttachments.value,
+  });
 };
 
 const createDraftProject = async () => {
@@ -169,8 +182,12 @@ const createDraftProject = async () => {
   errorMessage.value = "";
 
   try {
-    await createStudentProject(projectForm.value);
-    router.push("/student/projects");
+    const response = await createStudentProject(buildProjectPayload());
+    const createdProject = response.data.data;
+
+    await uploadPendingMedia(createdProject.id);
+
+    router.push(`/student/projects/${createdProject.id}`);
   } catch (error) {
     console.error("Erreur création projet :", error);
     errorMessage.value =
@@ -187,12 +204,13 @@ const createAndSubmitProject = async () => {
   errorMessage.value = "";
 
   try {
-    const response = await createStudentProject(projectForm.value);
+    const response = await createStudentProject(buildProjectPayload());
     const createdProject = response.data.data;
 
+    await uploadPendingMedia(createdProject.id);
     await submitStudentProject(createdProject.id);
 
-    router.push("/student/projects");
+    router.push(`/student/projects/${createdProject.id}`);
   } catch (error) {
     console.error("Erreur création/soumission projet :", error);
     errorMessage.value =
@@ -218,7 +236,9 @@ const createAndSubmitProject = async () => {
 
         <p>Ajoutez un nouveau projet à votre portfolio académique.</p>
       </div>
-
+      <p v-if="errorMessage" class="edit-error-message">
+  {{ errorMessage }}
+</p>
       <div class="edit-header-actions">
         <button
           type="button"
@@ -237,12 +257,8 @@ const createAndSubmitProject = async () => {
         >
           Créer et soumettre
         </button>
-        <p v-if="errorMessage" class="edit-error-message">
-          {{ errorMessage }}
-        </p>
       </div>
     </div>
-
     <div class="edit-layout">
       <div class="edit-main-column">
         <section class="edit-card">
@@ -263,8 +279,12 @@ const createAndSubmitProject = async () => {
               <span>Type</span>
 
               <select v-model="projectForm.type">
-                <option v-for="type in projectTypes" :key="type" :value="type">
-                  {{ type }}
+                <option
+                  v-for="type in projectTypes"
+                  :key="type.value"
+                  :value="type.value"
+                >
+                  {{ type.label }}
                 </option>
               </select>
             </label>
@@ -272,17 +292,11 @@ const createAndSubmitProject = async () => {
             <label class="form-field">
               <span>Validateur</span>
 
-              <select v-model="projectForm.validatorName">
-                <option value="">Choisir un validateur</option>
-
-                <option
-                  v-for="validator in validators"
-                  :key="validator"
-                  :value="validator"
-                >
-                  {{ validator }}
-                </option>
-              </select>
+              <input
+                v-model="projectForm.validatorName"
+                type="text"
+                placeholder="Optionnel"
+              />
             </label>
 
             <label class="form-field full">
@@ -415,22 +429,22 @@ const createAndSubmitProject = async () => {
             <small> PNG, JPG ou WEBP </small>
 
             <input
-              type="file"
-              accept="image/*"
-              multiple
-              @change="handleScreenshotsUpload"
-            />
+  type="file"
+  accept="image/*"
+  multiple
+  @change="handleScreenshotsUpload"
+/>
           </label>
 
           <div v-if="projectForm.screenshots.length" class="uploaded-list">
             <div
-              v-for="screenshot in projectForm.screenshots"
-              :key="screenshot.id"
+              v-for="(screenshot, index) in projectForm.screenshots"
+              :key="`${screenshot.title}-${index}`"
               class="uploaded-item"
             >
               <span>{{ screenshot.title }}</span>
 
-              <button type="button" @click="removeScreenshot(screenshot.id)">
+              <button type="button" @click="removeScreenshot(index)">
                 Supprimer
               </button>
             </div>
@@ -445,20 +459,20 @@ const createAndSubmitProject = async () => {
 
             <strong> Ajouter des fichiers </strong>
 
-            <small> PDF, image ou document </small>
+            <small> PDF, ZIP, DOC, DOCX ou TXT </small>
 
             <input type="file" multiple @change="handleAttachmentsUpload" />
           </label>
 
           <div v-if="projectForm.attachments.length" class="uploaded-list">
             <div
-              v-for="attachment in projectForm.attachments"
-              :key="attachment.id"
+              v-for="(attachment, index) in projectForm.attachments"
+              :key="`${attachment.name}-${index}`"
               class="uploaded-item"
             >
               <span>{{ attachment.name }}</span>
 
-              <button type="button" @click="removeAttachment(attachment.id)">
+              <button type="button" @click="removeAttachment(index)">
                 Supprimer
               </button>
             </div>
@@ -466,8 +480,7 @@ const createAndSubmitProject = async () => {
         </section>
 
         <section v-if="!canSubmit" class="edit-warning-card">
-          Complétez le titre, la description et choisissez un validateur avant
-          de soumettre le projet.
+          Complétez le titre et la description avant de soumettre le projet.
         </section>
       </aside>
     </div>
