@@ -506,6 +506,20 @@ const normalizeOptionalText = (value) => {
   return trimmed || null;
 };
 
+const normalizeEmail = (value) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : value;
+
+const findUserByEmail = (email, select = { id: true }) =>
+  prisma.user.findFirst({
+    where: {
+      email: {
+        equals: normalizeEmail(email),
+        mode: 'insensitive',
+      },
+    },
+    select,
+  });
+
 const readTextValue = (payload, names) => {
   for (const name of names) {
     if (typeof payload?.[name] === 'string') {
@@ -2102,18 +2116,16 @@ exports.getUserById = async (userId) => {
 exports.createUser = async (payload) => {
   const role = String(payload.role || '').toUpperCase();
   const accountStatus = String(payload.accountStatus || 'ACTIVE').toUpperCase();
+  const email = normalizeEmail(payload.email);
 
   ensureValidRole(role);
   ensureValidStatus(accountStatus);
 
-  if (!payload.firstName || !payload.lastName || !payload.email) {
+  if (!payload.firstName || !payload.lastName || !email) {
     throw new Error('MISSING_REQUIRED_FIELDS');
   }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: payload.email },
-    select: { id: true },
-  });
+  const existingUser = await findUserByEmail(email);
 
   if (existingUser) {
     throw new Error('EMAIL_ALREADY_EXISTS');
@@ -2128,7 +2140,7 @@ exports.createUser = async (payload) => {
     data: {
       firstName: payload.firstName,
       lastName: payload.lastName,
-      email: payload.email,
+      email,
       phone: payload.phone || null,
       profilePicture: payload.profilePicture || null,
       accountStatus,
@@ -2174,7 +2186,7 @@ exports.updateUser = async (userId, payload) => {
   const commonData = stripUndefined({
     firstName: payload.firstName,
     lastName: payload.lastName,
-    email: payload.email,
+    email: normalizeEmail(payload.email),
     phone: payload.phone,
     profilePicture: payload.profilePicture,
   });
