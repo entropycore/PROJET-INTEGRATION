@@ -21,7 +21,7 @@ router.use(dashboardRoutes);
 router.use(profileRoutes);
 router.use(recommendationRoutes);
 router.use(skillRoutes);
-router.use(settingsRoutes);
+router.use('/settings', settingsRoutes);
 router.use(notificationRoutes);
 router.use(githubImportRoutes);
 router.use(stageRoutes);
