@@ -269,13 +269,29 @@ model AcademicPath {
   @@map("academic_paths")
 }
 
+model SkillDomain {
+  id           String  @id @default(uuid()) @map("id_skill_domain")
+  name         String  @unique @db.VarChar(120)
+  slug         String  @unique @db.VarChar(120)
+  description  String? @db.Text
+  displayOrder Int     @default(0) @map("display_order")
+
+  skills Skill[]
+
+  @@index([displayOrder])
+  @@map("skill_domains")
+}
+
 model Skill {
   id          String       @id @default(uuid()) @map("id_skill")
   name        String       @unique @map("name") @db.VarChar(120)
   type        SkillType
   description String?      @db.Text
+  domainId    String?      @map("domain_id")
+  domain      SkillDomain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
   studentSkills StudentSkill[]
 
+  @@index([domainId])
   @@map("skills")
 }
 
