@@ -1,21 +1,22 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
   activities,
-  addActivity,
   deleteActivity,
   submitActivityValidation,
 } from "@/mockData/studentActivities.store";
 
-import ActivityCard from "@/components/student/activities/ActivityCard.vue";
-import ActivityFilters from "@/components/student/activities/ActivityFilters.vue";
-import ActivityForm from "@/components/student/activities/ActivityForm.vue";
+import ActivityCard from '@/components/student/stages/activities/ActivityCard.vue'
+import ActivityFilters from '@/components/student/stages/activities/ActivityFilters.vue'
 
-const search = ref("");
-const selectedStatus = ref("ALL");
-const selectedType = ref("ALL");
-const showForm = ref(false);
+const router = useRouter()
+
+const search = ref('')
+const selectedStatus = ref('ALL')
+const selectedType = ref('ALL')
+
 
 const filteredActivities = computed(() => {
   return activities.value.filter((activity) => {
@@ -37,16 +38,9 @@ const filteredActivities = computed(() => {
   });
 });
 
-const handleAddActivity = (payload) => {
-  addActivity({
-    id: Date.now(),
-    ...payload,
-    validationStatus: "DRAFT",
-    createdAt: new Date().toISOString().split("T")[0],
-  });
-
-  showForm.value = false;
-};
+const goToCreate = () => {
+  router.push('/student/activities/create')
+}
 
 const handleDeleteActivity = (activityId) => {
   const confirmDelete = window.confirm(
@@ -72,19 +66,11 @@ const handleSubmitValidation = (activityId) => {
         <p>Ajoutez vos engagements avec une attestation de participation.</p>
       </div>
 
-      <button class="add-btn" @click="showForm = !showForm">
-        <span class="material-icons-round">
-          {{ showForm ? "close" : "add" }}
-        </span>
-        {{ showForm ? "Fermer" : "Ajouter une activité" }}
+      <button class="add-btn" @click="goToCreate">
+        <span class="material-icons-round">add</span>
+           Ajouter une activité
       </button>
     </div>
-
-    <ActivityForm
-      v-if="showForm"
-      @save-activity="handleAddActivity"
-      @cancel="showForm = false"
-    />
 
     <ActivityFilters
       v-model:search="search"
