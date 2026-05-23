@@ -9,6 +9,7 @@ import {
   getGeneratedPortfolioConfig,
   getStudentPortfolioData,
 } from "@/services/studentPortfolioService";
+import { getGithubStats } from "@/services/studentGithub";
 
 const router = useRouter();
 
@@ -19,6 +20,8 @@ const selectedItem = ref(null);
 const selectedType = ref("");
 const isModalOpen = ref(false);
 const selectedTheme = ref("modern-academic");
+const githubData = ref(null);
+const includeGithubActivity = ref(true);
 
 const normalizeTheme = (theme) => {
   const themeMap = {
@@ -37,12 +40,16 @@ const filterBySelectedIds = (items = [], selectedIds = []) => {
 const applyGeneratedPortfolioConfig = (data) => {
   const config = getGeneratedPortfolioConfig();
 
-  if (!config) return data;
+  if (!config) {
+    includeGithubActivity.value = true;
+    return data;
+  }
 
   selectedTheme.value = normalizeTheme(config.theme);
 
   const includedSections = new Set(config.includedSections || []);
   const includedItems = config.includedItems || {};
+  includeGithubActivity.value = includedSections.has("githubActivity");
 
   return {
     ...data,
@@ -94,12 +101,32 @@ const fetchPortfolio = async () => {
   try {
     const data = await getStudentPortfolioData();
     portfolioData.value = applyGeneratedPortfolioConfig(data);
+
+    if (includeGithubActivity.value) {
+      try {
+        const response = await getGithubStats();
+        githubData.value = response.data?.data || null;
+      } catch {
+        githubData.value = null;
+      }
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
 const pageThemeClass = computed(() => `theme-${selectedTheme.value}`);
+
+const githubCalendarColor = computed(() => {
+  const colorByTheme = {
+    "modern-academic": "2F575D",
+    "code-dark": "26A641",
+    "pixel-tech": "7BC6B2",
+    "neo-brutalist": "C89B3C",
+  };
+
+  return colorByTheme[selectedTheme.value] || colorByTheme["modern-academic"];
+});
 
 const getCoverImage = (item) => {
   return item?.coverImage || item?.screenshots?.[0] || "";
@@ -203,6 +230,33 @@ onMounted(fetchPortfolio);
           <p class="bio-text">
             {{ portfolioData.student.bio }}
           </p>
+        </PortfolioSection>
+
+        <PortfolioSection
+          v-if="githubData?.connected && githubData?.username"
+          title="Calendrier d’activité GitHub"
+          icon="calendar_month"
+          :theme="selectedTheme"
+        >
+          <div class="portfolio-github-calendar">
+            <div class="portfolio-github-chart-wrap">
+              <img
+                :src="`https://ghchart.rshah.org/${githubCalendarColor}/${githubData.username}`"
+                alt="Calendrier des contributions GitHub"
+                class="portfolio-github-chart"
+              />
+            </div>
+
+            <div class="portfolio-github-legend">
+              <span>Moins d’activité</span>
+              <i></i>
+              <i class="l1"></i>
+              <i class="l2"></i>
+              <i class="l3"></i>
+              <i class="l4"></i>
+              <span>Plus d’activité</span>
+            </div>
+          </div>
         </PortfolioSection>
 
         <PortfolioSection
