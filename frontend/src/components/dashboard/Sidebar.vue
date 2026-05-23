@@ -54,7 +54,7 @@ const getIcon = (icon) => {
 };
 
 const userInitial = computed(() => {
-  return userDisplayName.value.charAt(0).toUpperCase() || "A";
+  return user.value?.firstName?.charAt(0).toUpperCase() || "A";
 });
 
 const handleLogout = async () => {
