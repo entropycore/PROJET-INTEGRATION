@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { getStudentProjects } from "@/services/studentProjectsApis";
+import { getStudentProjects,submitStudentProject, } from "@/services/studentProjectsApis";
 
 import "@/assets/styles/student-project.css";
 
@@ -80,8 +80,13 @@ const canEditProject = (status) => {
   return ["DRAFT", "CHANGES_REQUESTED"].includes(status);
 };
 
-const canSubmitProject = (status) => {
-  return status === "DRAFT";
+const canSubmitProject = (project) => {
+  return (
+    project.validationStatus === "DRAFT" &&
+    project.title?.trim() &&
+    project.description?.trim() &&
+    project.validatorName
+  );
 };
 
 const formatDate = (date) => {
@@ -92,8 +97,13 @@ const formatDate = (date) => {
   }).format(new Date(date));
 };
 
-const submitProject = (projectId) => {
-  console.log("Submit project:", projectId);
+const submitProject = async (projectId) => {
+  try {
+    await submitStudentProject(projectId);
+    await fetchProjects();
+  } catch (error) {
+    console.error("Erreur soumission projet :", error);
+  }
 };
 </script>
 
@@ -214,7 +224,7 @@ const submitProject = (projectId) => {
             </RouterLink>
 
             <button
-              v-if="canSubmitProject(project.validationStatus)"
+              v-if="canSubmitProject(project)"
               type="button"
               class="primary-action"
               @click="submitProject(project.id)"
