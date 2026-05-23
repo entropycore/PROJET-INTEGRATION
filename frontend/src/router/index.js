@@ -191,9 +191,10 @@ const router = createRouter({
           component: () => import("@/views/student/Badges.vue"),
         },
         {
-          path: "portfolio",
-          name: "StudentPortfolio",
-          component: () => import("@/views/student/Portfolio.vue"),
+          path: "/student/portfolio",
+          name: "student-portfolio",
+          component: () =>
+            import("@/views/student/portfolio/PortfolioPreviewView.vue"),
         },
         {
           path: "github",
@@ -228,6 +229,12 @@ const router = createRouter({
         },
       ],
     },
+        {
+          path: "/student/portfolio/full",
+          name: "student-portfolio-full",
+          component: () =>
+            import("@/views/student/portfolio/PortfolioFullView.vue"),
+        },
     {
       path: "/professor",
       component: ProfessorDashboard,
