@@ -3,14 +3,27 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
-const studentController = require('../controllers/studentController');
+const dashboardRoutes = require('./student/dashboardRoutes');
+const githubImportRoutes = require('./student/githubImportRoutes');
+const notificationRoutes = require('./student/notificationRoutes');
+const profileRoutes = require('./student/profileRoutes');
+const recommendationRoutes = require('./student/recommendationRoutes');
+const settingsRoutes = require('./student/settingsRoutes');
+const skillRoutes = require('./student/skillRoutes');
+const stageRoutes = require('./student/stageRoutes');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 router.use(checkRoles('STUDENT'));
 
-router.get('/dashboard', studentController.getDashboard);
-router.get('/profile', studentController.getProfile);
+router.use(dashboardRoutes);
+router.use(profileRoutes);
+router.use(recommendationRoutes);
+router.use(skillRoutes);
+router.use(settingsRoutes);
+router.use(notificationRoutes);
+router.use(githubImportRoutes);
+router.use(stageRoutes);
 
 module.exports = router;
