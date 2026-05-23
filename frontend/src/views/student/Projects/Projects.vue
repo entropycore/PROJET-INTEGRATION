@@ -2,7 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { getStudentProjects,submitStudentProject, } from "@/services/studentProjectsApis";
+import {
+  getStudentProjects,
+  submitStudentProject,
+} from "@/services/studentProjectsApis";
 
 import "@/assets/styles/student-project.css";
 

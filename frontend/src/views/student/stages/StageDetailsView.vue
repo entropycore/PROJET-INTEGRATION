@@ -154,13 +154,9 @@ const goToEdit = () => {
 
 <template>
   <section class="stage-details-page">
-    <div v-if="isLoading" class="content-card">
-      Chargement du stage...
-    </div>
+    <div v-if="isLoading" class="content-card">Chargement du stage...</div>
 
-    <div v-else-if="!stage" class="content-card">
-      Stage introuvable.
-    </div>
+    <div v-else-if="!stage" class="content-card">Stage introuvable.</div>
 
     <template v-else>
       <button class="back-btn" @click="goBack">
@@ -353,7 +349,9 @@ const goToEdit = () => {
               @click="toggleVisibility"
             >
               <span class="material-icons-round">
-                {{ stage.visibility === "PUBLIC" ? "visibility_off" : "public" }}
+                {{
+                  stage.visibility === "PUBLIC" ? "visibility_off" : "public"
+                }}
               </span>
 
               {{
