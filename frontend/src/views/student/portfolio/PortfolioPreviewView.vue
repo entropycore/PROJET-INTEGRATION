@@ -46,15 +46,21 @@ const themes = [
     previewImage: "",
   },
   {
-    value: "minimal-recruiter",
-    title: "Minimal Recruiter",
-    desc: "Simple, direct et orienté recruteur.",
+    value: "code-dark",
+    title: "Code Dark",
+    desc: "Sombre, technique et inspiré des éditeurs de code.",
     previewImage: "",
   },
   {
-    value: "creative-tech",
-    title: "Creative Tech",
-    desc: "Plus visuel, adapté aux profils techniques.",
+    value: "pixel-tech",
+    title: "Pixel Tech",
+    desc: "Électronique, visuel et orienté profils tech.",
+    previewImage: "",
+  },
+  {
+    value: "neo-brutalist",
+    title: "Neo Brutalist",
+    desc: "Créatif, premium et structuré avec accent Credencia.",
     previewImage: "",
   },
 ];
