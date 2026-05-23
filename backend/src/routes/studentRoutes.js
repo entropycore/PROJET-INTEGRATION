@@ -3,6 +3,7 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
+const githubImportController = require('../controllers/student/githubImportController');
 const dashboardRoutes = require('./student/dashboardRoutes');
 const githubImportRoutes = require('./student/githubImportRoutes');
 const notificationRoutes = require('./student/notificationRoutes');
@@ -13,6 +14,8 @@ const skillRoutes = require('./student/skillRoutes');
 const stageRoutes = require('./student/stageRoutes');
 
 const router = express.Router();
+
+router.get('/github/callback', githubImportController.handleGithubCallback);
 
 router.use(authMiddleware);
 router.use(checkRoles('STUDENT'));
