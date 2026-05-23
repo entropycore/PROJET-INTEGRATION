@@ -31,31 +31,30 @@ const config = reactive({
   },
 });
 
-
 const themes = [
   {
     value: "modern-academic",
     title: "Modern Academic",
     desc: "Clair, académique et professionnel.",
-    previewImage: "",
+    previewImage: "/themes/modern-academic-preview.png",
   },
   {
     value: "code-dark",
     title: "Code Dark",
     desc: "Sombre, technique et inspiré des éditeurs de code.",
-    previewImage: "",
+    previewImage: "/themes/code-dark-preview.png",
   },
   {
     value: "pixel-tech",
     title: "Pixel Tech",
     desc: "Électronique, visuel et orienté profils tech.",
-    previewImage: "",
+    previewImage: "/themes/pixel-tech-preview.png",
   },
   {
     value: "neo-brutalist",
     title: "Neo Brutalist",
     desc: "Créatif, premium et structuré avec accent Credencia.",
-    previewImage: "",
+    previewImage: "/themes/neo-brutalist-preview.png",
   },
 ];
 
@@ -90,6 +89,7 @@ const selectedCount = computed(() => {
     config.includedItems.recommendations.length
   );
 });
+
 const currentGoalLabel = computed(() => {
   return (
     portfolioData.value?.student?.professionalObjective?.label ||
@@ -123,11 +123,11 @@ const generatePortfolio = async () => {
 
   const payload = {
     goal:
-        portfolioData.value?.student?.professionalObjective?.value ||
-        portfolioData.value?.student?.professionalObjective ||
-        portfolioData.value?.student?.goal?.value ||
-        portfolioData.value?.student?.goal ||
-        null,
+      portfolioData.value?.student?.professionalObjective?.value ||
+      portfolioData.value?.student?.professionalObjective ||
+      portfolioData.value?.student?.goal?.value ||
+      portfolioData.value?.student?.goal ||
+      null,
     theme: config.theme,
     includedSections: [
       config.includeSkills ? "skills" : null,
@@ -200,7 +200,6 @@ onMounted(fetchPortfolio);
     <template v-else-if="portfolioData">
       <section class="intro-card">
         <div>
-          
           <h2>{{ portfolioData.student.fullName }}</h2>
           <p>
             Étudiante ingénieure en {{ portfolioData.student.major }} ·
@@ -219,9 +218,10 @@ onMounted(fetchPortfolio);
         <p>
           Les informations principales comme l’email, le téléphone, LinkedIn,
           GitHub et la biographie proviennent de votre profil. Pour les modifier,
-          passez par la page <RouterLink to="/student/profile" class="profile-link">
+          passez par la page
+          <RouterLink to="/student/profile" class="profile-link">
             Mon profil
-        </RouterLink>.
+          </RouterLink>.
         </p>
       </div>
 
@@ -233,36 +233,46 @@ onMounted(fetchPortfolio);
 
       <div class="config-grid">
         <div class="content-card objective-card">
-        <h3>
+          <h3 class="section-title">
             <span class="material-icons-round">track_changes</span>
             Objectif du portfolio
-        </h3>
+          </h3>
 
-        <div class="objective-preview">
+          <div class="objective-preview">
             <strong>{{ currentGoalLabel }}</strong>
-            <p class="objective-description">
-                L’objectif choisi permettra d’organiser votre portfolio pour mieux attirer
-                les recruteurs et mettre en avant les expériences les plus pertinentes.
-            </p>
-        </div>
 
-        <div class="objective-note">
+            <p class="objective-description">
+              L’objectif choisi permettra d’organiser votre portfolio pour mieux
+              attirer les recruteurs et mettre en avant les expériences les plus
+              pertinentes.
+            </p>
+          </div>
+
+          <div class="objective-note">
             <span class="material-icons-round">info</span>
 
             <p v-if="hasProfessionalGoal">
-                Pour modifier votre objectif professionnel, rendez-vous dans
-                <RouterLink to="/student/profile" class="profile-link">votre profil</RouterLink>.
+              Pour modifier votre objectif professionnel, rendez-vous dans
+              <RouterLink to="/student/profile" class="profile-link">
+                votre profil
+              </RouterLink>.
             </p>
 
             <p v-else>
-                Aucun objectif professionnel n’est encore défini. Veuillez le choisir dans
-                <RouterLink to="/student/profile" class="profile-link">votre profil</RouterLink>.
+              Aucun objectif professionnel n’est encore défini. Veuillez le choisir
+              dans
+              <RouterLink to="/student/profile" class="profile-link">
+                votre profil
+              </RouterLink>.
             </p>
-        </div>
+          </div>
         </div>
 
         <div class="content-card">
-          <h3>Options générales</h3>
+          <h3 class="section-title">
+            <span class="material-icons-round">tune</span>
+            Options générales
+            </h3>
 
           <label class="switch-row">
             <input v-model="config.includeSkills" type="checkbox" />
@@ -291,8 +301,18 @@ onMounted(fetchPortfolio);
         </div>
       </div>
 
-      <div class="content-card">
-        <h3>Choisir le thème</h3>
+      <div class="content-card theme-section">
+        <div class="theme-section-header">
+          <div>
+            <h3 class="section-title">
+            <span class="material-icons-round">palette</span>
+            Choisir le thème
+            </h3>
+            <p>
+              Sélectionnez le style visuel qui correspond le mieux à votre profil.
+            </p>
+          </div>
+        </div>
 
         <div class="themes-grid">
           <button
@@ -303,23 +323,33 @@ onMounted(fetchPortfolio);
             @click="config.theme = theme.value"
           >
             <div class="theme-preview">
-              <img
-                v-if="theme.previewImage"
-                :src="theme.previewImage"
-                :alt="theme.title"
-              />
-              <span v-else class="material-icons-round">image</span>
+              <img :src="theme.previewImage" :alt="theme.title" />
+
+              <span v-if="config.theme === theme.value" class="selected-badge">
+                <span class="material-icons-round">check_circle</span>
+                Sélectionné
+              </span>
             </div>
 
-            <strong>{{ theme.title }}</strong>
-            <span>{{ theme.desc }}</span>
+            <div class="theme-info">
+              <strong>{{ theme.title }}</strong>
+              <span>{{ theme.desc }}</span>
+            </div>
           </button>
+        </div>
+
+        <div class="theme-note">
+          <span class="material-icons-round">info</span>
+          Vous pourrez prévisualiser le rendu complet après génération de votre portfolio.
         </div>
       </div>
 
       <div class="items-grid">
         <div class="content-card">
-          <h3>Projets validés</h3>
+          <h3 class="section-title">
+            <span class="material-icons-round">folder_open</span>
+            Projets validés
+            </h3>
 
           <div
             v-for="project in portfolioData.projects"
@@ -341,7 +371,10 @@ onMounted(fetchPortfolio);
         </div>
 
         <div class="content-card">
-          <h3>Stages validés</h3>
+          <h3 class="section-title">
+            <span class="material-icons-round">business_center</span>
+            Stages validés
+            </h3>
 
           <div
             v-for="stage in portfolioData.internships"
@@ -365,7 +398,10 @@ onMounted(fetchPortfolio);
 
       <div class="items-grid">
         <div class="content-card">
-          <h3>Activités certifiées</h3>
+          <h3 class="section-title">
+            <span class="material-icons-round">workspace_premium</span>
+            Activités certifiées
+            </h3>
 
           <div
             v-for="activity in portfolioData.activities"
@@ -387,7 +423,10 @@ onMounted(fetchPortfolio);
         </div>
 
         <div class="content-card">
-          <h3>Lettres & recommandations</h3>
+          <h3 class="section-title">
+            <span class="material-icons-round">recommend</span>
+            Lettres & recommandations
+            </h3>
 
           <div
             v-for="letter in portfolioData.recommendationLetters"
@@ -474,7 +513,6 @@ onMounted(fetchPortfolio);
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-
   background:
     radial-gradient(
       circle at top right,
@@ -482,19 +520,10 @@ onMounted(fetchPortfolio);
       transparent 30%
     ),
     linear-gradient(135deg, #ffffff 0%, #f4f8f6 100%);
-
   border: 1px solid #dde5df;
   border-radius: 1.2rem;
   padding: 1.6rem;
   margin-bottom: 1.2rem;
-}
-
-.eyebrow {
-  color: #658b6f;
-  font-size: 0.72rem;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.08rem;
 }
 
 .intro-card h2 {
@@ -558,11 +587,11 @@ onMounted(fetchPortfolio);
   font-size: 1.2rem;
 }
 
-.success-note[data-v-28d0d79d] {
-    align-items: center;
-    background: #6d919708;
-    color: #2f575d;
-    border: 1px solid #6d9197;
+.success-note {
+  align-items: center;
+  background: #6d919708;
+  color: #2f575d;
+  border: 1px solid #6d9197;
 }
 
 .config-grid,
@@ -585,7 +614,7 @@ onMounted(fetchPortfolio);
   margin: 0 0 1rem;
   color: #2f575d;
   font-size: 1rem;
-  font-weight: 900;
+  font-weight: 100;
 }
 
 .content-card h3::after {
@@ -596,16 +625,6 @@ onMounted(fetchPortfolio);
   margin-top: 0.45rem;
   border-radius: 999px;
   background: linear-gradient(90deg, #2f575d, #8aa78d);
-}
-
-.select-input {
-  width: 100%;
-  border: 1px solid #c4cdc1;
-  border-radius: 0.7rem;
-  background: #f8f9f8;
-  padding: 0.75rem;
-  color: #28363d;
-  font-weight: 700;
 }
 
 .switch-row {
@@ -623,62 +642,142 @@ onMounted(fetchPortfolio);
   accent-color: #2f575d;
 }
 
-.themes-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+/* THEME SELECTOR */
+
+.theme-section {
+  padding: 1rem;
+}
+
+.theme-section-header {
+  display: flex;
+  justify-content: space-between;
   gap: 1rem;
 }
 
+.theme-section-header p {
+  margin: -0.25rem 0 1rem;
+  color: #6d9197;
+  font-size: 0.88rem;
+}
+
+.themes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
 .theme-card {
+  position: relative;
   text-align: left;
   border: 1px solid #dfe7e2;
   background: #ffffff;
   border-radius: 0.9rem;
-  padding: 1rem;
+  padding: 0.6rem;
   cursor: pointer;
-  transition: 0.2s;
+  overflow: hidden;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .theme-card:hover {
-  border-color: #99aead;
+  transform: translateY(-2px);
+  border-color: #9bb1ac;
+  box-shadow: 0 8px 18px rgba(47, 87, 93, 0.08);
+}
+
+.theme-card.active {
+  border-color: #2f575d;
+  box-shadow: 0 0 0 2px rgba(47, 87, 93, 0.08);
 }
 
 .theme-preview {
-  height: 5.4rem;
-  border-radius: 0.7rem;
-  background: linear-gradient(135deg, #f8f9f8, #edf4f1);
-  border: 1px solid #e4e9e5;
-  display: grid;
-  place-items: center;
-  margin-bottom: 0.8rem;
+  position: relative;
+  height: 9rem;
+  border-radius: 0.75rem;
   overflow: hidden;
+  border: 1px solid #e5ece8;
+  background: #f8fbfa;
+  margin-bottom: 0.65rem;
 }
 
 .theme-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+.theme-info {
+  padding: 0 0.15rem 0.15rem;
 }
 
-.theme-preview .material-icons-round {
-  color: #99aead;
-  font-size: 1.8rem;
-}
 
-.theme-card strong {
+.theme-info strong {
   display: block;
   color: #28363d;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.2rem;
+  font-size: 0.95rem;
+  font-weight: 900;
 }
 
-.theme-card span {
-  color: #8b9f9e;
+.theme-info span {
+  color: #6d9197;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.selected-badge {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #2f575d;
+  color: #ffffff;
+  border-radius: 999px;
+  padding: 0.32rem 0.55rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.selected-badge .material-icons-round {
   font-size: 0.82rem;
 }
 
-.theme-card.active {
-  border-color: #2f575d;
+.theme-note {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #dce7e3;
+  border-radius: 0.85rem;
+  background: #f8fbfa;
+  color: #6d9197;
+  font-size: 0.88rem;
+  font-weight: 700;
 }
+
+.theme-note .material-icons-round {
+  color: #2f575d;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 900px) {
+  .themes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-preview {
+    height: 8rem;
+  }
+}
+
+/* ITEMS */
 
 .selectable-item {
   display: flex;
@@ -765,19 +864,6 @@ onMounted(fetchPortfolio);
   border: 1px solid #c4cdc1;
 }
 
-@media (max-width: 900px) {
-  .page-header,
-  .intro-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .config-grid,
-  .items-grid,
-  .themes-grid {
-    grid-template-columns: 1fr;
-  }
-}
 .profile-link {
   color: #2f575d;
   font-weight: 800;
@@ -789,7 +875,8 @@ onMounted(fetchPortfolio);
   color: #658b6f;
   text-decoration: underline;
 }
-.objective-card h3 {
+
+.section-title {
   display: flex;
   align-items: center;
   gap: 0.45rem;
@@ -797,7 +884,7 @@ onMounted(fetchPortfolio);
   flex-wrap: wrap;
 }
 
-.objective-card h3::after {
+.section-title::after {
   content: "";
   flex-basis: 100%;
   width: 2.7rem;
@@ -805,6 +892,11 @@ onMounted(fetchPortfolio);
   margin-top: 0.45rem;
   border-radius: 999px;
   background: linear-gradient(90deg, #2f575d, #8aa78d);
+}
+
+.section-title .material-icons-round {
+  font-size: 1.08rem;
+  color: #2f575d;
 }
 
 .objective-preview {
@@ -819,13 +911,6 @@ onMounted(fetchPortfolio);
   color: #1f2933;
   font-size: 1.15rem;
   font-weight: 900;
-}
-
-.objective-source {
-  margin: 0.35rem 0 0;
-  color: #8b9f9e;
-  font-size: 0.88rem;
-  font-weight: 700;
 }
 
 .objective-description {
@@ -854,5 +939,22 @@ onMounted(fetchPortfolio);
   font-weight: 700;
   line-height: 1.5;
 }
-</style>
 
+@media (max-width: 900px) {
+  .page-header,
+  .intro-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .config-grid,
+  .items-grid,
+  .themes-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-preview {
+    height: 10rem;
+  }
+}
+</style>
