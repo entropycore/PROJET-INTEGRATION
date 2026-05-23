@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from "vue";
 import "@/assets/styles/PorftolioFullView.css";
 import { useRouter } from "vue-router";
+import PortfolioHero from "@/components/student/portfolio/PortfolioHero.vue";
+import PortfolioSection from "@/components/student/portfolio/PortfolioSection.vue";
 import {
   exportMyPortfolioPdf,
   getGeneratedPortfolioConfig,
@@ -16,24 +18,15 @@ const isLoading = ref(false);
 const selectedItem = ref(null);
 const selectedType = ref("");
 const isModalOpen = ref(false);
-const animatedScore = ref(0);
-const animatedScoreProgress = ref(0);
+const selectedTheme = ref("modern-academic");
 
-const animateValue = (from, to, duration, onUpdate) => {
-  const start = performance.now();
-
-  const tick = (now) => {
-    const progress = Math.min((now - start) / duration, 1);
-    const ease = 1 - Math.pow(1 - progress, 3);
-
-    onUpdate(Math.round(from + ease * (to - from)));
-
-    if (progress < 1) {
-      requestAnimationFrame(tick);
-    }
+const normalizeTheme = (theme) => {
+  const themeMap = {
+    "minimal-recruiter": "code-dark",
+    "creative-tech": "pixel-tech",
   };
 
-  requestAnimationFrame(tick);
+  return themeMap[theme] || theme || "modern-academic";
 };
 
 const filterBySelectedIds = (items = [], selectedIds = []) => {
@@ -45,6 +38,8 @@ const applyGeneratedPortfolioConfig = (data) => {
   const config = getGeneratedPortfolioConfig();
 
   if (!config) return data;
+
+  selectedTheme.value = normalizeTheme(config.theme);
 
   const includedSections = new Set(config.includedSections || []);
   const includedItems = config.includedItems || {};
@@ -77,42 +72,12 @@ const fetchPortfolio = async () => {
   try {
     const data = await getStudentPortfolioData();
     portfolioData.value = applyGeneratedPortfolioConfig(data);
-
-    animatedScore.value = 0;
-    animatedScoreProgress.value = 0;
-
-    setTimeout(() => {
-      animateValue(0, credibilityScore.value, 1100, (value) => {
-        animatedScore.value = value;
-        animatedScoreProgress.value = value;
-      });
-    }, 250);
   } finally {
     isLoading.value = false;
   }
 };
 
-const initials = computed(() => {
-  if (!portfolioData.value?.student) return "";
-
-  const first = portfolioData.value.student.firstName?.charAt(0) || "";
-  const last = portfolioData.value.student.lastName?.charAt(0) || "";
-
-  return `${first}${last}`.toUpperCase();
-});
-
-const credibilityScore = computed(() => {
-  const score = portfolioData.value?.credibilityScore?.score || 0;
-  return Math.min(Math.max(score, 0), 100);
-});
-
-const scoreStyle = computed(() => {
-  const degrees = animatedScoreProgress.value * 3.6;
-
-  return {
-    background: `conic-gradient(#2f575d ${degrees}deg, #dfe7e2 ${degrees}deg)`,
-  };
-});
+const pageThemeClass = computed(() => `theme-${selectedTheme.value}`);
 
 const getCoverImage = (item) => {
   return item?.coverImage || item?.screenshots?.[0] || "";
@@ -170,7 +135,7 @@ onMounted(fetchPortfolio);
 </script>
 
 <template>
-  <section class="portfolio-full-page">
+  <section class="portfolio-full-page" :class="pageThemeClass">
     <header class="portfolio-topbar">
       <div class="brand">
         <span class="material-icons-round">verified_user</span>
@@ -206,149 +171,53 @@ onMounted(fetchPortfolio);
       </div>
 
       <template v-else-if="portfolioData">
-        <!-- HERO -->
-        <section class="hero-section">
-          <div class="corner-badge">
-            <span class="material-icons-round">verified</span>
-            Certifié
-          </div>
+        <PortfolioHero
+          :student="portfolioData.student"
+          :credibility-score="portfolioData.credibilityScore"
+          :theme="selectedTheme"
+        />
 
-          <div class="hero-profile">
-            <div class="avatar-frame">
-              <img
-                v-if="portfolioData.student.profilePicture"
-                :src="portfolioData.student.profilePicture"
-                :alt="portfolioData.student.fullName"
-              />
-              <span v-else>{{ initials }}</span>
-            </div>
-
-            <div class="hero-info">
-              <div class="hero-heading">
-                <span class="hello-text">Hello! je suis</span>
-
-                <div class="hero-name-block">
-                  <h1>{{ portfolioData.student.fullName }}</h1>
-                </div>
-              </div>
-
-              <p class="hero-title">
-                <span>{{ portfolioData.student.role }}</span>
-                <span class="hero-title-separator">—</span>
-                {{ portfolioData.student.major }}
-              </p>
-
-              <p class="hero-school">
-                {{ portfolioData.student.school }} ·
-                {{ portfolioData.student.city }}
-              </p>
-
-              <div class="hero-contact">
-                <span>
-                  <span class="material-icons-round">mail</span>
-                  {{ portfolioData.student.email }}
-                </span>
-
-                <span>
-                  <span class="material-icons-round">phone</span>
-                  {{ portfolioData.student.phone }}
-                </span>
-
-                <span>
-                  <span class="material-icons-round">location_on</span>
-                  {{ portfolioData.student.city }}
-                </span>
-              </div>
-
-              <div class="hero-links">
-                <a
-                  v-if="portfolioData.student.githubUrl"
-                  :href="portfolioData.student.githubUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-2.02c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.04 1.77 2.72 1.26 3.38.96.11-.75.41-1.26.74-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.17 1.18A11.1 11.1 0 0 1 12 6.12c.98 0 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.79 1.07.79 2.16v3.02c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
-                  </svg>
-                  GitHub
-                </a>
-
-                <a
-                  v-if="portfolioData.student.linkedinUrl"
-                  :href="portfolioData.student.linkedinUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <span class="material-icons-round">work</span>
-                  LinkedIn
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div class="hero-right">
-            <div class="score-card">
-              <div class="score-circle" :style="scoreStyle">
-                <div class="score-inner">
-                  <strong>{{ animatedScore }}</strong>
-                  <span>/100</span>
-                </div>
-              </div>
-
-              <p>{{ portfolioData.credibilityScore.label }}</p>
-              <small>Score crédibilité</small>
-            </div>
-          </div>
-        </section>
-
-        <!-- BIOGRAPHIE -->
-        <section class="portfolio-section">
-          <h2>
-            <span class="material-icons-round">format_quote</span>
-            Biographie
-          </h2>
-
+        <PortfolioSection title="Biographie" icon="format_quote" :theme="selectedTheme">
           <p class="bio-text">
             {{ portfolioData.student.bio }}
           </p>
-        </section>
+        </PortfolioSection>
 
         <!-- COMPÉTENCES -->
         <div class="two-columns">
-          <section v-if="portfolioData.skills?.length" class="portfolio-section">
-            <h2>
-              <span class="material-icons-round">code</span>
-              Compétences techniques
-            </h2>
-
+          <PortfolioSection
+            v-if="portfolioData.skills?.length"
+            title="Compétences techniques"
+            icon="code"
+            :theme="selectedTheme"
+          >
             <div class="chips">
               <span v-for="skill in portfolioData.skills" :key="skill">
                 {{ skill }}
               </span>
             </div>
-          </section>
+          </PortfolioSection>
 
-          <section v-if="portfolioData.softSkills?.length" class="portfolio-section">
-            <h2>
-              <span class="material-icons-round">psychology</span>
-              Soft skills
-            </h2>
-
+          <PortfolioSection
+            v-if="portfolioData.softSkills?.length"
+            title="Soft skills"
+            icon="psychology"
+            :theme="selectedTheme"
+          >
             <div class="chips">
               <span v-for="skill in portfolioData.softSkills" :key="skill">
                 {{ skill }}
               </span>
             </div>
-          </section>
+          </PortfolioSection>
         </div>
 
-        <!-- BADGES -->
-        <section v-if="portfolioData.badges?.length" class="portfolio-section">
-          <h2>
-            <span class="material-icons-round">workspace_premium</span>
-            Badges obtenus
-          </h2>
-
+        <PortfolioSection
+          v-if="portfolioData.badges?.length"
+          title="Badges obtenus"
+          icon="workspace_premium"
+          :theme="selectedTheme"
+        >
           <div class="badge-grid">
             <div
               v-for="badge in portfolioData.badges"
@@ -359,15 +228,14 @@ onMounted(fetchPortfolio);
               <strong>{{ badge.name }}</strong>
             </div>
           </div>
-        </section>
+        </PortfolioSection>
 
-        <!-- PROJETS -->
-        <section v-if="portfolioData.projects?.length" class="portfolio-section">
-          <h2>
-            <span class="material-icons-round">business_center</span>
-            Projets validés
-          </h2>
-
+        <PortfolioSection
+          v-if="portfolioData.projects?.length"
+          title="Projets validés"
+          icon="business_center"
+          :theme="selectedTheme"
+        >
           <div class="cards-grid">
             <article
               v-for="project in portfolioData.projects"
@@ -458,15 +326,14 @@ onMounted(fetchPortfolio);
               </div>
             </article>
           </div>
-        </section>
+        </PortfolioSection>
 
-        <!-- STAGES -->
-        <section v-if="portfolioData.internships?.length" class="portfolio-section">
-          <h2>
-            <span class="material-icons-round">work</span>
-            Stages validés
-          </h2>
-
+        <PortfolioSection
+          v-if="portfolioData.internships?.length"
+          title="Stages validés"
+          icon="work"
+          :theme="selectedTheme"
+        >
           <div class="cards-grid">
             <article
               v-for="stage in portfolioData.internships"
@@ -542,15 +409,14 @@ onMounted(fetchPortfolio);
               </div>
             </article>
           </div>
-        </section>
+        </PortfolioSection>
 
-        <!-- ACTIVITÉS -->
-        <section v-if="portfolioData.activities?.length" class="portfolio-section">
-          <h2>
-            <span class="material-icons-round">stars</span>
-            Activités certifiées
-          </h2>
-
+        <PortfolioSection
+          v-if="portfolioData.activities?.length"
+          title="Activités certifiées"
+          icon="stars"
+          :theme="selectedTheme"
+        >
           <div class="cards-grid">
             <article
               v-for="activity in portfolioData.activities"
@@ -618,19 +484,16 @@ onMounted(fetchPortfolio);
               </div>
             </article>
           </div>
-        </section>
+        </PortfolioSection>
 
         <!-- LETTRES + RECOMMANDATIONS -->
         <div class="two-columns">
-          <section
+          <PortfolioSection
             v-if="portfolioData.recommendationLetters?.length"
-            class="portfolio-section"
+            title="Lettres de recommandation"
+            icon="mail"
+            :theme="selectedTheme"
           >
-            <h2>
-              <span class="material-icons-round">mail</span>
-              Lettres de recommandation
-            </h2>
-
             <article
               v-for="letter in portfolioData.recommendationLetters"
               :key="letter.id"
@@ -656,17 +519,14 @@ onMounted(fetchPortfolio);
                 Télécharger
               </a>
             </article>
-          </section>
+          </PortfolioSection>
 
-          <section
+          <PortfolioSection
             v-if="portfolioData.recommendations?.length"
-            class="portfolio-section"
+            title="Recommandations"
+            icon="format_quote"
+            :theme="selectedTheme"
           >
-            <h2>
-              <span class="material-icons-round">format_quote</span>
-              Recommandations
-            </h2>
-
             <article
               v-for="rec in portfolioData.recommendations"
               :key="rec.id"
@@ -682,7 +542,7 @@ onMounted(fetchPortfolio);
                 <blockquote>“{{ rec.content }}”</blockquote>
               </div>
             </article>
-          </section>
+          </PortfolioSection>
         </div>
       </template>
     </main>
