@@ -1,260 +1,169 @@
 <script setup>
-import { computed } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 const props = defineProps({
-  data: {
+  student: {
     type: Object,
     required: true,
   },
+  credibilityScore: {
+    type: Object,
+    required: true,
+  },
+  theme: {
+    type: String,
+    default: "modern-academic",
+  },
 });
 
+const animatedScore = ref(0);
+const animatedScoreProgress = ref(0);
+
 const initials = computed(() => {
-  const first = props.data.student?.firstName?.charAt(0) || "";
-  const last = props.data.student?.lastName?.charAt(0) || "";
+  const first = props.student?.firstName?.charAt(0) || "";
+  const last = props.student?.lastName?.charAt(0) || "";
+
   return `${first}${last}`.toUpperCase();
 });
+
+const normalizedScore = computed(() => {
+  const score = props.credibilityScore?.score || 0;
+  return Math.min(Math.max(score, 0), 100);
+});
+
+const scoreStyle = computed(() => {
+  const degrees = animatedScoreProgress.value * 3.6;
+
+  return {
+    background: `conic-gradient(var(--portfolio-primary) ${degrees}deg, var(--portfolio-ring-track) ${degrees}deg)`,
+  };
+});
+
+const animateValue = (from, to, duration, onUpdate) => {
+  const start = performance.now();
+
+  const tick = (now) => {
+    const progress = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+
+    onUpdate(Math.round(from + ease * (to - from)));
+
+    if (progress < 1) {
+      requestAnimationFrame(tick);
+    }
+  };
+
+  requestAnimationFrame(tick);
+};
+
+const animateScore = () => {
+  animatedScore.value = 0;
+  animatedScoreProgress.value = 0;
+
+  setTimeout(() => {
+    animateValue(0, normalizedScore.value, 1100, (value) => {
+      animatedScore.value = value;
+      animatedScoreProgress.value = value;
+    });
+  }, 250);
+};
+
+watch(normalizedScore, animateScore);
+
+onMounted(animateScore);
 </script>
 
 <template>
-  <section class="portfolio-hero">
-    <div class="hero-pattern"></div>
+  <section class="hero-section" :class="`theme-${theme}`">
+    <div class="corner-badge">
+      <span class="material-icons-round">verified</span>
+      Certifié
+    </div>
 
-    <div class="hero-main">
-      <div class="profile-block">
-        <div class="avatar-box">
-          <img
-            v-if="data.student.profilePicture"
-            :src="data.student.profilePicture"
-            :alt="data.student.fullName"
-          />
-
-          <span v-else>{{ initials }}</span>
-        </div>
-
-        <div>
-          <h1>{{ data.student.fullName }}</h1>
-
-          <p class="subtitle">
-            {{ data.student.role }} — {{ data.student.major }} ·
-            {{ data.student.school }}
-          </p>
-
-          <div class="contact-list">
-            <span>
-              <span class="material-icons-round">mail</span>
-              {{ data.student.email }}
-            </span>
-
-            <span>
-              <span class="material-icons-round">phone</span>
-              {{ data.student.phone }}
-            </span>
-
-            <span>
-              <span class="material-icons-round">location_on</span>
-              {{ data.student.city }}
-            </span>
-          </div>
-
-          <div class="links-row">
-            <a :href="data.student.githubUrl" target="_blank">
-              <span class="material-icons-round">code</span>
-              GitHub
-            </a>
-
-            <a :href="data.student.linkedinUrl" target="_blank">
-              <span class="material-icons-round">work</span>
-              LinkedIn
-            </a>
-          </div>
-
-          <span class="certified-pill">
-            <span class="material-icons-round">verified</span>
-            Portfolio certifié
-          </span>
-        </div>
+    <div class="hero-profile">
+      <div class="avatar-frame">
+        <img
+          v-if="student.profilePicture"
+          :src="student.profilePicture"
+          :alt="student.fullName"
+        />
+        <span v-else>{{ initials }}</span>
       </div>
 
-      <div class="score-card">
-        <div class="score-circle">
-          <strong>{{ data.credibilityScore.score }}</strong>
-          <span>/100</span>
+      <div class="hero-info">
+        <div class="hero-heading">
+          <span class="hello-text">Hello! je suis</span>
+
+          <div class="hero-name-block">
+            <h1>{{ student.fullName }}</h1>
+          </div>
         </div>
 
-        <p>{{ data.credibilityScore.label }}</p>
+        <p class="hero-title">
+          <span>{{ student.role }}</span>
+          <span class="hero-title-separator">—</span>
+          {{ student.major }}
+        </p>
+
+        <p class="hero-school">
+          {{ student.school }} · {{ student.city }}
+        </p>
+
+        <div class="hero-contact">
+          <span>
+            <span class="material-icons-round">mail</span>
+            {{ student.email }}
+          </span>
+
+          <span>
+            <span class="material-icons-round">phone</span>
+            {{ student.phone }}
+          </span>
+
+          <span>
+            <span class="material-icons-round">location_on</span>
+            {{ student.city }}
+          </span>
+        </div>
+
+        <div class="hero-links">
+          <a
+            v-if="student.githubUrl"
+            :href="student.githubUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-2.02c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.04 1.77 2.72 1.26 3.38.96.11-.75.41-1.26.74-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.17 1.18A11.1 11.1 0 0 1 12 6.12c.98 0 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.79 1.07.79 2.16v3.02c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+            </svg>
+            GitHub
+          </a>
+
+          <a
+            v-if="student.linkedinUrl"
+            :href="student.linkedinUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="material-icons-round">work</span>
+            LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="score-card">
+        <div class="score-circle" :style="scoreStyle">
+          <div class="score-inner">
+            <strong>{{ animatedScore }}</strong>
+            <span>/100</span>
+          </div>
+        </div>
+
+        <p>{{ credibilityScore.label }}</p>
         <small>Score crédibilité</small>
       </div>
     </div>
   </section>
 </template>
-
-<style scoped>
-.portfolio-hero {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.4rem;
-  padding: 2.4rem;
-  background:
-    radial-gradient(circle at 85% 20%, rgba(47, 87, 93, 0.13), transparent 28%),
-    linear-gradient(135deg, #ffffff 0%, #edf7f5 100%);
-  border: 1px solid #dee7e3;
-}
-
-.hero-pattern {
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(#2f575d 1px, transparent 1px);
-  background-size: 18px 18px;
-  opacity: 0.05;
-}
-
-.hero-main {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  justify-content: space-between;
-  gap: 2rem;
-}
-
-.profile-block {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.avatar-box {
-  width: 10.5rem;
-  height: 10.5rem;
-  border-radius: 1.4rem;
-  background: linear-gradient(135deg, #2f575d, #6d9197);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 2.7rem;
-  font-weight: 800;
-  overflow: hidden;
-}
-
-.avatar-box img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-h1 {
-  margin: 0;
-  color: #102a33;
-  font-size: 2.25rem;
-  font-weight: 900;
-}
-
-.subtitle {
-  margin: 0.5rem 0 0.9rem;
-  color: #2f575d;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.contact-list {
-  display: grid;
-  gap: 0.35rem;
-  color: #435b60;
-  font-size: 0.92rem;
-}
-
-.contact-list span,
-.links-row a,
-.certified-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.material-icons-round {
-  font-size: 1rem;
-}
-
-.links-row {
-  display: flex;
-  gap: 0.7rem;
-  margin-top: 0.9rem;
-}
-
-.links-row a {
-  color: #2f575d;
-  text-decoration: none;
-  font-weight: 800;
-}
-
-.certified-pill {
-  width: fit-content;
-  margin-top: 1rem;
-  padding: 0.45rem 0.8rem;
-  border-radius: 999px;
-  background: #e8f5ec;
-  color: #2e7d32;
-  font-size: 0.8rem;
-  font-weight: 900;
-}
-
-.score-card {
-  width: 13rem;
-  min-height: 13rem;
-  background: #ffffff;
-  border: 1px solid #dee7e3;
-  border-radius: 1rem;
-  display: grid;
-  place-items: center;
-  text-align: center;
-  padding: 1rem;
-  box-shadow: 0 1rem 2rem rgba(47, 87, 93, 0.08);
-}
-
-.score-circle {
-  width: 7.2rem;
-  height: 7.2rem;
-  border-radius: 50%;
-  border: 0.55rem solid #2f575d;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.score-circle strong {
-  color: #102a33;
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.score-circle span {
-  color: #6d9197;
-  font-size: 0.8rem;
-}
-
-.score-card p {
-  color: #102a33;
-  font-weight: 900;
-  margin: 0.7rem 0 0;
-}
-
-.score-card small {
-  color: #8da2a0;
-  font-size: 0.72rem;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
-@media (max-width: 900px) {
-  .hero-main,
-  .profile-block {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .score-card {
-    width: 100%;
-  }
-}
-</style>
