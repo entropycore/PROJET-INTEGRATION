@@ -1,4 +1,4 @@
-export const studentPortfolioMock = {
+﻿export const studentPortfolioMock = {
   portfolio: {
     id: "portfolio-1",
     title: "Portfolio académique certifié",
