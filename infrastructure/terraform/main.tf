@@ -67,11 +67,10 @@ resource "aws_security_group" "common_sg" {
   }
 
   ingress {
-    from_port   = 3000
-    to_port     = 3000
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Application Web"
   }
 
   # Règle sortante : tout le trafic est autorisé
@@ -90,7 +89,7 @@ resource "aws_security_group" "common_sg" {
 resource "aws_instance" "production" {
   ami           = "ami-0680d20ec23693be9" 
   instance_type = "t3.micro" 
-  subnet_id              = aws_subnet.public.id
+  subnet_id     = aws_subnet.public.id
   key_name      = var.key_name
   vpc_security_group_ids = [aws_security_group.common_sg.id]
    
@@ -106,7 +105,7 @@ resource "aws_instance" "production" {
   EOF
 
   tags = {
-    Name = "VM_production"
+    Name = "Credencia-Backend"
     ManagedBy   = "terraform"
   }
 }
