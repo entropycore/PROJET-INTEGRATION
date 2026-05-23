@@ -72,7 +72,8 @@ const importProject = async (req, res) => {
                 githubUrl: repoUrl,
                 type: "PERSONAL", 
                 visibility: "PRIVATE", 
-                studentId: student.id
+                studentId: student.id,
+                validationStatus: "DRAFT"
             }
         });
 
