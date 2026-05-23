@@ -49,6 +49,9 @@ const applyGeneratedPortfolioConfig = (data) => {
     skills: includedSections.has("skills") ? data.skills || [] : [],
     softSkills: includedSections.has("softSkills") ? data.softSkills || [] : [],
     badges: includedSections.has("badges") ? data.badges || [] : [],
+    academicPaths: includedSections.has("academicPaths")
+      ? data.academicPaths || []
+      : [],
     projects: filterBySelectedIds(data.projects, includedItems.projects),
     internships: filterBySelectedIds(
       data.internships,
@@ -64,6 +67,25 @@ const applyGeneratedPortfolioConfig = (data) => {
       includedItems.recommendations,
     ),
   };
+};
+
+const formatAcademicYear = (date) => {
+  if (!date) return "";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) return date;
+
+  return new Intl.DateTimeFormat("fr-FR", { year: "numeric" }).format(
+    parsedDate,
+  );
+};
+
+const getAcademicPathPeriod = (path) => {
+  const start = formatAcademicYear(path.startDate);
+  const end = path.endDate ? formatAcademicYear(path.endDate) : "Aujourd’hui";
+
+  return start ? `${start} - ${end}` : end;
 };
 
 const fetchPortfolio = async () => {
@@ -181,6 +203,47 @@ onMounted(fetchPortfolio);
           <p class="bio-text">
             {{ portfolioData.student.bio }}
           </p>
+        </PortfolioSection>
+
+        <PortfolioSection
+          v-if="portfolioData.academicPaths?.length"
+          title="Parcours académique"
+          icon="school"
+          :theme="selectedTheme"
+        >
+          <div class="academic-timeline">
+            <article
+              v-for="path in portfolioData.academicPaths"
+              :key="path.id || `${path.degree}-${path.institution}-${path.startDate}`"
+              class="academic-step"
+            >
+              <div class="academic-period">
+                {{ getAcademicPathPeriod(path) }}
+              </div>
+
+              <div class="academic-marker-wrap" aria-hidden="true">
+                <span class="academic-marker"></span>
+              </div>
+
+              <div class="academic-content">
+                <div class="academic-text">
+                  <h3>
+                    {{ path.degree }}
+                    <span v-if="path.field" class="academic-title-field">
+                      En {{ path.field }}
+                    </span>
+                  </h3>
+                  <p class="academic-institution">
+                    <span class="material-icons-round">location_on</span>
+                    {{ path.institution }}
+                  </p>
+                  <p v-if="path.description" class="academic-description">
+                    {{ path.description }}
+                  </p>
+                </div>
+              </div>
+            </article>
+          </div>
         </PortfolioSection>
 
         <!-- COMPÉTENCES -->

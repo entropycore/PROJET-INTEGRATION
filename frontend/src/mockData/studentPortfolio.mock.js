@@ -81,6 +81,25 @@
     "Résolution de problèmes",
   ],
 
+  academicPaths: [
+    {
+      id: 1,
+      degree: "Cycle Ingénieur",
+      institution: "ENSA Tanger",
+      field: "Génie Informatique",
+      startDate: "2025-09-01",
+      endDate: "",
+    },
+    {
+      id: 2,
+      degree: "Classes préparatoires intégrées",
+      institution: "ENSA Tanger",
+      field: "Sciences et technologies",
+      startDate: "2023-09-01",
+      endDate: "2025-07-01",
+    },
+  ],
+
   projects: [
     {
       id: 1,

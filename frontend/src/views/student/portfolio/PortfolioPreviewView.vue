@@ -20,6 +20,7 @@ const config = reactive({
   includeSkills: true,
   includeSoftSkills: true,
   includeBadges: true,
+  includeAcademicPaths: true,
   includedItems: {
     projects: [],
     internships: [],
@@ -121,6 +122,7 @@ const generatePortfolio = async () => {
       config.includeSkills ? "skills" : null,
       config.includeSoftSkills ? "softSkills" : null,
       config.includeBadges ? "badges" : null,
+      config.includeAcademicPaths ? "academicPaths" : null,
       "projects",
       "internships",
       "activities",
@@ -248,6 +250,11 @@ onMounted(fetchPortfolio);
           <label class="switch-row">
             <input v-model="config.includeBadges" type="checkbox" />
             <span>Afficher les badges obtenus</span>
+          </label>
+
+          <label class="switch-row">
+            <input v-model="config.includeAcademicPaths" type="checkbox" />
+            <span>Afficher mon parcours académique</span>
           </label>
         </div>
       </div>
