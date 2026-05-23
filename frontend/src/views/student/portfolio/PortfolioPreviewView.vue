@@ -1,9 +1,10 @@
-<script setup>
+﻿<script setup>
 import { computed, onMounted, reactive, ref } from "vue";
-import {RouterLink, useRouter } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import {
   generateStudentPortfolio,
   getStudentPortfolioData,
+  saveGeneratedPortfolioConfig,
 } from "@/services/studentPortfolioService";
 
 const router = useRouter();
@@ -125,8 +126,10 @@ const generatePortfolio = async () => {
 
   try {
     await generateStudentPortfolio(payload);
+    saveGeneratedPortfolioConfig(payload);
     isGenerated.value = true;
   } catch {
+    saveGeneratedPortfolioConfig(payload);
     console.warn("Backend génération indisponible, simulation côté front.");
     isGenerated.value = true;
   } finally {
@@ -218,7 +221,7 @@ onMounted(fetchPortfolio);
             </option>
           </select>
           <p class="objective-description">
-            > L’objectif choisi permettra d’organiser votre portfolio pour mieux attirer
+            L’objectif choisi permettra d’organiser votre portfolio pour mieux attirer
             les recruteurs et mettre en avant les expériences les plus pertinentes.
           </p>
         </div>
@@ -750,3 +753,4 @@ onMounted(fetchPortfolio);
     max-width: 500px;
 }
 </style>
+
