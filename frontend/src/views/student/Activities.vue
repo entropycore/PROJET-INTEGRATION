@@ -8,8 +8,8 @@ import {
   submitActivityValidation,
 } from "@/mockData/studentActivities.store";
 
-import ActivityCard from '@/components/student/stages/activities/ActivityCard.vue'
-import ActivityFilters from '@/components/student/stages/activities/ActivityFilters.vue'
+import ActivityCard from '@/components/student/activities/ActivityCard.vue'
+import ActivityFilters from '@/components/student/activities/ActivityFilters.vue'
 
 const router = useRouter()
 

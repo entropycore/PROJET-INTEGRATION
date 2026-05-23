@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import ActivityForm from '@/components/student/stages/activities/ActivityForm.vue'
+import ActivityForm from '@/components/student/activities/ActivityForm.vue'
 import {
   addActivity,
   getActivityById,
