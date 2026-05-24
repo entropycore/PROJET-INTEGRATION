@@ -179,6 +179,26 @@ const resolveSupervisorProfessorId = async (supervisor) => {
   return match?.id || null;
 };
 
+const getDefaultProfessorValidatorId = async () => {
+  const professor = await prisma.professor.findFirst({
+    orderBy: { id: 'asc' },
+    select: { id: true },
+  });
+
+  return professor?.id || null;
+};
+
+const resolveStageValidatorId = async (internship) => {
+  const professorId =
+    internship.supervisorProfessorId || (await getDefaultProfessorValidatorId());
+
+  if (!professorId) {
+    throw new Error('STAGE_VALIDATOR_NOT_FOUND');
+  }
+
+  return professorId;
+};
+
 const mapValidationTitle = (decision) => {
   const titles = {
     PENDING: 'Stage soumis',
@@ -399,6 +419,8 @@ exports.submitStageValidation = async (userId, internshipId) => {
     },
     select: {
       id: true,
+      validationStatus: true,
+      supervisorProfessorId: true,
     },
   });
 
@@ -406,11 +428,36 @@ exports.submitStageValidation = async (userId, internshipId) => {
     throw new Error('STAGE_NOT_FOUND');
   }
 
-  await prisma.internship.update({
-    where: { id: internshipId },
-    data: {
-      validationStatus: 'PENDING',
-    },
+  const professorId = await resolveStageValidatorId(existing);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.internship.update({
+      where: { id: internshipId },
+      data: {
+        validationStatus: 'PENDING',
+        supervisorProfessorId: existing.supervisorProfessorId || professorId,
+      },
+    });
+
+    const pendingValidation = await tx.internshipValidation.findFirst({
+      where: {
+        internshipId,
+        professorId,
+        decision: 'PENDING',
+      },
+      select: { id: true },
+    });
+
+    if (!pendingValidation || existing.validationStatus !== 'PENDING') {
+      await tx.internshipValidation.create({
+        data: {
+          internshipId,
+          professorId,
+          decision: 'PENDING',
+          comment: 'Stage soumis pour validation.',
+        },
+      });
+    }
   });
 
   return exports.getStageById(userId, internshipId);
