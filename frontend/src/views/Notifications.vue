@@ -1,33 +1,115 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-const route = useRoute();
-const baseApi = route.meta.baseApi;
 
-/*
-BACKEND (a activer lorque api est pret )
-
-
+import NotificationToolbar from "@/components/notifications/NotificationToolbar.vue";
+import NotificationsList from "@/components/notifications/NotificationsList.vue";
 import {
+  deleteNotif,
   getNotifications,
   getUnreadCount,
-  markAsRead,
   markAllAsRead,
-  deleteNotif,
+  markAsRead,
 } from "@/services/notificationsApi";
 
 const route = useRoute();
 const baseApi = route.meta.baseApi;
+const role = computed(() => route.meta.role || "STUDENT");
+
+// Plus tard, quand professor est prêt const MOCK_API_ROLES = ["PROFESSIONAL"];
+// Quand tout est prêt const MOCK_API_ROLES = [];
+
+const MOCK_API_ROLES = ["PROFESSOR", "PROFESSIONAL"];
+
+const ROLE_NOTIFICATION_UI = {
+  ADMINISTRATOR: {
+    label: "ADMINISTRATION",
+    description: "Surveillez et gérez les alertes de votre plateforme",
+  },
+  STUDENT: {
+    label: "ÉTUDIANT",
+    description: "Consultez les alertes liées à votre espace étudiant",
+  },
+  PROFESSOR: {
+    label: "PROFESSEUR",
+    description: "Consultez vos validations et interactions académiques",
+  },
+  PROFESSIONAL: {
+    label: "PROFESSIONNEL",
+    description: "Consultez vos accès, recommandations et interactions",
+  },
+};
+
+const notificationUi = computed(
+  () => ROLE_NOTIFICATION_UI[role.value] || ROLE_NOTIFICATION_UI.STUDENT,
+);
+
+const useMockNotifications = computed(() => MOCK_API_ROLES.includes(role.value));
+
+const notifications = ref([]);
+const unreadCount = ref(0);
+const loading = ref(false);
+const error = ref(null);
+const selectedType = ref("ALL");
+
+const mockNotificationsByRole = {
+  PROFESSOR: [
+    {
+      id: "prof-1",
+      type: "RECOMMENDATION_REQUEST",
+      title: "Nouvelle demande de recommandation",
+      message: "Un étudiant vous a envoyé une demande de recommandation.",
+      read: false,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "prof-2",
+      type: "ACADEMIC_INTERACTION",
+      title: "Interaction académique",
+      message: "Une interaction académique nécessite votre attention.",
+      read: true,
+      createdAt: new Date().toISOString(),
+    },
+  ],
+
+  PROFESSIONAL: [
+    {
+      id: "pro-1",
+      type: "ACCESS_REQUEST_APPROVED",
+      title: "Accès professionnel validé",
+      message: "Votre accès professionnel à la plateforme a été validé.",
+      read: false,
+      createdAt: new Date().toISOString(),
+    },
+    {
+      id: "pro-2",
+      type: "PORTFOLIO_INTERACTION",
+      title: "Interaction portfolio",
+      message: "Un étudiant a partagé son portfolio avec vous.",
+      read: true,
+      createdAt: new Date().toISOString(),
+    },
+  ],
+};
 
 const fetchData = async () => {
   loading.value = true;
+  error.value = null;
 
   try {
+    if (useMockNotifications.value) {
+      const mockNotifications = mockNotificationsByRole[role.value] || [];
+
+      notifications.value = mockNotifications;
+      unreadCount.value = mockNotifications.filter((n) => !n.read).length;
+      return;
+    }
+
     const data = await getNotifications(baseApi);
-    notifications.value = data.items;
+    notifications.value = data?.items || [];
 
     const unread = await getUnreadCount(baseApi);
-    unreadCount.value = unread.count;
+    unreadCount.value = unread?.count || 0;
   } catch (e) {
     console.error(e);
     error.value = "Erreur chargement notifications";
@@ -36,75 +118,58 @@ const fetchData = async () => {
   }
 };
 
-onMounted(fetchData);
-*/
-
-import NotificationToolbar from "@/components/notifications/NotificationToolbar.vue";
-import NotificationsList from "@/components/notifications/NotificationsList.vue";
-
-/* FRONTEND (MOCK DATA) */
-
-const notifications = ref([
-  {
-    id: 1,
-    title: "Nouvelle demande professionnelle",
-    message: "Sara Bensaid a demandé l'accès à la plateforme.",
-    type: "INFO",
-    read: false,
-    createdAt: "2026-05-02T13:50:00.000Z",
-  },
-  {
-    id: 2,
-    title: "Validation en attente",
-    message: "Une nouvelle attestation attend une validation.",
-    type: "VALIDATION",
-    read: true,
-    createdAt: "2026-05-02T12:30:00.000Z",
-  },
-  {
-    id: 3,
-    title: "Nouveau signalement",
-    message: "Un contenu a été signalé par un utilisateur.",
-    type: "ALERT",
-    read: false,
-    createdAt: "2026-05-02T11:10:00.000Z",
-  },
-]);
-
-const unreadCount = ref(notifications.value.filter((n) => !n.read).length);
-
-const loading = ref(false);
-const error = ref(null);
-
-/*ACTIONS (fonctionnent déjà)*/
-
 const handleRead = async (notif) => {
   if (notif.read) return;
 
-  // await markAsRead(baseApi, notif.id);
+  try {
+    if (!useMockNotifications.value) {
+      await markAsRead(baseApi, notif.id);
+    }
 
-  notif.read = true;
-  unreadCount.value--;
+    notif.read = true;
+    unreadCount.value = Math.max(0, unreadCount.value - 1);
+  } catch (e) {
+    console.error(e);
+    error.value = "Erreur lors de la mise à jour de la notification";
+  }
 };
 
 const handleReadAll = async () => {
-  // await markAllAsRead(baseApi);
+  try {
+    if (!useMockNotifications.value) {
+      await markAllAsRead(baseApi);
+    }
 
-  notifications.value = notifications.value.map((n) => ({
-    ...n,
-    read: true,
-  }));
+    notifications.value = notifications.value.map((n) => ({
+      ...n,
+      read: true,
+    }));
 
-  unreadCount.value = 0;
+    unreadCount.value = 0;
+  } catch (e) {
+    console.error(e);
+    error.value = "Erreur lors de la mise à jour des notifications";
+  }
 };
 
 const handleDelete = async (id) => {
-  // await deleteNotif(baseApi, id);
+  try {
+    if (!useMockNotifications.value) {
+      await deleteNotif(baseApi, id);
+    }
 
-  notifications.value = notifications.value.filter((n) => n.id !== id);
+    const deletedNotification = notifications.value.find((n) => n.id === id);
+
+    notifications.value = notifications.value.filter((n) => n.id !== id);
+
+    if (deletedNotification && !deletedNotification.read) {
+      unreadCount.value = Math.max(0, unreadCount.value - 1);
+    }
+  } catch (e) {
+    console.error(e);
+    error.value = "Erreur lors de la suppression de la notification";
+  }
 };
-//filtrage
-const selectedType = ref("ALL");
 
 const filteredNotifications = computed(() => {
   if (selectedType.value === "ALL") {
@@ -115,14 +180,16 @@ const filteredNotifications = computed(() => {
     (notification) => notification.type === selectedType.value,
   );
 });
+
+onMounted(fetchData);
 </script>
 
 <template>
   <section class="notifications-page">
     <header class="page-header">
-      <span>ADMINISTRATION</span>
+      <span>{{ notificationUi.label }}</span>
       <h1>Centre de Notifications</h1>
-      <p>Surveillez et gérez les alertes de votre plateforme</p>
+      <p>{{ notificationUi.description }}</p>
     </header>
 
     <NotificationToolbar
