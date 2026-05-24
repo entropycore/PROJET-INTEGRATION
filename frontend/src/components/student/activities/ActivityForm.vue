@@ -44,7 +44,6 @@ watch(
 )
 
 const handleCertificateUpload = (event) => {
-const handleCertificateUpload = (event) => {
   const file = event.target.files[0];
 
   if (!file) return;
@@ -96,10 +95,6 @@ const submitForm = () => {
           </h2>
           <p>Renseignez les informations et ajoutez votre attestation.</p>
         </div>
-
-        <button type="button" class="close-btn" @click="emit('cancel')">
-          <span class="material-icons-round">close</span>
-        </button>
       </div>
 
       <div class="form-grid">
@@ -239,20 +234,6 @@ h2 .material-icons-round {
   color: #6d9197;
   font-size: 0.875rem;
   margin: 0;
-}
-
-.close-btn {
-  width: 2.35rem;
-  height: 2.35rem;
-  border: 1px solid #c4cdc1;
-  border-radius: 0.65rem;
-  background: #ffffff;
-  color: #2f575d;
-  cursor: pointer;
-}
-
-.close-btn .material-icons-round {
-  font-size: 1.1rem;
 }
 
 .form-grid {
