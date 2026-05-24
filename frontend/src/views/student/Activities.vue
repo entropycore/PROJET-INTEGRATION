@@ -8,14 +8,15 @@ import {
   submitActivityValidation,
 } from '@/mockData/studentActivities.store'
 
-import ActivityCard from '@/components/student/stages/activities/ActivityCard.vue'
-import ActivityFilters from '@/components/student/stages/activities/ActivityFilters.vue'
+import ActivityCard from '@/components/student/activities/ActivityCard.vue'
+import ActivityFilters from '@/components/student/activities/ActivityFilters.vue'
 
 const router = useRouter()
 
 const search = ref('')
 const selectedStatus = ref('ALL')
 const selectedType = ref('ALL')
+const submitMessage = ref('')
 
 
 const filteredActivities = computed(() => {
@@ -54,8 +55,33 @@ const handleDeleteActivity = (activityId) => {
 }
 
 const handleSubmitValidation = (activityId) => {
-  submitActivityValidation(activityId)
-}
+  const activity = activities.value.find(
+    (item) => String(item.id) === String(activityId),
+  )
+
+  if (!activity) return
+
+  if (activity.validationStatus !== 'DRAFT') {
+    submitMessage.value = "Seules les activités en brouillon peuvent être soumises."
+    return
+  }
+
+  const hasValidator = Boolean(
+    activity.validator ||
+      activity.validatorName ||
+      activity.validatorId ||
+      activity.verifiedValidator,
+  )
+
+  if (!hasValidator) {
+    submitMessage.value =
+      "Ajoutez ou vérifiez un validateur avant de soumettre cette activité."
+    return
+  }
+
+  submitActivityValidation(activityId);
+  submitMessage.value = "Activité soumise à validation."
+};
 </script>
 
 <template>
@@ -78,6 +104,10 @@ const handleSubmitValidation = (activityId) => {
       v-model:status="selectedStatus"
       v-model:type="selectedType"
     />
+
+    <p v-if="submitMessage" class="submit-message">
+      {{ submitMessage }}
+    </p>
 
     <div v-if="filteredActivities.length" class="activities-grid">
       <ActivityCard
@@ -161,6 +191,17 @@ const handleSubmitValidation = (activityId) => {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
   margin-top: 1.5rem;
+}
+
+.submit-message {
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #c4cdc1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #2f575d;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .empty-state {
