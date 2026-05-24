@@ -679,11 +679,30 @@ input[readonly] {
   top: calc(100% + 0.35rem);
   left: 0;
   right: 0;
-  overflow: hidden;
+  max-height: 16.25rem;
+  overflow-y: auto;
   background: #ffffff;
   border: 1px solid #c4cdc1;
   border-radius: 0.75rem;
   box-shadow: 0 1rem 2.2rem rgba(40, 54, 61, 0.14);
+}
+
+.suggestions-list::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.suggestions-list::-webkit-scrollbar-track {
+  background: #f4f6f5;
+  border-radius: 999px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb {
+  background: #c4cdc1;
+  border-radius: 999px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb:hover {
+  background: #99aead;
 }
 
 .suggestion-item {
