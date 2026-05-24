@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import {
   createStudentProject,
+  getStudentProjectValidators,
   submitStudentProject,
   uploadStudentProjectMedia,
 } from "@/services/studentProjectsApis";
@@ -17,6 +18,8 @@ const newLinkUrl = ref("");
 const errorMessage = ref("");
 const selectedScreenshots = ref([]);
 const selectedAttachments = ref([]);
+const validators = ref([]);
+const isValidatorSuggestionsOpen = ref(false);
 
 const projectTypes = [
   { label: "Module", value: "MODULE" },
@@ -46,14 +49,36 @@ const projectForm = ref({
   screenshots: [],
   attachments: [],
 
+  validatorId: "",
   validatorName: "",
 });
 
 const canSubmit = computed(() => {
   return Boolean(
     projectForm.value.title.trim() &&
-      projectForm.value.description.trim(),
+      projectForm.value.description.trim() &&
+      projectForm.value.validatorId,
   );
+});
+
+const selectedValidator = computed(() => {
+  return validators.value.find(
+    (validator) => validator.id === projectForm.value.validatorId,
+  );
+});
+
+const filteredValidators = computed(() => {
+  const query = projectForm.value.validatorName.trim().toLowerCase();
+
+  if (!query) return validators.value.slice(0, 6);
+
+  return validators.value
+    .filter((validator) => {
+      return [validator.fullName, validator.email]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query));
+    })
+    .slice(0, 6);
 });
 
 const buildProjectPayload = () => {
@@ -163,6 +188,43 @@ const removeAttachment = (index) => {
   selectedAttachments.value.splice(index, 1);
 };
 
+const fetchValidators = async () => {
+  try {
+    const response = await getStudentProjectValidators();
+    validators.value = response.data?.data || response.data || [];
+  } catch (error) {
+    console.error("Erreur chargement validateurs projet :", error);
+    validators.value = [];
+  }
+};
+
+const openValidatorSuggestions = () => {
+  isValidatorSuggestionsOpen.value = true;
+};
+
+const closeValidatorSuggestions = () => {
+  window.setTimeout(() => {
+    isValidatorSuggestionsOpen.value = false;
+  }, 120);
+};
+
+const handleValidatorInput = () => {
+  if (
+    selectedValidator.value &&
+    projectForm.value.validatorName.trim() !== selectedValidator.value.fullName
+  ) {
+    projectForm.value.validatorId = "";
+  }
+
+  openValidatorSuggestions();
+};
+
+const selectValidator = (validator) => {
+  projectForm.value.validatorId = validator.id;
+  projectForm.value.validatorName = validator.fullName || "";
+  isValidatorSuggestionsOpen.value = false;
+};
+
 const uploadPendingMedia = async (projectId) => {
   if (
     !selectedScreenshots.value.length &&
@@ -220,6 +282,8 @@ const createAndSubmitProject = async () => {
     isSaving.value = false;
   }
 };
+
+onMounted(fetchValidators);
 </script>
 
 <template>
@@ -292,11 +356,48 @@ const createAndSubmitProject = async () => {
             <label class="form-field">
               <span>Validateur</span>
 
-              <input
-                v-model="projectForm.validatorName"
-                type="text"
-                placeholder="Optionnel"
-              />
+              <div class="autocomplete-field">
+                <input
+                  v-model="projectForm.validatorName"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Tapez le nom du validateur"
+                  :disabled="!validators.length"
+                  @focus="openValidatorSuggestions"
+                  @blur="closeValidatorSuggestions"
+                  @input="handleValidatorInput"
+                />
+
+                <div
+                  v-if="
+                    isValidatorSuggestionsOpen &&
+                    validators.length &&
+                    filteredValidators.length
+                  "
+                  class="suggestions-list"
+                >
+                  <button
+                    v-for="validator in filteredValidators"
+                    :key="validator.id"
+                    type="button"
+                    class="suggestion-item"
+                    @mousedown.prevent="selectValidator(validator)"
+                  >
+                    <span class="suggestion-avatar">
+                      {{ validator.fullName?.charAt(0) || "V" }}
+                    </span>
+                    <span>
+                      <strong>{{ validator.fullName }}</strong>
+                      <small>
+                        {{ validator.department || "Département non renseigné" }}
+                        <template v-if="validator.specialty">
+                          · {{ validator.specialty }}
+                        </template>
+                      </small>
+                    </span>
+                  </button>
+                </div>
+              </div>
             </label>
 
             <label class="form-field full">
@@ -480,7 +581,7 @@ const createAndSubmitProject = async () => {
         </section>
 
         <section v-if="!canSubmit" class="edit-warning-card">
-          Complétez le titre et la description avant de soumettre le projet.
+          Complétez le titre, la description et le validateur avant de soumettre le projet.
         </section>
       </aside>
     </div>
