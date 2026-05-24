@@ -10,6 +10,10 @@ import {
 
 import ActivityCard from '@/components/student/activities/ActivityCard.vue'
 import ActivityFilters from '@/components/student/activities/ActivityFilters.vue'
+import {
+  canSubmitActivity,
+  hasActivityValidator,
+} from '@/components/student/activities/activityRules'
 
 const router = useRouter()
 
@@ -61,27 +65,20 @@ const handleSubmitValidation = (activityId) => {
 
   if (!activity) return
 
-  if (activity.validationStatus !== 'DRAFT') {
+  if (!canSubmitActivity(activity)) {
     submitMessage.value = "Seules les activités en brouillon peuvent être soumises."
     return
   }
 
-  const hasValidator = Boolean(
-    activity.validator ||
-      activity.validatorName ||
-      activity.validatorId ||
-      activity.verifiedValidator,
-  )
-
-  if (!hasValidator) {
+  if (!hasActivityValidator(activity)) {
     submitMessage.value =
-      "Ajoutez ou vérifiez un validateur avant de soumettre cette activité."
+      'Veuillez définir un validateur avant de soumettre cette activité.'
     return
   }
 
-  submitActivityValidation(activityId);
-  submitMessage.value = "Activité soumise à validation."
-};
+  submitActivityValidation(activityId)
+  submitMessage.value = 'Activité soumise à validation.'
+}
 </script>
 
 <template>
