@@ -32,7 +32,14 @@ describe('INTEGRATION TEST: Auth Controller - Quality Assurance Suite', () => {
 
             const res = await request(app)
                 .post('/api/auth/register')
-                .send({ email: 'najim.qa@ensa.ma', password: 'Password123!', firstName: 'Najim', lastName: 'QA' });
+                .send({ 
+                    email: 'najim.qa@ensa.ma', 
+                    password: 'Password123!', 
+                    firstName: 'Najim', 
+                    lastName: 'QA',
+                    company: 'ENSA Tanger',
+                    jobTitle: 'Lead QA'      
+                });
 
             expect(res.statusCode).toBe(201); // Succès de création
             expect(res.body.message).toMatch(/Vérifiez votre email/i);
@@ -48,11 +55,13 @@ describe('INTEGRATION TEST: Auth Controller - Quality Assurance Suite', () => {
                     email: 'existing@ensa.ma', 
                     password: 'Password123!',
                     firstName: 'Najim', 
-                    lastName: 'QA' 
+                    lastName: 'QA' ,
+                    company: 'ENSA Tanger',
+                    jobTitle: 'Lead QA'
                 });
 
-            expect(res.statusCode).toBe(400); // Erreur client : conflit
-            expect(res.body.message).toMatch(/déjà utilisé/i);
+            expect(res.statusCode).toBe(409); // Erreur client : conflit
+            expect(res.body.message).toMatch(/Cet email est déjà utilisé/i);
         });
 
         // TC-AUTH-03 (Security)
