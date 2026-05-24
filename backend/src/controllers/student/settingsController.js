@@ -4,6 +4,16 @@ const studentSettingsService = require('../../services/student/settingsService')
 const { handleStudentError } = require('../studentHelpers');
 const { success } = require('../../utils/apiResponse');
 
+exports.getSettings = async (req, res, next) => {
+  try {
+    const settings = await studentSettingsService.getStudentSettings(req.user.userId);
+    return success(res, 200, 'Paramètres étudiant chargés.', settings);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.updateSettingsPassword = async (req, res, next) => {
   try {
     const result = await studentSettingsService.updateStudentSettingsPassword(
