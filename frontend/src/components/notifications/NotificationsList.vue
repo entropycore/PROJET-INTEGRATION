@@ -31,15 +31,18 @@ const emit = defineEmits(["read", "delete"]);
 .list {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0.45rem;
 }
 
 .empty {
-  padding: 28px;
-  border-radius: 18px;
-  background: #fbfaf7;
-  border: 1px solid #e5e0d8;
+  padding: 2rem;
+  border-radius: var(--app-radius-panel);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-card);
   text-align: center;
-  color: #6b7280;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
 }
 </style>
