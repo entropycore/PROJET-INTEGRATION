@@ -73,6 +73,16 @@ exports.deleteSkill = async (req, res, next) => {
   }
 };
 
+exports.getSkillStats = async (req, res, next) => {
+  try {
+    const stats = await studentSkillService.getStudentSkillStats(req.user.userId);
+    return success(res, 200, 'Statistiques des compétences chargées.', stats);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.listSkillsCatalog = async (req, res, next) => {
   try {
     const skills = await studentSkillService.listSkillsCatalog(req.query.search || '');
