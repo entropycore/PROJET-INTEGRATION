@@ -1,0 +1,64 @@
+:root {
+  --app-bg: #fafaf8;
+  --app-bg-soft: #f7f7f4;
+  --app-surface: #ffffff;
+  --app-surface-soft: #f8f9f8;
+
+  --app-primary: #2f575d;
+  --app-primary-hover: #26494d;
+  --app-secondary: #6d9197;
+  --app-accent: #8aa78d;
+
+  --app-heading: #102a33;
+  --app-text: #28363d;
+  --app-muted: #6d9197;
+  --app-subtle: #99aead;
+
+  --app-border: #dee1dd;
+  --app-border-strong: #c4cdc1;
+
+  --app-success-bg: #e8f5ec;
+  --app-success: #2e7d32;
+  --app-warning-bg: #fff4e4;
+  --app-warning: #b87518;
+  --app-error-bg: #fdecea;
+  --app-error: #c62828;
+  --app-info-bg: #e8f1fd;
+  --app-info: #2f6fb5;
+  --app-neutral-bg: #edf0ef;
+  --app-neutral: #6f7f82;
+
+  --app-radius-sm: 8px;
+  --app-radius-md: 10px;
+  --app-radius-card: 14px;
+  --app-radius-panel: 16px;
+  --app-radius-pill: 999px;
+
+  --app-shadow-card: 0 10px 24px rgba(47, 87, 93, 0.06);
+  --app-shadow-card-hover: 0 12px 28px rgba(47, 87, 93, 0.09);
+  --app-shadow-popover: 0 14px 34px rgba(36, 54, 58, 0.14);
+
+  --app-space-1: 4px;
+  --app-space-2: 8px;
+  --app-space-3: 12px;
+  --app-space-4: 16px;
+  --app-space-5: 20px;
+  --app-space-6: 24px;
+  --app-space-8: 32px;
+  --app-space-10: 40px;
+
+  --app-font-body: "DM Sans", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  --app-font-display: "DM Serif Display", Georgia, serif;
+
+  --app-text-xs: 12px;
+  --app-text-sm: 13px;
+  --app-text-md: 14px;
+  --app-text-lg: 16px;
+  --app-text-xl: 18px;
+  --app-text-page: 32px;
+
+  --app-leading-tight: 1.15;
+  --app-leading-normal: 1.5;
+  --app-leading-relaxed: 1.6;
+}
