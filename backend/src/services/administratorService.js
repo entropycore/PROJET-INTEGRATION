@@ -2545,6 +2545,13 @@ const approveCertificateRequest = async (certificateId, administratorId, comment
       data: { validationStatus: 'APPROVED' },
     });
 
+    if (certificate.activity?.id) {
+      await tx.extracurricularActivity.update({
+        where: { id: certificate.activity.id },
+        data: { validationStatus: 'APPROVED' },
+      });
+    }
+
     await tx.certificateValidation.create({
       data: {
         certificateId,
@@ -2581,6 +2588,13 @@ const rejectCertificateRequest = async (certificateId, administratorId, comment 
       where: { id: certificateId },
       data: { validationStatus: 'REJECTED' },
     });
+
+    if (certificate.activity?.id) {
+      await tx.extracurricularActivity.update({
+        where: { id: certificate.activity.id },
+        data: { validationStatus: 'REJECTED' },
+      });
+    }
 
     await tx.certificateValidation.create({
       data: {
@@ -2810,6 +2824,13 @@ const requestCertificateValidationChanges = async (
       where: { id: certificateId },
       data: { validationStatus: 'CHANGES_REQUESTED' },
     });
+
+    if (certificate.activity?.id) {
+      await tx.extracurricularActivity.update({
+        where: { id: certificate.activity.id },
+        data: { validationStatus: 'CHANGES_REQUESTED' },
+      });
+    }
 
     await tx.certificateValidation.create({
       data: {

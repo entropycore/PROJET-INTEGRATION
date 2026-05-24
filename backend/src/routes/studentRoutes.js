@@ -3,6 +3,7 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
+const activityRoutes = require('./student/activityRoutes');
 const dashboardRoutes = require('./student/dashboardRoutes');
 const githubImportRoutes = require('./student/githubImportRoutes');
 const notificationRoutes = require('./student/notificationRoutes');
@@ -21,6 +22,7 @@ router.use(checkRoles('STUDENT'));
 router.use(dashboardRoutes);
 router.use(profileRoutes);
 router.use(recommendationRoutes);
+router.use(activityRoutes);
 router.use(skillRoutes);
 router.use(settingsRoutes);
 router.use(notificationRoutes);
