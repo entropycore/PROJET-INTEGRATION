@@ -1,6 +1,7 @@
 import { ref } from "vue";
 
-import { studentActivities as mockActivities } from "./studentActivities.mock";
+import { canSubmitActivityWithValidator } from '@/components/student/activities/activityRules'
+import { studentActivities as mockActivities } from './studentActivities.mock'
 
 export const activities = ref([...mockActivities]);
 
@@ -23,22 +24,13 @@ export const updateActivity = (updatedActivity) => {
 export const deleteActivity = (activityId) => {
   activities.value = activities.value.filter(
     (activity) => activity.id !== activityId,
-  );
-};
+  )
+}
 
 export const submitActivityValidation = (activityId) => {
   activities.value = activities.value.map((activity) => {
-    if (activity.id !== activityId) return activity;
-    if (activity.validationStatus !== 'DRAFT') return activity;
-
-    const hasValidator = Boolean(
-      activity.validator ||
-        activity.validatorName ||
-        activity.validatorId ||
-        activity.verifiedValidator,
-    )
-
-    if (!hasValidator) return activity;
+    if (activity.id !== activityId) return activity
+    if (!canSubmitActivityWithValidator(activity)) return activity
 
     return {
       ...activity,
