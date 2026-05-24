@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import Scoring from './Scoring.vue'
+import Scoring from '@/components/landing/Scoring.vue'
 
 describe('Scoring - Tests UI', () => {
   it('structure correctement l’affichage graphique du score et des barres', () => {

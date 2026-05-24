@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import DemoSection from '@/components/DemoSection.vue'
+import DemoSection from '@/components/landing/DemoSection.vue'
 
 describe('DemoSection - Tests UI', () => {
   it('affiche correctement le titre principal de la section', () => {
