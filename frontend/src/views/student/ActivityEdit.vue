@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import ActivityForm from '@/components/student/activities/ActivityForm.vue'
+import { canEditActivity as canEditActivityRule } from '@/components/student/activities/activityRules'
 import {
   getActivityById,
   updateActivity,
@@ -13,9 +14,7 @@ const router = useRouter()
 
 const currentActivity = computed(() => getActivityById(route.params.id))
 const canEditActivity = computed(() =>
-  ['DRAFT', 'CORRECTION_REQUIRED'].includes(
-    currentActivity.value?.validationStatus,
-  ),
+  canEditActivityRule(currentActivity.value),
 )
 
 const goBack = () => {

@@ -22,6 +22,8 @@ const form = reactive({
   duration: props.initialActivity?.duration || '',
   location: props.initialActivity?.location || '',
   description: props.initialActivity?.description || '',
+  validatorName: props.initialActivity?.validatorName || '',
+  validatorId: props.initialActivity?.validatorId || null,
   certificate: props.initialActivity?.certificate || null,
   certificateName: props.initialActivity?.certificateName || '',
   certificateUrl: props.initialActivity?.certificateUrl || '',
@@ -37,6 +39,8 @@ watch(
     form.duration = activity?.duration || ''
     form.location = activity?.location || ''
     form.description = activity?.description || ''
+    form.validatorName = activity?.validatorName || ''
+    form.validatorId = activity?.validatorId || null
     form.certificate = activity?.certificate || null
     form.certificateName = activity?.certificateName || ''
     form.certificateUrl = activity?.certificateUrl || ''
@@ -61,6 +65,8 @@ const resetForm = () => {
   form.duration = ''
   form.location = ''
   form.description = ''
+  form.validatorName = ''
+  form.validatorId = null
   form.certificate = null
   form.certificateName = ''
   form.certificateUrl = ''
@@ -75,6 +81,8 @@ const submitForm = () => {
     duration: form.duration,
     location: form.location,
     description: form.description,
+    validatorName: form.validatorName,
+    validatorId: form.validatorId,
     certificate: form.certificate,
     certificateName: form.certificateName,
     certificateUrl: form.certificateUrl,
@@ -152,6 +160,15 @@ const submitForm = () => {
             type="text"
             required
             placeholder="Ex : Casablanca"
+          />
+        </div>
+
+        <div class="form-group full-width">
+          <label>Validateur</label>
+          <input
+            v-model="form.validatorName"
+            type="text"
+            placeholder="Rechercher un professeur ou un administrateur..."
           />
         </div>
       </div>
@@ -244,6 +261,10 @@ h2 .material-icons-round {
 
 .form-group {
   margin-bottom: 1rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 label {
