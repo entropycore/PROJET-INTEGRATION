@@ -2,13 +2,24 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import { getActivityById } from '@/mockData/studentActivities.store'
+import {
+  canDeleteActivity as canDeleteActivityRule,
+  canEditActivity as canEditActivityRule,
+  canSubmitActivity,
+  hasActivityValidator,
+} from '@/components/student/activities/activityRules'
+import {
+  deleteActivity,
+  getActivityById,
+  submitActivityValidation,
+} from '@/mockData/studentActivities.store'
 
 const route = useRoute()
 const router = useRouter()
 
 const activity = computed(() => getActivityById(route.params.id))
 const isCertificatePreviewOpen = ref(false)
+const submitMessage = ref('')
 
 const statusLabels = {
   DRAFT: 'Brouillon',
@@ -28,13 +39,18 @@ const typeLabels = {
 }
 
 const canEditActivity = computed(() =>
-  ['DRAFT', 'CORRECTION_REQUIRED'].includes(activity.value?.validationStatus),
+  canEditActivityRule(activity.value),
+)
+const canDeleteCurrentActivity = computed(() =>
+  canDeleteActivityRule(activity.value),
+)
+const canSubmitCurrentActivity = computed(() =>
+  canSubmitActivity(activity.value),
 )
 
 const validatorName = computed(() =>
   activity.value?.validatorName ||
   activity.value?.validator ||
-  activity.value?.validatorId ||
   '',
 )
 
@@ -68,6 +84,37 @@ const goToEdit = () => {
   router.push(`/student/activities/${activity.value.id}/edit`)
 }
 
+const deleteCurrentActivity = () => {
+  if (!activity.value || !canDeleteCurrentActivity.value) return
+
+  const confirmDelete = window.confirm(
+    'Voulez-vous vraiment supprimer cette activité ?',
+  )
+
+  if (!confirmDelete) return
+
+  deleteActivity(activity.value.id)
+  router.push('/student/activities')
+}
+
+const submitCurrentActivity = () => {
+  if (!activity.value) return
+
+  if (!canSubmitCurrentActivity.value) {
+    submitMessage.value = 'Seules les activités en brouillon peuvent être soumises.'
+    return
+  }
+
+  if (!hasActivityValidator(activity.value)) {
+    submitMessage.value =
+      'Veuillez définir un validateur avant de soumettre cette activité.'
+    return
+  }
+
+  submitActivityValidation(activity.value.id)
+  submitMessage.value = 'Activité soumise à validation.'
+}
+
 const openCertificatePreview = () => {
   isCertificatePreviewOpen.value = true
 }
@@ -90,16 +137,6 @@ const closeCertificatePreview = () => {
         <button type="button" class="back-btn" @click="goBack">
           <span class="material-icons-round">arrow_back</span>
           Retour
-        </button>
-
-        <button
-          v-if="activity && canEditActivity"
-          type="button"
-          class="edit-btn"
-          @click="goToEdit"
-        >
-          <span class="material-icons-round">edit</span>
-          Modifier
         </button>
       </div>
     </div>
@@ -167,8 +204,47 @@ const closeCertificatePreview = () => {
         <p>{{ activity.description }}</p>
       </div>
 
-      <div v-if="activity.certificateName" class="details-actions">
-        <button type="button" class="preview-btn" @click="openCertificatePreview">
+      <p v-if="submitMessage" class="submit-message">
+        {{ submitMessage }}
+      </p>
+
+      <div class="details-actions">
+        <button
+          v-if="canEditActivity"
+          type="button"
+          class="edit-btn"
+          @click="goToEdit"
+        >
+          <span class="material-icons-round">edit</span>
+          Modifier
+        </button>
+
+        <button
+          v-if="canDeleteCurrentActivity"
+          type="button"
+          class="delete-btn"
+          @click="deleteCurrentActivity"
+        >
+          <span class="material-icons-round">delete</span>
+          Supprimer
+        </button>
+
+        <button
+          v-if="canSubmitCurrentActivity"
+          type="button"
+          class="submit-btn"
+          @click="submitCurrentActivity"
+        >
+          <span class="material-icons-round">send</span>
+          Soumettre
+        </button>
+
+        <button
+          v-if="activity.certificateName"
+          type="button"
+          class="preview-btn"
+          @click="openCertificatePreview"
+        >
           <span class="material-icons-round">visibility</span>
           Prévisualiser l’attestation
         </button>
@@ -288,7 +364,9 @@ const closeCertificatePreview = () => {
 
 .back-btn,
 .edit-btn,
-.preview-btn {
+.preview-btn,
+.delete-btn,
+.submit-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -307,10 +385,17 @@ const closeCertificatePreview = () => {
 }
 
 .edit-btn,
-.preview-btn {
+.preview-btn,
+.submit-btn {
   background: #2f575d;
   color: #ffffff;
   border: 1px solid #2f575d;
+}
+
+.delete-btn {
+  background: #ffffff;
+  color: #c62828;
+  border: 1px solid #efc9c9;
 }
 
 .back-btn:hover {
@@ -318,8 +403,13 @@ const closeCertificatePreview = () => {
 }
 
 .edit-btn:hover,
-.preview-btn:hover {
+.preview-btn:hover,
+.submit-btn:hover {
   background: #26494d;
+}
+
+.delete-btn:hover {
+  background: #fdecea;
 }
 
 .back-btn .material-icons-round {
@@ -327,7 +417,8 @@ const closeCertificatePreview = () => {
 }
 
 .edit-btn .material-icons-round,
-.preview-btn .material-icons-round {
+.preview-btn .material-icons-round,
+.submit-btn .material-icons-round {
   color: #ffffff;
 }
 
@@ -423,8 +514,21 @@ const closeCertificatePreview = () => {
   margin: 0;
 }
 
+.submit-message {
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #c4cdc1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #2f575d;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .details-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
   justify-content: flex-end;
   margin-top: 1rem;
 }
@@ -576,7 +680,9 @@ const closeCertificatePreview = () => {
   .header-actions,
   .back-btn,
   .edit-btn,
-  .preview-btn {
+  .preview-btn,
+  .delete-btn,
+  .submit-btn {
     width: 100%;
   }
 
