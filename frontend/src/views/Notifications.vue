@@ -215,43 +215,53 @@ onMounted(fetchData);
 
 <style scoped>
 .notifications-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: clamp(1rem, 1.6vw, 1.4rem);
+  color: var(--app-text);
+  font-family: var(--app-font-body);
 }
 
 .page-header span {
   display: block;
-  margin-bottom: 6px;
-  color: #8b8f8c;
+  margin-bottom: 0.4rem;
+  color: var(--app-subtle);
   font-size: 0.8rem;
   font-style: italic;
-  letter-spacing: 0.04em;
 }
 
 .page-header h1 {
   margin: 0;
-  color: #0f2f3a;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
   font-size: clamp(1.6rem, 2.2vw, 2.1rem);
-  font-weight: 800;
-  line-height: 1.1;
+  font-weight: 300;
+  line-height: var(--app-leading-tight);
 }
 
 .page-header p {
-  margin-top: 8px;
-  color: #5f6f70;
-  font-size: 1rem;
+  margin: 0.5rem 0 0;
+  color: var(--app-muted);
+  font-size: clamp(0.85rem, 1vw, 1rem);
 }
 
 .state-box {
-  padding: 20px;
-  border-radius: 18px;
-  background: #fbfaf7;
-  border: 1px solid #e5e0d8;
-  color: #6b7280;
+  padding: 2rem;
+  border-radius: var(--app-radius-panel);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-card);
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  text-align: center;
 }
 
 .error {
-  color: #dc2626;
+  color: var(--app-error);
 }
 </style>
