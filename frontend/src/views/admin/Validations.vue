@@ -188,11 +188,21 @@ const handleRequestChanges = async (validation) => {
 
 <style scoped>
 .validations-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: clamp(1rem, 1.6vw, 1.4rem);
+  gap: clamp(0.75rem, 1vw, 1rem);
   color: var(--app-text);
   font-family: var(--app-font-body);
+}
+
+.page-header,
+.table-card {
+  width: 100%;
+  margin: 0;
 }
 
 .page-header span {
