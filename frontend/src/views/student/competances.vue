@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from "vue";
 import {
   getMySkills,
+  getSkillStats,
   addSkill,
   deleteSkill,
   getSkillsCatalog,
@@ -13,47 +14,19 @@ import "@/assets/styles/student-skills.css";
 
 const mySkills = ref([]);
 const softSkills = ref([]);
+const skillStats = ref(null);
 const catalog = ref([]);
 const isLoading = ref(false);
 const errorMessage = ref("");
 const showAddSkill = ref(false);
 const showAddSoft = ref(false);
+const isSkillSuggestionsOpen = ref(false);
 const newSoftName = ref("");
 const searchQuery = ref("");
 
 const newSkill = ref({
   skillId: "",
 });
-
-const technicalDomains = ["Web", "Backend", "DevOps", "Security", "AI/Data"];
-
-// Radar temporaire côté front en attendant GET /api/student/skills/stats.
-// Le mapping définitif doit venir du backend avec SkillDomain.
-const skillDomainMap = {
-  "Vue.js": "Web",
-  React: "Web",
-  HTML: "Web",
-  CSS: "Web",
-  JavaScript: "Web",
-
-  "Node.js": "Backend",
-  "Express.js": "Backend",
-  Prisma: "Backend",
-  PostgreSQL: "Backend",
-
-  Docker: "DevOps",
-  "GitHub Actions": "DevOps",
-  "CI/CD": "DevOps",
-  Kubernetes: "DevOps",
-
-  JWT: "Security",
-  OWASP: "Security",
-  Firewall: "Security",
-
-  Python: "AI/Data",
-  "Machine Learning": "AI/Data",
-  "Data Analysis": "AI/Data",
-};
 
 const normalizeScore = (value) => {
   const score = Number(value);
@@ -66,63 +39,47 @@ const getSkillScore = (skill) => {
   return normalizeScore(skill.level ?? skill.masteryLevel);
 };
 
-const getRadarSkillScore = (skill) => {
-  const score = getSkillScore(skill);
-  return score ? score : 55;
-};
-
 const domainStats = computed(() => {
-  const buckets = technicalDomains.map((domain) => ({
-    name: domain,
-    scores: [],
-  }));
-
-  mySkills.value.forEach((skill) => {
-    const domain = skillDomainMap[skill.name];
-    if (!domain) return;
-
-    const bucket = buckets.find((item) => item.name === domain);
-    if (!bucket) return;
-
-    bucket.scores.push(getRadarSkillScore(skill));
-  });
-
-  return buckets.map((bucket) => ({
-    name: bucket.name,
-    score: bucket.scores.length
-      ? Math.round(
-          bucket.scores.reduce((total, score) => total + score, 0) /
-            bucket.scores.length,
-        )
-      : 0,
-    count: bucket.scores.length,
+  return (skillStats.value?.domains || []).map((domain) => ({
+    id: domain.id || domain.slug || domain.name,
+    name: domain.name,
+    score: normalizeScore(domain.score) || 0,
+    count: domain.skillsCount || 0,
   }));
 });
 
-const radarPoints = computed(() => {
+const getRadarPoint = (score, index, total, radiusScale = 1) => {
   const center = 50;
-  const maxRadius = 34;
+  const maxRadius = 34 * radiusScale;
+  const angle = -Math.PI / 2 + (index * 2 * Math.PI) / total;
+  const radius = (score / 100) * maxRadius;
 
-  return domainStats.value
-    .map((domain, index) => {
-      const angle =
-        -Math.PI / 2 + (index * 2 * Math.PI) / domainStats.value.length;
-      const radius = (domain.score / 100) * maxRadius;
-      const x = center + Math.cos(angle) * radius;
-      const y = center + Math.sin(angle) * radius;
+  return {
+    x: center + Math.cos(angle) * radius,
+    y: center + Math.sin(angle) * radius,
+  };
+};
 
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
+const formatRadarPoint = ({ x, y }) => `${x.toFixed(1)},${y.toFixed(1)}`;
+
+const radarPoints = computed(() => {
+  const domains = domainStats.value;
+  if (!domains.length) return "";
+
+  return domains
+    .map((domain, index) =>
+      formatRadarPoint(getRadarPoint(domain.score, index, domains.length)),
+    )
     .join(" ");
 });
 
 const radarLabelPositions = computed(() => {
   const center = 50;
   const radius = 45;
+  const domains = domainStats.value;
 
-  return domainStats.value.map((domain, index) => {
-    const angle =
-      -Math.PI / 2 + (index * 2 * Math.PI) / domainStats.value.length;
+  return domains.map((domain, index) => {
+    const angle = -Math.PI / 2 + (index * 2 * Math.PI) / domains.length;
 
     return {
       ...domain,
@@ -132,38 +89,52 @@ const radarLabelPositions = computed(() => {
   });
 });
 
-const weakestDomain = computed(() => {
-  return [...domainStats.value].sort(
-    (left, right) => left.score - right.score,
-  )[0];
+const radarGridOuterPoints = computed(() => {
+  const domains = domainStats.value;
+  if (!domains.length) return "";
+
+  return domains
+    .map((_, index) =>
+      formatRadarPoint(getRadarPoint(100, index, domains.length, 1.18)),
+    )
+    .join(" ");
+});
+
+const radarGridInnerPoints = computed(() => {
+  const domains = domainStats.value;
+  if (!domains.length) return "";
+
+  return domains
+    .map((_, index) =>
+      formatRadarPoint(getRadarPoint(100, index, domains.length, 0.78)),
+    )
+    .join(" ");
+});
+
+const radarAxes = computed(() => {
+  const center = { x: 50, y: 50 };
+  const domains = domainStats.value;
+
+  return domains.map((domain, index) => ({
+    key: domain.id || domain.name,
+    ...center,
+    end: getRadarPoint(100, index, domains.length, 1.18),
+  }));
 });
 
 const improvementSuggestions = computed(() => {
-  const domain = weakestDomain.value?.name || "Web";
-  const suggestionsByDomain = {
-    Web: ["Vue.js", "React", "JavaScript"],
-    Backend: ["Node.js", "Express.js", "Prisma"],
-    DevOps: ["Docker", "GitHub Actions", "CI/CD"],
-    Security: ["JWT", "OWASP", "Secure API"],
-    "AI/Data": ["Python", "Machine Learning", "Data Analysis"],
-  };
+  return (skillStats.value?.suggestions || []).map((suggestion) => ({
+    id: suggestion.domain || suggestion.title,
+    title: suggestion.title,
+    text: suggestion.message,
+    icon: "trending_up",
+  }));
+});
 
-  return [
-    {
-      id: "weak-domain",
-      title: `Renforcer le domaine ${domain}`,
-      text: `Ajoutez une compétence comme ${suggestionsByDomain[domain]
-        .slice(0, 2)
-        .join(" ou ")} pour améliorer ce profil.`,
-      icon: "trending_up",
-    },
-    {
-      id: "project-proof",
-      title: "Ajouter une preuve projet",
-      text: `Créez ou complétez un projet lié au domaine ${domain} pour rendre cette progression plus crédible.`,
-      icon: "verified",
-    },
-  ];
+const availableCatalog = computed(() => {
+  const ownedSkillIds = new Set(mySkills.value.map((skill) => skill.skillId));
+
+  return catalog.value.filter((skill) => !ownedSkillIds.has(skill.id));
 });
 
 const loadAll = async () => {
@@ -171,15 +142,18 @@ const loadAll = async () => {
   errorMessage.value = "";
 
   try {
-    const [skillsRes, softRes] = await Promise.all([
+    const [skillsRes, softRes, statsRes] = await Promise.all([
       getMySkills(),
       getSoftSkills(),
+      getSkillStats(),
     ]);
     mySkills.value = skillsRes.data || [];
     softSkills.value = softRes.data || [];
+    skillStats.value = statsRes.data || null;
   } catch {
     mySkills.value = [];
     softSkills.value = [];
+    skillStats.value = null;
     errorMessage.value = "Impossible de charger les compétences.";
   } finally {
     isLoading.value = false;
@@ -196,13 +170,44 @@ const loadCatalog = async () => {
   }
 };
 
+const openSkillSuggestions = async () => {
+  isSkillSuggestionsOpen.value = true;
+  await loadCatalog();
+};
+
+const closeSkillSuggestions = () => {
+  window.setTimeout(() => {
+    isSkillSuggestionsOpen.value = false;
+  }, 120);
+};
+
+const handleSkillSearch = async () => {
+  newSkill.value.skillId = "";
+  isSkillSuggestionsOpen.value = true;
+  await loadCatalog();
+};
+
+const selectCatalogSkill = (skill) => {
+  newSkill.value.skillId = skill.id;
+  searchQuery.value = skill.domain?.name
+    ? `${skill.name} - ${skill.domain.name}`
+    : skill.name;
+  isSkillSuggestionsOpen.value = false;
+};
+
 const handleAddSkill = async () => {
   if (!newSkill.value.skillId) return;
 
   try {
-    await addSkill(newSkill.value);
+    await addSkill({
+      skillId: newSkill.value.skillId,
+      level: 0,
+      source: "MANUAL",
+    });
     showAddSkill.value = false;
     newSkill.value = { skillId: "" };
+    searchQuery.value = "";
+    catalog.value = [];
     await loadAll();
   } catch {
     errorMessage.value = "Erreur lors de l'ajout.";
@@ -241,6 +246,9 @@ const handleDeleteSoft = async (id) => {
 
 const openAddSkill = async () => {
   showAddSkill.value = true;
+  newSkill.value = { skillId: "" };
+  searchQuery.value = "";
+  isSkillSuggestionsOpen.value = false;
   await loadCatalog();
 };
 
@@ -270,13 +278,38 @@ onMounted(loadAll);
 
         <div class="form-group">
           <label>Compétence</label>
-          <select v-model="newSkill.skillId" class="form-select">
-            <option value="">Sélectionner...</option>
-            <option v-for="item in catalog" :key="item.id" :value="item.id">
-              {{ item.name }}
-            </option>
-          </select>
-          <p v-if="!catalog.length" class="form-hint">
+          <div class="skill-autocomplete">
+            <input
+              v-model="searchQuery"
+              type="search"
+              placeholder="Tapez le nom de la compétence"
+              class="skill-input"
+              @focus="openSkillSuggestions"
+              @blur="closeSkillSuggestions"
+              @input="handleSkillSearch"
+            />
+            <div
+              v-if="isSkillSuggestionsOpen && availableCatalog.length"
+              class="catalog-suggestions"
+            >
+              <button
+                v-for="item in availableCatalog"
+                :key="item.id"
+                type="button"
+                class="catalog-suggestion"
+                @mousedown.prevent="selectCatalogSkill(item)"
+              >
+                <span class="catalog-suggestion-icon">
+                  {{ item.name?.charAt(0) || "C" }}
+                </span>
+                <span>
+                  <strong>{{ item.name }}</strong>
+                  <small>{{ item.domain?.name || "Domaine non renseigné" }}</small>
+                </span>
+              </button>
+            </div>
+          </div>
+          <p v-if="searchQuery && !availableCatalog.length" class="form-hint">
             Aucune compétence technique disponible dans le catalogue.
           </p>
         </div>
@@ -309,7 +342,9 @@ onMounted(loadAll);
             <div class="skill-header">
               <div>
                 <div class="skill-name">{{ skill.name }}</div>
-                <div class="skill-source">Compétence technique</div>
+                <div class="skill-source">
+                  {{ skill.domain?.name || "Compétence technique" }}
+                </div>
               </div>
               <div class="skill-right">
                 <span v-if="getSkillScore(skill) !== null" class="skill-score">
@@ -403,29 +438,32 @@ onMounted(loadAll);
             <h3 class="card-title" style="margin: 0">
               Aperçu du profil technique
             </h3>
-            <span class="radar-badge">Prototype</span>
           </div>
 
           <p class="radar-note">
-            Radar temporaire calculé côté front à partir des compétences
-            techniques ajoutées.
+            Statistiques calculées à partir des domaines de compétences du
+            backend.
           </p>
 
           <div class="radar-wrap">
             <svg class="radar-chart" viewBox="0 0 100 100" aria-hidden="true">
               <polygon
-                points="50,8 89.9,37 74.7,84 25.3,84 10.1,37"
+                :points="radarGridOuterPoints"
                 class="radar-grid-line"
               />
               <polygon
-                points="50,22 76.6,41.3 66.5,72.3 33.5,72.3 23.4,41.3"
+                :points="radarGridInnerPoints"
                 class="radar-grid-line radar-grid-line-inner"
               />
-              <line x1="50" y1="50" x2="50" y2="8" class="radar-axis" />
-              <line x1="50" y1="50" x2="89.9" y2="37" class="radar-axis" />
-              <line x1="50" y1="50" x2="74.7" y2="84" class="radar-axis" />
-              <line x1="50" y1="50" x2="25.3" y2="84" class="radar-axis" />
-              <line x1="50" y1="50" x2="10.1" y2="37" class="radar-axis" />
+              <line
+                v-for="axis in radarAxes"
+                :key="axis.key"
+                :x1="axis.x"
+                :y1="axis.y"
+                :x2="axis.end.x"
+                :y2="axis.end.y"
+                class="radar-axis"
+              />
               <polygon :points="radarPoints" class="radar-shape" />
               <circle cx="50" cy="50" r="2.1" class="radar-center" />
               <text
@@ -468,8 +506,8 @@ onMounted(loadAll);
         </div>
 
         <div class="content-card suggestions-card">
-          <h3 class="card-title">Suggestions d’amélioration</h3>
-          <div class="suggestions-list">
+          <h3 class="card-title">Suggestions d'amélioration</h3>
+          <div v-if="improvementSuggestions.length" class="suggestions-list">
             <div
               v-for="suggestion in improvementSuggestions"
               :key="suggestion.id"
@@ -483,6 +521,11 @@ onMounted(loadAll);
                 <p>{{ suggestion.text }}</p>
               </div>
             </div>
+          </div>
+          <div v-else class="empty-state compact">
+            <span class="material-icons-round">verified</span>
+            <h4>Aucune suggestion prioritaire</h4>
+            <p>Les domaines techniques du catalogue sont déjà couverts.</p>
           </div>
         </div>
       </div>
