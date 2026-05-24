@@ -51,6 +51,13 @@ const studentProfileSelect = {
           name: true,
           type: true,
           description: true,
+          domain: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
         },
       },
     },

@@ -5,68 +5,27 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
 const uploadCsv = require('../middlewares/uploadCsv');
 const administratorController = require('../controllers/administratorController');
+const badgeRoutes = require('./administrator/badgeRoutes');
+const dashboardRoutes = require('./administrator/dashboardRoutes');
+const notificationRoutes = require('./administrator/notificationRoutes');
+const professionalRequestRoutes = require('./administrator/professionalRequestRoutes');
+const reportRoutes = require('./administrator/reportRoutes');
+const userRoutes = require('./administrator/userRoutes');
+const validationRoutes = require('./administrator/validationRoutes');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 router.use(checkRoles('ADMINISTRATOR'));
 
-// Dashboard
-router.get('/dashboard', administratorController.getDashboard);
-router.get('/dashboard-items/:itemType/:itemId', administratorController.getDashboardItemDetail);
-router.patch('/dashboard-items/:itemType/:itemId/approve', administratorController.approveDashboardItem);
-router.patch('/dashboard-items/:itemType/:itemId/reject', administratorController.rejectDashboardItem);
-
-// Notifications
-router.get('/notifications', administratorController.listNotifications);
-router.get('/notifications/unread-count', administratorController.getUnreadNotificationsCount);
-router.patch('/notifications/read-all', administratorController.markAllNotificationsAsRead);
-router.patch('/notifications/:notificationId/read', administratorController.markNotificationAsRead);
-router.delete('/notifications/:notificationId', administratorController.deleteNotification);
-
-// Validations
-router.get('/validations/pending', administratorController.listPendingValidationsLegacy);
-router.get('/validations/pending-count', administratorController.getPendingValidationCountsLegacy);
-router.get('/validations/:validationId', administratorController.getLegacyValidationDetail);
-router.patch('/validations/:validationId/approve', administratorController.approveLegacyValidationItem);
-router.patch('/validations/:validationId/reject', administratorController.rejectLegacyValidationItem);
-router.patch('/validations/:validationId/request-changes', administratorController.requestLegacyValidationChanges);
-router.get('/validations', administratorController.listValidationItems);
-router.get('/validations/:itemType/:itemId', administratorController.getValidationItemDetail);
-router.patch('/validations/:itemType/:itemId/approve', administratorController.approveValidationItem);
-router.patch('/validations/:itemType/:itemId/reject', administratorController.rejectValidationItem);
-
-// Reports
-router.get('/reports', administratorController.listReports);
-router.get('/reports/pending-count', administratorController.getPendingReportsCountLegacy);
-router.get('/reports/:reportId', administratorController.getReportById);
-router.patch('/reports/:reportId/resolve', administratorController.resolveLegacyReport);
-router.patch('/reports/:reportId/approve', administratorController.approveReport);
-router.patch('/reports/:reportId/reject', administratorController.rejectReport);
-router.delete('/reports/:reportId/target', administratorController.deleteLegacyReportedTarget);
-
-// Badges
-router.get('/badges', administratorController.listBadges);
-router.post('/badges', administratorController.createBadge);
-router.put('/badges/:badgeId', administratorController.updateBadge);
-router.delete('/badges/:badgeId', administratorController.deleteBadge);
-
-// Profile and users
-router.get('/profile', administratorController.getProfile);
-router.get('/users', administratorController.listUsers);
 router.post('/users/import-csv', uploadCsv.single('file'), administratorController.importUsersCsv);
-router.post('/users', administratorController.createUser);
-router.get('/users/:userId', administratorController.getUserById);
-router.put('/users/:userId', administratorController.updateUser);
-router.patch('/users/:userId/status', administratorController.updateUserStatus);
-router.patch('/users/:userId/role', administratorController.updateUserRole);
-router.patch('/users/:userId/reset-password', administratorController.resetUserPassword);
-router.delete('/users/:userId', administratorController.deleteUser);
 
-// Professional access requests
-router.get('/professional-requests', administratorController.listProfessionalRequests);
-router.get('/professional-requests/:userId', administratorController.getProfessionalRequest);
-router.patch('/professional-requests/:userId/approve', administratorController.approveProfessionalRequest);
-router.patch('/professional-requests/:userId/reject', administratorController.rejectProfessionalRequest);
+router.use(dashboardRoutes);
+router.use(notificationRoutes);
+router.use(validationRoutes);
+router.use(reportRoutes);
+router.use(badgeRoutes);
+router.use(userRoutes);
+router.use(professionalRequestRoutes);
 
 module.exports = router;

@@ -1,5 +1,6 @@
 'use strict';
 
+const prisma = require('../../config/prisma');
 const {
   buildDashboardNotifications,
   computeDashboardStats,
@@ -7,13 +8,76 @@ const {
 } = require('./dashboardHelpers');
 const { getStudentDashboardBaseOrThrow } = require('./studentData');
 
+const STATE_KEY = 'studentNotifications';
+
+const asPlainObject = (value) =>
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {};
+
+const normalizeState = (preferences) => {
+  const rawState = asPlainObject(asPlainObject(preferences)[STATE_KEY]);
+
+  return {
+    readIds: Array.isArray(rawState.readIds) ? rawState.readIds : [],
+    deletedIds: Array.isArray(rawState.deletedIds) ? rawState.deletedIds : [],
+  };
+};
+
+const getUserNotificationState = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      preferences: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('STUDENT_PROFILE_NOT_FOUND');
+  }
+
+  return {
+    preferences: asPlainObject(user.preferences),
+    state: normalizeState(user.preferences),
+  };
+};
+
+const saveUserNotificationState = async (userId, preferences, state) => {
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      preferences: {
+        ...preferences,
+        [STATE_KEY]: {
+          readIds: [...new Set(state.readIds)],
+          deletedIds: [...new Set(state.deletedIds)],
+        },
+      },
+    },
+  });
+};
+
+const applyState = (items, state) => {
+  const readIds = new Set(state.readIds);
+  const deletedIds = new Set(state.deletedIds);
+
+  return items
+    .filter((notification) => !deletedIds.has(notification.id))
+    .map((notification) => ({
+      ...notification,
+      read: notification.read || readIds.has(notification.id),
+    }));
+};
+
 const buildNotifications = async (userId) => {
   const student = await getStudentDashboardBaseOrThrow(userId);
   const stats = await computeDashboardStats(student);
+  const { preferences, state } = await getUserNotificationState(userId);
 
   return {
     student,
-    items: buildDashboardNotifications(stats),
+    preferences,
+    state,
+    items: applyState(buildDashboardNotifications(stats), state),
   };
 };
 
@@ -66,12 +130,19 @@ const getStudentUnreadNotificationCount = async (userId) => {
 };
 
 const markStudentNotificationAsRead = async (userId, notificationId) => {
-  const notifications = await listStudentNotifications(userId);
-  const notification = notifications.items.find((item) => item.id === notificationId);
+  const { preferences, state, items } = await buildNotifications(userId);
+  const notification = items.find((item) => item.id === notificationId);
 
   if (!notification) {
     throw new Error('STUDENT_NOTIFICATION_NOT_FOUND');
   }
+
+  const nextState = {
+    ...state,
+    readIds: [...state.readIds, notificationId],
+  };
+
+  await saveUserNotificationState(userId, preferences, nextState);
 
   return {
     ...notification,
@@ -80,20 +151,33 @@ const markStudentNotificationAsRead = async (userId, notificationId) => {
 };
 
 const markAllStudentNotificationsAsRead = async (userId) => {
-  const notifications = await listStudentNotifications(userId);
+  const { preferences, state, items } = await buildNotifications(userId);
+  const nextState = {
+    ...state,
+    readIds: [...state.readIds, ...items.map((notification) => notification.id)],
+  };
+
+  await saveUserNotificationState(userId, preferences, nextState);
 
   return {
-    markedCount: notifications.items.length,
+    markedCount: items.length,
   };
 };
 
 const deleteStudentNotification = async (userId, notificationId) => {
-  const notifications = await listStudentNotifications(userId);
-  const notification = notifications.items.find((item) => item.id === notificationId);
+  const { preferences, state, items } = await buildNotifications(userId);
+  const notification = items.find((item) => item.id === notificationId);
 
   if (!notification) {
     throw new Error('STUDENT_NOTIFICATION_NOT_FOUND');
   }
+
+  const nextState = {
+    ...state,
+    deletedIds: [...state.deletedIds, notificationId],
+  };
+
+  await saveUserNotificationState(userId, preferences, nextState);
 
   return {
     deleted: true,

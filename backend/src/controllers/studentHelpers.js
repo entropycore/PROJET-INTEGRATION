@@ -1,20 +1,20 @@
 'use strict';
-
 const { error } = require('../utils/apiResponse');
 
 const STUDENT_ERROR_RESPONSES = {
-  STUDENT_PROFILE_NOT_FOUND: [404, 'Profil etudiant introuvable.'],
-  ACADEMIC_PATH_NOT_FOUND: [404, 'Parcours academique introuvable.'],
-  SOFT_SKILL_NOT_FOUND: [404, 'Competence comportementale introuvable.'],
-  SOFT_SKILL_NAME_REQUIRED: [400, 'Le nom de la competence comportementale est requis.'],
-  SKILL_NOT_FOUND: [404, 'Competence introuvable.'],
-  STUDENT_SKILL_NOT_FOUND: [404, 'Competence etudiante introuvable.'],
-  STUDENT_NOTIFICATION_NOT_FOUND: [404, 'Notification etudiante introuvable.'],
-  GITHUB_NOT_CONFIGURED: [503, 'Integration GitHub non configuree.'],
+  STUDENT_PROFILE_NOT_FOUND: [404, 'Profil étudiant introuvable.'],
+  ACADEMIC_PATH_NOT_FOUND: [404, 'Parcours académique introuvable.'],
+  SOFT_SKILL_NOT_FOUND: [404, 'Compétence comportementale introuvable.'],
+  SOFT_SKILL_NAME_REQUIRED: [400, 'Le nom de la compétence comportementale est requis.'],
+  SKILL_NOT_FOUND: [404, 'Compétence introuvable.'],
+  STUDENT_SKILL_NOT_FOUND: [404, 'Compétence étudiante introuvable.'],
+  STUDENT_NOTIFICATION_NOT_FOUND: [404, 'Notification étudiante introuvable.'],
+  STAGE_VALIDATOR_NOT_FOUND: [400, 'Aucun validateur professeur disponible pour ce stage.'],
+  GITHUB_NOT_CONFIGURED: [503, 'Intégration GitHub non configurée.'],
   GITHUB_TOKEN_EXCHANGE_FAILED: [502, 'Connexion GitHub impossible.'],
   GITHUB_CALLBACK_INVALID: [400, 'Retour GitHub invalide.'],
-  GITHUB_REPOSITORY_NAME_REQUIRED: [400, 'Le nom du depot GitHub est requis.'],
-  GITHUB_REPOSITORY_ALREADY_IMPORTED: [409, 'Ce depot GitHub est deja dans votre portfolio.'],
+  GITHUB_REPOSITORY_NAME_REQUIRED: [400, 'Le nom du dépôt GitHub est requis.'],
+  GITHUB_REPOSITORY_ALREADY_IMPORTED: [409, 'Ce dépôt GitHub est déjà dans votre portfolio.'],
   CURRENT_PASSWORD_REQUIRED: [400, 'Le mot de passe actuel est requis.'],
   NEW_PASSWORD_REQUIRED: [400, 'Le nouveau mot de passe est requis.'],
   NEW_PASSWORD_TOO_SHORT: [400, 'Le nouveau mot de passe doit contenir au moins 8 caracteres.'],
@@ -28,11 +28,9 @@ const STUDENT_ERROR_RESPONSES = {
 
 const handleStudentError = (res, err) => {
   const response = STUDENT_ERROR_RESPONSES[err.message];
-
   if (!response) {
     return null;
   }
-
   const [status, message] = response;
   return error(res, status, message);
 };

@@ -37,6 +37,18 @@ const updateStudentSettingsPreferences = async (userId, updater) => {
   return nextSettings;
 };
 
+const getStudentSettings = async (userId) => {
+  const student = await getStudentOrThrow(userId);
+  const user = await prisma.user.findUnique({
+    where: { id: student.user.id },
+    select: {
+      preferences: true,
+    },
+  });
+
+  return mergeStudentSettings(user?.preferences);
+};
+
 const updateStudentSettingsPassword = async (userId, payload = {}) => {
   await getStudentOrThrow(userId);
 
@@ -155,6 +167,7 @@ const updateStudentSettingsNotifications = async (userId, payload = {}) => {
 };
 
 module.exports = {
+  getStudentSettings,
   updateStudentSettingsNotifications,
   updateStudentSettingsPassword,
   updateStudentSettingsPrivacy,
