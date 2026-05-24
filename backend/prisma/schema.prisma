@@ -564,6 +564,9 @@ model Portfolio {
   visibility     Visibility       @default(PRIVATE)
   status         PortfolioStatus  @default(DRAFT)
   targetDomain   String?          @map("target_domain") @db.VarChar(120)
+  theme          String           @default("modern-academic") @db.VarChar(80)
+  includedSections Json           @default("[]") @map("included_sections")
+  includedItems  Json             @default("{}") @map("included_items")
   generatedAt    DateTime         @default(now()) @map("generated_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   comments       Comment[]
