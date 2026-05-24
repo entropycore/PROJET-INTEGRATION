@@ -118,7 +118,7 @@ register: [
       .notEmpty()
       .withMessage('Motif obligatoire')
       .isLength({ min: 3, max: 200 })
-      .withMessage('Motif entre 3 et 200 caractÃ¨res'),
+      .withMessage('Motif entre 3 et 200 caractères'),
 
     body('description')
       .optional({ values: 'falsy' })
@@ -152,4 +152,35 @@ const handleValidationErrors = (req, res, next) => {
   next();
 };
 
-module.exports = { validationRules, handleValidationErrors };
+
+const addTimelineRules = [
+  body('title')
+    .notEmpty().withMessage('Le titre est obligatoire')
+    .isLength({ max: 255 }).withMessage('Le titre ne doit pas dépasser 255 caractères'),
+  body('institution')
+    .notEmpty().withMessage('L’établissement est obligatoire')
+    .isLength({ max: 255 }),
+  body('startDate')
+    .notEmpty().withMessage('La date de début est obligatoire')
+    .isISO8601().withMessage('Format de date invalide (AAAA-MM-JJ)'),
+  body('endDate')
+    .optional({ nullable: true })
+    .isISO8601().withMessage('Format de date invalide'),
+  body('description')
+    .optional({ nullable: true })
+    .isLength({ max: 2000 }),
+];
+
+const updateTimelineRules = [
+  body('title').optional().notEmpty().isLength({ max: 255 }),
+  body('institution').optional().notEmpty().isLength({ max: 255 }),
+  body('startDate').optional().isISO8601(),
+  body('endDate').optional({ nullable: true }).isISO8601(),
+  body('description').optional({ nullable: true }).isLength({ max: 2000 }),
+];
+module.exports = {
+  validationRules,
+  handleValidationErrors,
+  addTimelineRules,
+  updateTimelineRules,
+};
