@@ -35,7 +35,7 @@ describe("NotAuthorized - Test UI", () => {
     });
   });
 
-  it("devrait respecter la structure du layout (Grid & Place-items)", () => {
+  it("devrait respecter la structure de mise en page", () => {
     const main = wrapper.find("main");
     expect(main.classes()).toContain("forbidden-page");
 
@@ -73,7 +73,7 @@ describe("NotAuthorized - Test UI", () => {
     expect(message.text()).toContain("Votre compte est bien reconnu");
   });
 
-  it("devrait verifier que le conteneur d'actions utilise le Flexbox (via classes)", () => {
+  it("devrait verifier que le conteneur d'actions utilise une mise en page flexible", () => {
     const actions = wrapper.find(".forbidden-actions");
     expect(actions.exists()).toBe(true);
     expect(actions.element).toBeTruthy();

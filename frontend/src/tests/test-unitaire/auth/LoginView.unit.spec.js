@@ -44,7 +44,7 @@ describe("LoginPage.vue - Tests unitaires de la page de connexion", () => {
     });
   });
 
-  it("doit afficher une erreur si les champs email ou mot de passe sont vides", async () => {
+  it("doit afficher une erreur si les champs e-mail ou mot de passe sont vides", async () => {
     await wrapper.find("form").trigger("submit.prevent");
     const error = wrapper.find(".error-message");
     expect(error.exists()).toBe(true);
