@@ -59,6 +59,9 @@ enum ActivityType {
   COMPETITION
   ASSOCIATIVE_ENGAGEMENT
   CONFERENCE
+  VOLUNTEERING
+  TRAINING
+  OTHER
 }
 
 enum RecommendationLetterType {
@@ -481,10 +484,14 @@ model ExtracurricularActivity {
   organization String?     @db.VarChar(150)
   startDate    DateTime?   @map("start_date") @db.Date
   endDate      DateTime?   @map("end_date") @db.Date
+  duration     String?     @db.VarChar(100)
+  location     String?     @db.VarChar(150)
+  validationStatus ValidationStatus @default(DRAFT) @map("validation_status")
   visibility   Visibility  @default(PRIVATE)
   certificates Certificate[]
 
   @@index([studentId])
+  @@index([validationStatus])
   @@map("extracurricular_activities")
 }
 
@@ -493,6 +500,10 @@ model Certificate {
   activityId       String                 @map("activity_id")
   activity         ExtracurricularActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
   documentUrl      String                 @map("document_url") @db.Text
+  fileName         String?                @map("file_name") @db.VarChar(255)
+  mimeType         String?                @map("mime_type") @db.VarChar(120)
+  fileSize         Int?                   @map("file_size")
+  storagePath      String?                @map("storage_path") @db.Text
   validationStatus ValidationStatus       @default(PENDING) @map("validation_status")
   submittedAt      DateTime               @default(now()) @map("submitted_at")
   validations      CertificateValidation[]
