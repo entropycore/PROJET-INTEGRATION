@@ -76,6 +76,16 @@ const getStudentIdOrThrow = async (userId) => {
 const countByStatus = (recommendations, status) =>
   recommendations.filter((recommendation) => recommendation.status === status).length;
 
+const normalizeStudentDecisionStatus = (status) => {
+  const normalizedStatus = String(status || '').trim().toUpperCase();
+
+  if (!['APPROVED', 'REJECTED'].includes(normalizedStatus)) {
+    throw new Error('INVALID_RECOMMENDATION_STATUS');
+  }
+
+  return normalizedStatus;
+};
+
 exports.listStudentRecommendations = async (userId, filters = {}) => {
   const studentId = await getStudentIdOrThrow(userId);
   const recommendations = await prisma.recommendation.findMany({
@@ -98,4 +108,31 @@ exports.listStudentRecommendations = async (userId, filters = {}) => {
     },
     recommendations: visibleRecommendations,
   };
+};
+
+exports.updateRecommendationStatus = async (userId, recommendationId, status) => {
+  const studentId = await getStudentIdOrThrow(userId);
+  const normalizedStatus = normalizeStudentDecisionStatus(status);
+  const existingRecommendation = await prisma.recommendation.findFirst({
+    where: {
+      id: recommendationId,
+      studentId,
+    },
+    select: { id: true },
+  });
+
+  if (!existingRecommendation) {
+    throw new Error('RECOMMENDATION_NOT_FOUND');
+  }
+
+  const updatedRecommendation = await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: normalizedStatus,
+      visibility: normalizedStatus === 'APPROVED' ? 'PUBLIC' : 'PRIVATE',
+    },
+    select: recommendationSelect,
+  });
+
+  return mapRecommendation(updatedRecommendation);
 };
