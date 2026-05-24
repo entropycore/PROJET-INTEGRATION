@@ -159,6 +159,17 @@ export const sidebarConfig = {
         },
       ],
     },
+    {
+      section: "SYSTÈME",
+      items: [
+        {
+          label: "Notifications",
+          path: "/professor/notifications",
+          icon: "notification.svg",
+        },
+        
+      ],
+    },
   ],
 
   PROFESSIONAL: [
@@ -167,6 +178,17 @@ export const sidebarConfig = {
       items: [
         { label: "Vue globale", path: "/professional", icon: "dashboard.svg" },
         { label: "Explore Profiles", path: "/profiles", icon: "profiles.svg" },
+      ],
+    },
+    {
+      section: "SYSTÈME",
+      items: [
+        {
+          label: "Notifications",
+          path: "/professional/notifications",
+          icon: "notification.svg",
+        },
+        
       ],
     },
   ],
