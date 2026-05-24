@@ -118,7 +118,7 @@ register: [
       .notEmpty()
       .withMessage('Motif obligatoire')
       .isLength({ min: 3, max: 200 })
-      .withMessage('Motif entre 3 et 200 caractÃ¨res'),
+      .withMessage('Motif entre 3 et 200 caractères'),
 
     body('description')
       .optional({ values: 'falsy' })
