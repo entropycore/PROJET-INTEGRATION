@@ -1,36 +1,79 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-import ActivityForm from '@/components/student/activities/ActivityForm.vue'
-import { canEditActivity as canEditActivityRule } from '@/components/student/activities/activityRules'
+import ActivityForm from "@/components/student/activities/ActivityForm.vue";
+import { canEditActivity as canEditActivityRule } from "@/components/student/activities/activityRules";
 import {
-  getActivityById,
-  updateActivity,
-} from '@/mockData/studentActivities.store'
+  getStudentActivityById,
+  updateStudentActivity,
+  uploadStudentActivityCertificate,
+} from "@/services/studentActivitiesService";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
+const currentActivity = ref(null);
+const isLoading = ref(false);
+const isSaving = ref(false);
+const errorMessage = ref("");
 
-const currentActivity = computed(() => getActivityById(route.params.id))
 const canEditActivity = computed(() =>
   canEditActivityRule(currentActivity.value),
-)
+);
+
+const extractData = (response) => response.data?.data || response.data;
+
+const fetchActivity = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await getStudentActivityById(route.params.id);
+    currentActivity.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement activité :", error);
+    errorMessage.value = "Impossible de charger cette activité.";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(fetchActivity);
 
 const goBack = () => {
-  router.push('/student/activities')
-}
+  router.push("/student/activities");
+};
 
-const handleSaveActivity = (payload) => {
-  if (!currentActivity.value || !canEditActivity.value) return
+const buildActivityPayload = (payload) => {
+  const activityPayload = { ...payload };
+  delete activityPayload.certificate;
+  delete activityPayload.certificateName;
+  delete activityPayload.certificateUrl;
+  return activityPayload;
+};
 
-  updateActivity({
-    ...currentActivity.value,
-    ...payload,
-  })
+const handleSaveActivity = async (payload) => {
+  if (!currentActivity.value || !canEditActivity.value) return;
 
-  router.push(`/student/activities/${currentActivity.value.id}`)
-}
+  isSaving.value = true;
+  errorMessage.value = "";
+
+  try {
+    await updateStudentActivity(route.params.id, buildActivityPayload(payload));
+
+    if (payload.certificate instanceof File) {
+      await uploadStudentActivityCertificate(route.params.id, payload.certificate);
+    }
+
+    router.push(`/student/activities/${currentActivity.value.id}`);
+  } catch (error) {
+    console.error("Erreur modification activité :", error);
+    errorMessage.value =
+      error?.response?.data?.message || "Impossible de modifier l’activité.";
+  } finally {
+    isSaving.value = false;
+  }
+};
 </script>
 
 <template>
@@ -50,7 +93,15 @@ const handleSaveActivity = (payload) => {
       </button>
     </div>
 
-    <div v-if="!currentActivity" class="empty-state">
+    <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
+
+    <div v-if="isLoading" class="empty-state">
+      <span class="material-icons-round">hourglass_top</span>
+      <h3>Chargement...</h3>
+      <p>Récupération de l’activité.</p>
+    </div>
+
+    <div v-else-if="!currentActivity" class="empty-state">
       <span class="material-icons-round">event_busy</span>
       <h3>Activité introuvable</h3>
       <p>Retournez à la liste et choisissez une activité existante.</p>
@@ -65,7 +116,7 @@ const handleSaveActivity = (payload) => {
     <ActivityForm
       v-else
       :initial-activity="currentActivity"
-      submit-label="Enregistrer les modifications"
+      :submit-label="isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'"
       @save-activity="handleSaveActivity"
       @cancel="goBack"
     />
@@ -153,6 +204,12 @@ const handleSaveActivity = (payload) => {
 
 .empty-state p {
   margin: 0;
+}
+
+.error-msg {
+  margin: 0 0 1rem;
+  color: #c62828;
+  font-weight: 700;
 }
 
 @media (max-width: 760px) {

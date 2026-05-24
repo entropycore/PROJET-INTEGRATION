@@ -35,6 +35,8 @@ const typeLabels = {
 };
 
 const submitValidation = () => {
+  if (!canSubmitActivity(props.activity)) return;
+
   emit("submit-validation", props.activity.id);
 };
 
