@@ -3,6 +3,11 @@
 const prisma = require('../../config/prisma');
 const { formatFullName, mapStudentProfile } = require('./dashboardHelpers');
 const { getStudentOrThrow } = require('./studentData');
+const {
+  deleteProfilePicture,
+  getStoragePathFromUrl,
+  storeProfilePicture,
+} = require('./profilePictureStorage');
 
 const getStudentProfile = async (userId) => mapStudentProfile(await getStudentOrThrow(userId));
 
@@ -81,10 +86,40 @@ const updateStudentCareerGoal = async (userId, payload) => {
   return getStudentCareerGoal(userId);
 };
 
+const updateStudentProfilePicture = async (userId, file) => {
+  if (!file) {
+    throw new Error('PROFILE_PICTURE_UPLOAD_EMPTY');
+  }
+
+  const student = await getStudentOrThrow(userId);
+  const oldStoragePath = getStoragePathFromUrl(student.user.profilePicture);
+  const storedFile = await storeProfilePicture(file);
+
+  try {
+    await prisma.user.update({
+      where: { id: student.user.id },
+      data: { profilePicture: storedFile.publicUrl },
+    });
+  } catch (err) {
+    await deleteProfilePicture(storedFile.storagePath);
+    throw err;
+  }
+
+  await deleteProfilePicture(oldStoragePath);
+
+  return {
+    profilePicture: storedFile.publicUrl,
+    fileName: storedFile.fileName,
+    mimeType: storedFile.mimeType,
+    fileSize: storedFile.fileSize,
+  };
+};
+
 module.exports = {
   getStudentCareerGoal,
   getStudentProfile,
   getStudentProfileCompat,
+  updateStudentProfilePicture,
   updateStudentCareerGoal,
   updateStudentProfileCompat,
 };
