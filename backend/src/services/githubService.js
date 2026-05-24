@@ -4,12 +4,18 @@ const prisma = require('../config/prisma');
 const CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 
-const getAccessToken = async (code) => {
-    const response = await axios.post('https://github.com/login/oauth/access_token', {
+const getAccessToken = async (code, redirectUri = null) => {
+    const payload = {
         client_id: CLIENT_ID,
         client_secret: CLIENT_SECRET,
-        code: code
-    }, {
+        code: code,
+    };
+
+    if (redirectUri) {
+        payload.redirect_uri = redirectUri;
+    }
+
+    const response = await axios.post('https://github.com/login/oauth/access_token', payload, {
         headers: { accept: 'application/json' }
     });
     return response.data.access_token;
@@ -55,7 +61,7 @@ const fetchStudentStats = async (accessToken, studentId) => {
         where: { studentId: studentId },
         select: { githubUrl: true }
     });
-    const importedUrls = existingProjects.map(p => p.githubUrl);
+    const importedUrls = existingProjects.map(p => p.githubUrl).filter(Boolean);
 
     const languages = [...new Set(repos.data.map(repo => repo.language).filter(Boolean))];
 
