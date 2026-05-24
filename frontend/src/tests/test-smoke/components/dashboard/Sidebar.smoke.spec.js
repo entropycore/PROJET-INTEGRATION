@@ -1,17 +1,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { createTestingPinia } from '@pinia/testing' 
+import { createTestingPinia } from '@pinia/testing'
 import { createRouter, createWebHistory } from 'vue-router'
 import Sidebar from '../../../../components/dashboard/Sidebar.vue'
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
-
-// Mock dyal authService (b Relative Path bach y-overrida dakchi li wast Sidebar.vue)
+// Mocks
 vi.mock('../../../../services/authService', () => ({
   logout: vi.fn().mockResolvedValue(undefined),
 }))
 
-// Mock dyal sidebarConfig (b Relative Path kerdalik)
 vi.mock('../../../../config/sidebarConfig', () => ({
   sidebarConfig: {
     admin: [
@@ -25,13 +22,12 @@ vi.mock('../../../../config/sidebarConfig', () => ({
   },
 }))
 
-// Stub des imports d'icônes (new URL(...).href n'existe pas dans jsdom)
+// Stub des imports d'icones, car new URL(...).href n'existe pas dans jsdom.
 vi.stubGlobal('URL', class {
   constructor(path) { this.href = `/mocked-icon/${path}` }
 })
 
-// ─── Router minimal ───────────────────────────────────────────────────────────
-
+// Routeur minimal
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -41,8 +37,7 @@ const router = createRouter({
   ],
 })
 
-// ─── Factory ──────────────────────────────────────────────────────────────────
-
+// Fonction de montage
 const mountSidebar = (props = {}) =>
   mount(Sidebar, {
     props,
@@ -61,19 +56,18 @@ const mountSidebar = (props = {}) =>
     },
   })
 
-// ─── Tests smoke ─────────────────────────────────────────────────────────────
-
-describe('Sidebar – smoke tests', () => {
+// Tests de fumee
+describe('Sidebar - Tests de fumee', () => {
   it('se monte sans erreur', () => {
     expect(() => mountSidebar()).not.toThrow()
   })
 
-  it('rend un élément <aside>', () => {
+  it('rend un element <aside>', () => {
     const wrapper = mountSidebar()
     expect(wrapper.find('aside').exists()).toBe(true)
   })
 
-  it('affiche le bouton de déconnexion', () => {
+  it('affiche le bouton de deconnexion', () => {
     const wrapper = mountSidebar()
     expect(wrapper.find('.logout-btn').exists()).toBe(true)
   })
@@ -83,7 +77,7 @@ describe('Sidebar – smoke tests', () => {
     expect(wrapper.find('nav').exists()).toBe(true)
   })
 
-  it('accepte la prop collapsed sans crasher', () => {
+  it('accepte la propriete collapsed sans planter', () => {
     expect(() => mountSidebar({ collapsed: true })).not.toThrow()
   })
 })

@@ -3,7 +3,7 @@ import { mount } from "@vue/test-utils";
 import NotificationToolbar from "@/components/notifications/NotificationToolbar.vue";
 
 describe("NotificationToolbar.vue", () => {
-  it("affiche correctement les props", () => {
+  it("affiche correctement les proprietes", () => {
     const wrapper = mount(NotificationToolbar, {
       props: {
         unreadCount: 5,
@@ -16,7 +16,7 @@ describe("NotificationToolbar.vue", () => {
     expect(select.element.value).toBe("INFO");
   });
 
-  it("emit update:selectedType quand le select change", async () => {
+  it("emet update:selectedType quand le champ de selection change", async () => {
     const wrapper = mount(NotificationToolbar, {
       props: {
         unreadCount: 0,
@@ -32,7 +32,7 @@ describe("NotificationToolbar.vue", () => {
     expect(wrapper.emitted("update:selectedType")[0]).toEqual(["ALERT"]);
   });
 
-  it("emit read-all quand on clique sur le bouton", async () => {
+  it("emet read-all quand on clique sur le bouton", async () => {
     const wrapper = mount(NotificationToolbar, {
       props: {
         unreadCount: 3,
@@ -48,7 +48,7 @@ describe("NotificationToolbar.vue", () => {
     expect(wrapper.emitted("read-all")).toHaveLength(1);
   });
 
-  it("affiche toutes les options du select", () => {
+  it("affiche toutes les options du champ de selection", () => {
     const wrapper = mount(NotificationToolbar, {
       props: {
         unreadCount: 0,

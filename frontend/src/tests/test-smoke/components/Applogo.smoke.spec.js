@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
 import AppLogo from '@/components/AppLogo.vue'
 
-describe('AppLogo - Smoke', () => {
+describe('AppLogo - Test de fumee', () => {
   it('se monte et rend le logo', () => {
     const wrapper = mount(AppLogo)
 

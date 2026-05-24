@@ -70,7 +70,7 @@ const mountSidebar = (props = {}, userOverride = {}) => {
   })
 }
 
-describe('Sidebar tests UI', () => {
+describe('Sidebar - Tests UI', () => {
   beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -127,22 +127,22 @@ describe('Sidebar tests UI', () => {
       expect(labels.some((t) => t.includes('Tableau de bord'))).toBe(true)
     })
 
-    it('rend le bouton dropdown pour les items avec enfants', () => {
+    it('rend le bouton de menu deroulant pour les elements avec enfants', () => {
       const wrapper = mountSidebar()
       const triggers = wrapper.findAll('.sidebar-dropdown-trigger')
       expect(triggers.length).toBeGreaterThan(0)
       expect(triggers[0].text()).toContain('Gestion utilisateurs')
     })
 
-    it("n'affiche pas le sous-menu avant d'ouvrir le dropdown", () => {
+    it("n'affiche pas le sous-menu avant d'ouvrir le menu deroulant", () => {
       const wrapper = mountSidebar()
       expect(wrapper.find('.sidebar-submenu').exists()).toBe(false)
     })
   })
 
 
-  describe('Dropdown', () => {
-    it('ouvre le sous-menu au clic sur le trigger', async () => {
+  describe('Menu deroulant', () => {
+    it('ouvre le sous-menu au clic sur le declencheur', async () => {
       const wrapper = mountSidebar()
       await wrapper.find('.sidebar-dropdown-trigger').trigger('click')
       expect(wrapper.find('.sidebar-submenu').exists()).toBe(true)
@@ -155,7 +155,7 @@ describe('Sidebar tests UI', () => {
       expect(subLinks.length).toBe(2)
     })
 
-    it('ferme le sous-menu au second clic (toggle)', async () => {
+    it('ferme le sous-menu au second clic', async () => {
       const wrapper = mountSidebar()
       const trigger = wrapper.find('.sidebar-dropdown-trigger')
       await trigger.trigger('click')
@@ -173,7 +173,7 @@ describe('Sidebar tests UI', () => {
     })
   })
 
-  describe('Prop collapsed', () => {
+  describe('Propriete collapsed', () => {
     it("ajoute la classe 'sidebar-collapsed' quand collapsed=true", () => {
       const wrapper = mountSidebar({ collapsed: true })
       expect(wrapper.find('aside').classes()).toContain('sidebar-collapsed')
@@ -211,7 +211,7 @@ describe('Sidebar tests UI', () => {
     })
 
     it('redirige quand logout() rejette (résistance aux erreurs)', async () => {
-      logout.mockRejectedValueOnce(new Error('network error'))
+      logout.mockRejectedValueOnce(new Error('erreur reseau'))
       const wrapper = mountSidebar()
       await wrapper.find('.logout-btn').trigger('click')
       await flushPromises()
