@@ -8,6 +8,42 @@ const safeNumber = (value) => {
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
+const DOMAIN_RECOMMENDATIONS = {
+  web: ['Vue.js', 'React', 'JavaScript'],
+  backend: ['Node.js', 'Express.js', 'PostgreSQL'],
+  devops: ['Docker', 'GitHub Actions', 'CI/CD'],
+  security: ['JWT', 'OWASP', 'Secure API'],
+  'ai-data': ['Python', 'Machine Learning', 'Data Analysis'],
+  mobile: ['React Native', 'Flutter'],
+};
+
+const clampScore = (value) => Math.max(0, Math.min(100, safeNumber(value)));
+
+const buildSuggestion = (domain) => {
+  const recommendedSkills = DOMAIN_RECOMMENDATIONS[domain.slug] || [];
+  const examples = recommendedSkills.slice(0, 2).join(' ou ');
+  const message = examples
+    ? `Ajoutez une compétence comme ${examples} pour améliorer ce profil.`
+    : 'Ajoutez une compétence technique pour améliorer ce profil.';
+
+  return {
+    domain: domain.name,
+    title: `Renforcer le domaine ${domain.name}`,
+    message,
+    recommendedSkills,
+  };
+};
+
+const mapSkillDomain = (domain) => {
+  if (!domain) return null;
+
+  return {
+    id: domain.id,
+    name: domain.name,
+    slug: domain.slug,
+  };
+};
+
 const getStudentSoftSkills = async (userId) => {
   const student = await getStudentOrThrow(userId);
 
@@ -97,6 +133,7 @@ const getStudentSkills = async (userId) => {
       type: studentSkill.skill.type,
       level: safeNumber(studentSkill.masteryLevel),
       source: studentSkill.skillSource || '',
+      domain: mapSkillDomain(studentSkill.skill.domain),
     }));
 };
 
@@ -157,6 +194,118 @@ const deleteStudentSkill = async (userId, studentSkillId) => {
   };
 };
 
+const getStudentSkillStats = async (userId) => {
+  const student = await getStudentOrThrow(userId);
+  const [domains, studentSkills] = await Promise.all([
+    prisma.skillDomain.findMany({
+      orderBy: [{ displayOrder: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+      },
+    }),
+    prisma.studentSkill.findMany({
+      where: {
+        studentId: student.id,
+        skill: {
+          type: 'TECHNICAL',
+        },
+      },
+      orderBy: [{ updatedAt: 'desc' }],
+      select: {
+        id: true,
+        masteryLevel: true,
+        skill: {
+          select: {
+            id: true,
+            name: true,
+            domain: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+    }),
+  ]);
+
+  const statsByDomain = new Map();
+  domains.forEach((domain) => {
+    statsByDomain.set(domain.id, {
+      id: domain.id,
+      name: domain.name,
+      slug: domain.slug,
+      score: 0,
+      skillsCount: 0,
+      totalScore: 0,
+    });
+  });
+
+  let otherDomain = null;
+
+  studentSkills.forEach((studentSkill) => {
+    const score = clampScore(studentSkill.masteryLevel);
+    const domain = studentSkill.skill.domain;
+
+    let domainStats = domain ? statsByDomain.get(domain.id) : null;
+    if (!domainStats) {
+      if (!otherDomain) {
+        otherDomain = {
+          id: null,
+          name: 'Autre',
+          slug: 'other',
+          score: 0,
+          skillsCount: 0,
+          totalScore: 0,
+        };
+      }
+      domainStats = otherDomain;
+    }
+
+    domainStats.skillsCount += 1;
+    domainStats.totalScore += score;
+  });
+
+  const domainsStats = Array.from(statsByDomain.values());
+  if (otherDomain && otherDomain.skillsCount > 0) {
+    domainsStats.push(otherDomain);
+  }
+
+  const domainsResult = domainsStats.map((domain) => ({
+    id: domain.id,
+    name: domain.name,
+    slug: domain.slug,
+    score: domain.skillsCount > 0 ? Math.round(domain.totalScore / domain.skillsCount) : 0,
+    skillsCount: domain.skillsCount,
+  }));
+
+  const topSkills = studentSkills
+    .map((studentSkill) => ({
+      studentSkillId: studentSkill.id,
+      skillId: studentSkill.skill.id,
+      name: studentSkill.skill.name,
+      domain: mapSkillDomain(studentSkill.skill.domain),
+      score: clampScore(studentSkill.masteryLevel),
+    }))
+    .sort((first, second) => second.score - first.score)
+    .slice(0, 5);
+
+  const suggestions = domainsResult
+    .filter((domain) => domain.slug !== 'other' && domain.skillsCount === 0)
+    .slice(0, 3)
+    .map(buildSuggestion);
+
+  return {
+    domains: domainsResult,
+    topSkills,
+    suggestions,
+  };
+};
+
 const listSkillsCatalog = async (search = '') =>
   prisma.skill.findMany({
     where: {
@@ -176,6 +325,13 @@ const listSkillsCatalog = async (search = '') =>
       name: true,
       type: true,
       description: true,
+      domain: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
     },
     take: 30,
   });
@@ -185,6 +341,7 @@ module.exports = {
   addStudentSoftSkill,
   deleteStudentSkill,
   deleteStudentSoftSkill,
+  getStudentSkillStats,
   getStudentSkills,
   getStudentSoftSkills,
   listSkillsCatalog,

@@ -13,6 +13,10 @@ const internshipSelect = {
   endDate: true,
   missions: true,
   reportUrl: true,
+  reportFileName: true,
+  reportMimeType: true,
+  reportFileSize: true,
+  reportStoragePath: true,
   validationStatus: true,
   visibility: true,
   supervisorProfessor: {
@@ -60,6 +64,20 @@ const internshipSelect = {
           },
         },
       },
+    },
+  },
+  media: {
+    orderBy: {
+      id: 'asc',
+    },
+    select: {
+      id: true,
+      mediaType: true,
+      mediaUrl: true,
+      description: true,
+      fileName: true,
+      mimeType: true,
+      fileSize: true,
     },
   },
 };
@@ -179,6 +197,26 @@ const resolveSupervisorProfessorId = async (supervisor) => {
   return match?.id || null;
 };
 
+const getDefaultProfessorValidatorId = async () => {
+  const professor = await prisma.professor.findFirst({
+    orderBy: { id: 'asc' },
+    select: { id: true },
+  });
+
+  return professor?.id || null;
+};
+
+const resolveStageValidatorId = async (internship) => {
+  const professorId =
+    internship.supervisorProfessorId || (await getDefaultProfessorValidatorId());
+
+  if (!professorId) {
+    throw new Error('STAGE_VALIDATOR_NOT_FOUND');
+  }
+
+  return professorId;
+};
+
 const mapValidationTitle = (decision) => {
   const titles = {
     PENDING: 'Stage soumis',
@@ -213,7 +251,21 @@ const mapInternshipRecord = (internship) => {
     visibility: internship.visibility,
     validationStatus: internship.validationStatus,
     reportUrl: internship.reportUrl || '',
-    images: [],
+    report: internship.reportUrl
+      ? {
+          url: internship.reportUrl,
+          fileName: internship.reportFileName || 'rapport-stage.pdf',
+          mimeType: internship.reportMimeType || 'application/pdf',
+          fileSize: internship.reportFileSize || null,
+        }
+      : null,
+    images: internship.media.map((media) => ({
+      id: media.id,
+      title: media.description || media.fileName || 'Capture',
+      imageUrl: media.mediaUrl,
+      mimeType: media.mimeType,
+      fileSize: media.fileSize,
+    })),
     validationHistory: internship.validations.map((validation) => ({
       id: validation.id,
       status: validation.decision,
@@ -399,6 +451,8 @@ exports.submitStageValidation = async (userId, internshipId) => {
     },
     select: {
       id: true,
+      validationStatus: true,
+      supervisorProfessorId: true,
     },
   });
 
@@ -406,11 +460,36 @@ exports.submitStageValidation = async (userId, internshipId) => {
     throw new Error('STAGE_NOT_FOUND');
   }
 
-  await prisma.internship.update({
-    where: { id: internshipId },
-    data: {
-      validationStatus: 'PENDING',
-    },
+  const professorId = await resolveStageValidatorId(existing);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.internship.update({
+      where: { id: internshipId },
+      data: {
+        validationStatus: 'PENDING',
+        supervisorProfessorId: existing.supervisorProfessorId || professorId,
+      },
+    });
+
+    const pendingValidation = await tx.internshipValidation.findFirst({
+      where: {
+        internshipId,
+        professorId,
+        decision: 'PENDING',
+      },
+      select: { id: true },
+    });
+
+    if (!pendingValidation || existing.validationStatus !== 'PENDING') {
+      await tx.internshipValidation.create({
+        data: {
+          internshipId,
+          professorId,
+          decision: 'PENDING',
+          comment: 'Stage soumis pour validation.',
+        },
+      });
+    }
   });
 
   return exports.getStageById(userId, internshipId);
