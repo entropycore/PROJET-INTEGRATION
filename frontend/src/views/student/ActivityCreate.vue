@@ -1,25 +1,53 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-import ActivityForm from '@/components/student/activities/ActivityForm.vue'
-import { addActivity } from '@/mockData/studentActivities.store'
+import ActivityForm from "@/components/student/activities/ActivityForm.vue";
+import {
+  createStudentActivity,
+  uploadStudentActivityCertificate,
+} from "@/services/studentActivitiesService";
 
-const router = useRouter()
+const router = useRouter();
+const isSaving = ref(false);
+const errorMessage = ref("");
 
 const goBack = () => {
-  router.push('/student/activities')
-}
+  router.push("/student/activities");
+};
 
-const handleSaveActivity = (payload) => {
-  addActivity({
-    id: Date.now(),
-    ...payload,
-    validationStatus: 'DRAFT',
-    createdAt: new Date().toISOString().split('T')[0],
-  })
+const buildActivityPayload = (payload) => {
+  const activityPayload = { ...payload };
+  delete activityPayload.certificate;
+  delete activityPayload.certificateName;
+  delete activityPayload.certificateUrl;
+  return activityPayload;
+};
 
-  goBack()
-}
+const handleSaveActivity = async (payload) => {
+  isSaving.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await createStudentActivity(buildActivityPayload(payload));
+    const createdActivity = response.data?.data || response.data;
+
+    if (payload.certificate instanceof File) {
+      await uploadStudentActivityCertificate(
+        createdActivity.id,
+        payload.certificate,
+      );
+    }
+
+    router.push(`/student/activities/${createdActivity.id}`);
+  } catch (error) {
+    console.error("Erreur création activité :", error);
+    errorMessage.value =
+      error?.response?.data?.message || "Impossible de créer l’activité.";
+  } finally {
+    isSaving.value = false;
+  }
+};
 </script>
 
 <template>
@@ -39,8 +67,10 @@ const handleSaveActivity = (payload) => {
       </button>
     </div>
 
+    <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
+
     <ActivityForm
-      submit-label="Créer l’activité"
+      :submit-label="isSaving ? 'Création...' : 'Créer l’activité'"
       @save-activity="handleSaveActivity"
       @cancel="goBack"
     />
@@ -104,6 +134,12 @@ const handleSaveActivity = (payload) => {
 .back-btn .material-icons-round {
   color: #2f575d;
   font-size: 1.25rem;
+}
+
+.error-msg {
+  margin: 0 0 1rem;
+  color: #c62828;
+  font-weight: 700;
 }
 
 @media (max-width: 760px) {

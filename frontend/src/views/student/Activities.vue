@@ -1,27 +1,49 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import {
-  activities,
-  deleteActivity,
-  submitActivityValidation,
-} from "@/mockData/studentActivities.store";
+  deleteStudentActivity,
+  getStudentActivities,
+  submitStudentActivityValidation,
+} from "@/services/studentActivitiesService";
 
-import ActivityCard from '@/components/student/activities/ActivityCard.vue'
-import ActivityFilters from '@/components/student/activities/ActivityFilters.vue'
+import ActivityCard from "@/components/student/activities/ActivityCard.vue";
+import ActivityFilters from "@/components/student/activities/ActivityFilters.vue";
 import {
   canSubmitActivity,
-  hasActivityValidator,
-} from '@/components/student/activities/activityRules'
+  hasActivityCertificate,
+} from "@/components/student/activities/activityRules";
 
-const router = useRouter()
+const router = useRouter();
 
-const search = ref('')
-const selectedStatus = ref('ALL')
-const selectedType = ref('ALL')
-const submitMessage = ref('')
+const activities = ref([]);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const search = ref("");
+const selectedStatus = ref("ALL");
+const selectedType = ref("ALL");
+const submitMessage = ref("");
 
+const extractData = (response) => response.data?.data || response.data || [];
+
+const fetchActivities = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await getStudentActivities();
+    activities.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement activités :", error);
+    activities.value = [];
+    errorMessage.value = "Impossible de charger les activités.";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(fetchActivities);
 
 const filteredActivities = computed(() => {
   return activities.value.filter((activity) => {
@@ -44,40 +66,49 @@ const filteredActivities = computed(() => {
 });
 
 const goToCreate = () => {
-  router.push('/student/activities/create')
-}
+  router.push("/student/activities/create");
+};
 
-const handleDeleteActivity = (activityId) => {
+const handleDeleteActivity = async (activityId) => {
   const confirmDelete = window.confirm(
     "Voulez-vous vraiment supprimer cette activité ?",
   );
 
   if (!confirmDelete) return;
 
-  deleteActivity(activityId);
+  try {
+    await deleteStudentActivity(activityId);
+    await fetchActivities();
+  } catch (error) {
+    console.error("Erreur suppression activité :", error);
+    errorMessage.value = "Impossible de supprimer cette activité.";
+  }
 };
 
-const handleSubmitValidation = (activityId) => {
+const handleSubmitValidation = async (activityId) => {
   const activity = activities.value.find(
     (item) => String(item.id) === String(activityId),
-  )
+  );
 
-  if (!activity) return
+  if (!activity) return;
 
   if (!canSubmitActivity(activity)) {
-    submitMessage.value = "Seules les activités en brouillon peuvent être soumises."
-    return
+    submitMessage.value = hasActivityCertificate(activity)
+      ? "Seules les activités en brouillon peuvent être soumises."
+      : "Veuillez ajouter une attestation avant de soumettre cette activité.";
+    return;
   }
 
-  if (!hasActivityValidator(activity)) {
+  try {
+    await submitStudentActivityValidation(activityId);
+    await fetchActivities();
+    submitMessage.value = "Activité soumise à validation.";
+  } catch (error) {
+    console.error("Erreur soumission activité :", error);
     submitMessage.value =
-      'Veuillez définir un validateur avant de soumettre cette activité.'
-    return
+      error?.response?.data?.message || "Impossible de soumettre cette activité.";
   }
-
-  submitActivityValidation(activityId)
-  submitMessage.value = 'Activité soumise à validation.'
-}
+};
 </script>
 
 <template>
@@ -105,7 +136,17 @@ const handleSubmitValidation = (activityId) => {
       {{ submitMessage }}
     </p>
 
-    <div v-if="filteredActivities.length" class="activities-grid">
+    <p v-if="errorMessage" class="submit-message error">
+      {{ errorMessage }}
+    </p>
+
+    <div v-if="isLoading" class="empty-state">
+      <span class="material-icons-round">hourglass_top</span>
+      <h3>Chargement...</h3>
+      <p>Récupération de vos activités.</p>
+    </div>
+
+    <div v-else-if="filteredActivities.length" class="activities-grid">
       <ActivityCard
         v-for="activity in filteredActivities"
         :key="activity.id"
