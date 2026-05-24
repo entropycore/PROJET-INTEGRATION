@@ -12,6 +12,15 @@ const notificationService = require('./notificationService');
 const PASSWORD_RESET_EXPIRES = '1h';
 const PASSWORD_RESET_SECRET = process.env.EMAIL_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET;
 const isStructureMissingError = (err) => err?.code === 'P2021' || err?.code === 'P2022';
+const normalizeEmail = (value) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : value;
+
+const emailWhereInsensitive = (email) => ({
+  email: {
+    equals: normalizeEmail(email),
+    mode: 'insensitive',
+  },
+});
 
 // Fonction pour éviter de répéter le code du Role ID
 const getRoleId = (user) => {
@@ -26,9 +35,13 @@ const getRoleId = (user) => {
 
 //  Inscription Professionnel
 exports.registerProfessional = async (userData) => {
-  const { email, password, lastName, firstName, company, jobTitle } = userData;
+  const { password, lastName, firstName, company, jobTitle } = userData;
+  const email = normalizeEmail(userData.email);
 
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await prisma.user.findFirst({
+    where: emailWhereInsensitive(email),
+    select: { id: true },
+  });
   if (existingUser) throw new Error("EMAIL_ALREADY_EXISTS");
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -188,8 +201,8 @@ exports.resetPassword = async (token, newPassword) => {
 
 // Login
 exports.loginUser = async (email, password, userAgent, ipAddress) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const user = await prisma.user.findFirst({
+    where: emailWhereInsensitive(email),
     include: { student: true, professor: true, administrator: true, professional: true }
   });
 
