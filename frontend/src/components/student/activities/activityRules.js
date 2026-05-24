@@ -1,5 +1,5 @@
-export const hasActivityValidator = (activity) => {
-  return Boolean(activity?.validatorName || activity?.validatorId)
+export const hasActivityCertificate = (activity) => {
+  return Boolean(activity?.certificateName || activity?.certificate?.id)
 }
 
 export const canEditActivity = (activity) => {
@@ -15,9 +15,12 @@ export const canDeleteActivity = (activity) => {
 }
 
 export const canSubmitActivity = (activity) => {
-  return activity?.validationStatus === 'DRAFT'
+  return (
+    activity?.validationStatus === 'DRAFT' &&
+    hasActivityCertificate(activity)
+  )
 }
 
-export const canSubmitActivityWithValidator = (activity) => {
-  return canSubmitActivity(activity) && hasActivityValidator(activity)
+export const canSubmitActivityWithCertificate = (activity) => {
+  return canSubmitActivity(activity)
 }
