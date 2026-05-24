@@ -1,92 +1,92 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { getAdminDashboard } from '../../services/adminService'
-import '../../assets/styles/admin-dashboard.css'
+import { ref, computed, onMounted } from "vue";
+import { getAdminDashboard } from "../../services/adminService";
+import "../../assets/styles/admin-dashboard.css";
 
-const loading = ref(false)
-const error = ref(null)
+const loading = ref(false);
+const error = ref(null);
 
 const dashboardData = ref({
   summaryCards: {},
   urgentActions: {},
-  recentRequests: []
-})
+  recentRequests: [],
+});
 const formatLastActive = (date) => {
-  if (!date) return 'Jamais'
+  if (!date) return "Jamais";
 
-  const now = new Date()
-  const past = new Date(date)
+  const now = new Date();
+  const past = new Date(date);
 
-  const diff = Math.floor((now - past) / 1000) // en secondes
+  const diff = Math.floor((now - past) / 1000); // en secondes
 
-  if (diff < 60) return 'à l\'instant'
+  if (diff < 60) return "à l'instant";
 
-  const minutes = Math.floor(diff / 60)
-  if (minutes < 60) return `il y a ${minutes} min`
+  const minutes = Math.floor(diff / 60);
+  if (minutes < 60) return `il y a ${minutes} min`;
 
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `il y a ${hours} h`
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `il y a ${hours} h`;
 
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `il y a ${days} j`
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `il y a ${days} j`;
 
   // fallback si c’est trop ancien
-  return past.toLocaleDateString('fr-FR')
-}
+  return past.toLocaleDateString("fr-FR");
+};
 /* ======================
    FETCH DATA
 ====================== */
 onMounted(async () => {
-  loading.value = true
-  error.value = null
+  loading.value = true;
+  error.value = null;
 
   try {
-    const res = await getAdminDashboard()
-    dashboardData.value = res.data.data
+    const res = await getAdminDashboard();
+    dashboardData.value = res.data.data;
   } catch (err) {
-    error.value = 'Erreur lors du chargement du dashboard'
+    error.value = "Erreur lors du chargement du dashboard";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-})
+});
 
 /* ======================
    STATS CARDS
 ====================== */
 const stats = computed(() => {
-  const cards = dashboardData.value.summaryCards || {}
+  const cards = dashboardData.value.summaryCards || {};
 
   return [
     {
       value: cards.totalUsers?.value ?? 0,
-      label: 'UTILISATEURS',
+      label: "UTILISATEURS",
       detail: cards.totalUsers?.variation,
-      icon: 'usersg.svg'
+      icon: "usersg.svg",
     },
     {
       value: cards.totalStudents?.value ?? 0,
-      label: 'ÉTUDIANTS',
+      label: "ÉTUDIANTS",
       detail: cards.totalStudents?.variation,
-      icon: 'student.svg'
+      icon: "student.svg",
     },
     {
       value: cards.totalProfessors?.value ?? 0,
-      label: 'PROFESSEURS',
+      label: "PROFESSEURS",
       detail: cards.totalProfessors?.variation,
-      icon: 'profile.svg'
+      icon: "profile.svg",
     },
     {
       value: cards.pendingRequests?.value ?? 0,
-      label: 'Demandes En Attente',
+      label: "Demandes En Attente",
       detail: cards.pendingRequests?.variation,
-      icon: 'attente.svg',
-      warning: true
-    }
-  ]
-})
+      icon: "attente.svg",
+      warning: true,
+    },
+  ];
+});
 const getIcon = (icon) => {
-  return new URL(`../../assets/icons/${icon}`, import.meta.url).href
-}
+  return new URL(`../../assets/icons/${icon}`, import.meta.url).href;
+};
 
 /* RECENT REQUESTS*/
 /*const requests = computed(() => {
@@ -104,83 +104,82 @@ const getIcon = (icon) => {
 const requests = computed(() => [
   {
     id: 1,
-    initial: 'S',
-    name: 'Sara Bensaid',
-    email: 'sara.bensaid@accenture.com',
-    organization: 'Accenture Maroc',
+    initial: "S",
+    name: "Sara Bensaid",
+    email: "sara.bensaid@accenture.com",
+    organization: "Accenture Maroc",
     type: "Demande d'accès",
-    createdAt: '2026-05-02T13:50:00.000Z',
-    tone: 'orange',
+    createdAt: "2026-05-02T13:50:00.000Z",
+    tone: "orange",
     raw: {
-      phone: '0600000000',
-      company: 'Accenture Maroc',
-      position: 'Recruiter',
-      sector: 'IT',
-      status: 'PENDING',
-      bio: 'Responsable recrutement.'
-    }
+      phone: "0600000000",
+      company: "Accenture Maroc",
+      position: "Recruiter",
+      sector: "IT",
+      status: "PENDING",
+      bio: "Responsable recrutement.",
+    },
   },
   {
     id: 2,
-    initial: 'T',
-    name: 'Tazi Imane',
-    email: 'i.tazi@ensa.tanger.ma',
+    initial: "T",
+    name: "Tazi Imane",
+    email: "i.tazi@ensa.tanger.ma",
     organization: null,
-    type: 'Certificate validation',
-    createdAt: '2026-05-02T13:36:00.000Z',
-    tone: 'green',
+    type: "Certificate validation",
+    createdAt: "2026-05-02T13:36:00.000Z",
+    tone: "green",
     raw: {
-      targetType: 'CERTIFICATE',
-      status: 'PENDING'
-    }
-  }
-])
-
+      targetType: "CERTIFICATE",
+      status: "PENDING",
+    },
+  },
+]);
 
 /* ======================
    ACTIONS URGENTES
 ====================== */
 const actions = computed(() => {
-  const urgent = dashboardData.value.urgentActions || {}
+  const urgent = dashboardData.value.urgentActions || {};
 
   return [
     {
       title: `${urgent.pendingAccessRequests ?? 0} demandes en attente`,
-      text: 'pour rejoindre la plateforme',
-      path: '/admin/users?role=PROFESSIONAL',
-      tone: 'orange'
+      text: "pour rejoindre la plateforme",
+      path: "/admin/users?role=PROFESSIONAL",
+      tone: "orange",
     },
     {
       title: `${urgent.pendingValidations ?? 0} validations en attente`,
-      text: 'Certifications et activités',
-      path: '/admin/validations',
-      tone: 'blue'
+      text: "Certifications et activités",
+      path: "/admin/validations",
+      tone: "blue",
     },
     {
       title: `${urgent.reports ?? 0} signalements`,
-      text: 'signalement de contenu',
-      path: '/admin/reports',
-      tone: 'red'
-    }
-  ]
-})
+      text: "signalement de contenu",
+      path: "/admin/reports",
+      tone: "red",
+    },
+  ];
+});
 
 /* ======================
    ACTIONS *====================== */
-const selectedRequest = ref(null)
+const selectedRequest = ref(null);
 
 const openRequestModal = (request) => {
-  selectedRequest.value = request
-}
+  selectedRequest.value = request;
+};
 
 const closeRequestModal = () => {
-  selectedRequest.value = null
-}
+  selectedRequest.value = null;
+};
 
 const approveRequest = (request) => {
-  console.log('Demande acceptée:', request)
-  alert(`Demande acceptée pour ${request.name}`)
-}
+  console.log("Demande acceptée:", request);
+  alert(`Demande acceptée pour ${request.name}`);
+};
 </script>
 
 <template>
@@ -208,7 +207,7 @@ const approveRequest = (request) => {
           :class="{ warning: stat.warning }"
         >
           <div class="stat-icon">
-          <img :src="getIcon(stat.icon)" />
+            <img :src="getIcon(stat.icon)" />
           </div>
           <div class="stat-value">{{ stat.value }}</div>
           <div class="stat-label">{{ stat.label }}</div>
@@ -224,57 +223,53 @@ const approveRequest = (request) => {
       <div class="dashboard-grid">
         <!-- LEFT -->
         <div class="recent-requests">
-  <div class="card-header">
-    <h3>Recent Requests :</h3>
-  </div>
+          <div class="card-header">
+            <h3>Recent Requests :</h3>
+          </div>
 
-  <div class="request-list">
-    <div
-      v-for="req in requests"
-      :key="req.id"
-      class="request-item"
-    >
-      <div class="avatar">
-        {{ req.initial }}
-      </div>
+          <div class="request-list">
+            <div v-for="req in requests" :key="req.id" class="request-item">
+              <div class="avatar">
+                {{ req.initial }}
+              </div>
 
-      <div class="request-info">
-        <div class="request-top-row">
-          <span class="request-name">{{ req.name }}</span>
-          <span v-if="req.organization" class="request-org">
-            {{ req.organization }}
-          </span>
-        </div>
+              <div class="request-info">
+                <div class="request-top-row">
+                  <span class="request-name">{{ req.name }}</span>
+                  <span v-if="req.organization" class="request-org">
+                    {{ req.organization }}
+                  </span>
+                </div>
 
-        <p class="request-email">{{ req.email }}</p>
-        <small class="request-time">{{  formatLastActive(req.createdAt) }}</small>
-      </div>
+                <p class="request-email">{{ req.email }}</p>
+                <small class="request-time">{{
+                  formatLastActive(req.createdAt)
+                }}</small>
+              </div>
 
-      <div class="request-actions">
-          <button class="btn-light" @click="openRequestModal(req)">
-            Voir
-          </button>
-<!-- je doit ajouter la connexion avec backend pour voir les boites modales et accepeter l´user ou valider la cerficat-->
-          <!-- ==
+              <div class="request-actions">
+                <button class="btn-light" @click="openRequestModal(req)">
+                  Voir
+                </button>
+                <!-- je doit ajouter la connexion avec backend pour voir les boites modales et accepeter l´user ou valider la cerficat-->
+                <!-- ==
            <button
             v-if="req.tone === 'orange'"
             class="btn-accept"
             @click="approveRequest(req)">Accepter
           </button>== -->
-          
-          
 
-          <span :class="['request-type', req.tone]">
-        {{ req.type }}
-          </span>
-      </div>
-    </div>
-  </div>
+                <span :class="['request-type', req.tone]">
+                  {{ req.type }}
+                </span>
+              </div>
+            </div>
+          </div>
 
-  <RouterLink to="/admin/notifications" class="view-all">
-    voir tous les notifications
-  </RouterLink>
-</div>
+          <RouterLink to="/admin/notifications" class="view-all">
+            voir tous les notifications
+          </RouterLink>
+        </div>
 
         <!-- RIGHT -->
         <div class="urgent-actions">
@@ -299,5 +294,4 @@ const approveRequest = (request) => {
       </div>
     </template>
   </section>
-  
 </template>
