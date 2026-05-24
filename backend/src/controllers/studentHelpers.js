@@ -9,6 +9,8 @@ const STUDENT_ERROR_RESPONSES = {
   SKILL_NOT_FOUND: [404, 'Compétence introuvable.'],
   STUDENT_SKILL_NOT_FOUND: [404, 'Compétence étudiante introuvable.'],
   STUDENT_NOTIFICATION_NOT_FOUND: [404, 'Notification étudiante introuvable.'],
+  PROFILE_PICTURE_UPLOAD_EMPTY: [400, 'Photo de profil requise.'],
+  PROFILE_PICTURE_FILE_NOT_FOUND: [404, 'Photo de profil introuvable.'],
   STAGE_VALIDATOR_NOT_FOUND: [400, 'Aucun validateur professeur disponible pour ce stage.'],
   GITHUB_NOT_CONFIGURED: [503, 'Intégration GitHub non configurée.'],
   GITHUB_TOKEN_EXCHANGE_FAILED: [502, 'Connexion GitHub impossible.'],
