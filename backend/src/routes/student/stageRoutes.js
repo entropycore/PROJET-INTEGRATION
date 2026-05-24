@@ -2,6 +2,7 @@
 
 const express = require('express');
 const studentStageController = require('../../controllers/studentStageController');
+const uploadStageMedia = require('../../middlewares/uploadStageMedia');
 
 const router = express.Router();
 
@@ -12,7 +13,11 @@ router.put('/stages/:stageId', studentStageController.updateStage);
 router.delete('/stages/:stageId', studentStageController.deleteStage);
 router.post('/stages/:stageId/submit-validation', studentStageController.submitStageValidation);
 router.patch('/stages/:stageId/visibility', studentStageController.updateStageVisibility);
-router.post('/stages/:stageId/report', studentStageController.updateStageReport);
+router.post('/stages/:stageId/report', uploadStageMedia, studentStageController.updateStageReport);
+router.get('/stages/:stageId/report/download', studentStageController.downloadStageReport);
+router.post('/stages/:stageId/images', uploadStageMedia, studentStageController.uploadStageImages);
+router.get('/stages/:stageId/images/:mediaId/content', studentStageController.getStageImageContent);
+router.delete('/stages/:stageId/images/:mediaId', studentStageController.deleteStageImage);
 router.get('/stages/:stageId/validation-history', studentStageController.getStageValidationHistory);
 router.post('/stages/:stageId/technologies', studentStageController.addStageTechnologies);
 router.delete(

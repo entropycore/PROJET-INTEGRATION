@@ -1,6 +1,7 @@
 'use strict';
 
 const studentStageService = require('../services/studentStageService');
+const studentStageMediaService = require('../services/studentStageMediaService');
 const { success, error } = require('../utils/apiResponse');
 
 const handleStageError = (res, err) => {
@@ -10,6 +11,30 @@ const handleStageError = (res, err) => {
 
   if (err.message === 'STAGE_NOT_FOUND') {
     return error(res, 404, 'Stage introuvable.');
+  }
+
+  if (err.message === 'STAGE_REPORT_UPLOAD_EMPTY') {
+    return error(res, 400, 'Ajoutez un rapport PDF.');
+  }
+
+  if (err.message === 'STAGE_IMAGE_UPLOAD_EMPTY') {
+    return error(res, 400, 'Ajoutez au moins une image de stage.');
+  }
+
+  if (err.message === 'STAGE_REPORT_NOT_FOUND') {
+    return error(res, 404, 'Rapport du stage introuvable.');
+  }
+
+  if (err.message === 'STAGE_IMAGE_NOT_FOUND') {
+    return error(res, 404, 'Image du stage introuvable.');
+  }
+
+  if (err.message === 'STAGE_FILE_NOT_FOUND') {
+    return error(res, 404, 'Fichier du stage introuvable.');
+  }
+
+  if (err.message === 'STAGE_VALIDATOR_NOT_FOUND') {
+    return error(res, 400, 'Aucun validateur professeur disponible pour ce stage.');
   }
 
   return null;
@@ -91,8 +116,83 @@ exports.updateStageVisibility = async (req, res, next) => {
 
 exports.updateStageReport = async (req, res, next) => {
   try {
+    const reportFile = req.files?.report?.[0];
+
+    if (reportFile) {
+      await studentStageMediaService.uploadStageReport(
+        req.user.userId,
+        req.params.stageId,
+        reportFile,
+      );
+      const stage = await studentStageService.getStageById(req.user.userId, req.params.stageId);
+      return success(res, 201, 'Rapport du stage ajouté.', stage);
+    }
+
     const stage = await studentStageService.updateStageReport(req.user.userId, req.params.stageId, req.body);
     return success(res, 200, 'Rapport du stage mis à jour.', stage);
+  } catch (err) {
+    if (handleStageError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.downloadStageReport = async (req, res, next) => {
+  try {
+    const report = await studentStageMediaService.getStageReportFile(
+      req.user.userId,
+      req.params.stageId,
+    );
+
+    return res.download(report.absolutePath, report.downloadName, (err) => {
+      if (err) next(err);
+    });
+  } catch (err) {
+    if (handleStageError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.uploadStageImages = async (req, res, next) => {
+  try {
+    await studentStageMediaService.uploadStageImages(
+      req.user.userId,
+      req.params.stageId,
+      req.files?.images || [],
+    );
+    const stage = await studentStageService.getStageById(req.user.userId, req.params.stageId);
+    return success(res, 201, 'Images du stage ajoutées.', stage);
+  } catch (err) {
+    if (handleStageError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getStageImageContent = async (req, res, next) => {
+  try {
+    const media = await studentStageMediaService.getStageImageFile(
+      req.user.userId,
+      req.params.stageId,
+      req.params.mediaId,
+    );
+
+    res.type(media.mimeType);
+    return res.sendFile(media.absolutePath, (err) => {
+      if (err) next(err);
+    });
+  } catch (err) {
+    if (handleStageError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteStageImage = async (req, res, next) => {
+  try {
+    const result = await studentStageMediaService.deleteStageImage(
+      req.user.userId,
+      req.params.stageId,
+      req.params.mediaId,
+    );
+    return success(res, 200, 'Image du stage supprimée.', result);
   } catch (err) {
     if (handleStageError(res, err)) return;
     next(err);

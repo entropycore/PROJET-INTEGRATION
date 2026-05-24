@@ -21,6 +21,9 @@ const notificationsRoutes = require('./routes/notificationsRoutes');
 const professorRoutes = require('./routes/professorRoutes');
 const administratorRoutes = require('./routes/administratorRoutes');
 const reportRoutes = require('./routes/reportRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
+const portfolioRoutes = require('./routes/portfolioRoutes');
+
 
 const app = express();
 
@@ -47,6 +50,8 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/professor', professorRoutes);
 
 app.use('/api/admin', administratorRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reports', reportRoutes);
 
 

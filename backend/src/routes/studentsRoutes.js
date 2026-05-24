@@ -13,6 +13,7 @@ router.use(checkRoles('STUDENT'));
 
 router.get('/me', profileController.getProfileCompat);
 router.put('/me', profileController.updateProfileCompat);
+router.get('/me/skills/stats', skillController.getSkillStats);
 router.get('/me/skills', skillController.getSkills);
 router.post('/me/skills', skillController.addSkill);
 router.delete('/me/skills/:studentSkillId', skillController.deleteSkill);
