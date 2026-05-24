@@ -12,17 +12,23 @@ export async function getPendingValidations(params = {}) {
 }
 
 export async function getPendingValidationsCount() {
-  const res = await axios.get(`${API_URL}/api/admin/validations/pending-count`, {
-    withCredentials: true,
-  });
+  const res = await axios.get(
+    `${API_URL}/api/admin/validations/pending-count`,
+    {
+      withCredentials: true,
+    },
+  );
 
   return res.data.data;
 }
 
 export async function getValidationDetails(validationId) {
-  const res = await axios.get(`${API_URL}/api/admin/validations/${validationId}`, {
-    withCredentials: true,
-  });
+  const res = await axios.get(
+    `${API_URL}/api/admin/validations/${validationId}`,
+    {
+      withCredentials: true,
+    },
+  );
 
   return res.data.data;
 }
@@ -31,7 +37,7 @@ export async function approveValidation(validationId) {
   const res = await axios.patch(
     `${API_URL}/api/admin/validations/${validationId}/approve`,
     {},
-    { withCredentials: true }
+    { withCredentials: true },
   );
 
   return res.data;
@@ -41,7 +47,7 @@ export async function rejectValidation(validationId, payload) {
   const res = await axios.patch(
     `${API_URL}/api/admin/validations/${validationId}/reject`,
     payload,
-    { withCredentials: true }
+    { withCredentials: true },
   );
 
   return res.data;
@@ -51,7 +57,7 @@ export async function requestValidationChanges(validationId, payload) {
   const res = await axios.patch(
     `${API_URL}/api/admin/validations/${validationId}/request-changes`,
     payload,
-    { withCredentials: true }
+    { withCredentials: true },
   );
 
   return res.data;

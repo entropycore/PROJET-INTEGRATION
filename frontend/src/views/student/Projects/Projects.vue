@@ -1,91 +1,99 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { RouterLink } from "vue-router";
 
-import { getStudentProjects } from '@/services/studentProjectsApis'
-import { mockProjects } from '@/mockData/projects'
+import { getStudentProjects } from "@/services/studentProjectsApis";
+import { mockProjects } from "@/mockData/projects";
 
-import '@/assets/styles/student-project.css'
+import "@/assets/styles/student-project.css";
 
-const projects = ref([])
-const isLoading = ref(false)
+const projects = ref([]);
+const isLoading = ref(false);
 
-const searchQuery = ref('')
-const selectedType = ref('')
-const selectedStatus = ref('')
+const searchQuery = ref("");
+const selectedType = ref("");
+const selectedStatus = ref("");
 
-const projectTypes = ['Module', 'Intégration', 'Hackathon', 'Personnel', 'Stage']
+const projectTypes = [
+  "Module",
+  "Intégration",
+  "Hackathon",
+  "Personnel",
+  "Stage",
+];
 
 const projectStatuses = [
-  'DRAFT',
-  'PENDING',
-  'APPROVED',
-  'REJECTED',
-  'CHANGES_REQUESTED',
-]
+  "DRAFT",
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "CHANGES_REQUESTED",
+];
 
 const statusLabels = {
-  DRAFT: 'Brouillon',
-  PENDING: 'En attente',
-  APPROVED: 'Validé',
-  REJECTED: 'Refusé',
-  CHANGES_REQUESTED: 'Corrections demandées',
-}
+  DRAFT: "Brouillon",
+  PENDING: "En attente",
+  APPROVED: "Validé",
+  REJECTED: "Refusé",
+  CHANGES_REQUESTED: "Corrections demandées",
+};
 
 const fetchProjects = async () => {
-  isLoading.value = true
+  isLoading.value = true;
 
   try {
-    const response = await getStudentProjects()
-    projects.value = response.data
+    const response = await getStudentProjects();
+    projects.value = response.data;
   } catch (error) {
-    console.warn('API projects indisponible, utilisation des mock data.')
-    projects.value = mockProjects
+    console.warn("API projects indisponible, utilisation des mock data.");
+    projects.value = mockProjects;
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
-onMounted(fetchProjects)
+onMounted(fetchProjects);
 
 const filteredProjects = computed(() => {
   return projects.value.filter((project) => {
-    const query = searchQuery.value.toLowerCase().trim()
+    const query = searchQuery.value.toLowerCase().trim();
 
     const matchesSearch =
       !query ||
       project.title.toLowerCase().includes(query) ||
       project.description.toLowerCase().includes(query) ||
-      project.technologies.some((tech) => tech.toLowerCase().includes(query))
+      project.technologies.some((tech) => tech.toLowerCase().includes(query));
 
-    const matchesType = !selectedType.value || project.type === selectedType.value
+    const matchesType =
+      !selectedType.value || project.type === selectedType.value;
 
     const matchesStatus =
-      !selectedStatus.value || project.validationStatus === selectedStatus.value
+      !selectedStatus.value ||
+      project.validationStatus === selectedStatus.value;
 
-    return matchesSearch && matchesType && matchesStatus
-  })
-})
+    return matchesSearch && matchesType && matchesStatus;
+  });
+});
 
 const canEditProject = (status) => {
-  return ['DRAFT', 'CHANGES_REQUESTED'].includes(status)
-}
+  return ["DRAFT", "CHANGES_REQUESTED"].includes(status);
+};
 
 const canSubmitProject = (status) => {
-  return status === 'DRAFT'
-}
+  return status === "DRAFT";
+};
 
 const formatDate = (date) => {
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(date))
-}
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+};
 
 const submitProject = (projectId) => {
-  console.log('Submit project:', projectId)
-}
+  console.log("Submit project:", projectId);
+};
 </script>
 
 <template>
@@ -115,11 +123,7 @@ const submitProject = (projectId) => {
         <select v-model="selectedType">
           <option value="">Tous les types</option>
 
-          <option
-            v-for="type in projectTypes"
-            :key="type"
-            :value="type"
-          >
+          <option v-for="type in projectTypes" :key="type" :value="type">
             {{ type }}
           </option>
         </select>
@@ -145,17 +149,11 @@ const submitProject = (projectId) => {
         </RouterLink>
       </div>
 
-      <div
-        v-if="isLoading"
-        class="projects-state"
-      >
+      <div v-if="isLoading" class="projects-state">
         Chargement des projets...
       </div>
 
-      <div
-        v-else-if="filteredProjects.length"
-        class="projects-grid"
-      >
+      <div v-else-if="filteredProjects.length" class="projects-grid">
         <article
           v-for="project in filteredProjects"
           :key="project.id"
@@ -221,18 +219,12 @@ const submitProject = (projectId) => {
               @click="submitProject(project.id)"
             >
               <span class="material-icons-round">send</span>
-              Soumettre
             </button>
           </div>
         </article>
       </div>
 
-      <div
-        v-else
-        class="projects-state"
-      >
-        Aucun projet trouvé.
-      </div>
+      <div v-else class="projects-state">Aucun projet trouvé.</div>
     </section>
   </section>
 </template>

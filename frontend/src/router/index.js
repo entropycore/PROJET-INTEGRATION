@@ -1,21 +1,21 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
-import { getMe } from '../services/authService'
+import { createRouter, createWebHistory } from "vue-router";
+import { useAuthStore } from "../stores/auth";
+import { getMe } from "../services/authService";
 
 /* Imports des vues principales */
-import LoginView from '../views/LoginView.vue'
-import RequestAccessView from '../views/RequestAccessView.vue'
-import VerifyEmailView from '../views/VerifyEmailView.vue'
-import LandingView from '../views/LandingView.vue'
-import ForgotPasswordView from '../views/ForgotPasswordView.vue'
-import ResetPasswordView from '../views/ResetPasswordView.vue'
+import LoginView from "../views/LoginView.vue";
+import RequestAccessView from "../views/RequestAccessView.vue";
+import VerifyEmailView from "../views/VerifyEmailView.vue";
+import LandingView from "../views/LandingView.vue";
+import ForgotPasswordView from "../views/ForgotPasswordView.vue";
+import ResetPasswordView from "../views/ResetPasswordView.vue";
 
 /* Imports des tableaux de bord par role */
-import AdminDashboard from '../views/admin/Dashboard.vue'
-import StudentDashboard from '../views/student/Dashboard.vue'
-import ProfessorDashboard from '../views/professor/Dashboard.vue'
-import ProfessionalDashboard from '../views/professional/Dashboard.vue'
-import DashboardLayout from '../layouts/DashboardLayout.vue'
+import AdminDashboard from "../views/admin/Dashboard.vue";
+import StudentDashboard from "../views/student/Dashboard.vue";
+import ProfessorDashboard from "../views/professor/Dashboard.vue";
+import ProfessionalDashboard from "../views/professional/Dashboard.vue";
+import DashboardLayout from "../layouts/DashboardLayout.vue";
 
 const router = createRouter({
     history: createWebHistory(),
@@ -149,6 +149,11 @@ const router = createRouter({
               component: () => import('@/views/student/Projects/ProjectEdit.vue'),
             },
             {
+              path: "projects/create",
+              name: "StudentProjectCreate",
+              component: () => import("@/views/student/Projects/ProjectCreate.vue"),
+            },
+            {
             path: '/student/stages',
             name: 'student-stages',
             component: () => import('@/views/student/stages/StagesView.vue'),
@@ -174,20 +179,20 @@ const router = createRouter({
             component: () => import('@/views/student/Activities.vue'),
             },
             {
-            path: 'activities/create',
-            name: 'StudentActivityCreate',
-            component: () => import('@/views/student/ActivityCreate.vue'),
-            },
-            {
-            path: 'activities/:id/edit',
-            name: 'StudentActivityEdit',
-            component: () => import('@/views/student/ActivityEdit.vue'),
-            },
-            {
-            path: 'activities/:id',
-            name: 'StudentActivityDetails',
-            component: () => import('@/views/student/ActivityDetails.vue'),
-            },
+              path: 'activities/create',
+              name: 'StudentActivityCreate',
+              component: () => import('@/views/student/ActivityCreate.vue'),
+              },
+              {
+              path: 'activities/:id/edit',
+              name: 'StudentActivityEdit',
+              component: () => import('@/views/student/ActivityEdit.vue'),
+              },
+              {
+              path: 'activities/:id',
+              name: 'StudentActivityDetails',
+              component: () => import('@/views/student/ActivityDetails.vue'),
+              },
             {
             path: 'competances',
             name: 'Studentcompetances',
@@ -255,41 +260,44 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-    const authStore = useAuthStore()
+  const authStore = useAuthStore();
 
-    /* Verification de la session si necessaire */
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        try {
-            const meResponse = await getMe()
-            authStore.setAuthSession(meResponse.data.data)
-        } catch {
-            authStore.clearAuthSession()
-        }
+  /* Verification de la session si necessaire */
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    try {
+      const meResponse = await getMe();
+      authStore.setAuthSession(meResponse.data.data);
+    } catch {
+      authStore.clearAuthSession();
     }
+  }
 
-    /* Redirection si l'acces necessite une authentification */
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        return {
-            path: '/login',
-            query: { error: 'unauthorized' },
-        }
-    }
+  /* Redirection si l'acces necessite une authentification */
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return {
+      path: "/login",
+      query: { error: "unauthorized" },
+    };
+  }
 
-    /* Rediriger l'utilisateur vers son dashboard s'il est deja connecte */
-    if (authStore.isAuthenticated && (to.name === 'landing' || to.name === 'login')) {
-        const role = authStore.user?.role
-        if (role === 'ADMINISTRATOR') return { name: 'admin-dashboard' }
-        if (role === 'STUDENT') return { path: '/student' }
-        if (role === 'PROFESSOR') return { path: '/professor' }
-        if (role === 'PROFESSIONAL') return { path: '/professional' }
-    }
+  /* Rediriger l'utilisateur vers son dashboard s'il est deja connecte */
+  if (
+    authStore.isAuthenticated &&
+    (to.name === "landing" || to.name === "login")
+  ) {
+    const role = authStore.user?.role;
+    if (role === "ADMINISTRATOR") return { name: "admin-dashboard" };
+    if (role === "STUDENT") return { path: "/student" };
+    if (role === "PROFESSOR") return { path: "/professor" };
+    if (role === "PROFESSIONAL") return { path: "/professional" };
+  }
 
-    /* Verification des permissions par role */
-    if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
-        return { path: '/403' }
-    }
+  /* Verification des permissions par role */
+  if (to.meta.roles && !to.meta.roles.includes(authStore.user?.role)) {
+    return { path: "/403" };
+  }
 
-    return true
-})
+  return true;
+});
 
-export default router
+export default router;
