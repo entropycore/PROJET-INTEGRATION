@@ -5,21 +5,22 @@ import DemoSection from '@/components/landing/DemoSection.vue'
 describe('DemoSection - Tests UI', () => {
   it('affiche correctement le titre principal de la section', () => {
     const wrapper = mount(DemoSection)
-    
+
     expect(wrapper.text()).toContain('Le tableau de bord étudiant')
   })
 
-  it('affiche les trois onglets avec leurs intitulés respectifs', () => {
+  it('affiche les trois onglets avec leurs intitules respectifs', () => {
     const wrapper = mount(DemoSection)
     const buttons = wrapper.findAll('button')
+    const buttonTexts = buttons.map((button) => button.text())
 
     expect(buttons.length).toBe(3)
-    expect(buttons.text()).toBe('Mes projets')
-    expect(buttons.text()).toBe('Stages')
-    expect(buttons.text()).toBe('Compétences')
+    expect(buttonTexts).toContain('Mes projets')
+    expect(buttonTexts).toContain('Stages')
+    expect(buttonTexts).toContain('Compétences')
   })
 
-  it('affiche l’image de démonstration avec sa description alternative', () => {
+  it("affiche l'image de demonstration avec sa description alternative", () => {
     const wrapper = mount(DemoSection)
     const image = wrapper.find('img')
 

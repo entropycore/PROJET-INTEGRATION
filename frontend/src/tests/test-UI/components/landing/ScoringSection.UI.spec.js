@@ -1,21 +1,23 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import Scoring from '@/components/landing/Scoring.vue'
+import Scoring from '@/components/landing/ScoringSection.vue'
 
 describe('Scoring - Tests UI', () => {
-  it('structure correctement l’affichage graphique du score et des barres', () => {
+  it("structure correctement l'affichage graphique du score et des barres", () => {
     const wrapper = mount(Scoring)
 
     expect(wrapper.find('section').attributes('id')).toBe('scoring')
     expect(wrapper.find('.score-ring-container svg').exists()).toBe(true)
 
     const fillBars = wrapper.findAll('.score-bar-fill')
+    const fillBarStyles = fillBars.map((fillBar) => fillBar.attributes('style').replace(/\s/g, ''))
+
     expect(fillBars.length).toBe(6)
-    expect(fillBars.attributes('style')).toContain('width: 85%')
-    expect(fillBars.attributes('style')).toContain('width: 60%')
+    expect(fillBarStyles).toContain('width:85%;')
+    expect(fillBarStyles).toContain('width:60%;')
   })
 
-  it('affiche la section des distinctions avec les six badges de compétences', () => {
+  it('affiche la section des distinctions avec les six badges de competences', () => {
     const wrapper = mount(Scoring)
 
     expect(wrapper.find('.section-label').text()).toBe('Score & Badges')
