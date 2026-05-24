@@ -3,9 +3,12 @@ import { computed, onMounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 import {
+  deleteStudentProjectMedia,
+  getStudentProjectValidators,
   getStudentProjectById,
   updateStudentProject,
   submitStudentProject,
+  uploadStudentProjectMedia,
 } from "@/services/studentProjectsApis";
 
 import "@/assets/styles/student-project-edit.css";
@@ -21,14 +24,10 @@ const newLinkLabel = ref("");
 const newLinkUrl = ref("");
 const isSaving = ref(false);
 const errorMessage = ref("");
-
-const validators = [
-  "Pr. Moussaoui",
-  "Pr. Benali",
-  "Mme Ghizlan",
-  "Pr. Haddad",
-  "Pr. El Amrani",
-];
+const selectedScreenshots = ref([]);
+const selectedAttachments = ref([]);
+const validators = ref([]);
+const isValidatorSuggestionsOpen = ref(false);
 
 const projectTypes = [
   "Module",
@@ -39,8 +38,40 @@ const projectTypes = [
 ];
 
 const canSubmit = computed(() => {
-  return Boolean(projectForm.value?.validatorName);
+  return Boolean(projectForm.value?.validatorId);
 });
+
+const selectedValidator = computed(() => {
+  return validators.value.find(
+    (validator) => validator.id === projectForm.value?.validatorId,
+  );
+});
+
+const filteredValidators = computed(() => {
+  const query = projectForm.value?.validatorName?.trim().toLowerCase() || "";
+
+  if (!query) return validators.value.slice(0, 6);
+
+  return validators.value
+    .filter((validator) => {
+      return [validator.fullName, validator.email]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query));
+    })
+    .slice(0, 6);
+});
+
+const buildProjectPayload = () => {
+  const payload = { ...projectForm.value };
+
+  delete payload.screenshots;
+  delete payload.attachments;
+  delete payload.validationHistory;
+  delete payload.createdAt;
+  delete payload.updatedAt;
+
+  return payload;
+};
 
 const fetchProject = async () => {
   isLoading.value = true;
@@ -48,11 +79,65 @@ const fetchProject = async () => {
   try {
     const response = await getStudentProjectById(route.params.id);
     projectForm.value = structuredClone(response.data.data);
+    syncValidatorSelectionFromProject();
   } catch (error) {
     console.warn("API project detail indisponible.");
   } finally {
     isLoading.value = false;
   }
+};
+
+const fetchValidators = async () => {
+  try {
+    const response = await getStudentProjectValidators();
+    validators.value = response.data?.data || response.data || [];
+    syncValidatorSelectionFromProject();
+  } catch (error) {
+    console.error("Erreur chargement validateurs projet :", error);
+    validators.value = [];
+  }
+};
+
+const syncValidatorSelectionFromProject = () => {
+  if (!projectForm.value || projectForm.value.validatorId) return;
+
+  const validatorName = projectForm.value.validatorName?.trim().toLowerCase();
+  if (!validatorName) return;
+
+  const matchingValidator = validators.value.find((validator) => {
+    return validator.fullName?.trim().toLowerCase() === validatorName;
+  });
+
+  if (matchingValidator) {
+    projectForm.value.validatorId = matchingValidator.id;
+  }
+};
+
+const openValidatorSuggestions = () => {
+  isValidatorSuggestionsOpen.value = true;
+};
+
+const closeValidatorSuggestions = () => {
+  window.setTimeout(() => {
+    isValidatorSuggestionsOpen.value = false;
+  }, 120);
+};
+
+const handleValidatorInput = () => {
+  if (
+    selectedValidator.value &&
+    projectForm.value.validatorName.trim() !== selectedValidator.value.fullName
+  ) {
+    projectForm.value.validatorId = "";
+  }
+
+  openValidatorSuggestions();
+};
+
+const selectValidator = (validator) => {
+  projectForm.value.validatorId = validator.id;
+  projectForm.value.validatorName = validator.fullName || "";
+  isValidatorSuggestionsOpen.value = false;
 };
 
 const addTechnology = () => {
@@ -132,10 +217,14 @@ const handleScreenshotsUpload = (event) => {
   }
 
   files.forEach((file) => {
+    const id = Date.now() + Math.random();
+
+    selectedScreenshots.value.push({ id, file });
     projectForm.value.screenshots.push({
-      id: Date.now() + Math.random(),
+      id,
       title: file.name,
       imageUrl: URL.createObjectURL(file),
+      isLocal: true,
     });
   });
 
@@ -150,27 +239,83 @@ const handleAttachmentsUpload = (event) => {
   }
 
   files.forEach((file) => {
+    const id = Date.now() + Math.random();
+
+    selectedAttachments.value.push({ id, file });
     projectForm.value.attachments.push({
-      id: Date.now() + Math.random(),
+      id,
       name: file.name,
       type: file.type || "FICHIER",
       url: "#",
+      isLocal: true,
     });
   });
 
   event.target.value = "";
 };
 
-const removeScreenshot = (id) => {
+const removeScreenshot = async (id) => {
+  const screenshot = projectForm.value.screenshots.find(
+    (item) => item.id === id,
+  );
+
+  if (screenshot && !screenshot.isLocal) {
+    const confirmed = window.confirm("Supprimer cette capture ?");
+    if (!confirmed) return;
+
+    try {
+      await deleteStudentProjectMedia(route.params.id, id);
+    } catch (error) {
+      console.error("Erreur suppression capture projet :", error);
+      return;
+    }
+  }
+
   projectForm.value.screenshots = projectForm.value.screenshots.filter(
+    (screenshot) => screenshot.id !== id,
+  );
+  selectedScreenshots.value = selectedScreenshots.value.filter(
     (screenshot) => screenshot.id !== id,
   );
 };
 
-const removeAttachment = (id) => {
+const removeAttachment = async (id) => {
+  const attachment = projectForm.value.attachments.find(
+    (item) => item.id === id,
+  );
+
+  if (attachment && !attachment.isLocal) {
+    const confirmed = window.confirm("Supprimer cette pièce jointe ?");
+    if (!confirmed) return;
+
+    try {
+      await deleteStudentProjectMedia(route.params.id, id);
+    } catch (error) {
+      console.error("Erreur suppression pièce jointe projet :", error);
+      return;
+    }
+  }
+
   projectForm.value.attachments = projectForm.value.attachments.filter(
     (attachment) => attachment.id !== id,
   );
+  selectedAttachments.value = selectedAttachments.value.filter(
+    (attachment) => attachment.id !== id,
+  );
+};
+
+const uploadPendingMedia = async () => {
+  if (
+    !selectedScreenshots.value.length &&
+    !selectedAttachments.value.length
+  ) {
+    return;
+  }
+
+  await uploadStudentProjectMedia(route.params.id, {
+    screenshots: selectedScreenshots.value.map((item) => item.file),
+    attachments: selectedAttachments.value.map((item) => item.file),
+  });
 };
 
 const saveProject = async () => {
@@ -178,7 +323,8 @@ const saveProject = async () => {
   errorMessage.value = "";
 
   try {
-    await updateStudentProject(route.params.id, projectForm.value);
+    await updateStudentProject(route.params.id, buildProjectPayload());
+    await uploadPendingMedia();
     router.push(`/student/projects/${route.params.id}`);
   } catch (error) {
     console.error("Erreur mise à jour projet :", error);
@@ -196,7 +342,8 @@ const submitProject = async () => {
   errorMessage.value = "";
 
   try {
-    await updateStudentProject(route.params.id, projectForm.value);
+    await updateStudentProject(route.params.id, buildProjectPayload());
+    await uploadPendingMedia();
     await submitStudentProject(route.params.id);
 
     router.push(`/student/projects/${route.params.id}`);
@@ -209,7 +356,9 @@ const submitProject = async () => {
   }
 };
 
-onMounted(fetchProject);
+onMounted(async () => {
+  await Promise.all([fetchProject(), fetchValidators()]);
+});
 </script>
 
 <template>
@@ -281,16 +430,48 @@ onMounted(fetchProject);
 
               <label class="form-field">
                 <span>Validateur</span>
-                <select v-model="projectForm.validatorName">
-                  <option value="">Choisir un validateur</option>
-                  <option
-                    v-for="validator in validators"
-                    :key="validator"
-                    :value="validator"
+                <div class="autocomplete-field">
+                  <input
+                    v-model="projectForm.validatorName"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Tapez le nom du validateur"
+                    :disabled="!validators.length"
+                    @focus="openValidatorSuggestions"
+                    @blur="closeValidatorSuggestions"
+                    @input="handleValidatorInput"
+                  />
+
+                  <div
+                    v-if="
+                      isValidatorSuggestionsOpen &&
+                      validators.length &&
+                      filteredValidators.length
+                    "
+                    class="suggestions-list"
                   >
-                    {{ validator }}
-                  </option>
-                </select>
+                    <button
+                      v-for="validator in filteredValidators"
+                      :key="validator.id"
+                      type="button"
+                      class="suggestion-item"
+                      @mousedown.prevent="selectValidator(validator)"
+                    >
+                      <span class="suggestion-avatar">
+                        {{ validator.fullName?.charAt(0) || "V" }}
+                      </span>
+                      <span>
+                        <strong>{{ validator.fullName }}</strong>
+                        <small>
+                          {{ validator.department || "Département non renseigné" }}
+                          <template v-if="validator.specialty">
+                            · {{ validator.specialty }}
+                          </template>
+                        </small>
+                      </span>
+                    </button>
+                  </div>
+                </div>
               </label>
 
               <label class="form-field full">

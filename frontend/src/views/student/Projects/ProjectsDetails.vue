@@ -75,14 +75,10 @@ const fetchProject = async () => {
 };
 
 const displayScreenshots = computed(() => {
-  const screenshots = project.value?.screenshots || [];
-  const placeholders = [
-    { id: "placeholder-1", title: "Capture 1", imageUrl: null },
-    { id: "placeholder-2", title: "Capture 2", imageUrl: null },
-    { id: "placeholder-3", title: "Capture 3", imageUrl: null },
-  ];
-
-  return [...screenshots, ...placeholders].slice(0, 3);
+  return (project.value?.screenshots || []).map((screenshot) => ({
+    ...screenshot,
+    src: screenshotObjectUrls.value[screenshot.id] || null,
+  }));
 });
 
 const formatDate = (date) => {
