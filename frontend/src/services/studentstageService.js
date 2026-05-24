@@ -10,6 +10,11 @@ export const getStudentStages = (params = {}) => {
   return api.get("/student/stages", { params });
 };
 
+// get available professor validators
+export const getStudentValidators = () => {
+  return api.get("/student/validators");
+};
+
 // get stage by id
 export const getStudentStageById = (id) => {
   return api.get(`/student/stages/${id}`);
@@ -41,8 +46,50 @@ export const updateStudentStageVisibility = (id, visibility) => {
 };
 
 // upload report
-export const uploadStudentStageReport = (id, formData) => {
-  return api.post(`/student/stages/${id}/report`, formData);
+export const uploadStudentStageReport = (id, report) => {
+  const formData = report instanceof FormData ? report : new FormData();
+
+  if (!(report instanceof FormData) && report) {
+    formData.append("report", report);
+  }
+
+  return api.post(`/student/stages/${id}/report`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+// download report
+export const downloadStudentStageReport = (id) => {
+  return api.get(`/student/stages/${id}/report/download`, {
+    responseType: "blob",
+  });
+};
+
+// upload images
+export const uploadStudentStageImages = (id, images = []) => {
+  const formData = images instanceof FormData ? images : new FormData();
+
+  if (!(images instanceof FormData)) {
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
+  }
+
+  return api.post(`/student/stages/${id}/images`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
+// get image content
+export const getStudentStageImageContent = (id, mediaId) => {
+  return api.get(`/student/stages/${id}/images/${mediaId}/content`, {
+    responseType: "blob",
+  });
+};
+
+// delete image
+export const deleteStudentStageImage = (id, mediaId) => {
+  return api.delete(`/student/stages/${id}/images/${mediaId}`);
 };
 
 // validation history
