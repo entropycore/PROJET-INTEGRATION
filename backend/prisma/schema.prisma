@@ -7,6 +7,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 
@@ -177,7 +178,10 @@ model Student {
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
   githubAccessToken String? @map("github_access_token") @db.Text
+  
   academicPaths   AcademicPath[]
+  academicTimelineEntries AcademicTimelineEntry[]
+
   studentSkills   StudentSkill[]
   projects        Project[]
   internships     Internship[]
@@ -343,7 +347,7 @@ model Project {
   generalFeedback   String?              @map("general_feedback") @db.Text
   createdAt         DateTime             @default(now()) @map("created_at")
   submittedAt       DateTime?            @map("submitted_at")
-  validationStatus  ValidationStatus     @default(PENDING) @map("validation_status")
+  validationStatus  ValidationStatus     @default(DRAFT) @map("validation_status")
   visibility        Visibility           @default(PRIVATE)
   media             ProjectMedia[]
   technologies      ProjectTechnology[]
@@ -626,6 +630,21 @@ model Recommendation {
   @@index([validatorUserId])
   @@index([status])
   @@map("recommendations")
+}
+model AcademicTimelineEntry {
+  id          Int       @id @default(autoincrement())
+  studentId   String    @map("student_id") 
+  title       String    @db.VarChar(255)
+  institution String    @db.VarChar(255)
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("academic_timeline")
 }
 
 model Report {
