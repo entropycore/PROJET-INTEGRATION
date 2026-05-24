@@ -4,9 +4,13 @@ import { useRoute, useRouter } from "vue-router";
 
 import {
   getStudentStageById,
+  getStudentValidators,
   createStudentStage,
+  deleteStudentStageImage,
   updateStudentStage,
   submitStudentStageValidation,
+  uploadStudentStageImages,
+  uploadStudentStageReport,
 } from "@/services/studentstageService";
 
 import StageForm from "@/components/student/stages/StageForm.vue";
@@ -15,8 +19,9 @@ const route = useRoute();
 const router = useRouter();
 
 const currentStage = ref(null);
+const validators = ref([]);
 const isEditMode = computed(() => Boolean(route.params.id));
-const isLoading = ref(isEditMode.value);
+const isLoading = ref(true);
 
 const extractData = (response) => {
   return response.data?.data || response.data;
@@ -25,20 +30,30 @@ const extractData = (response) => {
 const fetchStage = async () => {
   if (!isEditMode.value) return;
 
-  isLoading.value = true;
-
   try {
     const response = await getStudentStageById(route.params.id);
     currentStage.value = extractData(response);
   } catch (error) {
     console.error("Erreur chargement stage :", error);
-  } finally {
-    isLoading.value = false;
   }
 };
 
-onMounted(() => {
-  fetchStage();
+const fetchValidators = async () => {
+  try {
+    const response = await getStudentValidators();
+    validators.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement encadrants :", error);
+    validators.value = [];
+  }
+};
+
+onMounted(async () => {
+  isLoading.value = true;
+
+  await Promise.all([fetchStage(), fetchValidators()]);
+
+  isLoading.value = false;
 });
 
 const goBack = () => {
@@ -68,11 +83,22 @@ const buildStagePayload = (payload) => {
 const handleSaveDraft = async (payload) => {
   try {
     const stagePayload = buildStagePayload(payload);
+    let stageId = route.params.id;
 
     if (isEditMode.value) {
-      await updateStudentStage(route.params.id, stagePayload);
+      await updateStudentStage(stageId, stagePayload);
     } else {
-      await createStudentStage(stagePayload);
+      const response = await createStudentStage(stagePayload);
+      const createdStage = extractData(response);
+      stageId = createdStage.id;
+    }
+
+    if (payload.report) {
+      await uploadStudentStageReport(stageId, payload.report);
+    }
+
+    if (payload.images?.length) {
+      await uploadStudentStageImages(stageId, payload.images);
     }
 
     router.push("/student/stages");
@@ -95,28 +121,36 @@ const handleSubmitValidation = async (payload) => {
       stageId = createdStage.id;
     }
 
-    /*
-    BACKEND PDF PLUS TARD :
-    Quand le backend supportera réellement l’upload PDF :
+    if (payload.report) {
+      await uploadStudentStageReport(stageId, payload.report);
+    }
 
-    const reportFormData = new FormData()
-    reportFormData.append("report", payload.report)
-    await uploadStudentStageReport(stageId, reportFormData)
-
-    Pour les images :
-    attendre une API backend dédiée, par exemple :
-    POST /student/stages/:id/images
-
-    Actuellement :
-    - create/update attend du JSON
-    - report/images ne sont pas envoyés ici
-    */
+    if (payload.images?.length) {
+      await uploadStudentStageImages(stageId, payload.images);
+    }
 
     await submitStudentStageValidation(stageId);
 
     router.push("/student/stages");
   } catch (error) {
     console.error("Erreur soumission validation :", error);
+  }
+};
+
+const handleDeleteImage = async (imageId) => {
+  if (!route.params.id || !imageId) return;
+
+  const confirmDelete = window.confirm(
+    "Voulez-vous vraiment supprimer cette capture ?",
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteStudentStageImage(route.params.id, imageId);
+    await fetchStage();
+  } catch (error) {
+    console.error("Erreur suppression capture de stage :", error);
   }
 };
 </script>
@@ -147,8 +181,10 @@ const handleSubmitValidation = async (payload) => {
     <StageForm
       v-else
       :initial-stage="currentStage"
+      :validators="validators"
       @save-draft="handleSaveDraft"
       @submit-validation="handleSubmitValidation"
+      @delete-image="handleDeleteImage"
     />
   </section>
 </template>
