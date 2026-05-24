@@ -2,6 +2,12 @@
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
 
+import {
+  canDeleteActivity,
+  canEditActivity,
+  canSubmitActivity,
+} from '@/components/student/activities/activityRules'
+
 const props = defineProps({
   activity: {
     type: Object,
@@ -26,22 +32,6 @@ const typeLabels = {
   COMPETITION: "Compétition",
   TRAINING: "Formation",
   OTHER: "Autre",
-};
-
-const canSubmitValidation = () => {
-  return props.activity.validationStatus === "DRAFT";
-};
-
-const canEditActivity = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED"].includes(
-    props.activity.validationStatus,
-  );
-};
-
-const canDeleteActivity = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
-    props.activity.validationStatus,
-  );
 };
 
 const submitValidation = () => {
@@ -157,7 +147,7 @@ const closeCertificatePreview = () => {
       </RouterLink>
 
       <RouterLink
-        v-if="canEditActivity()"
+        v-if="canEditActivity(activity)"
         class="action-btn icon-only"
         :to="`/student/activities/${activity.id}/edit`"
         title="Modifier"
@@ -166,7 +156,7 @@ const closeCertificatePreview = () => {
       </RouterLink>
 
       <button
-        v-if="canDeleteActivity()"
+        v-if="canDeleteActivity(activity)"
         type="button"
         class="delete-btn"
         @click="deleteCurrentActivity"
@@ -175,7 +165,7 @@ const closeCertificatePreview = () => {
       </button>
 
       <button
-        v-if="canSubmitValidation()"
+        v-if="canSubmitActivity(activity)"
         type="button"
         class="submit-btn"
         @click="submitValidation"
@@ -342,7 +332,6 @@ h3 {
   margin: 0 0 0.875rem;
 
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

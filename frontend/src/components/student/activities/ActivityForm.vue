@@ -12,7 +12,43 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(["save-activity", "cancel"]);
+const emit = defineEmits(['save-activity', 'cancel'])
+
+const form = reactive({
+  title: props.initialActivity?.title || '',
+  type: props.initialActivity?.type || 'CLUB',
+  organization: props.initialActivity?.organization || '',
+  date: props.initialActivity?.date || '',
+  duration: props.initialActivity?.duration || '',
+  location: props.initialActivity?.location || '',
+  description: props.initialActivity?.description || '',
+  validatorName: props.initialActivity?.validatorName || '',
+  validatorId: props.initialActivity?.validatorId || null,
+  certificate: props.initialActivity?.certificate || null,
+  certificateName: props.initialActivity?.certificateName || '',
+  certificateUrl: props.initialActivity?.certificateUrl || '',
+})
+
+watch(
+  () => props.initialActivity,
+  (activity) => {
+    form.title = activity?.title || ''
+    form.type = activity?.type || 'CLUB'
+    form.organization = activity?.organization || ''
+    form.date = activity?.date || ''
+    form.duration = activity?.duration || ''
+    form.location = activity?.location || ''
+    form.description = activity?.description || ''
+    form.validatorName = activity?.validatorName || ''
+    form.validatorId = activity?.validatorId || null
+    form.certificate = activity?.certificate || null
+    form.certificateName = activity?.certificateName || ''
+    form.certificateUrl = activity?.certificateUrl || ''
+  },
+)
+
+const handleCertificateUpload = (event) => {
+  const file = event.target.files[0];
 
 const form = reactive({
   title: props.initialActivity?.title || '',
@@ -61,6 +97,8 @@ const resetForm = () => {
   form.duration = ''
   form.location = ''
   form.description = ''
+  form.validatorName = ''
+  form.validatorId = null
   form.certificate = null
   form.certificateName = ''
   form.certificateUrl = ''
@@ -75,6 +113,8 @@ const submitForm = () => {
     duration: form.duration,
     location: form.location,
     description: form.description,
+    validatorName: form.validatorName,
+    validatorId: form.validatorId,
     certificate: form.certificate,
     certificateName: form.certificateName,
     certificateUrl: form.certificateUrl,
@@ -152,6 +192,15 @@ const submitForm = () => {
             type="text"
             required
             placeholder="Ex : Casablanca"
+          />
+        </div>
+
+        <div class="form-group full-width">
+          <label>Validateur</label>
+          <input
+            v-model="form.validatorName"
+            type="text"
+            placeholder="Rechercher un professeur ou un administrateur..."
           />
         </div>
       </div>
@@ -244,6 +293,10 @@ h2 .material-icons-round {
 
 .form-group {
   margin-bottom: 1rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 label {
