@@ -117,15 +117,6 @@ const submitForm = () => {
 <template>
   <form class="activity-form" @submit.prevent="submitForm">
     <section class="form-card">
-      <div class="form-header">
-        <div>
-          <h2>
-            <span class="material-icons-round">add_circle</span>
-            {{ initialActivity ? 'Modifier l’activité' : 'Nouvelle activité' }}
-          </h2>
-          <p>Renseignez les informations et ajoutez votre attestation.</p>
-        </div>
-      </div>
 
       <div class="form-grid">
         <div class="form-group">
