@@ -22,7 +22,9 @@ export const updateRecommendationStatus = (id, status) => {
 };
 
 export const reportRecommendation = (id, reason) => {
-  return api.post(`/recommendations/${id}/report`, {
+  return api.post("/reports", {
+    targetType: "RECOMMENDATION",
+    targetId: id,
     reason,
   });
 };
@@ -30,10 +32,17 @@ export const reportRecommendation = (id, reason) => {
 export const getStudentRecommendationsData = async (params = {}) => {
   try {
     const response = await getStudentRecommendations(params);
+    const payload = response.data?.data ?? response.data;
 
     return {
       ...studentRecommendationsMock,
-      ...response.data,
+      ...payload,
+      stats: {
+        ...studentRecommendationsMock.stats,
+        ...(payload?.stats || {}),
+      },
+      recommendations:
+        payload?.recommendations || studentRecommendationsMock.recommendations,
     };
   } catch (error) {
     console.warn("Mock recommendations utilisé.");
