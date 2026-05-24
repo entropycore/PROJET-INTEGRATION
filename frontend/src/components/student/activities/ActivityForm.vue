@@ -12,7 +12,43 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(["save-activity", "cancel"]);
+const emit = defineEmits(['save-activity', 'cancel'])
+
+const form = reactive({
+  title: props.initialActivity?.title || '',
+  type: props.initialActivity?.type || 'CLUB',
+  organization: props.initialActivity?.organization || '',
+  date: props.initialActivity?.date || '',
+  duration: props.initialActivity?.duration || '',
+  location: props.initialActivity?.location || '',
+  description: props.initialActivity?.description || '',
+  validatorName: props.initialActivity?.validatorName || '',
+  validatorId: props.initialActivity?.validatorId || null,
+  certificate: props.initialActivity?.certificate || null,
+  certificateName: props.initialActivity?.certificateName || '',
+  certificateUrl: props.initialActivity?.certificateUrl || '',
+})
+
+watch(
+  () => props.initialActivity,
+  (activity) => {
+    form.title = activity?.title || ''
+    form.type = activity?.type || 'CLUB'
+    form.organization = activity?.organization || ''
+    form.date = activity?.date || ''
+    form.duration = activity?.duration || ''
+    form.location = activity?.location || ''
+    form.description = activity?.description || ''
+    form.validatorName = activity?.validatorName || ''
+    form.validatorId = activity?.validatorId || null
+    form.certificate = activity?.certificate || null
+    form.certificateName = activity?.certificateName || ''
+    form.certificateUrl = activity?.certificateUrl || ''
+  },
+)
+
+const handleCertificateUpload = (event) => {
+  const file = event.target.files[0];
 
 const form = reactive({
   title: props.initialActivity?.title || '',
@@ -26,7 +62,7 @@ const form = reactive({
   certificateName: props.initialActivity?.certificateName || '',
   certificateUrl: props.initialActivity?.certificateUrl || '',
 })
-
+};
 watch(
   () => props.initialActivity,
   (activity) => {
@@ -43,17 +79,6 @@ watch(
   },
 )
 
-const handleCertificateUpload = (event) => {
-const handleCertificateUpload = (event) => {
-  const file = event.target.files[0];
-
-  if (!file) return;
-
-  form.certificate = file
-  form.certificateName = file.name
-  form.certificateUrl = URL.createObjectURL(file)
-}
-
 const resetForm = () => {
   form.title = ''
   form.type = 'CLUB'
@@ -62,6 +87,8 @@ const resetForm = () => {
   form.duration = ''
   form.location = ''
   form.description = ''
+  form.validatorName = ''
+  form.validatorId = null
   form.certificate = null
   form.certificateName = ''
   form.certificateUrl = ''
@@ -76,6 +103,8 @@ const submitForm = () => {
     duration: form.duration,
     location: form.location,
     description: form.description,
+    validatorName: form.validatorName,
+    validatorId: form.validatorId,
     certificate: form.certificate,
     certificateName: form.certificateName,
     certificateUrl: form.certificateUrl,
@@ -96,10 +125,6 @@ const submitForm = () => {
           </h2>
           <p>Renseignez les informations et ajoutez votre attestation.</p>
         </div>
-
-        <button type="button" class="close-btn" @click="emit('cancel')">
-          <span class="material-icons-round">close</span>
-        </button>
       </div>
 
       <div class="form-grid">
@@ -157,6 +182,15 @@ const submitForm = () => {
             type="text"
             required
             placeholder="Ex : Casablanca"
+          />
+        </div>
+
+        <div class="form-group full-width">
+          <label>Validateur</label>
+          <input
+            v-model="form.validatorName"
+            type="text"
+            placeholder="Rechercher un professeur ou un administrateur..."
           />
         </div>
       </div>
@@ -241,20 +275,6 @@ h2 .material-icons-round {
   margin: 0;
 }
 
-.close-btn {
-  width: 2.35rem;
-  height: 2.35rem;
-  border: 1px solid #c4cdc1;
-  border-radius: 0.65rem;
-  background: #ffffff;
-  color: #2f575d;
-  cursor: pointer;
-}
-
-.close-btn .material-icons-round {
-  font-size: 1.1rem;
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -263,6 +283,10 @@ h2 .material-icons-round {
 
 .form-group {
   margin-bottom: 1rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 label {

@@ -1,40 +1,22 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
 import ActivityForm from '@/components/student/activities/ActivityForm.vue'
-import {
-  addActivity,
-  getActivityById,
-  updateActivity,
-} from '@/mockData/studentActivities.store'
+import { addActivity } from '@/mockData/studentActivities.store'
 
-const route = useRoute()
 const router = useRouter()
-
-const isEditMode = computed(() => Boolean(route.params.id))
-const currentActivity = computed(() =>
-  isEditMode.value ? getActivityById(route.params.id) : null,
-)
 
 const goBack = () => {
   router.push('/student/activities')
 }
 
 const handleSaveActivity = (payload) => {
-  if (isEditMode.value && currentActivity.value) {
-    updateActivity({
-      ...currentActivity.value,
-      ...payload,
-    })
-  } else {
-    addActivity({
-      id: Date.now(),
-      ...payload,
-      validationStatus: 'DRAFT',
-      createdAt: new Date().toISOString().split('T')[0],
-    })
-  }
+  addActivity({
+    id: Date.now(),
+    ...payload,
+    validationStatus: 'DRAFT',
+    createdAt: new Date().toISOString().split('T')[0],
+  })
 
   goBack()
 }
@@ -45,9 +27,7 @@ const handleSaveActivity = (payload) => {
     <div class="page-header">
       <div>
         <span class="page-label">PARASCOLAIRE</span>
-        <h1>
-          {{ isEditMode ? 'Modifier une activite' : 'Nouvelle activite' }}
-        </h1>
+        <h1>Nouvelle activité</h1>
         <p>
           Renseignez les informations et ajoutez une attestation de participation.
         </p>
@@ -59,16 +39,8 @@ const handleSaveActivity = (payload) => {
       </button>
     </div>
 
-    <div v-if="isEditMode && !currentActivity" class="empty-state">
-      <span class="material-icons-round">event_busy</span>
-      <h3>Activite introuvable</h3>
-      <p>Retournez a la liste et choisissez une activite existante.</p>
-    </div>
-
     <ActivityForm
-      v-else
-      :initial-activity="currentActivity"
-      :submit-label="isEditMode ? 'Enregistrer les modifications' : 'Creer l activite'"
+      submit-label="Créer l’activité"
       @save-activity="handleSaveActivity"
       @cancel="goBack"
     />
@@ -132,30 +104,6 @@ const handleSaveActivity = (payload) => {
 .back-btn .material-icons-round {
   color: #2f575d;
   font-size: 1.25rem;
-}
-
-.empty-state {
-  background: #ffffff;
-  border: 1px solid #dee1dd;
-  border-radius: 0.875rem;
-  padding: 3rem 1.5rem;
-  text-align: center;
-  color: #6d9197;
-}
-
-.empty-state .material-icons-round {
-  font-size: 2.4rem;
-  color: #99aead;
-  margin-bottom: 0.75rem;
-}
-
-.empty-state h3 {
-  color: #28363d;
-  margin: 0 0 0.35rem;
-}
-
-.empty-state p {
-  margin: 0;
 }
 
 @media (max-width: 760px) {
