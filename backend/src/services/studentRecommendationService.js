@@ -21,6 +21,8 @@ const recommendationSelect = {
   },
 };
 
+const ALLOWED_VISIBILITY = new Set(['PUBLIC', 'PRIVATE', 'TEACHERS', 'SHARED_LINK']);
+
 const roleLabels = {
   STUDENT: 'Étudiant',
   PROFESSOR: 'Enseignant',
@@ -73,6 +75,23 @@ const getStudentIdOrThrow = async (userId) => {
   return student.id;
 };
 
+const getStudentRecommendationOrThrow = async (userId, recommendationId) => {
+  const studentId = await getStudentIdOrThrow(userId);
+  const recommendation = await prisma.recommendation.findFirst({
+    where: {
+      id: recommendationId,
+      studentId,
+    },
+    select: recommendationSelect,
+  });
+
+  if (!recommendation) {
+    throw new Error('RECOMMENDATION_NOT_FOUND');
+  }
+
+  return recommendation;
+};
+
 const countByStatus = (recommendations, status) =>
   recommendations.filter((recommendation) => recommendation.status === status).length;
 
@@ -98,4 +117,52 @@ exports.listStudentRecommendations = async (userId, filters = {}) => {
     },
     recommendations: visibleRecommendations,
   };
+};
+
+exports.getStudentRecommendationById = async (userId, recommendationId) =>
+  mapRecommendation(await getStudentRecommendationOrThrow(userId, recommendationId));
+
+exports.updateStudentRecommendationVisibility = async (userId, recommendationId, visibility) => {
+  await getStudentRecommendationOrThrow(userId, recommendationId);
+  const normalizedVisibility = String(visibility || '').trim().toUpperCase();
+
+  if (!ALLOWED_VISIBILITY.has(normalizedVisibility)) {
+    throw new Error('INVALID_RECOMMENDATION_VISIBILITY');
+  }
+
+  const updated = await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: { visibility: normalizedVisibility },
+    select: recommendationSelect,
+  });
+
+  return mapRecommendation(updated);
+};
+
+exports.updateStudentRecommendationStatus = async (userId, recommendationId, status) => {
+  await getStudentRecommendationOrThrow(userId, recommendationId);
+  const normalizedStatus = String(status || '').trim().toUpperCase();
+  const statusMap = {
+    RECEIVED: 'APPROVED',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    PENDING: 'PENDING',
+  };
+  const nextStatus = statusMap[normalizedStatus];
+
+  if (!nextStatus) {
+    throw new Error('INVALID_RECOMMENDATION_STATUS');
+  }
+
+  const updated = await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: nextStatus,
+      visibility: nextStatus === 'APPROVED' ? 'PUBLIC' : 'PRIVATE',
+      validatedAt: nextStatus === 'APPROVED' ? new Date() : null,
+    },
+    select: recommendationSelect,
+  });
+
+  return mapRecommendation(updated);
 };
