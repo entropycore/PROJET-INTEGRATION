@@ -4,6 +4,7 @@ const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
 const administratorController = require('../controllers/administratorController');
+const badgeRoutes = require('./administrator/badgeRoutes');
 
 const router = express.Router();
 
@@ -527,5 +528,7 @@ router.patch('/professional-requests/:userId/approve', administratorController.a
  *         description: Succès
  */
 router.patch('/professional-requests/:userId/reject', administratorController.rejectProfessionalRequest);
+
+router.use(badgeRoutes);
 
 module.exports = router;
