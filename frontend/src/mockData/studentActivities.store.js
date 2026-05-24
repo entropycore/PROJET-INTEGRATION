@@ -29,6 +29,16 @@ export const deleteActivity = (activityId) => {
 export const submitActivityValidation = (activityId) => {
   activities.value = activities.value.map((activity) => {
     if (activity.id !== activityId) return activity;
+    if (activity.validationStatus !== 'DRAFT') return activity;
+
+    const hasValidator = Boolean(
+      activity.validator ||
+        activity.validatorName ||
+        activity.validatorId ||
+        activity.verifiedValidator,
+    )
+
+    if (!hasValidator) return activity;
 
     return {
       ...activity,

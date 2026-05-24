@@ -176,12 +176,17 @@ const router = createRouter({
             {
             path: 'activities/create',
             name: 'StudentActivityCreate',
-            component: () => import('@/views/student/ActivityFormView.vue'),
+            component: () => import('@/views/student/ActivityCreate.vue'),
             },
             {
             path: 'activities/:id/edit',
             name: 'StudentActivityEdit',
-            component: () => import('@/views/student/ActivityFormView.vue'),
+            component: () => import('@/views/student/ActivityEdit.vue'),
+            },
+            {
+            path: 'activities/:id',
+            name: 'StudentActivityDetails',
+            component: () => import('@/views/student/ActivityDetails.vue'),
             },
             {
             path: 'competances',
