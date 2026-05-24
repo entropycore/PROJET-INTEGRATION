@@ -3,6 +3,54 @@ const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
+const SKILL_DOMAINS = [
+  {
+    name: 'Web',
+    slug: 'web',
+    description: 'Développement frontend et interfaces web.',
+    displayOrder: 1,
+  },
+  {
+    name: 'Backend',
+    slug: 'backend',
+    description: 'API, bases de données et logique serveur.',
+    displayOrder: 2,
+  },
+  {
+    name: 'DevOps',
+    slug: 'devops',
+    description: 'Déploiement, automatisation et intégration continue.',
+    displayOrder: 3,
+  },
+  {
+    name: 'Security',
+    slug: 'security',
+    description: 'Sécurité applicative et protection des systèmes.',
+    displayOrder: 4,
+  },
+  {
+    name: 'AI/Data',
+    slug: 'ai-data',
+    description: 'Analyse de données, IA et apprentissage automatique.',
+    displayOrder: 5,
+  },
+  {
+    name: 'Mobile',
+    slug: 'mobile',
+    description: 'Développement mobile et applications hybrides.',
+    displayOrder: 6,
+  },
+];
+
+const TECHNICAL_SKILLS_BY_DOMAIN = {
+  web: ['Vue.js', 'React', 'HTML', 'CSS', 'JavaScript'],
+  backend: ['Node.js', 'Express.js', 'Prisma', 'PostgreSQL'],
+  devops: ['Docker', 'GitHub Actions', 'CI/CD', 'Kubernetes'],
+  security: ['JWT', 'OWASP', 'Firewall', 'Secure API'],
+  'ai-data': ['Python', 'Machine Learning', 'Data Analysis'],
+  mobile: ['React Native', 'Flutter'],
+};
+
 const upsertUser = async ({
   email,
   lastName,
@@ -29,6 +77,57 @@ const upsertUser = async ({
       role,
     },
   });
+
+const upsertSkillDomain = async ({ name, slug, description, displayOrder }) =>
+  prisma.skillDomain.upsert({
+    where: { slug },
+    update: {
+      name,
+      description,
+      displayOrder,
+    },
+    create: {
+      name,
+      slug,
+      description,
+      displayOrder,
+    },
+  });
+
+const ensureSkillDomains = async () => {
+  const domainsBySlug = {};
+
+  for (const domain of SKILL_DOMAINS) {
+    const savedDomain = await upsertSkillDomain(domain);
+    domainsBySlug[domain.slug] = savedDomain;
+  }
+
+  return domainsBySlug;
+};
+
+const ensureTechnicalSkillCatalog = async (domainsBySlug) => {
+  for (const [domainSlug, skillNames] of Object.entries(TECHNICAL_SKILLS_BY_DOMAIN)) {
+    const domain = domainsBySlug[domainSlug];
+    if (!domain) continue;
+
+    for (const name of skillNames) {
+      await prisma.skill.upsert({
+        where: { name },
+        update: {
+          type: 'TECHNICAL',
+          description: `Compétence technique du domaine ${domain.name}.`,
+          domainId: domain.id,
+        },
+        create: {
+          name,
+          type: 'TECHNICAL',
+          description: `Compétence technique du domaine ${domain.name}.`,
+          domainId: domain.id,
+        },
+      });
+    }
+  }
+};
 
 const upsertAdministratorProfile = async (userId) =>
   prisma.administrator.upsert({
@@ -367,6 +466,8 @@ async function main() {
     role: 'STUDENT',
   });
   const studentProfile = await upsertStudentProfile(studentUser.id);
+  const skillDomains = await ensureSkillDomains();
+  await ensureTechnicalSkillCatalog(skillDomains);
 
   const professorUser = await upsertUser({
     email: 'professeur@credencia.ma',
