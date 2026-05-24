@@ -209,11 +209,6 @@
     color 0.2s ease;
 }
 
-.sidebar-sublink:hover {
-  background: var(--app-surface-soft);
-  color: var(--app-primary);
-}
-
 .sidebar-sublink-active {
   background: var(--app-primary);
   color: #ffffff;

@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,300&display=swap");
+
 :root {
   --app-bg: #fafaf8;
   --app-bg-soft: #f7f7f4;
@@ -19,6 +21,9 @@
 
   --app-success-bg: #e8f5ec;
   --app-success: #2e7d32;
+  --app-active-bg: #e6f1ee;
+  --app-active: var(--app-primary);
+  --app-active-border: #c9d6d1;
   --app-warning-bg: #fff4e4;
   --app-warning: #b87518;
   --app-error-bg: #fdecea;
