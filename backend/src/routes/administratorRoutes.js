@@ -3,6 +3,7 @@
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
+const uploadCsv = require('../middlewares/uploadCsv');
 const administratorController = require('../controllers/administratorController');
 
 const router = express.Router();
@@ -53,6 +54,7 @@ router.delete('/badges/:badgeId', administratorController.deleteBadge);
 // Profile and users
 router.get('/profile', administratorController.getProfile);
 router.get('/users', administratorController.listUsers);
+router.post('/users/import-csv', uploadCsv.single('file'), administratorController.importUsersCsv);
 router.post('/users', administratorController.createUser);
 router.get('/users/:userId', administratorController.getUserById);
 router.put('/users/:userId', administratorController.updateUser);

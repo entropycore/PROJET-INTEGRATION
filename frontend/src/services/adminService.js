@@ -18,6 +18,14 @@ export const createAdminUser = (data) => {
   return api.post("/admin/users", data);
 };
 
+export const importAdminUsersCsv = (formData) => {
+  return api.post("/admin/users/import-csv", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
 // update user
 export const updateAdminUser = (id, data) => {
   return api.put(`/admin/users/${id}`, data);
