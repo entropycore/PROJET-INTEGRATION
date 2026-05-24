@@ -252,53 +252,64 @@ const handleDeleteTarget = async (report) => {
 
 <style scoped>
 .reports-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: clamp(1rem, 1.6vw, 1.4rem);
+  color: var(--app-text);
+  font-family: var(--app-font-body);
+}
+
+.page-header,
+.table-card {
+  width: 100%;
+  margin: 0;
 }
 
 .page-header span {
   display: block;
-  margin-bottom: 6px;
-  color: #8b8f8c;
+  margin-bottom: 0.4rem;
+  color: var(--app-subtle);
   font-size: 0.8rem;
   font-style: italic;
-  letter-spacing: 0.04em;
 }
 
 .page-header h1 {
   margin: 0;
-  color: #0f2f3a;
-  font-size: clamp(2rem, 3vw, 2.6rem);
-  font-weight: 800;
-  line-height: 1.1;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.6rem, 2.2vw, 2.1rem);
+  font-weight: 300;
+  line-height: var(--app-leading-tight);
 }
 
 .page-header p {
-  margin-top: 8px;
-  color: #8aa0a3;
-  font-size: 1.05rem;
-  font-style: italic;
+  margin: 0.5rem 0 0;
+  color: var(--app-muted);
+  font-size: clamp(0.85rem, 1vw, 1rem);
 }
 
 .table-card {
-  background: #ffffff;
-  border: 1px solid #dfe3dd;
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.035);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+  overflow: visible;
+  font-family: var(--app-font-body);
 }
 
 .state-box {
-  padding: 22px;
-  border-radius: 16px;
-  background: #fbfaf7;
-  border: 1px solid #dfe3dd;
-  color: #6b7280;
+  padding: 2rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
   text-align: center;
 }
 
 .error {
-  color: #dc2626;
+  color: var(--app-error);
 }
 </style>
