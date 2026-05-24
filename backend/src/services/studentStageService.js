@@ -13,6 +13,10 @@ const internshipSelect = {
   endDate: true,
   missions: true,
   reportUrl: true,
+  reportFileName: true,
+  reportMimeType: true,
+  reportFileSize: true,
+  reportStoragePath: true,
   validationStatus: true,
   visibility: true,
   supervisorProfessor: {
@@ -60,6 +64,20 @@ const internshipSelect = {
           },
         },
       },
+    },
+  },
+  media: {
+    orderBy: {
+      id: 'asc',
+    },
+    select: {
+      id: true,
+      mediaType: true,
+      mediaUrl: true,
+      description: true,
+      fileName: true,
+      mimeType: true,
+      fileSize: true,
     },
   },
 };
@@ -233,7 +251,21 @@ const mapInternshipRecord = (internship) => {
     visibility: internship.visibility,
     validationStatus: internship.validationStatus,
     reportUrl: internship.reportUrl || '',
-    images: [],
+    report: internship.reportUrl
+      ? {
+          url: internship.reportUrl,
+          fileName: internship.reportFileName || 'rapport-stage.pdf',
+          mimeType: internship.reportMimeType || 'application/pdf',
+          fileSize: internship.reportFileSize || null,
+        }
+      : null,
+    images: internship.media.map((media) => ({
+      id: media.id,
+      title: media.description || media.fileName || 'Capture',
+      imageUrl: media.mediaUrl,
+      mimeType: media.mimeType,
+      fileSize: media.fileSize,
+    })),
     validationHistory: internship.validations.map((validation) => ({
       id: validation.id,
       status: validation.decision,
