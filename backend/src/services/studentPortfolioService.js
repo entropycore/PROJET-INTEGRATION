@@ -2,7 +2,7 @@
 
 const crypto = require('crypto');
 const prisma = require('../config/prisma');
-const githubService = require('./githubService');
+const githubImportService = require('./student/githubImportService');
 const {
   buildCredibility,
   buildProfileCompletion,
@@ -550,7 +550,7 @@ const getGithubActivity = async (student) => {
   }
 
   try {
-    const stats = await githubService.fetchStudentStats(student.githubAccessToken, student.id);
+    const stats = await githubImportService.getStudentGithubStats(student.userId);
 
     return {
       connected: true,
