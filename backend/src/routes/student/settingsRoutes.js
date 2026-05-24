@@ -5,6 +5,7 @@ const settingsController = require('../../controllers/student/settingsController
 
 const router = express.Router();
 
+router.get('/settings', settingsController.getSettings);
 router.put('/settings/password', settingsController.updateSettingsPassword);
 router.put('/settings/privacy', settingsController.updateSettingsPrivacy);
 router.put('/settings/notifications', settingsController.updateSettingsNotifications);
