@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import Roles from './Roles.vue'
+import Roles from '@/components/landing/RolesSection.vue'
 
 describe('Roles - Tests UI', () => {
   it('structure le rendu visuel de la grille des rôles correctement', () => {

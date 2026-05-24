@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import Features from './Features.vue'
+import Features from '@/components/landing/Features.vue'
 
 describe('Features - Tests UI', () => {
   it('structure correctement l’en-tête et la grille de présentation', () => {
