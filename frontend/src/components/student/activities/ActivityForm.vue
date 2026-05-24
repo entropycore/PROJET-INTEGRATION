@@ -62,7 +62,7 @@ const form = reactive({
   certificateName: props.initialActivity?.certificateName || '',
   certificateUrl: props.initialActivity?.certificateUrl || '',
 })
-
+};
 watch(
   () => props.initialActivity,
   (activity) => {
@@ -78,16 +78,6 @@ watch(
     form.certificateUrl = activity?.certificateUrl || ''
   },
 )
-
-const handleCertificateUpload = (event) => {
-  const file = event.target.files[0];
-
-  if (!file) return;
-
-  form.certificate = file
-  form.certificateName = file.name
-  form.certificateUrl = URL.createObjectURL(file)
-}
 
 const resetForm = () => {
   form.title = ''
