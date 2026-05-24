@@ -7,6 +7,7 @@ const activityRoutes = require('./student/activityRoutes');
 const dashboardRoutes = require('./student/dashboardRoutes');
 const githubImportRoutes = require('./student/githubImportRoutes');
 const notificationRoutes = require('./student/notificationRoutes');
+const portfolioRoutes = require('./student/portfolioRoutes');
 const profileRoutes = require('./student/profileRoutes');
 const recommendationRoutes = require('./student/recommendationRoutes');
 const settingsRoutes = require('./student/settingsRoutes');
@@ -21,6 +22,7 @@ router.use(checkRoles('STUDENT'));
 
 router.use(dashboardRoutes);
 router.use(profileRoutes);
+router.use(portfolioRoutes);
 router.use(recommendationRoutes);
 router.use(activityRoutes);
 router.use(skillRoutes);
