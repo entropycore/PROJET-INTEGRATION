@@ -4,6 +4,10 @@ export const getStudentProjects = (params = {}) => {
   return api.get("/projects/me", { params });
 };
 
+export const getStudentProjectValidators = () => {
+  return api.get("/student/validators");
+};
+
 export const getStudentProjectById = (id) => {
   return api.get(`/projects/${id}`);
 };

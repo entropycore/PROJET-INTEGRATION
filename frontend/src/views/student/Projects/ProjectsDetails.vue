@@ -124,18 +124,10 @@ const getMediaUrl = (media, action) => {
 };
 
 const displayScreenshots = computed(() => {
-  const screenshots = (project.value?.screenshots || []).map((screenshot) => ({
+  return (project.value?.screenshots || []).map((screenshot) => ({
     ...screenshot,
     src: screenshotObjectUrls.value[screenshot.id] || null,
   }));
-
-  const placeholders = [
-    { id: "placeholder-1", title: "Capture 1", src: null },
-    { id: "placeholder-2", title: "Capture 2", src: null },
-    { id: "placeholder-3", title: "Capture 3", src: null },
-  ];
-
-  return [...screenshots, ...placeholders].slice(0, 3);
 });
 
 const revokeScreenshotObjectUrls = () => {
