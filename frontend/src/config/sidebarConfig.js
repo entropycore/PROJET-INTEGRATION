@@ -22,7 +22,7 @@ export const sidebarConfig = {
               icon: "person",
             },
             {
-              label: "Recruiters",
+              label: "Recruteurs",
               path: "/admin/users?role=PROFESSIONAL",
               icon: "business_center",
             },
