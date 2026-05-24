@@ -44,17 +44,19 @@ defineProps({
 <style scoped>
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(150px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: clamp(1rem, 1.6vw, 1.4rem);
 }
 
 .stat-card {
   position: relative;
-  padding: 20px 24px;
-  background: #ffffff;
-  border: 1px solid #dfe3dd;
-  border-radius: 18px;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.035);
+  min-height: clamp(7.5rem, 12vw, 9rem);
+  padding: clamp(1rem, 1.6vw, 1.4rem);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 0.8rem;
+  box-shadow: var(--app-shadow-card);
+  font-family: var(--app-font-body);
   overflow: hidden;
 }
 
@@ -62,50 +64,33 @@ defineProps({
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
-  height: 5px;
-  background: #2f5d62;
+  height: 0.18rem;
+  background: var(--app-primary);
 }
 
 .stat-card span {
   display: block;
-  color: #8aa0a3;
-  font-size: 0.85rem;
+  color: var(--app-muted);
+  font-size: clamp(0.7rem, 0.75vw, 0.85rem);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
 .stat-card strong {
   display: block;
-  margin-top: 14px;
-  color: #0f2f3a;
-  font-size: 2.2rem;
-  font-weight: 800;
+  margin-top: 0.9rem;
+  color: var(--app-heading);
+  font-size: clamp(1.4rem, 2vw, 1.8rem);
+  font-weight: 700;
   line-height: 1;
 }
 
 .stat-card p {
-  margin: 10px 0 0;
-  color: #4f7d68;
-  font-size: 0.95rem;
+  margin: 0.35rem 0 0;
+  color: var(--app-muted);
+  font-size: clamp(0.7rem, 0.75vw, 0.85rem);
   font-weight: 500;
-}
-
-.stat-card.total::before,
-.stat-card.project::before {
-  background: #2f5d62;
-}
-
-.stat-card.internship::before {
-  background: #8bbf9f;
-}
-
-.stat-card.certificate::before {
-  background: #d89a2b;
-}
-
-.stat-card.activity::before {
-  background: #ea7a2f;
 }
 
 @media (max-width: 1100px) {
