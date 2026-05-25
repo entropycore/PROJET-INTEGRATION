@@ -49,10 +49,6 @@ const userDisplayName = computed(() => {
   return fullName || user.value?.email || "Utilisateur";
 });
 
-const getIcon = (icon) => {
-  return new URL(`../../assets/icons/${icon}`, import.meta.url).href;
-};
-
 const userInitial = computed(() => {
   return user.value?.firstName?.charAt(0).toUpperCase() || "A";
 });
@@ -93,7 +89,9 @@ const toggleDropdown = (label) => {
           type="button"
           @click="emit('toggle-sidebar')"
         >
-          <img :src="getIcon('curtain.svg')" alt="Collapse sidebar" />
+          <span class="material-icons-round sidebar-control-icon">
+            {{ collapsed ? "menu_open" : "menu" }}
+          </span>
         </button>
       </div>
 
@@ -110,12 +108,14 @@ const toggleDropdown = (label) => {
               @click="toggleDropdown(item.label)"
             >
               <span class="sidebar-link-left">
-                <img :src="getIcon(item.icon)" class="sidebar-icon" />
+                <span class="sidebar-icon material-icons-round">
+                  {{ item.icon }}
+                </span>
                 <span class="sidebar-label">{{ item.label }}</span>
               </span>
 
-              <span class="sidebar-chevron">
-                {{ openDropdown === item.label ? "⌃" : "⌄" }}
+              <span class="sidebar-chevron material-icons-round">
+                {{ openDropdown === item.label ? "expand_less" : "expand_more" }}
               </span>
             </button>
 
@@ -130,7 +130,9 @@ const toggleDropdown = (label) => {
                 class="sidebar-sublink"
                 :class="{ 'sidebar-sublink-active': isChildActive(child) }"
               >
-                <img :src="getIcon(child.icon)" class="sidebar-icon" />
+                <span class="sidebar-icon material-icons-round">
+                  {{ child.icon }}
+                </span>
                 <span class="sidebar-label">{{ child.label }}</span>
               </RouterLink>
             </div>
@@ -142,7 +144,9 @@ const toggleDropdown = (label) => {
               active-class="sidebar-link-active"
               exact-active-class="sidebar-link-exact-active"
             >
-              <img :src="getIcon(item.icon)" class="sidebar-icon" />
+              <span class="sidebar-icon material-icons-round">
+                {{ item.icon }}
+              </span>
               <span class="sidebar-label">{{ item.label }}</span>
             </RouterLink>
           </div>
@@ -152,7 +156,7 @@ const toggleDropdown = (label) => {
 
     <!-- LOGOUT -->
     <button class="logout-btn" @click="handleLogout">
-      <img :src="getIcon('logout.svg')" />
+      <span class="sidebar-icon material-icons-round">logout</span>
       <span class="sidebar-label">Déconnexion</span>
     </button>
   </aside>
