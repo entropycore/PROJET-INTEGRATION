@@ -176,9 +176,7 @@ const handleDeleteImage = async (imageId) => {
       </p>
     </div>
 
-    <div v-if="isLoading" class="loading-state">
-      Chargement du stage...
-    </div>
+    <div v-if="isLoading" class="loading-state">Chargement du stage...</div>
 
     <StageForm
       v-else
