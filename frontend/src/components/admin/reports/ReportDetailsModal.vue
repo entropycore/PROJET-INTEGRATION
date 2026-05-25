@@ -13,6 +13,9 @@ const typeLabels = {
   PORTFOLIO: "Portfolio",
   COMMENT: "Commentaire",
   USER: "Utilisateur",
+  INTERNSHIP: "Stage",
+  RECOMMENDATION: "Recommandation",
+  OTHER: "Autre",
 };
 
 const statusLabels = {
