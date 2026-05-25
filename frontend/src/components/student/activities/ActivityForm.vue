@@ -1,43 +1,73 @@
 <script setup>
-import { reactive } from 'vue'
+import { reactive, watch } from "vue";
 
-const emit = defineEmits(['save-activity', 'cancel'])
+const props = defineProps({
+  initialActivity: {
+    type: Object,
+    default: null,
+  },
+  submitLabel: {
+    type: String,
+    default: "Enregistrer",
+  },
+});
+
+const emit = defineEmits(["save-activity", "cancel"]);
 
 const form = reactive({
-  title: '',
-  type: 'CLUB',
-  organization: '',
-  date: '',
-  duration: '',
-  location: '',
-  description: '',
-  certificate: null,
-  certificateName: '',
-})
+  title: props.initialActivity?.title || "",
+  type: props.initialActivity?.type || "CLUB",
+  organization: props.initialActivity?.organization || "",
+  date: props.initialActivity?.date || props.initialActivity?.startDate || "",
+  duration: props.initialActivity?.duration || "",
+  location: props.initialActivity?.location || "",
+  description: props.initialActivity?.description || "",
+  certificate: props.initialActivity?.certificate || null,
+  certificateName: props.initialActivity?.certificateName || "",
+  certificateUrl: props.initialActivity?.certificateUrl || "",
+});
+
+watch(
+  () => props.initialActivity,
+  (activity) => {
+    form.title = activity?.title || "";
+    form.type = activity?.type || "CLUB";
+    form.organization = activity?.organization || "";
+    form.date = activity?.date || activity?.startDate || "";
+    form.duration = activity?.duration || "";
+    form.location = activity?.location || "";
+    form.description = activity?.description || "";
+    form.certificate = activity?.certificate || null;
+    form.certificateName = activity?.certificateName || "";
+    form.certificateUrl = activity?.certificateUrl || "";
+  },
+);
 
 const handleCertificateUpload = (event) => {
-  const file = event.target.files[0]
+  const file = event.target.files[0];
 
-  if (!file) return
+  if (!file) return;
 
-  form.certificate = file
-  form.certificateName = file.name
-}
+  form.certificate = file;
+  form.certificateName = file.name;
+  form.certificateUrl = URL.createObjectURL(file);
+};
 
 const resetForm = () => {
-  form.title = ''
-  form.type = 'CLUB'
-  form.organization = ''
-  form.date = ''
-  form.duration = ''
-  form.location = ''
-  form.description = ''
-  form.certificate = null
-  form.certificateName = ''
-}
+  form.title = "";
+  form.type = "CLUB";
+  form.organization = "";
+  form.date = "";
+  form.duration = "";
+  form.location = "";
+  form.description = "";
+  form.certificate = null;
+  form.certificateName = "";
+  form.certificateUrl = "";
+};
 
 const submitForm = () => {
-  emit('save-activity', {
+  emit("save-activity", {
     title: form.title,
     type: form.type,
     organization: form.organization,
@@ -47,29 +77,16 @@ const submitForm = () => {
     description: form.description,
     certificate: form.certificate,
     certificateName: form.certificateName,
-  })
+    certificateUrl: form.certificateUrl,
+  });
 
-  resetForm()
-}
+  resetForm();
+};
 </script>
 
 <template>
   <form class="activity-form" @submit.prevent="submitForm">
     <section class="form-card">
-      <div class="form-header">
-        <div>
-          <h2>
-            <span class="material-icons-round">add_circle</span>
-            Nouvelle activité
-          </h2>
-          <p>Renseignez les informations et ajoutez votre attestation.</p>
-        </div>
-
-        <button type="button" class="close-btn" @click="emit('cancel')">
-          <span class="material-icons-round">close</span>
-        </button>
-      </div>
-
       <div class="form-grid">
         <div class="form-group">
           <label>Titre de l’activité</label>
@@ -161,7 +178,7 @@ const submitForm = () => {
 
         <button type="submit" class="btn btn-primary">
           <span class="material-icons-round">save</span>
-          Enregistrer
+          {{ submitLabel }}
         </button>
       </div>
     </section>
@@ -209,20 +226,6 @@ h2 .material-icons-round {
   margin: 0;
 }
 
-.close-btn {
-  width: 2.35rem;
-  height: 2.35rem;
-  border: 1px solid #c4cdc1;
-  border-radius: 0.65rem;
-  background: #ffffff;
-  color: #2f575d;
-  cursor: pointer;
-}
-
-.close-btn .material-icons-round {
-  font-size: 1.1rem;
-}
-
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -231,6 +234,10 @@ h2 .material-icons-round {
 
 .form-group {
   margin-bottom: 1rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
 }
 
 label {

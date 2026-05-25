@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { mount } from '@vue/test-utils';
-import NotificationList from '@/components/notifications/NotificationsList.vue';
+import { describe, it, expect } from "vitest";
+import { mount } from "@vue/test-utils";
+import NotificationList from "@/components/notifications/NotificationsList.vue";
 
 describe('NotificationList - Test UI', () => {
   it("emet l'evenement read quand NotificationItem emet read", async () => {
@@ -19,10 +19,10 @@ describe('NotificationList - Test UI', () => {
       },
     });
 
-    await wrapper.find('button').trigger('click');
+    await wrapper.find("button").trigger("click");
 
-    expect(wrapper.emitted('read')).toBeTruthy();
-    expect(wrapper.emitted('read')?.length).toBe(1);
+    expect(wrapper.emitted("read")).toBeTruthy();
+    expect(wrapper.emitted("read")?.length).toBe(1);
   });
 
   it("emet l'evenement delete avec l'identifiant de notification", async () => {
@@ -41,9 +41,9 @@ describe('NotificationList - Test UI', () => {
       },
     });
 
-    await wrapper.find('button').trigger('click');
+    await wrapper.find("button").trigger("click");
 
-    expect(wrapper.emitted('delete')).toBeTruthy();
-    expect(wrapper.emitted('delete')?.[0]).toEqual([7]);
+    expect(wrapper.emitted("delete")).toBeTruthy();
+    expect(wrapper.emitted("delete")?.[0]).toEqual([7]);
   });
 });

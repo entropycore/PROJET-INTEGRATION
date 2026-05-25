@@ -20,7 +20,7 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #f7f7f4;
+  background: var(--app-bg-soft);
 }
 
 .dashboard-body {
@@ -36,6 +36,6 @@ body {
   min-height: 0;
   overflow-y: auto;
   padding: 28px 24px;
-  background: #fafaf8;
+  background: var(--app-bg);
   transition: all 0.25s ease;
 }

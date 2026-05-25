@@ -5,6 +5,11 @@ export const getMySkills = async () => {
   return response.data;
 };
 
+export const getSkillStats = async () => {
+  const response = await api.get("/students/me/skills/stats");
+  return response.data;
+};
+
 export const addSkill = async (data) => {
   const response = await api.post("/students/me/skills", data);
   return response.data;
@@ -16,7 +21,9 @@ export const deleteSkill = async (id) => {
 };
 
 export const getSkillsCatalog = async (search = "") => {
-  const response = await api.get(`/skills?search=${search}`);
+  const response = await api.get("/skills", {
+    params: { search },
+  });
   return response.data;
 };
 

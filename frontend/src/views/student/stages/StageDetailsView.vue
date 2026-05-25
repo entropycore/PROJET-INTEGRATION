@@ -1,39 +1,128 @@
 <script setup>
-import { computed, ref } from "vue";
-import StageImagesModal from "@/components/student/stages/StageImagesModal.vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import { stages } from "@/mockData/studentStages.store";
+import StageImagesModal from "@/components/student/stages/StageImagesModal.vue";
+
+import {
+  downloadStudentStageReport,
+  getStudentStageById,
+  getStudentStageImageContent,
+} from "@/services/studentstageService";
 
 const route = useRoute();
 const router = useRouter();
 
-const stage = computed(() => {
-  return stages.value.find((item) => item.id === route.params.id);
+const stage = ref(null);
+const isLoading = ref(false);
+const imagePreviewUrls = ref({});
+const reportPreviewUrl = ref("");
+const isReportLoading = ref(false);
+
+const extractData = (response) => {
+  return response.data?.data || response.data;
+};
+
+const fetchStage = async () => {
+  isLoading.value = true;
+
+  try {
+    const response = await getStudentStageById(route.params.id);
+    const loadedStage = extractData(response);
+    stage.value = loadedStage;
+    await hydrateStageMedia(loadedStage);
+  } catch (error) {
+    console.error("Erreur chargement détail stage :", error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStage();
 });
 
-const canEditStage = computed(() => {
-  return ["DRAFT", "PENDING", "CORRECTION_REQUIRED"].includes(
-    stage.value?.validationStatus,
+onBeforeUnmount(() => {
+  revokeStageMediaUrls();
+});
+
+const revokeStageMediaUrls = () => {
+  Object.values(imagePreviewUrls.value).forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
+
+  if (reportPreviewUrl.value) {
+    URL.revokeObjectURL(reportPreviewUrl.value);
+  }
+
+  imagePreviewUrls.value = {};
+  reportPreviewUrl.value = "";
+};
+
+const hydrateStageMedia = async (loadedStage) => {
+  revokeStageMediaUrls();
+
+  const images = loadedStage?.images || [];
+
+  const loadedImageUrls = await Promise.all(
+    images.map(async (image) => {
+      if (!image.id) return null;
+
+      try {
+        const response = await getStudentStageImageContent(
+          loadedStage.id,
+          image.id,
+        );
+        return [image.id, URL.createObjectURL(response.data)];
+      } catch (error) {
+        console.error("Erreur chargement image de stage :", error);
+        return null;
+      }
+    }),
   );
+
+  imagePreviewUrls.value = Object.fromEntries(loadedImageUrls.filter(Boolean));
+
+  if (!loadedStage?.reportUrl) return;
+
+  isReportLoading.value = true;
+
+  try {
+    const response = await downloadStudentStageReport(loadedStage.id);
+    reportPreviewUrl.value = URL.createObjectURL(response.data);
+  } catch (error) {
+    console.error("Erreur chargement rapport de stage :", error);
+  } finally {
+    isReportLoading.value = false;
+  }
+};
+
+const canEditStage = computed(() => {
+  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+});
+
+const stageStatus = computed(() => {
+  return String(stage.value?.validationStatus || "PENDING")
+    .trim()
+    .toUpperCase();
 });
 
 const statusText = computed(() => {
   if (!stage.value) return "";
 
-  if (stage.value.validationStatus === "APPROVED") {
-    return `Validé par ${stage.value.supervisor.fullName}`;
+  if (stageStatus.value === "APPROVED") {
+    return `Validé par ${stage.value.supervisor?.fullName || "l’encadrant"}`;
   }
 
-  if (stage.value.validationStatus === "PENDING") {
+  if (stageStatus.value === "PENDING") {
     return "En attente de validation";
   }
 
-  if (stage.value.validationStatus === "DRAFT") {
+  if (stageStatus.value === "DRAFT") {
     return "Brouillon";
   }
 
-  if (stage.value.validationStatus === "REJECTED") {
+  if (stageStatus.value === "REJECTED") {
     return "Refusé";
   }
 
@@ -41,8 +130,13 @@ const statusText = computed(() => {
 });
 
 const statusClass = computed(() => {
-  return stage.value?.validationStatus || "PENDING";
+  return stageStatus.value;
 });
+
+const formatDate = (value) => {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+};
 
 const getTimelineTitle = (status) => {
   const titles = {
@@ -51,17 +145,14 @@ const getTimelineTitle = (status) => {
     APPROVED: "Stage validé",
     REJECTED: "Stage refusé",
     CORRECTION_REQUIRED: "Correction demandée",
+    CHANGES_REQUESTED: "Correction demandée",
   };
 
   return titles[status] || "Mise à jour";
 };
 
-const getTimelineAuthor = (status) => {
-  if (status === "APPROVED") return "Encadrant académique";
-  if (status === "REJECTED") return "Encadrant académique";
-  if (status === "CORRECTION_REQUIRED") return "Encadrant académique";
-
-  return "Étudiant";
+const getTimelineAuthor = (item) => {
+  return item.actorName || item.actorRole || "Étudiant";
 };
 
 const getTimelineIcon = (status) => {
@@ -71,15 +162,23 @@ const getTimelineIcon = (status) => {
     APPROVED: "check_circle",
     REJECTED: "cancel",
     CORRECTION_REQUIRED: "priority_high",
+    CHANGES_REQUESTED: "priority_high",
   };
 
   return icons[status] || "history";
 };
-//pour la boite modal des images
+
 const showImagesModal = ref(false);
 
+const normalizedImages = computed(() => {
+  return (stage.value?.images || []).map((image) => ({
+    ...image,
+    url: imagePreviewUrls.value[image.id] || image.url || image.imageUrl || "",
+  }));
+});
+
 const visibleImages = computed(() => {
-  return stage.value?.images?.slice(0, 4) || [];
+  return normalizedImages.value.slice(0, 4);
 });
 
 const hasMoreImages = computed(() => {
@@ -104,273 +203,244 @@ const goToEdit = () => {
 </script>
 
 <template>
-  <section v-if="stage" class="stage-details-page">
-    <button class="back-btn" @click="goBack">
-      <span class="material-icons-round">arrow_back</span>
-      Retour aux stages
-    </button>
+  <section class="stage-details-page">
+    <div v-if="isLoading" class="content-card">Chargement du stage...</div>
 
-    <!-- HEADER -->
+    <div v-else-if="!stage" class="content-card">Stage introuvable.</div>
 
-    <div class="hero-card">
-      <div>
-        <h1>{{ stage.title }}</h1>
+    <template v-else>
+      <button class="back-btn" @click="goBack">
+        <span class="material-icons-round">arrow_back</span>
+        Retour aux stages
+      </button>
 
-        <div class="company-line">
-          <span class="material-icons-round">business_center</span>
+      <div class="hero-card">
+        <div>
+          <h1>{{ stage.title }}</h1>
 
-          <strong>{{ stage.company }}</strong>
+          <div class="company-line">
+            <span class="material-icons-round">business_center</span>
+            <strong>{{ stage.company }}</strong>
+          </div>
         </div>
+
+        <button v-if="canEditStage" class="edit-btn" @click="goToEdit">
+          <span class="material-icons-round">edit</span>
+          Modifier
+        </button>
       </div>
 
-      <button v-if="canEditStage" class="edit-btn" @click="goToEdit">
-        <span class="material-icons-round">edit</span>
-        Modifier
-      </button>
-    </div>
-
-    <!-- CONTENT -->
-
-    <div class="details-layout">
-      <main class="main-column">
-        <!-- DESCRIPTION -->
-
-        <div class="content-card">
-          <h2>
-            <span class="material-icons-round">description</span>
-            Description complète
-          </h2>
-
-          <p class="description-text">
-            {{ stage.description }}
-          </p>
-
-          <div class="divider"></div>
-
-          <h3>
-            <span class="material-icons-round">code</span>
-            Technologies
-          </h3>
-
-          <div class="tech-list">
-            <span
-              v-for="tech in stage.technologies"
-              :key="tech"
-              class="tech-tag"
-            >
-              {{ tech }}
-            </span>
-          </div>
-        </div>
-
-        <!-- IMAGES -->
-
-        <div class="content-card">
-          <div class="section-header">
+      <div class="details-layout">
+        <main class="main-column">
+          <div class="content-card">
             <h2>
-              <span class="material-icons-round">image</span>
-              Captures d’écran
+              <span class="material-icons-round">description</span>
+              Description complète
             </h2>
 
-            <button
-              v-if="hasMoreImages"
-              class="view-all-btn"
-              @click="openImagesModal"
-            >
-              Voir toutes les images
-            </button>
-          </div>
+            <p class="description-text">
+              {{ stage.description }}
+            </p>
 
-          <div v-if="stage.images?.length" class="screens-grid">
-            <div
-              v-for="image in visibleImages"
-              :key="image.id"
-              class="screen-card"
-            >
-              <img :src="image.url" :alt="image.title" />
-              <span>{{ image.title }}</span>
+            <div class="divider"></div>
+
+            <h3>
+              <span class="material-icons-round">code</span>
+              Technologies
+            </h3>
+
+            <div class="tech-list">
+              <span
+                v-for="tech in stage.technologies || []"
+                :key="tech"
+                class="tech-tag"
+              >
+                {{ tech }}
+              </span>
             </div>
           </div>
 
-          <div v-else class="empty-screens">
-            <span class="material-icons-round">image_not_supported</span>
-            <p>Aucune capture d’écran ajoutée pour ce stage.</p>
-          </div>
-        </div>
+          <div class="content-card">
+            <div class="section-header">
+              <h2>
+                <span class="material-icons-round">image</span>
+                Captures d’écran
+              </h2>
 
-        <!-- MISSIONS -->
+              <button
+                v-if="hasMoreImages"
+                class="view-all-btn"
+                @click="openImagesModal"
+              >
+                Voir toutes les images
+              </button>
+            </div>
 
-        <div class="content-card">
-          <h2>
-            <span class="material-icons-round">task_alt</span>
-            Missions réalisées
-          </h2>
-
-          <ul class="missions-list">
-            <li v-for="mission in stage.missions" :key="mission">
-              {{ mission }}
-            </li>
-          </ul>
-        </div>
-
-        <!-- TIMELINE -->
-
-        <div class="content-card">
-          <h2>
-            <span class="material-icons-round">timeline</span>
-            Historique de validation
-          </h2>
-
-          <div class="timeline">
-            <div
-              v-for="item in stage.validationHistory"
-              :key="item.createdAt"
-              class="timeline-item"
-            >
-              <div class="timeline-icon" :class="item.status">
-                <span class="material-icons-round">
-                  {{ getTimelineIcon(item.status) }}
-                </span>
+            <div v-if="stage.images?.length" class="screens-grid">
+              <div
+                v-for="image in visibleImages"
+                :key="image.id"
+                class="screen-card"
+              >
+                <img :src="image.url" :alt="image.title" />
+                <span>{{ image.title }}</span>
               </div>
+            </div>
 
-              <div class="timeline-card">
-                <div class="timeline-header">
-                  <div>
-                    <h4>
-                      {{ getTimelineTitle(item.status) }}
-                    </h4>
+            <div v-else class="empty-screens">
+              <span class="material-icons-round">image_not_supported</span>
+              <p>Aucune capture d’écran ajoutée pour ce stage.</p>
+            </div>
+          </div>
 
-                    <span>
-                      {{ getTimelineAuthor(item.status) }}
-                    </span>
-                  </div>
+          <div class="content-card">
+            <h2>
+              <span class="material-icons-round">task_alt</span>
+              Missions réalisées
+            </h2>
 
-                  <time>
-                    {{ item.createdAt }}
-                  </time>
+            <ul class="missions-list">
+              <li v-for="mission in stage.missions || []" :key="mission">
+                {{ mission }}
+              </li>
+            </ul>
+          </div>
+
+          <div class="content-card">
+            <h2>
+              <span class="material-icons-round">timeline</span>
+              Historique de validation
+            </h2>
+
+            <div class="timeline">
+              <div
+                v-for="item in stage.validationHistory || []"
+                :key="item.id || item.createdAt"
+                class="timeline-item"
+              >
+                <div class="timeline-icon" :class="item.status">
+                  <span class="material-icons-round">
+                    {{ getTimelineIcon(item.status) }}
+                  </span>
                 </div>
 
-                <p>
-                  {{ item.comment }}
-                </p>
+                <div class="timeline-card">
+                  <div class="timeline-header">
+                    <div>
+                      <h4>
+                        {{ item.title || getTimelineTitle(item.status) }}
+                      </h4>
+
+                      <span>
+                        {{ getTimelineAuthor(item) }}
+                      </span>
+                    </div>
+
+                    <time>
+                      {{ formatDate(item.createdAt) }}
+                    </time>
+                  </div>
+
+                  <p>
+                    {{ item.comment }}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </main>
+        </main>
 
-      <!-- SIDEBAR -->
+        <aside class="side-column">
+          <div class="side-card">
+            <h3>
+              <span class="material-icons-round">info</span>
+              Informations générales
+            </h3>
 
-      <aside class="side-column">
-        <!-- INFOS -->
+            <div class="info-row">
+              <span>Statut</span>
 
-        <div class="side-card">
-          <h3>
-            <span class="material-icons-round">info</span>
-            Informations générales
-          </h3>
+              <strong class="status-info" :class="statusClass">
+                <span class="status-dot"></span>
+                {{ statusText }}
+              </strong>
+            </div>
 
-          <div class="info-row">
-            <span>Statut</span>
+            <div class="info-row">
+              <span>Durée</span>
+              <strong>{{ stage.duration }}</strong>
+            </div>
 
-            <strong class="status-info" :class="statusClass">
-              <span class="status-dot"></span>
-              {{ statusText }}
-            </strong>
+            <div class="info-row">
+              <span>Date début</span>
+              <strong>{{ formatDate(stage.startDate) }}</strong>
+            </div>
+
+            <div class="info-row">
+              <span>Date fin</span>
+              <strong>{{ formatDate(stage.endDate) }}</strong>
+            </div>
+
+            <div class="info-row">
+              <span>Visibilité</span>
+
+              <strong>
+                <span class="material-icons-round small-icon">
+                  {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
+                </span>
+
+                {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
+              </strong>
+            </div>
           </div>
 
-          <div class="info-row">
-            <span>Durée</span>
+          <div class="side-card">
+            <h3>
+              <span class="material-icons-round">person</span>
+              Encadrant
+            </h3>
 
-            <strong>
-              {{ stage.duration }}
-            </strong>
+            <div class="info-row">
+              <span>Nom complet</span>
+              <strong>{{ stage.supervisor?.fullName }}</strong>
+            </div>
+
+            <div class="info-row">
+              <span>Département</span>
+              <strong>{{ stage.supervisor?.department }}</strong>
+            </div>
           </div>
 
-          <div class="info-row">
-            <span>Date début</span>
+          <div class="side-card">
+            <h3>
+              <span class="material-icons-round"> picture_as_pdf </span>
+              Rapport PDF
+            </h3>
 
-            <strong>
-              {{ stage.startDate }}
-            </strong>
+            <a
+              v-if="stage.reportUrl"
+              :href="reportPreviewUrl || undefined"
+              target="_blank"
+              class="report-btn"
+              :class="{ disabled: !reportPreviewUrl }"
+            >
+              <span class="material-icons-round"> open_in_new </span>
+              {{
+                isReportLoading ? "Chargement du rapport..." : "Voir le rapport"
+              }}
+            </a>
+
+            <p v-else class="muted">Aucun rapport ajouté.</p>
           </div>
+        </aside>
+      </div>
 
-          <div class="info-row">
-            <span>Date fin</span>
-
-            <strong>
-              {{ stage.endDate }}
-            </strong>
-          </div>
-
-          <div class="info-row">
-            <span>Visibilité</span>
-
-            <strong>
-              <span class="material-icons-round small-icon">
-                {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
-              </span>
-
-              {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
-            </strong>
-          </div>
-        </div>
-
-        <!-- SUPERVISOR -->
-
-        <div class="side-card">
-          <h3>
-            <span class="material-icons-round">person</span>
-            Encadrant
-          </h3>
-
-          <div class="info-row">
-            <span>Nom complet</span>
-
-            <strong>
-              {{ stage.supervisor.fullName }}
-            </strong>
-          </div>
-
-          <div class="info-row">
-            <span>Département</span>
-
-            <strong>
-              {{ stage.supervisor.department }}
-            </strong>
-          </div>
-        </div>
-
-        <!-- PDF -->
-
-        <div class="side-card">
-          <h3>
-            <span class="material-icons-round"> picture_as_pdf </span>
-
-            Rapport PDF
-          </h3>
-
-          <a
-            v-if="stage.reportUrl"
-            :href="stage.reportUrl"
-            target="_blank"
-            class="report-btn"
-          >
-            <span class="material-icons-round"> open_in_new </span>
-
-            Voir le rapport
-          </a>
-
-          <p v-else class="muted">Aucun rapport ajouté.</p>
-        </div>
-      </aside>
-    </div>
-    <!-- modal de image -->
-    <StageImagesModal
-      v-if="showImagesModal"
-      :images="stage.images"
-      @close="closeImagesModal"
-    />
+      <StageImagesModal
+        v-if="showImagesModal"
+        :images="normalizedImages"
+        @close="closeImagesModal"
+      />
+    </template>
   </section>
 </template>
 
@@ -489,6 +559,11 @@ h1 {
 .edit-btn:hover,
 .report-btn:hover {
   background: #f8f9f8;
+}
+
+.report-btn.disabled {
+  pointer-events: none;
+  opacity: 0.65;
 }
 
 /* LAYOUT */
@@ -852,7 +927,6 @@ h3 .material-icons-round {
 .section-header h2 {
   margin-bottom: 0;
 }
-
 .view-all-btn {
   border: 1px solid #c4cdc1;
   background: #ffffff;
