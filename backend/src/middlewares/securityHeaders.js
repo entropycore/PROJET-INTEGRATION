@@ -2,6 +2,13 @@
 
 const helmet = require('helmet');
 
+const connectSrc = [
+  "'self'",
+  process.env.CLIENT_URL,
+  process.env.S3_PUBLIC_BASE_URL,
+  process.env.MINIO_PUBLIC_URL,
+].filter(Boolean);
+
 // Headers de sécurité configurés manuellement
 // Plus précis que helmet() par défaut
 const securityHeaders = helmet({
@@ -31,7 +38,7 @@ const securityHeaders = helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'"],
       imgSrc: ["'self'", 'data:'],
-      connectSrc: ["'self'", process.env.CLIENT_URL],
+      connectSrc,
       fontSrc: ["'self'"],
       objectSrc: ["'none'"],
       frameAncestors: ["'none'"],
