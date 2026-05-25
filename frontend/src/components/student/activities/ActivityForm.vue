@@ -78,7 +78,7 @@ const submitForm = () => {
     certificate: form.certificate,
     certificateName: form.certificateName,
     certificateUrl: form.certificateUrl,
-  })
+  });
 
   resetForm();
 };
@@ -87,7 +87,6 @@ const submitForm = () => {
 <template>
   <form class="activity-form" @submit.prevent="submitForm">
     <section class="form-card">
-
       <div class="form-grid">
         <div class="form-group">
           <label>Titre de l’activité</label>

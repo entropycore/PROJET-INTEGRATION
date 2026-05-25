@@ -62,7 +62,10 @@ const handleSaveActivity = async (payload) => {
     await updateStudentActivity(route.params.id, buildActivityPayload(payload));
 
     if (payload.certificate instanceof File) {
-      await uploadStudentActivityCertificate(route.params.id, payload.certificate);
+      await uploadStudentActivityCertificate(
+        route.params.id,
+        payload.certificate,
+      );
     }
 
     router.push(`/student/activities/${currentActivity.value.id}`);
@@ -82,9 +85,7 @@ const handleSaveActivity = async (payload) => {
       <div>
         <span class="page-label">PARASCOLAIRE</span>
         <h1>Modifier une activité</h1>
-        <p>
-          Ajustez les informations demandées avant une nouvelle validation.
-        </p>
+        <p>Ajustez les informations demandées avant une nouvelle validation.</p>
       </div>
 
       <button type="button" class="back-btn" @click="goBack">
@@ -116,7 +117,9 @@ const handleSaveActivity = async (payload) => {
     <ActivityForm
       v-else
       :initial-activity="currentActivity"
-      :submit-label="isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'"
+      :submit-label="
+        isSaving ? 'Enregistrement...' : 'Enregistrer les modifications'
+      "
       @save-activity="handleSaveActivity"
       @cancel="goBack"
     />

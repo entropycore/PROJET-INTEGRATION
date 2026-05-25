@@ -56,8 +56,8 @@ const projectForm = ref({
 const canSubmit = computed(() => {
   return Boolean(
     projectForm.value.title.trim() &&
-      projectForm.value.description.trim() &&
-      projectForm.value.validatorId,
+    projectForm.value.description.trim() &&
+    projectForm.value.validatorId,
   );
 });
 
@@ -244,10 +244,7 @@ const selectValidator = (validator) => {
 };
 
 const uploadPendingMedia = async (projectId) => {
-  if (
-    !selectedScreenshots.value.length &&
-    !selectedAttachments.value.length
-  ) {
+  if (!selectedScreenshots.value.length && !selectedAttachments.value.length) {
     return;
   }
 
@@ -405,7 +402,9 @@ onMounted(fetchValidators);
                     <span>
                       <strong>{{ validator.fullName }}</strong>
                       <small>
-                        {{ validator.department || "Département non renseigné" }}
+                        {{
+                          validator.department || "Département non renseigné"
+                        }}
                         <template v-if="validator.specialty">
                           · {{ validator.specialty }}
                         </template>
@@ -597,7 +596,8 @@ onMounted(fetchValidators);
         </section>
 
         <section v-if="!canSubmit" class="edit-warning-card">
-          Complétez le titre, la description et le validateur avant de soumettre le projet.
+          Complétez le titre, la description et le validateur avant de soumettre
+          le projet.
         </section>
       </aside>
     </div>

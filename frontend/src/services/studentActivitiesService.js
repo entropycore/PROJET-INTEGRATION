@@ -25,7 +25,8 @@ export const submitStudentActivityValidation = (activityId) => {
 };
 
 export const uploadStudentActivityCertificate = (activityId, certificate) => {
-  const formData = certificate instanceof FormData ? certificate : new FormData();
+  const formData =
+    certificate instanceof FormData ? certificate : new FormData();
 
   if (!(certificate instanceof FormData) && certificate) {
     formData.append("certificate", certificate);

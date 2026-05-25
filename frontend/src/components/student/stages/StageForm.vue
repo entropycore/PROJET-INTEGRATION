@@ -64,7 +64,9 @@ const hasReport = computed(() => {
 });
 
 const selectedSupervisor = computed(() => {
-  return props.validators.find((validator) => validator.id === form.supervisorId);
+  return props.validators.find(
+    (validator) => validator.id === form.supervisorId,
+  );
 });
 
 const filteredSupervisors = computed(() => {
@@ -414,7 +416,9 @@ const submitButtonLabel = () => {
                     <span>
                       <strong>{{ validator.fullName }}</strong>
                       <small>
-                        {{ validator.department || "Département non renseigné" }}
+                        {{
+                          validator.department || "Département non renseigné"
+                        }}
                         <template v-if="validator.specialty">
                           · {{ validator.specialty }}
                         </template>
@@ -799,22 +803,21 @@ input[readonly] {
   white-space: nowrap;
 }
 
-.delete-media-btn{
-    width: 1.7rem;
-    height: 0rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 999px;
-    background: transparent;
-    color: #7d7c79a1;
-    cursor: pointer;
-    font-size: 1.2rem;
-    font-weight: 100;
-    line-height: 0.7;
+.delete-media-btn {
+  width: 1.7rem;
+  height: 0rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #7d7c79a1;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 100;
+  line-height: 0.7;
 }
-
 
 .tech-tags {
   display: flex;

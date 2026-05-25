@@ -167,7 +167,6 @@ export const sidebarConfig = {
           path: "/professor/notifications",
           icon: "notification.svg",
         },
-        
       ],
     },
   ],
@@ -188,7 +187,6 @@ export const sidebarConfig = {
           path: "/professional/notifications",
           icon: "notification.svg",
         },
-        
       ],
     },
   ],

@@ -305,10 +305,7 @@ const removeAttachment = async (id) => {
 };
 
 const uploadPendingMedia = async () => {
-  if (
-    !selectedScreenshots.value.length &&
-    !selectedAttachments.value.length
-  ) {
+  if (!selectedScreenshots.value.length && !selectedAttachments.value.length) {
     return;
   }
 
@@ -463,7 +460,9 @@ onMounted(async () => {
                       <span>
                         <strong>{{ validator.fullName }}</strong>
                         <small>
-                          {{ validator.department || "Département non renseigné" }}
+                          {{
+                            validator.department || "Département non renseigné"
+                          }}
                           <template v-if="validator.specialty">
                             · {{ validator.specialty }}
                           </template>
