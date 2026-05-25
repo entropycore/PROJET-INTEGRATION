@@ -86,16 +86,18 @@ const fetchPortfolio = async () => {
 
     config.includedItems.projects =
       includedItems.projects || portfolioData.value.projects.map((p) => p.id);
-    config.includedItems.internships = includedItems.internships || portfolioData.value.internships.map(
-      (s) => s.id,
-    );
-    config.includedItems.activities = includedItems.activities || portfolioData.value.activities.map(
-      (a) => a.id,
-    );
+    config.includedItems.internships =
+      includedItems.internships ||
+      portfolioData.value.internships.map((s) => s.id);
+    config.includedItems.activities =
+      includedItems.activities ||
+      portfolioData.value.activities.map((a) => a.id);
     config.includedItems.recommendationLetters =
-      includedItems.recommendationLetters || portfolioData.value.recommendationLetters.map((l) => l.id);
+      includedItems.recommendationLetters ||
+      portfolioData.value.recommendationLetters.map((l) => l.id);
     config.includedItems.recommendations =
-      includedItems.recommendations || portfolioData.value.recommendations.map((r) => r.id);
+      includedItems.recommendations ||
+      portfolioData.value.recommendations.map((r) => r.id);
     isGenerated.value = portfolioData.value.portfolio?.status === "ACTIVE";
   } finally {
     isLoading.value = false;
@@ -194,7 +196,10 @@ onMounted(fetchPortfolio);
     <div class="page-header">
       <div>
         <h1>Génération du portfolio</h1>
-        <p>Choisissez les éléments validés à afficher dans votre portfolio public.</p>
+        <p>
+          Choisissez les éléments validés à afficher dans votre portfolio
+          public.
+        </p>
       </div>
 
       <div class="header-actions">
@@ -242,11 +247,11 @@ onMounted(fetchPortfolio);
         <span class="material-icons-round">info</span>
         <p>
           Les informations principales comme l’email, le téléphone, LinkedIn,
-          GitHub et la biographie proviennent de votre profil. Pour les modifier,
-          passez par la page
+          GitHub et la biographie proviennent de votre profil. Pour les
+          modifier, passez par la page
           <RouterLink to="/student/profile" class="profile-link">
-            Mon profil
-          </RouterLink>.
+            Mon profil </RouterLink
+          >.
         </p>
       </div>
 
@@ -279,16 +284,16 @@ onMounted(fetchPortfolio);
             <p v-if="hasProfessionalGoal">
               Pour modifier votre objectif professionnel, rendez-vous dans
               <RouterLink to="/student/profile" class="profile-link">
-                votre profil
-              </RouterLink>.
+                votre profil </RouterLink
+              >.
             </p>
 
             <p v-else>
-              Aucun objectif professionnel n’est encore défini. Veuillez le choisir
-              dans
+              Aucun objectif professionnel n’est encore défini. Veuillez le
+              choisir dans
               <RouterLink to="/student/profile" class="profile-link">
-                votre profil
-              </RouterLink>.
+                votre profil </RouterLink
+              >.
             </p>
           </div>
         </div>
@@ -297,7 +302,7 @@ onMounted(fetchPortfolio);
           <h3 class="section-title">
             <span class="material-icons-round">tune</span>
             Options générales
-            </h3>
+          </h3>
 
           <label class="switch-row">
             <input v-model="config.includeSkills" type="checkbox" />
@@ -330,11 +335,12 @@ onMounted(fetchPortfolio);
         <div class="theme-section-header">
           <div>
             <h3 class="section-title">
-            <span class="material-icons-round">palette</span>
-            Choisir le thème
+              <span class="material-icons-round">palette</span>
+              Choisir le thème
             </h3>
             <p>
-              Sélectionnez le style visuel qui correspond le mieux à votre profil.
+              Sélectionnez le style visuel qui correspond le mieux à votre
+              profil.
             </p>
           </div>
         </div>
@@ -365,7 +371,8 @@ onMounted(fetchPortfolio);
 
         <div class="theme-note">
           <span class="material-icons-round">info</span>
-          Vous pourrez prévisualiser le rendu complet après génération de votre portfolio.
+          Vous pourrez prévisualiser le rendu complet après génération de votre
+          portfolio.
         </div>
       </div>
 
@@ -374,7 +381,7 @@ onMounted(fetchPortfolio);
           <h3 class="section-title">
             <span class="material-icons-round">folder_open</span>
             Projets validés
-            </h3>
+          </h3>
 
           <div
             v-for="project in portfolioData.projects"
@@ -399,7 +406,7 @@ onMounted(fetchPortfolio);
           <h3 class="section-title">
             <span class="material-icons-round">business_center</span>
             Stages validés
-            </h3>
+          </h3>
 
           <div
             v-for="stage in portfolioData.internships"
@@ -426,7 +433,7 @@ onMounted(fetchPortfolio);
           <h3 class="section-title">
             <span class="material-icons-round">workspace_premium</span>
             Activités certifiées
-            </h3>
+          </h3>
 
           <div
             v-for="activity in portfolioData.activities"
@@ -451,7 +458,7 @@ onMounted(fetchPortfolio);
           <h3 class="section-title">
             <span class="material-icons-round">recommend</span>
             Lettres & recommandations
-            </h3>
+          </h3>
 
           <div
             v-for="letter in portfolioData.recommendationLetters"
@@ -737,7 +744,6 @@ onMounted(fetchPortfolio);
 .theme-info {
   padding: 0 0.15rem 0.15rem;
 }
-
 
 .theme-info strong {
   display: block;

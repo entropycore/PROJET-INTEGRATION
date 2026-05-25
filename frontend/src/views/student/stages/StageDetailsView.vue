@@ -392,7 +392,6 @@ const goToEdit = () => {
                 {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
               </strong>
             </div>
-
           </div>
 
           <div class="side-card">
@@ -426,7 +425,9 @@ const goToEdit = () => {
               :class="{ disabled: !reportPreviewUrl }"
             >
               <span class="material-icons-round"> open_in_new </span>
-              {{ isReportLoading ? "Chargement du rapport..." : "Voir le rapport" }}
+              {{
+                isReportLoading ? "Chargement du rapport..." : "Voir le rapport"
+              }}
             </a>
 
             <p v-else class="muted">Aucun rapport ajouté.</p>
