@@ -27,19 +27,27 @@ const studentName = computed(() => {
 });
 
 const recentNotifications = computed(() => {
-  return dashboard.value?.notifications?.slice(0, 4) || [];
+  return Array.isArray(dashboard.value?.notifications)
+    ? dashboard.value.notifications.slice(0, 4)
+    : [];
 });
 
 const recentProjects = computed(() => {
-  return dashboard.value?.recentProjects?.slice(0, 4) || [];
+  return Array.isArray(dashboard.value?.recentProjects)
+    ? dashboard.value.recentProjects.slice(0, 4)
+    : [];
 });
 
 const recentBadges = computed(() => {
-  return dashboard.value?.badges?.slice(0, 5) || [];
+  return Array.isArray(dashboard.value?.badges)
+    ? dashboard.value.badges.slice(0, 5)
+    : [];
 });
 
 const credibilityDetails = computed(() => {
-  return dashboard.value?.credibility?.details || [];
+  return Array.isArray(dashboard.value?.credibility?.details)
+    ? dashboard.value.credibility.details
+    : [];
 });
 
 const animateValue = (from, to, duration, onUpdate) => {
@@ -60,12 +68,15 @@ const animateValue = (from, to, duration, onUpdate) => {
 };
 
 const initAnimatedStats = () => {
+  const stats = dashboard.value?.stats || {};
+  const credibility = dashboard.value?.credibility || {};
+
   animatedStats.value = [
     {
       id: 1,
       label: "Projets validés",
       value: 0,
-      target: dashboard.value.stats.validatedProjects,
+      target: stats.validatedProjects || 0,
       icon: "folder_check",
       subtitle: "Expériences académiques validées",
     },
@@ -73,15 +84,15 @@ const initAnimatedStats = () => {
       id: 2,
       label: "Score crédibilité",
       value: 0,
-      target: dashboard.value.stats.credibilityScore,
+      target: stats.credibilityScore || 0,
       icon: "verified",
-      subtitle: dashboard.value.credibility.label,
+      subtitle: credibility.label || "",
     },
     {
       id: 3,
       label: "Badges obtenus",
       value: 0,
-      target: dashboard.value.stats.badgesCount,
+      target: stats.badgesCount || 0,
       icon: "workspace_premium",
       subtitle: "Badges académiques gagnés",
     },
@@ -89,9 +100,9 @@ const initAnimatedStats = () => {
       id: 4,
       label: "Recommandations",
       value: 0,
-      target: dashboard.value.stats.recommendationsCount,
+      target: stats.recommendationsCount || 0,
       icon: "thumb_up",
-      subtitle: `${dashboard.value.stats.pendingRecommendations} en attente`,
+      subtitle: `${stats.pendingRecommendations || 0} en attente`,
     },
   ];
 
@@ -104,7 +115,7 @@ const initAnimatedStats = () => {
   });
 
   setTimeout(() => {
-    animateValue(0, dashboard.value.credibility.score, 1100, (value) => {
+    animateValue(0, credibility.score || 0, 1100, (value) => {
       displayScore.value = value;
       scoreProgress.value = value;
     });
@@ -135,6 +146,16 @@ const getNotificationIconClass = (type) => {
   return classes[type] || "info";
 };
 
+const formatDate = (date) => {
+  if (!date) return "";
+
+  return new Date(date).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
 const goToNotifications = () => {
   router.push("/student/notifications");
 };
@@ -148,9 +169,12 @@ const goToBadges = () => {
 };
 
 onMounted(async () => {
-  dashboard.value = await getStudentDashboardData();
-  initAnimatedStats();
-  isLoading.value = false;
+  try {
+    dashboard.value = await getStudentDashboardData();
+    initAnimatedStats();
+  } finally {
+    isLoading.value = false;
+  }
 });
 </script>
 
@@ -207,7 +231,7 @@ onMounted(async () => {
                   <h3>{{ project.title }}</h3>
 
                   <p>
-                    {{ project.technologies.join(" · ") }}
+                    {{ (project.technologies || []).join(" · ") }}
                   </p>
                 </div>
 
@@ -246,7 +270,7 @@ onMounted(async () => {
                 </div>
 
                 <strong>{{ badge.name }}</strong>
-                <small>{{ badge.date }}</small>
+                <small>{{ badge.obtainedAt || badge.date }}</small>
               </div>
             </div>
           </article>
@@ -272,7 +296,7 @@ onMounted(async () => {
 
               <div class="ring-center">
                 <strong>{{ displayScore }}</strong>
-                <span>{{ dashboard.credibility.label }}</span>
+                <span>{{ dashboard.credibility?.label }}</span>
               </div>
             </div>
 
@@ -331,7 +355,7 @@ onMounted(async () => {
                 <div>
                   <h3>{{ notification.title }}</h3>
                   <p>{{ notification.message }}</p>
-                  <small>{{ notification.createdAt }}</small>
+                  <small>{{ formatDate(notification.createdAt) }}</small>
                 </div>
               </div>
             </div>

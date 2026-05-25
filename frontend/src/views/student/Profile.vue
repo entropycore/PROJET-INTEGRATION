@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from "vue";
+import { useAuthStore } from "../../stores/auth";
 import {
   getStudentProfile,
   updateStudentProfile,
@@ -16,6 +17,7 @@ import {
 const profile = ref(null);
 const academicPaths = ref([]);
 const softSkills = ref([]);
+const authStore = useAuthStore();
 const careerGoal = ref("");
 const isLoading = ref(false);
 const errorMessage = ref("");
@@ -49,6 +51,48 @@ const newPath = ref({
   endDate: "",
 });
 
+const unwrapData = (response) => response?.data ?? response ?? null;
+
+const normalizeSoftSkills = (payload) => {
+  const items = Array.isArray(payload)
+    ? payload
+    : payload?.softSkills || payload?.items || [];
+
+  return items
+    .map((skill) => {
+      if (typeof skill === "string") {
+        return { id: skill, name: skill };
+      }
+
+      return {
+        id: skill.id || skill.name || skill.skill?.id,
+        name: skill.name || skill.label || skill.skill?.name || "",
+      };
+    })
+    .filter((skill) => skill.name);
+};
+
+const formatProfileDate = (date) => {
+  if (!date) return "";
+
+  const value = new Date(date);
+  if (Number.isNaN(value.getTime())) return "";
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(value);
+};
+
+const formatDateRange = (startDate, endDate) => {
+  const start = formatProfileDate(startDate) || "Date non renseignée";
+  const end = formatProfileDate(endDate) || "Présent";
+
+  return `${start} — ${end}`;
+};
+
 const loadAll = async () => {
   isLoading.value = true;
   errorMessage.value = "";
@@ -59,19 +103,20 @@ const loadAll = async () => {
       getSoftSkills(),
       getCareerGoal(),
     ]);
-    profile.value = profileRes.data;
-    academicPaths.value = pathsRes.data;
-    softSkills.value = skillsRes.data;
-    careerGoal.value = goalRes.data?.careerGoal || "";
+    profile.value = unwrapData(profileRes);
+    academicPaths.value = unwrapData(pathsRes) || [];
+    softSkills.value = normalizeSoftSkills(unwrapData(skillsRes));
+    careerGoal.value = unwrapData(goalRes)?.careerGoal || "";
   } catch (err) {
+    const user = authStore.user || {};
     profile.value = {
-      firstName: "Mohamed",
-      lastName: "Zaaboul",
-      email: "mohamed.zaaboul@ensa.ac.ma",
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      email: user.email || "",
       phone: "",
-      field: "Génie Informatique",
-      level: "S2",
-      city: "Tanger",
+      field: "",
+      level: "",
+      city: "",
       bio: "",
       linkedinUrl: "",
     };
@@ -242,6 +287,10 @@ onMounted(loadAll);
                 </tr>
               </tbody>
             </table>
+            <div v-if="profile.bio" class="profile-bio">
+              <h3 class="card-title">Bio</h3>
+              <p>{{ profile.bio }}</p>
+            </div>
           </div>
 
           <div v-else>
@@ -307,7 +356,7 @@ onMounted(loadAll);
 
           <div class="content-card">
             <h3 class="card-title">Compétences comportementales</h3>
-            <div class="skills-row">
+            <div v-if="softSkills.length" class="skills-row">
               <span
                 v-for="skill in softSkills"
                 :key="skill.id"
@@ -320,6 +369,9 @@ onMounted(loadAll);
                 >
                 {{ skill.name }}
               </span>
+            </div>
+            <div v-else class="soft-skills-empty">
+              Aucune compétence comportementale ajoutée.
             </div>
             <div v-if="showAddSkill" class="flex-gap mt-12">
               <input
@@ -423,7 +475,7 @@ onMounted(loadAll);
             class="timeline-item"
           >
             <div class="t-date">
-              {{ path.startDate }} — {{ path.endDate || "Présent" }}
+              {{ formatDateRange(path.startDate, path.endDate) }}
             </div>
             <div class="t-title">{{ path.degree }}</div>
             <div class="t-desc">
@@ -557,6 +609,19 @@ onMounted(loadAll);
   color: #2f575d;
 }
 
+.profile-bio {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #dee1dd;
+}
+
+.profile-bio p {
+  margin: 0;
+  color: #5f777b;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
 .chips-row {
   display: flex;
   flex-wrap: wrap;
@@ -606,6 +671,14 @@ onMounted(loadAll);
 }
 .skill-badge:hover {
   border-color: #6d9197;
+}
+.soft-skills-empty {
+  padding: 12px;
+  border: 1px dashed #c4cdc1;
+  border-radius: 8px;
+  background: #f8f9f8;
+  color: #99aead;
+  font-size: 13px;
 }
 .skill-input {
   flex: 1;
