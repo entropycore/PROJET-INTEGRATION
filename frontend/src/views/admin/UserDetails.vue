@@ -217,7 +217,7 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <section class="admin-user-details-page">
+  <section class="admin-user-details-page admin-user-view-page">
     <button class="back-btn" type="button" @click="goBack">← Retour</button>
 
     <div v-if="loading" class="details-state">Chargement...</div>
@@ -235,7 +235,6 @@ const handleDelete = async () => {
           </div>
 
           <div>
-            <p class="admin-kicker">{{ roleTitle }}</p>
             <h1>{{ fullName }}</h1>
             <p class="details-email">{{ user.email }}</p>
           </div>
@@ -267,7 +266,10 @@ const handleDelete = async () => {
 
       <div class="details-grid">
         <section class="details-card">
-          <h2>Informations générales</h2>
+          <h2>
+            <span class="material-icons-round">person</span>
+            Informations générales
+          </h2>
 
           <div class="form-grid">
             <label>
@@ -315,7 +317,10 @@ const handleDelete = async () => {
         </section>
 
         <section class="details-card">
-          <h2>Détails du rôle</h2>
+          <h2>
+            <span class="material-icons-round">badge</span>
+            Détails du rôle
+          </h2>
 
           <div v-if="user.role === 'STUDENT'" class="form-grid">
             <label
@@ -390,7 +395,10 @@ const handleDelete = async () => {
 
         <div class="details-two-columns">
           <section class="details-card security-card">
-            <h2>Mot de passe</h2>
+            <h2>
+              <span class="material-icons-round">lock</span>
+              Mot de passe
+            </h2>
 
             <p class="security-text">
               Générer un nouveau mot de passe temporaire pour cet utilisateur.
@@ -406,7 +414,10 @@ const handleDelete = async () => {
           </section>
 
           <section class="details-card meta-card">
-            <h2>Métadonnées</h2>
+            <h2>
+              <span class="material-icons-round">info</span>
+              Métadonnées
+            </h2>
 
             <div class="meta-row">
               <span>Date de création</span>

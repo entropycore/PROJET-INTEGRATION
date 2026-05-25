@@ -1,10 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { getAdminDashboard } from "../../services/adminService";
 import "../../assets/styles/admin-dashboard.css";
 
 const loading = ref(false);
 const error = ref(null);
+const router = useRouter();
 
 const dashboardData = ref({
   summaryCards: {},
@@ -61,80 +63,173 @@ const stats = computed(() => {
       value: cards.totalUsers?.value ?? 0,
       label: "UTILISATEURS",
       detail: cards.totalUsers?.variation,
-      icon: "usersg.svg",
+      icon: "groups",
     },
     {
       value: cards.totalStudents?.value ?? 0,
       label: "ÉTUDIANTS",
       detail: cards.totalStudents?.variation,
-      icon: "student.svg",
+      icon: "school",
     },
     {
       value: cards.totalProfessors?.value ?? 0,
       label: "PROFESSEURS",
       detail: cards.totalProfessors?.variation,
-      icon: "profile.svg",
+      icon: "person",
     },
     {
       value: cards.pendingRequests?.value ?? 0,
       label: "Demandes En Attente",
       detail: cards.pendingRequests?.variation,
-      icon: "attente.svg",
+      icon: "schedule",
       warning: true,
     },
   ];
 });
-const getIcon = (icon) => {
-  return new URL(`../../assets/icons/${icon}`, import.meta.url).href;
+/* ======================
+   RECENT ACTIVITY
+====================== */
+const activityRouteByType = {
+  ACCESS_REQUEST: "/admin/users?role=PROFESSIONAL&status=PENDING",
+  CERTIFICATE_VALIDATION: "/admin/validations",
+  PROJECT: "/admin/validations",
+  INTERNSHIP: "/admin/validations",
+  ACTIVITY: "/admin/validations",
+  RECOMMENDATION_LETTER_VALIDATION: "/admin/validations",
+  COMMENT_VALIDATION: "/admin/validations",
+  RECOMMENDATION_VALIDATION: "/admin/validations",
+  REPORT: "/admin/reports",
 };
 
-/* RECENT REQUESTS*/
-/*const requests = computed(() => {
-  return (dashboardData.value.recentRequests || []).map((req) => ({
-    id: req.id,
-    initial: req.requesterName?.charAt(0)?.toUpperCase() || '?',
-    name: req.requesterName,
-    email: req.email,
-    organization: req.organization,
-    type: req.label,
-    createdAt: req.createdAt,
-    tone: req.type === 'ACCESS_REQUEST' ? 'orange' : 'green'
-  }))
-}) */
-const requests = computed(() => [
-  {
-    id: 1,
-    initial: "S",
-    name: "Sara Bensaid",
-    email: "sara.bensaid@accenture.com",
-    organization: "Accenture Maroc",
-    type: "Demande d'accès",
-    createdAt: "2026-05-02T13:50:00.000Z",
-    tone: "orange",
-    raw: {
-      phone: "0600000000",
-      company: "Accenture Maroc",
-      position: "Recruiter",
-      sector: "IT",
-      status: "PENDING",
-      bio: "Responsable recrutement.",
-    },
-  },
-  {
-    id: 2,
-    initial: "T",
-    name: "Tazi Imane",
-    email: "i.tazi@ensa.tanger.ma",
-    organization: null,
-    type: "Certificate validation",
-    createdAt: "2026-05-02T13:36:00.000Z",
-    tone: "green",
-    raw: {
-      targetType: "CERTIFICATE",
-      status: "PENDING",
-    },
-  },
-]);
+const activityTypeAliases = {
+  CERTIFICATE: "CERTIFICATE_VALIDATION",
+  PROJECT_VALIDATION: "PROJECT",
+  INTERNSHIP_VALIDATION: "INTERNSHIP",
+  ACTIVITY_VALIDATION: "ACTIVITY",
+  "CERTIFICATE VALIDATION": "CERTIFICATE_VALIDATION",
+  "PROJECT VALIDATION": "PROJECT",
+  "INTERNSHIP VALIDATION": "INTERNSHIP",
+  REPORT: "REPORT",
+  SIGNALEMENT: "REPORT",
+};
+
+const activityLabelByType = {
+  ACCESS_REQUEST: "Demande d'accès",
+  CERTIFICATE_VALIDATION: "Validation certificat",
+  PROJECT: "Validation projet",
+  INTERNSHIP: "Validation stage",
+  ACTIVITY: "Validation activité",
+  RECOMMENDATION_LETTER_VALIDATION: "Validation lettre",
+  COMMENT_VALIDATION: "Validation commentaire",
+  RECOMMENDATION_VALIDATION: "Validation recommandation",
+  REPORT: "Signalement",
+};
+
+const activityIconByType = {
+  ACCESS_REQUEST: "person_add",
+  CERTIFICATE_VALIDATION: "workspace_premium",
+  PROJECT: "folder_open",
+  INTERNSHIP: "business_center",
+  ACTIVITY: "verified",
+  RECOMMENDATION_LETTER_VALIDATION: "history_edu",
+  COMMENT_VALIDATION: "forum",
+  RECOMMENDATION_VALIDATION: "recommend",
+  REPORT: "report",
+};
+
+const activityToneByType = {
+  ACCESS_REQUEST: "orange",
+  CERTIFICATE_VALIDATION: "green",
+  PROJECT: "green",
+  INTERNSHIP: "green",
+  ACTIVITY: "green",
+  RECOMMENDATION_LETTER_VALIDATION: "green",
+  COMMENT_VALIDATION: "green",
+  RECOMMENDATION_VALIDATION: "green",
+  REPORT: "red",
+};
+
+const normalizeActivityType = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, "_")
+    .toUpperCase();
+
+const getActivityType = (activity = {}) => {
+  const normalizedType = normalizeActivityType(activity.type);
+
+  if (activityRouteByType[normalizedType]) return normalizedType;
+  if (activityTypeAliases[normalizedType]) return activityTypeAliases[normalizedType];
+
+  const normalizedRelatedType = normalizeActivityType(
+    activity.relatedType || activity.raw?.relatedType || activity.raw?.type,
+  );
+
+  if (activityRouteByType[normalizedRelatedType]) return normalizedRelatedType;
+  if (activityTypeAliases[normalizedRelatedType]) {
+    return activityTypeAliases[normalizedRelatedType];
+  }
+
+  const normalizedTargetType = normalizeActivityType(
+    activity.targetType || activity.raw?.targetType,
+  );
+
+  if (activityRouteByType[normalizedTargetType]) return normalizedTargetType;
+  if (activityTypeAliases[normalizedTargetType]) {
+    return activityTypeAliases[normalizedTargetType];
+  }
+
+  return normalizedType || normalizedRelatedType || normalizedTargetType || "SYSTEM";
+};
+
+const getActivityLabel = (activity) => {
+  const type = getActivityType(activity);
+
+  return activityLabelByType[type] || activity.label || "Activité";
+};
+
+const getActivityIcon = (activity) => {
+  return activityIconByType[getActivityType(activity)] || "notifications";
+};
+
+const getActivityTone = (activity) => {
+  return activityToneByType[getActivityType(activity)] || activity.tone || "blue";
+};
+
+const getActivityRoute = (activity) => {
+  return activityRouteByType[getActivityType(activity)] || "/admin/notifications";
+};
+
+const mapRecentActivity = (activity) => {
+  const name = activity.requesterName || activity.name || "Utilisateur inconnu";
+  const organization =
+    activity.organization ||
+    activity.company ||
+    activity.raw?.company ||
+    activity.raw?.professional?.company ||
+    null;
+
+  return {
+    ...activity,
+    initial: name.charAt(0).toUpperCase() || "?",
+    name,
+    email: activity.email || "Email non disponible",
+    organization,
+    label: getActivityLabel(activity),
+    icon: getActivityIcon(activity),
+    tone: activity.tone || getActivityTone(activity),
+    createdAt: activity.createdAt,
+    raw: activity.raw || {},
+  };
+};
+
+const requests = computed(() => {
+  return (dashboardData.value.recentRequests || []).map(mapRecentActivity);
+});
+
+const openActivity = (activity) => {
+  router.push(getActivityRoute(activity));
+};
 
 /* ======================
    ACTIONS URGENTES
@@ -146,40 +241,27 @@ const actions = computed(() => {
     {
       title: `${urgent.pendingAccessRequests ?? 0} demandes en attente`,
       text: "pour rejoindre la plateforme",
-      path: "/admin/users?role=PROFESSIONAL",
+      path: "/admin/users?role=PROFESSIONAL&status=PENDING",
       tone: "orange",
+      icon: "person_add",
     },
     {
       title: `${urgent.pendingValidations ?? 0} validations en attente`,
       text: "Certifications et activités",
       path: "/admin/validations",
-      tone: "blue",
+      tone: "green",
+      icon: "verified",
     },
     {
       title: `${urgent.reports ?? 0} signalements`,
       text: "signalement de contenu",
       path: "/admin/reports",
       tone: "red",
+      icon: "report",
     },
   ];
 });
 
-/* ======================
-   ACTIONS *====================== */
-const selectedRequest = ref(null);
-
-const openRequestModal = (request) => {
-  selectedRequest.value = request;
-};
-
-const closeRequestModal = () => {
-  selectedRequest.value = null;
-};
-
-const approveRequest = (request) => {
-  console.log("Demande acceptée:", request);
-  alert(`Demande acceptée pour ${request.name}`);
-};
 </script>
 
 <template>
@@ -206,9 +288,7 @@ const approveRequest = (request) => {
           class="stat-card"
           :class="{ warning: stat.warning }"
         >
-          <div class="stat-icon">
-            <img :src="getIcon(stat.icon)" />
-          </div>
+          <span class="stat-icon material-icons-round">{{ stat.icon }}</span>
           <div class="stat-value">{{ stat.value }}</div>
           <div class="stat-label">{{ stat.label }}</div>
           <div v-if="stat.detail" class="stat-detail">
@@ -224,71 +304,92 @@ const approveRequest = (request) => {
         <!-- LEFT -->
         <div class="recent-requests">
           <div class="card-header">
-            <h3>Recent Requests :</h3>
+            <div class="card-title-group">
+              <div class="card-title-row">
+                <span class="section-title-icon material-icons-round">history</span>
+                <h3>Activit&eacute; r&eacute;cente</h3>
+              </div>
+              <p>Les derni&egrave;res demandes, validations et signalements sur la plateforme.</p>
+            </div>
+
+            <RouterLink to="/admin/notifications" class="card-header-link">
+              Voir toute l'activit&eacute;
+              <span class="material-icons-round">arrow_forward</span>
+            </RouterLink>
           </div>
 
-          <div class="request-list">
+          <div v-if="requests.length" class="request-list">
             <div v-for="req in requests" :key="req.id" class="request-item">
               <div class="avatar">
                 {{ req.initial }}
               </div>
 
               <div class="request-info">
-                <div class="request-top-row">
-                  <span class="request-name">{{ req.name }}</span>
-                  <span v-if="req.organization" class="request-org">
-                    {{ req.organization }}
-                  </span>
-                </div>
+                <span class="request-name">{{ req.name }}</span>
+                <span v-if="req.organization" class="request-org">
+                  {{ req.organization }}
+                </span>
 
                 <p class="request-email">{{ req.email }}</p>
-                <small class="request-time">{{
-                  formatLastActive(req.createdAt)
-                }}</small>
               </div>
 
+              <small class="request-time">{{
+                formatLastActive(req.createdAt)
+              }}</small>
+
               <div class="request-actions">
-                <button class="btn-light" @click="openRequestModal(req)">
+                <span :class="['request-type', req.tone]">
+                  <span class="material-icons-round">
+                    {{ req.icon }}
+                  </span>
+                  {{ req.label }}
+                </span>
+
+                <button class="btn-light" @click="openActivity(req)">
+                  <span class="material-icons-round">visibility</span>
                   Voir
                 </button>
-                <!-- je doit ajouter la connexion avec backend pour voir les boites modales et accepeter l´user ou valider la cerficat-->
-                <!-- ==
-           <button
-            v-if="req.tone === 'orange'"
-            class="btn-accept"
-            @click="approveRequest(req)">Accepter
-          </button>== -->
-
-                <span :class="['request-type', req.tone]">
-                  {{ req.type }}
-                </span>
               </div>
             </div>
           </div>
 
-          <RouterLink to="/admin/notifications" class="view-all">
-            voir tous les notifications
-          </RouterLink>
+          <p v-else class="request-empty">
+            Aucune activit&eacute; r&eacute;cente pour le moment.
+          </p>
         </div>
 
         <!-- RIGHT -->
         <div class="urgent-actions">
-          <h3>Actions urgentes</h3>
-
-          <div
-            v-for="(action, i) in actions"
-            :key="i"
-            class="urgent-item"
-            :class="action.tone"
-          >
-            <div>
-              <p class="title">{{ action.title }}</p>
-              <p class="desc">{{ action.text }}</p>
+          <div class="card-header urgent-header">
+            <div class="card-title-group">
+              <div class="card-title-row">
+                <span class="section-title-icon material-icons-round">warning_amber</span>
+                <h3>Actions urgentes</h3>
+              </div>
+              <p>Les &eacute;l&eacute;ments n&eacute;cessitant votre attention.</p>
             </div>
+          </div>
 
-            <RouterLink :to="action.path" class="btn-light">
-              consulter
-            </RouterLink>
+          <div class="urgent-list">
+            <div
+              v-for="(action, i) in actions"
+              :key="i"
+              class="urgent-item"
+              :class="action.tone"
+            >
+              <div class="urgent-icon">
+                <span class="material-icons-round">{{ action.icon }}</span>
+              </div>
+
+              <div class="urgent-content">
+                <p class="title">{{ action.title }}</p>
+                <p class="desc">{{ action.text }}</p>
+              </div>
+
+              <RouterLink :to="action.path" class="urgent-link">
+                Consulter
+              </RouterLink>
+            </div>
           </div>
         </div>
       </div>

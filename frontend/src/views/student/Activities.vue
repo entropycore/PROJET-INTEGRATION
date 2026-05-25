@@ -1,67 +1,115 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import {
-  activities,
-  addActivity,
-  deleteActivity,
-  submitActivityValidation,
-} from '@/mockData/studentActivities.store'
+  deleteStudentActivity,
+  getStudentActivities,
+  submitStudentActivityValidation,
+} from "@/services/studentActivitiesService";
 
-import ActivityCard from '@/components/student/stages/activities/ActivityCard.vue'
-import ActivityFilters from '@/components/student/stages/activities/ActivityFilters.vue'
-import ActivityForm from '@/components/student/stages/activities/ActivityForm.vue'
+import ActivityCard from "@/components/student/activities/ActivityCard.vue";
+import ActivityFilters from "@/components/student/activities/ActivityFilters.vue";
+import {
+  canSubmitActivity,
+  hasActivityCertificate,
+} from "@/components/student/activities/activityRules";
 
-const search = ref('')
-const selectedStatus = ref('ALL')
-const selectedType = ref('ALL')
-const showForm = ref(false)
+const router = useRouter();
+
+const activities = ref([]);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const search = ref("");
+const selectedStatus = ref("ALL");
+const selectedType = ref("ALL");
+const submitMessage = ref("");
+
+const extractData = (response) => response.data?.data || response.data || [];
+
+const fetchActivities = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await getStudentActivities();
+    activities.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement activités :", error);
+    activities.value = [];
+    errorMessage.value = "Impossible de charger les activités.";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(fetchActivities);
 
 const filteredActivities = computed(() => {
   return activities.value.filter((activity) => {
-    const value = search.value.toLowerCase()
+    const value = search.value.toLowerCase();
 
     const matchesSearch =
       activity.title.toLowerCase().includes(value) ||
       activity.organization.toLowerCase().includes(value) ||
-      activity.description.toLowerCase().includes(value)
+      activity.description.toLowerCase().includes(value);
 
     const matchesStatus =
-      selectedStatus.value === 'ALL' ||
-      activity.validationStatus === selectedStatus.value
+      selectedStatus.value === "ALL" ||
+      activity.validationStatus === selectedStatus.value;
 
     const matchesType =
-      selectedType.value === 'ALL' ||
-      activity.type === selectedType.value
+      selectedType.value === "ALL" || activity.type === selectedType.value;
 
-    return matchesSearch && matchesStatus && matchesType
-  })
-})
+    return matchesSearch && matchesStatus && matchesType;
+  });
+});
 
-const handleAddActivity = (payload) => {
-  addActivity({
-    id: Date.now(),
-    ...payload,
-    validationStatus: 'DRAFT',
-    createdAt: new Date().toISOString().split('T')[0],
-  })
+const goToCreate = () => {
+  router.push("/student/activities/create");
+};
 
-  showForm.value = false
-}
-
-const handleDeleteActivity = (activityId) => {
+const handleDeleteActivity = async (activityId) => {
   const confirmDelete = window.confirm(
-    'Voulez-vous vraiment supprimer cette activité ?',
-  )
+    "Voulez-vous vraiment supprimer cette activité ?",
+  );
 
-  if (!confirmDelete) return
+  if (!confirmDelete) return;
 
-  deleteActivity(activityId)
-}
+  try {
+    await deleteStudentActivity(activityId);
+    await fetchActivities();
+  } catch (error) {
+    console.error("Erreur suppression activité :", error);
+    errorMessage.value = "Impossible de supprimer cette activité.";
+  }
+};
 
-const handleSubmitValidation = (activityId) => {
-  submitActivityValidation(activityId)
-}
+const handleSubmitValidation = async (activityId) => {
+  const activity = activities.value.find(
+    (item) => String(item.id) === String(activityId),
+  );
+
+  if (!activity) return;
+
+  if (!canSubmitActivity(activity)) {
+    submitMessage.value = hasActivityCertificate(activity)
+      ? "Seules les activités en brouillon peuvent être soumises."
+      : "Veuillez ajouter une attestation avant de soumettre cette activité.";
+    return;
+  }
+
+  try {
+    await submitStudentActivityValidation(activityId);
+    await fetchActivities();
+    submitMessage.value = "Activité soumise à validation.";
+  } catch (error) {
+    console.error("Erreur soumission activité :", error);
+    submitMessage.value =
+      error?.response?.data?.message ||
+      "Impossible de soumettre cette activité.";
+  }
+};
 </script>
 
 <template>
@@ -73,19 +121,11 @@ const handleSubmitValidation = (activityId) => {
         <p>Ajoutez vos engagements avec une attestation de participation.</p>
       </div>
 
-      <button class="add-btn" @click="showForm = !showForm">
-        <span class="material-icons-round">
-          {{ showForm ? 'close' : 'add' }}
-        </span>
-        {{ showForm ? 'Fermer' : 'Ajouter une activité' }}
+      <button class="add-btn" @click="goToCreate">
+        <span class="material-icons-round">add</span>
+        Ajouter une activité
       </button>
     </div>
-
-    <ActivityForm
-      v-if="showForm"
-      @save-activity="handleAddActivity"
-      @cancel="showForm = false"
-    />
 
     <ActivityFilters
       v-model:search="search"
@@ -93,7 +133,21 @@ const handleSubmitValidation = (activityId) => {
       v-model:type="selectedType"
     />
 
-    <div v-if="filteredActivities.length" class="activities-grid">
+    <p v-if="submitMessage" class="submit-message">
+      {{ submitMessage }}
+    </p>
+
+    <p v-if="errorMessage" class="submit-message error">
+      {{ errorMessage }}
+    </p>
+
+    <div v-if="isLoading" class="empty-state">
+      <span class="material-icons-round">hourglass_top</span>
+      <h3>Chargement...</h3>
+      <p>Récupération de vos activités.</p>
+    </div>
+
+    <div v-else-if="filteredActivities.length" class="activities-grid">
       <ActivityCard
         v-for="activity in filteredActivities"
         :key="activity.id"
@@ -175,6 +229,17 @@ const handleSubmitValidation = (activityId) => {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
   margin-top: 1.5rem;
+}
+
+.submit-message {
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #c4cdc1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #2f575d;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .empty-state {
