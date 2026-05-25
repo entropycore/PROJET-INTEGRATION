@@ -9,27 +9,27 @@ defineProps({
 
 <template>
   <div class="stats-grid">
-    <article class="stat-card">
+    <article class="stat-card total">
       <span>Total en attente</span>
       <strong>{{ stats.count }}</strong>
     </article>
 
-    <article class="stat-card">
+    <article class="stat-card project">
       <span>Projets</span>
       <strong>{{ stats.projects }}</strong>
     </article>
 
-    <article class="stat-card">
+    <article class="stat-card internship">
       <span>Stages</span>
       <strong>{{ stats.internships }}</strong>
     </article>
 
-    <article class="stat-card">
+    <article class="stat-card certificate">
       <span>Certificats</span>
       <strong>{{ stats.certificates }}</strong>
     </article>
 
-    <article class="stat-card">
+    <article class="stat-card activity">
       <span>Activités</span>
       <strong>{{ stats.activities }}</strong>
     </article>
