@@ -97,7 +97,7 @@ const handleAction = (eventName, validation) => {
           </button>
 
           <div
-            v-if="openMenuId === validation.id"
+            v-show="openMenuId === validation.id"
             class="actions-dropdown-menu"
           >
             <button type="button" @click="handleAction('view', validation)">
@@ -106,7 +106,7 @@ const handleAction = (eventName, validation) => {
 
             <button
               type="button"
-              class="success"
+              class="success approve"
               @click="handleAction('approve', validation)"
             >
               Valider
@@ -121,7 +121,7 @@ const handleAction = (eventName, validation) => {
 
             <button
               type="button"
-              class="danger"
+              class="danger reject"
               @click="handleAction('reject', validation)"
             >
               Rejeter
