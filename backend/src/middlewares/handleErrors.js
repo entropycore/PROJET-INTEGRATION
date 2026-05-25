@@ -2,7 +2,9 @@
 
 const logger = require('../logs/logger');
 
+// Middleware gestion erreurs globale
 const handleErrors = (err, req, res, _next) => {
+  // Logger l'erreur complète dans les fichiers logs
   logger.error({
     message: err.message,
     stack: err.stack,
@@ -11,13 +13,15 @@ const handleErrors = (err, req, res, _next) => {
     ip: req.ip,
   });
 
-  if (err.message.includes('CORS')) {
+  // Erreur CORS
+  if (String(err.message || '').includes('CORS')) {
     return res.status(403).json({
       success: false,
-      message: 'Acces refuse - origine non autorisee',
+      message: 'Accès refusé — origine non autorisée',
     });
   }
 
+  // Erreur JWT
   if (err.name === 'JsonWebTokenError') {
     return res.status(401).json({
       success: false,
@@ -25,27 +29,32 @@ const handleErrors = (err, req, res, _next) => {
     });
   }
 
+  // Erreur token expiré
   if (err.name === 'TokenExpiredError') {
     return res.status(401).json({
       success: false,
-      message: 'Token expire - veuillez vous reconnecter',
+      message: 'Token expiré — veuillez vous reconnecter',
     });
   }
 
+  // Erreur validation
   if (err.name === 'ValidationError') {
     return res.status(400).json({
       success: false,
-      message: 'Donnees invalides',
+      message: 'Données invalides',
       errors: err.errors,
     });
   }
 
+  // Erreur serveur générique — jamais révéler les détails
   return res.status(err.status || 500).json({
     success: false,
-    message: process.env.NODE_ENV === 'production' ? 'Erreur serveur' : err.message,
+    message:
+      process.env.NODE_ENV === 'production' ? 'Erreur serveur' : err.message,
   });
 };
 
+// Middleware route introuvable — 404
 const notFound = (req, res) => {
   res.status(404).json({
     success: false,

@@ -1,21 +1,21 @@
 'use strict';
 
 const express = require('express');
+
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
-const profileController = require('../controllers/student/profileController');
-const skillController = require('../controllers/student/skillController');
+const workspaceController = require('../controllers/studentWorkspaceController');
 
 const router = express.Router();
 
 router.use(authMiddleware);
 router.use(checkRoles('STUDENT'));
 
-router.get('/me', profileController.getProfileCompat);
-router.put('/me', profileController.updateProfileCompat);
-router.get('/me/skills/stats', skillController.getSkillStats);
-router.get('/me/skills', skillController.getSkills);
-router.post('/me/skills', skillController.addSkill);
-router.delete('/me/skills/:studentSkillId', skillController.deleteSkill);
+router.get('/me', workspaceController.getStudentMe);
+router.put('/me', workspaceController.updateStudentMe);
+router.get('/me/skills', workspaceController.listStudentSkills);
+router.post('/me/skills', workspaceController.addStudentSkill);
+router.delete('/me/skills/:id', workspaceController.deleteStudentSkill);
+router.get('/me/skills/stats', workspaceController.getSkillStats);
 
 module.exports = router;
