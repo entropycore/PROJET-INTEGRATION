@@ -44,7 +44,9 @@ const notificationUi = computed(
   () => ROLE_NOTIFICATION_UI[role.value] || ROLE_NOTIFICATION_UI.STUDENT,
 );
 
-const useMockNotifications = computed(() => MOCK_API_ROLES.includes(role.value));
+const useMockNotifications = computed(() =>
+  MOCK_API_ROLES.includes(role.value),
+);
 
 const notifications = ref([]);
 const unreadCount = ref(0);

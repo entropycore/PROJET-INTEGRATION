@@ -57,7 +57,8 @@ const handleSaveActivity = async (payload) => {
         <span class="page-label">PARASCOLAIRE</span>
         <h1>Nouvelle activité</h1>
         <p>
-          Renseignez les informations et ajoutez une attestation de participation.
+          Renseignez les informations et ajoutez une attestation de
+          participation.
         </p>
       </div>
 

@@ -135,12 +135,11 @@ const githubCalendarColor = computed(() => {
 
 const getCoverImage = (item, type = "project") => {
   const image =
-    item?.coverImage ||
-    item?.screenshots?.[0] ||
-    item?.images?.[0] ||
-    null;
+    item?.coverImage || item?.screenshots?.[0] || item?.images?.[0] || null;
 
-  return getImageUrl(image) || defaultCoverByType[type] || defaultCoverByType.project;
+  return (
+    getImageUrl(image) || defaultCoverByType[type] || defaultCoverByType.project
+  );
 };
 
 const handleCoverImageError = (event, type = "project") => {
@@ -177,11 +176,14 @@ const getImageUrl = (image) => {
 const getImageKey = (image) => {
   if (!image) return "";
   if (typeof image === "string") return image;
-  return image.id || image.imageUrl || image.url || image.mediaUrl || image.title;
+  return (
+    image.id || image.imageUrl || image.url || image.mediaUrl || image.title
+  );
 };
 
 const getImageTitle = (image) => {
-  if (!image || typeof image === "string") return selectedItem.value?.title || "";
+  if (!image || typeof image === "string")
+    return selectedItem.value?.title || "";
   return image.title || image.fileName || selectedItem.value?.title || "";
 };
 
@@ -241,9 +243,7 @@ const loadPortfolioMediaDataUrls = async () => {
 
   const urls = [
     ...new Set(
-      collectPortfolioImages()
-        .map(getRawImageUrl)
-        .filter(canFetchWithApi),
+      collectPortfolioImages().map(getRawImageUrl).filter(canFetchWithApi),
     ),
   ];
 
@@ -353,7 +353,11 @@ onMounted(fetchPortfolio);
           :theme="selectedTheme"
         />
 
-        <PortfolioSection title="Biographie" icon="format_quote" :theme="selectedTheme">
+        <PortfolioSection
+          title="Biographie"
+          icon="format_quote"
+          :theme="selectedTheme"
+        >
           <p class="bio-text">
             {{ portfolioData.student.bio }}
           </p>
@@ -395,7 +399,10 @@ onMounted(fetchPortfolio);
           <div class="academic-timeline">
             <article
               v-for="path in portfolioData.academicPaths"
-              :key="path.id || `${path.degree}-${path.institution}-${path.startDate}`"
+              :key="
+                path.id ||
+                `${path.degree}-${path.institution}-${path.startDate}`
+              "
               class="academic-step"
             >
               <div class="academic-period">
@@ -436,7 +443,10 @@ onMounted(fetchPortfolio);
             :theme="selectedTheme"
           >
             <div class="chips">
-              <span v-for="skill in portfolioData.skills" :key="skill.id || skill.name">
+              <span
+                v-for="skill in portfolioData.skills"
+                :key="skill.id || skill.name"
+              >
                 {{ getDisplayName(skill) }}
               </span>
             </div>
@@ -449,7 +459,10 @@ onMounted(fetchPortfolio);
             :theme="selectedTheme"
           >
             <div class="chips">
-              <span v-for="skill in portfolioData.softSkills" :key="skill.id || skill.name">
+              <span
+                v-for="skill in portfolioData.softSkills"
+                :key="skill.id || skill.name"
+              >
                 {{ getDisplayName(skill) }}
               </span>
             </div>
@@ -554,8 +567,14 @@ onMounted(fetchPortfolio);
                     class="icon-action"
                     title="GitHub"
                   >
-                    <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-2.02c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.04 1.77 2.72 1.26 3.38.96.11-.75.41-1.26.74-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.17 1.18A11.1 11.1 0 0 1 12 6.12c.98 0 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.79 1.07.79 2.16v3.02c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+                    <svg
+                      class="github-mark"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-2.02c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.04 1.77 2.72 1.26 3.38.96.11-.75.41-1.26.74-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.17 1.18A11.1 11.1 0 0 1 12 6.12c.98 0 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.79 1.07.79 2.16v3.02c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+                      />
                     </svg>
                     GitHub
                   </a>
@@ -609,9 +628,7 @@ onMounted(fetchPortfolio);
 
                 <div class="card-title-divider"></div>
 
-                <p class="meta">
-                  {{ stage.period }} · {{ stage.duration }}
-                </p>
+                <p class="meta">{{ stage.period }} · {{ stage.duration }}</p>
 
                 <p class="card-description">
                   {{ stage.description }}
@@ -763,7 +780,7 @@ onMounted(fetchPortfolio);
               </div>
 
               <a
-            v-if="letter.downloadable && letter.documentUrl"
+                v-if="letter.downloadable && letter.documentUrl"
                 :href="buildBackendUrl(letter.documentUrl)"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -792,7 +809,9 @@ onMounted(fetchPortfolio);
 
               <div>
                 <h3>{{ getDisplayName(rec.author) }}</h3>
-                <p class="meta">{{ rec.authorJobTitle }} · {{ rec.organization }}</p>
+                <p class="meta">
+                  {{ rec.authorJobTitle }} · {{ rec.organization }}
+                </p>
                 <blockquote>“{{ rec.content }}”</blockquote>
               </div>
             </article>
@@ -802,8 +821,8 @@ onMounted(fetchPortfolio);
 
       <footer class="portfolio-footer">
         <p>
-          Portfolio généré avec <strong>Credencia</strong> — Plateforme académique
-          de valorisation des parcours étudiants.
+          Portfolio généré avec <strong>Credencia</strong> — Plateforme
+          académique de valorisation des parcours étudiants.
         </p>
       </footer>
     </main>
@@ -951,7 +970,9 @@ onMounted(fetchPortfolio);
             rel="noopener noreferrer"
           >
             <svg class="github-mark" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-2.02c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.04 1.77 2.72 1.26 3.38.96.11-.75.41-1.26.74-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.17 1.18A11.1 11.1 0 0 1 12 6.12c.98 0 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.79 1.07.79 2.16v3.02c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z" />
+              <path
+                d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.38 7.86 10.9.58.1.79-.25.79-.56v-2.02c-3.2.7-3.88-1.36-3.88-1.36-.53-1.33-1.29-1.69-1.29-1.69-1.05-.72.08-.71.08-.71 1.16.08 1.78 1.2 1.78 1.2 1.04 1.77 2.72 1.26 3.38.96.11-.75.41-1.26.74-1.55-2.56-.29-5.25-1.28-5.25-5.7 0-1.26.45-2.29 1.19-3.09-.12-.29-.52-1.47.11-3.05 0 0 .97-.31 3.17 1.18A11.1 11.1 0 0 1 12 6.12c.98 0 1.96.13 2.88.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.58.23 2.76.11 3.05.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.79 1.07.79 2.16v3.02c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"
+              />
             </svg>
             GitHub
           </a>

@@ -27,9 +27,7 @@
 
     profilePicture: "/portfolio/profile.jpg",
 
-
-    bio:
-      "Étudiante en 1ère année de Génie Informatique, je développe des solutions full-stack avec Laravel, React et Node.js. Rigoureux et curieux, j’accorde une importance particulière à la qualité du code, aux bonnes pratiques et à l’expérience utilisateur",
+    bio: "Étudiante en 1ère année de Génie Informatique, je développe des solutions full-stack avec Laravel, React et Node.js. Rigoureux et curieux, j’accorde une importance particulière à la qualité du code, aux bonnes pratiques et à l’expérience utilisateur",
   },
 
   credibilityScore: {
@@ -65,14 +63,7 @@
     },
   ],
 
-  skills: [
-    "Vue.js",
-    "JavaScript",
-    "Node.js",
-    "PostgreSQL",
-    "Docker",
-    "GitHub",
-  ],
+  skills: ["Vue.js", "JavaScript", "Node.js", "PostgreSQL", "Docker", "GitHub"],
 
   softSkills: [
     "Travail en équipe",
@@ -117,21 +108,13 @@
 
       team: "Équipe de 6 étudiants",
 
-      technologies: [
-        "Vue.js",
-        "Vite",
-        "Pinia",
-        "CSS",
-      ],
+      technologies: ["Vue.js", "Vite", "Pinia", "CSS"],
 
-      githubUrl:
-        "https://github.com/example/credencia",
+      githubUrl: "https://github.com/example/credencia",
 
-      demoUrl:
-        "https://credencia-demo.example.com",
+      demoUrl: "https://credencia-demo.example.com",
 
-      documentationUrl:
-        "/files/credencia-documentation.pdf",
+      documentationUrl: "/files/credencia-documentation.pdf",
 
       screenshots: [
         "/portfolio/project-1.jpg",
@@ -164,22 +147,15 @@
 
       team: "Équipe de 4 étudiants",
 
-      technologies: [
-        "Vue.js",
-        "Express",
-        "PostgreSQL",
-      ],
+      technologies: ["Vue.js", "Express", "PostgreSQL"],
 
-      githubUrl:
-        "https://github.com/example/qr-attendance",
+      githubUrl: "https://github.com/example/qr-attendance",
 
       demoUrl: "",
 
       documentationUrl: "",
 
-      screenshots: [
-        "/portfolio/project-2.jpg",
-      ],
+      screenshots: ["/portfolio/project-2.jpg"],
 
       attachments: [],
     },
@@ -218,18 +194,11 @@
         "Amélioration de l’expérience utilisateur",
       ],
 
-      technologies: [
-        "Vue.js",
-        "Node.js",
-        "PostgreSQL",
-      ],
+      technologies: ["Vue.js", "Node.js", "PostgreSQL"],
 
-      screenshots: [
-       "/portfolio/stage-1.jpg",
-      ],
+      screenshots: ["/portfolio/stage-1.jpg"],
 
-      reportUrl:
-        "/files/rapport-stage.pdf",
+      reportUrl: "/files/rapport-stage.pdf",
     },
   ],
 
@@ -252,12 +221,9 @@
       description:
         "Participation à un hackathon autour de l’intelligence artificielle avec conception d’une solution innovante en équipe.",
 
-      screenshots: [
-        "/portfolio/activity-1.jpg",
-    ],
+      screenshots: ["/portfolio/activity-1.jpg"],
 
-      certificateUrl:
-        "/files/certificat-hackathon.pdf",
+      certificateUrl: "/files/certificat-hackathon.pdf",
 
       certificateType: "PDF",
 
@@ -271,8 +237,7 @@
 
       type: "Club",
 
-      organization:
-        "Club Informatique ENSA Tanger",
+      organization: "Club Informatique ENSA Tanger",
 
       date: "2025 - 2026",
 
@@ -283,12 +248,9 @@
       description:
         "Participation à l’organisation d’ateliers techniques, de formations en développement web et d’événements étudiants.",
 
-      screenshots: [
-        "/portfolio/activity-2.jpg",
-      ],
+      screenshots: ["/portfolio/activity-2.jpg"],
 
-      certificateUrl:
-        "/files/attestation-club.png",
+      certificateUrl: "/files/attestation-club.png",
 
       certificateType: "PNG",
 
