@@ -74,6 +74,14 @@ const handleAdminError = (res, err) => {
     return error(res, 404, 'Signalement introuvable.');
   }
 
+  if (err.message === 'REPORT_TARGET_NOT_FOUND') {
+    return error(res, 404, 'Contenu signale introuvable.');
+  }
+
+  if (err.message === 'REPORT_TARGET_DELETE_UNSUPPORTED') {
+    return error(res, 409, "La suppression de cette cible de signalement n'est pas supportee.");
+  }
+
   if (err.message === 'NOTIFICATION_NOT_FOUND') {
     return error(res, 404, 'Notification introuvable.');
   }
@@ -256,6 +264,115 @@ exports.listValidationItems = async (req, res, next) => {
   }
 };
 
+exports.listPendingValidationItems = async (req, res, next) => {
+  try {
+    const type = normalizeItemType(req.query.type);
+
+    const data = await administratorService.listValidationItems({
+      type: type === 'ALL' ? null : type,
+      status: 'PENDING',
+      search: req.query.search?.trim(),
+      page: parsePositiveInt(req.query.page, 1),
+      limit: parsePositiveInt(req.query.limit, 10),
+    });
+
+    return success(res, 200, 'Validations en attente recuperees.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getPendingValidationsCount = async (_req, res, next) => {
+  try {
+    const counts = await administratorService.getPendingValidationCounts();
+
+    return success(res, 200, 'Nombre de validations en attente recupere.', {
+      count: counts.total,
+      projects: 0,
+      internships: 0,
+      certificates: counts.pendingCertificates,
+      activities: counts.pendingCertificates,
+      recommendationLetters: counts.pendingLetters,
+      comments: counts.pendingComments,
+      recommendations: counts.pendingRecommendations,
+      raw: counts,
+    });
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+const getValidationTypeById = async (validationId) =>
+  administratorService.getValidationTypeById(validationId);
+
+exports.getValidationItemById = async (req, res, next) => {
+  try {
+    const itemType = await getValidationTypeById(req.params.validationId);
+    const item = await administratorService.getValidationItemDetail(itemType, req.params.validationId);
+
+    return success(res, 200, 'Element de validation recupere.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.approveValidationItemById = async (req, res, next) => {
+  try {
+    const itemType = await getValidationTypeById(req.params.validationId);
+    const item = await administratorService.approveValidationItem(
+      itemType,
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Validation approuvee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.rejectValidationItemById = async (req, res, next) => {
+  try {
+    const itemType = await getValidationTypeById(req.params.validationId);
+    const item = await administratorService.rejectValidationItem(
+      itemType,
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Validation rejetee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.requestValidationChangesById = async (req, res, next) => {
+  try {
+    const itemType = await getValidationTypeById(req.params.validationId);
+    const item = await administratorService.requestValidationChanges(
+      itemType,
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {}
+    );
+
+    return success(res, 200, 'Correction demandee.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.getValidationItemDetail = async (req, res, next) => {
   try {
     const item = await administratorService.getValidationItemDetail(
@@ -358,22 +475,53 @@ exports.markAllNotificationsAsRead = async (req, res, next) => {
   }
 };
 
+exports.getUnreadNotificationsCount = async (req, res, next) => {
+  try {
+    const result = await administratorService.getUnreadNotificationsCount(req.user.roleId);
+
+    return success(res, 200, 'Nombre de notifications non lues recupere.', result);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteNotification = async (req, res, next) => {
+  try {
+    const result = await administratorService.deleteNotification(
+      req.params.notificationId,
+      req.user.roleId
+    );
+
+    return success(res, 200, 'Notification supprimee.', result);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.listReports = async (req, res, next) => {
   try {
-    const status = normalizeStatus(req.query.status || 'PENDING');
-    const targetType = normalizeItemType(req.query.targetType);
+    const requestedStatus = normalizeStatus(req.query.status || 'PENDING');
+    const status =
+      requestedStatus === 'ALL'
+        ? null
+        : requestedStatus === 'RESOLVED'
+          ? 'APPROVED'
+          : requestedStatus;
+    const targetType = normalizeItemType(req.query.targetType || req.query.type);
 
     if (status && !VALID_REPORT_STATUSES.has(status)) {
       return error(res, 400, 'Le filtre status est invalide.');
     }
 
-    if (targetType && !VALID_REPORT_TARGET_TYPES.has(targetType)) {
+    if (targetType && targetType !== 'ALL' && !VALID_REPORT_TARGET_TYPES.has(targetType)) {
       return error(res, 400, 'Le filtre targetType est invalide.');
     }
 
     const data = await administratorService.listReports({
       status,
-      targetType,
+      targetType: targetType === 'ALL' ? null : targetType,
       search: req.query.search?.trim(),
       page: parsePositiveInt(req.query.page, 1),
       limit: parsePositiveInt(req.query.limit, 10),
@@ -386,10 +534,39 @@ exports.listReports = async (req, res, next) => {
   }
 };
 
+exports.getPendingReportsCount = async (_req, res, next) => {
+  try {
+    const result = await administratorService.getPendingReportsCount();
+    return success(res, 200, 'Nombre de signalements en attente recupere.', result);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.getReportById = async (req, res, next) => {
   try {
     const report = await administratorService.getReportById(req.params.reportId);
     return success(res, 200, 'Signalement recupere.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.resolveReport = async (req, res, next) => {
+  try {
+    const report = await administratorService.approveReport(
+      req.params.reportId,
+      req.user.roleId,
+      typeof req.body?.resolutionNote === 'string'
+        ? req.body.resolutionNote.trim() || null
+        : typeof req.body?.comment === 'string'
+          ? req.body.comment.trim() || null
+          : 'Signalement marque comme traite.'
+    );
+
+    return success(res, 200, 'Signalement traite.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -430,6 +607,20 @@ exports.rejectReport = async (req, res, next) => {
     );
 
     return success(res, 200, 'Signalement rejete.', report);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.deleteReportedTarget = async (req, res, next) => {
+  try {
+    const report = await administratorService.deleteReportedTarget(
+      req.params.reportId,
+      req.user.roleId
+    );
+
+    return success(res, 200, 'Contenu signale traite.', report);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);

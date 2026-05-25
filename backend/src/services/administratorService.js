@@ -542,12 +542,72 @@ const mapDashboardCertificateRequest = (certificate) => {
   };
 };
 
+const toFullName = (user) => (user ? formatFullName(user) : null);
+
+const mapFrontendStudent = (student) => {
+  const user = student?.user;
+
+  return {
+    id: student?.id || null,
+    userId: user?.id || null,
+    fullName: toFullName(user) || 'Etudiant inconnu',
+    email: user?.email || null,
+    phone: user?.phone || null,
+    profilePicture: user?.profilePicture || null,
+    apogeeCode: student?.apogeeCode || null,
+    cne: student?.cne || null,
+    major: student?.major || null,
+    level: student?.level || null,
+    city: student?.city || null,
+  };
+};
+
+const mapFrontendAuthor = (user, organization = null, role = null) => ({
+  id: user?.id || null,
+  fullName: toFullName(user) || 'Utilisateur inconnu',
+  email: user?.email || null,
+  phone: user?.phone || null,
+  profilePicture: user?.profilePicture || null,
+  organization,
+  role,
+});
+
+const toFrontendReportStatus = (status) => (status === 'APPROVED' ? 'RESOLVED' : status);
+const toDatabaseReportStatus = (status) => {
+  if (!status) return null;
+  const normalized = String(status).trim().toUpperCase().replace(/-/g, '_');
+  if (normalized === 'ALL') return null;
+  if (normalized === 'RESOLVED') return 'APPROVED';
+  return normalized;
+};
+
 const mapCertificateRequestDetail = (certificate) => {
   const requester = certificate.activity?.student?.user;
+  const student = certificate.activity?.student || null;
 
   return {
     id: certificate.id,
     type: 'CERTIFICATE_VALIDATION',
+    targetType: 'CERTIFICATE',
+    targetId: certificate.id,
+    title: certificate.activity?.title || certificate.fileName || 'Certificat',
+    description: certificate.activity?.description || certificate.fileName || null,
+    student: mapFrontendStudent(student),
+    submittedAt: certificate.submittedAt,
+    targetDetails: {
+      certificateId: certificate.id,
+      documentUrl: certificate.documentUrl,
+      fileName: certificate.fileName || null,
+      mimeType: certificate.mimeType || null,
+      fileSize: certificate.fileSize || null,
+      storagePath: certificate.storagePath || null,
+      activityId: certificate.activity?.id || null,
+      activityTitle: certificate.activity?.title || null,
+      activityType: certificate.activity?.type || null,
+      organization: certificate.activity?.organization || null,
+      startDate: certificate.activity?.startDate || null,
+      endDate: certificate.activity?.endDate || null,
+    },
     label: 'Certificate validation',
     requesterName: requester ? formatFullName(requester) : 'Etudiant inconnu',
     email: requester?.email || null,
@@ -601,6 +661,21 @@ const mapRecommendationLetterValidationItem = (letter) => {
   return {
     id: letter.id,
     type: 'RECOMMENDATION_LETTER_VALIDATION',
+    targetType: 'RECOMMENDATION_LETTER',
+    targetId: letter.id,
+    title: letter.title,
+    description: letter.content,
+    student: mapFrontendStudent(letter.student),
+    submittedAt: letter.createdAt,
+    targetDetails: {
+      title: letter.title,
+      content: letter.content,
+      type: letter.type,
+      documentUrl: letter.documentUrl,
+      author: mapFrontendAuthor(authorUser),
+      validatedAt: letter.validatedAt,
+      rejectionReason: letter.rejectionReason,
+    },
     label: 'Recommendation letter validation',
     requesterName: studentUser ? formatFullName(studentUser) : 'Etudiant inconnu',
     email: studentUser?.email || null,
@@ -631,6 +706,22 @@ const mapCommentValidationItem = (comment) => {
   return {
     id: comment.id,
     type: 'COMMENT_VALIDATION',
+    targetType: 'COMMENT',
+    targetId: comment.id,
+    title: comment.portfolio?.title || 'Commentaire',
+    description: comment.content,
+    student: mapFrontendStudent(comment.portfolio?.student),
+    submittedAt: comment.createdAt,
+    targetDetails: {
+      content: comment.content,
+      targetType: comment.targetType,
+      targetId: comment.targetId,
+      portfolioTitle: comment.portfolio?.title || null,
+      portfolioSlug: comment.portfolio?.publicSlug || null,
+      author: mapFrontendAuthor(authorUser),
+      validatedAt: comment.validatedAt,
+      rejectionReason: comment.rejectionReason,
+    },
     label: 'Comment validation',
     requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
     email: authorUser?.email || null,
@@ -662,6 +753,23 @@ const mapRecommendationValidationItem = (recommendation) => {
   return {
     id: recommendation.id,
     type: 'RECOMMENDATION_VALIDATION',
+    targetType: 'RECOMMENDATION',
+    targetId: recommendation.id,
+    title: recommendation.title,
+    description: recommendation.content,
+    student: mapFrontendStudent(recommendation.student),
+    submittedAt: recommendation.createdAt,
+    targetDetails: {
+      title: recommendation.title,
+      content: recommendation.content,
+      organization: recommendation.organization || null,
+      authorJobTitle: recommendation.authorJobTitle || null,
+      recommendationType: recommendation.recommendationType || null,
+      portfolioTitle: recommendation.portfolio?.title || null,
+      author: mapFrontendAuthor(authorUser, recommendation.organization, recommendation.authorJobTitle),
+      validatedAt: recommendation.validatedAt,
+      rejectionReason: recommendation.rejectionReason,
+    },
     label: 'Recommendation validation',
     requesterName: authorUser ? formatFullName(authorUser) : 'Auteur inconnu',
     email: authorUser?.email || null,
@@ -690,18 +798,26 @@ const mapRecommendationValidationItem = (recommendation) => {
 const mapReportItem = (report) => {
   const reporter = report.reporterUser;
   const reviewer = report.reviewedByAdministrator?.user || null;
+  const frontendStatus = toFrontendReportStatus(report.status);
 
   return {
     id: report.id,
     type: 'REPORT',
+    targetType: report.targetType,
+    targetId: report.targetId,
+    reason: report.reason,
+    description: report.description,
+    reportedBy: mapFrontendAuthor(reporter),
+    reviewedBy: reviewer ? mapFrontendAuthor(reviewer) : null,
     label: 'Report',
     requesterName: reporter ? formatFullName(reporter) : 'Utilisateur inconnu',
     email: reporter?.email || null,
     organization: null,
     createdAt: report.createdAt,
     tone: 'red',
-    status: report.status,
+    status: frontendStatus,
     raw: {
+      status: report.status,
       targetType: report.targetType,
       targetId: report.targetId,
       reason: report.reason,
@@ -855,6 +971,7 @@ const mapNotificationItem = (notification) => ({
   type: notification.type,
   title: notification.title,
   message: notification.message,
+  read: notification.isRead,
   isRead: notification.isRead,
   createdAt: notification.createdAt,
   readAt: notification.readAt,
@@ -1897,6 +2014,136 @@ const rejectRecommendationValidation = async (
   return mapRecommendationValidationItem(updatedRecommendation);
 };
 
+const requestCertificateChanges = async (certificateId, administratorId, comment = null) => {
+  const certificate = await getCertificateRequestOrThrow(certificateId);
+
+  if (certificate.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.certificate.update({
+      where: { id: certificateId },
+      data: { validationStatus: 'CHANGES_REQUESTED' },
+    });
+
+    await tx.certificateValidation.create({
+      data: {
+        certificateId,
+        administratorId,
+        decision: 'CHANGES_REQUESTED',
+        comment,
+      },
+    });
+  });
+
+  const updatedCertificate = await getCertificateRequestOrThrow(certificateId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour le certificat de ${
+      updatedCertificate.activity?.student?.user
+        ? formatFullName(updatedCertificate.activity.student.user)
+        : 'un etudiant'
+    }.`,
+    relatedType: 'CERTIFICATE_VALIDATION',
+    relatedId: certificateId,
+  });
+
+  return mapCertificateRequestDetail(updatedCertificate);
+};
+
+const requestRecommendationLetterChanges = async (letterId, actorUserId, comment = null) => {
+  const letter = await getRecommendationLetterValidationOrThrow(letterId);
+
+  if (letter.validationStatus !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendationLetter.update({
+    where: { id: letterId },
+    data: {
+      validationStatus: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: comment,
+    },
+  });
+
+  const updatedLetter = await getRecommendationLetterValidationOrThrow(letterId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour la lettre de recommandation de ${
+      updatedLetter.student?.user ? formatFullName(updatedLetter.student.user) : 'un etudiant'
+    }.`,
+    relatedType: 'RECOMMENDATION_LETTER_VALIDATION',
+    relatedId: letterId,
+  });
+
+  return mapRecommendationLetterValidationItem(updatedLetter);
+};
+
+const requestCommentChanges = async (commentId, actorUserId, commentText = null) => {
+  const comment = await getCommentValidationOrThrow(commentId);
+
+  if (comment.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      status: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: commentText,
+    },
+  });
+
+  const updatedComment = await getCommentValidationOrThrow(commentId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour le commentaire de ${
+      updatedComment.authorUser ? formatFullName(updatedComment.authorUser) : 'un utilisateur'
+    }.`,
+    relatedType: 'COMMENT_VALIDATION',
+    relatedId: commentId,
+  });
+
+  return mapCommentValidationItem(updatedComment);
+};
+
+const requestRecommendationChanges = async (recommendationId, actorUserId, comment = null) => {
+  const recommendation = await getRecommendationValidationOrThrow(recommendationId);
+
+  if (recommendation.status !== 'PENDING') {
+    throw new Error('VALIDATION_ITEM_INVALID_STATE');
+  }
+
+  await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: 'CHANGES_REQUESTED',
+      validatorUserId: actorUserId,
+      validatedAt: new Date(),
+      rejectionReason: comment,
+    },
+  });
+
+  const updatedRecommendation = await getRecommendationValidationOrThrow(recommendationId);
+  await notificationService.createAdminActionNotification({
+    title: 'Correction demandee',
+    message: `Une correction a ete demandee pour la recommandation de ${
+      updatedRecommendation.authorUser
+        ? formatFullName(updatedRecommendation.authorUser)
+        : 'un utilisateur'
+    }.`,
+    relatedType: 'RECOMMENDATION_VALIDATION',
+    relatedId: recommendationId,
+  });
+
+  return mapRecommendationValidationItem(updatedRecommendation);
+};
+
 exports.getDashboardData = async () => {
   await syncAdminNotifications();
 
@@ -2339,6 +2586,45 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
   return updatedRequest;
 };
 
+exports.getPendingValidationCounts = getPendingValidationCounts;
+
+exports.getValidationTypeById = async (itemId) => {
+  const [
+    certificate,
+    recommendationLetter,
+    comment,
+    recommendation,
+  ] = await Promise.all([
+    safeReadWithFallback(
+      () => prisma.certificate.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.recommendationLetter.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.comment.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+    safeReadWithFallback(
+      () => prisma.recommendation.findUnique({ where: { id: itemId }, select: { id: true } }),
+      null,
+      null
+    ),
+  ]);
+
+  if (certificate) return 'CERTIFICATE_VALIDATION';
+  if (recommendationLetter) return 'RECOMMENDATION_LETTER_VALIDATION';
+  if (comment) return 'COMMENT_VALIDATION';
+  if (recommendation) return 'RECOMMENDATION_VALIDATION';
+
+  throw new Error('VALIDATION_ITEM_NOT_FOUND');
+};
+
 exports.listValidationItems = async ({ type, status = 'PENDING', page = 1, limit = 10, search } = {}) => {
   await syncPendingValidationNotifications();
 
@@ -2494,6 +2780,49 @@ exports.rejectValidationItem = async (
 
     case 'RECOMMENDATION_VALIDATION':
       return rejectRecommendationValidation(itemId, actorUserId, normalizedReason);
+
+    default:
+      throw new Error('UNSUPPORTED_VALIDATION_TYPE');
+  }
+};
+
+exports.requestValidationChanges = async (
+  itemType,
+  itemId,
+  actorUserId,
+  administratorId,
+  payload = {}
+) => {
+  const normalizedType = normalizeValidationType(itemType);
+  ensureValidValidationType(normalizedType);
+
+  const normalizedComment =
+    typeof payload.comment === 'string'
+      ? payload.comment.trim() || null
+      : typeof payload.reason === 'string'
+        ? payload.reason.trim() || null
+        : null;
+
+  switch (normalizedType) {
+    case 'CERTIFICATE_VALIDATION':
+      try {
+        return await requestCertificateChanges(itemId, administratorId, normalizedComment);
+      } catch (err) {
+        if (err.message === 'DASHBOARD_ITEM_NOT_FOUND') {
+          throw new Error('VALIDATION_ITEM_NOT_FOUND');
+        }
+
+        throw err;
+      }
+
+    case 'RECOMMENDATION_LETTER_VALIDATION':
+      return requestRecommendationLetterChanges(itemId, actorUserId, normalizedComment);
+
+    case 'COMMENT_VALIDATION':
+      return requestCommentChanges(itemId, actorUserId, normalizedComment);
+
+    case 'RECOMMENDATION_VALIDATION':
+      return requestRecommendationChanges(itemId, actorUserId, normalizedComment);
 
     default:
       throw new Error('UNSUPPORTED_VALIDATION_TYPE');
@@ -2660,20 +2989,68 @@ exports.markAllNotificationsAsRead = async (administratorId) => {
   }
 };
 
+exports.getUnreadNotificationsCount = async (administratorId) => {
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
+    : [{ administratorId: null }];
+
+  return {
+    count: await safeCount(() =>
+      prisma.notification.count({
+        where: {
+          isRead: false,
+          ...(scopeConditions.length
+            ? {
+                AND: scopeConditions,
+              }
+            : {}),
+        },
+      })
+    ),
+  };
+};
+
+exports.deleteNotification = async (notificationId, administratorId) => {
+  await getNotificationOrThrow(notificationId, administratorId);
+
+  try {
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+  } catch (err) {
+    if (isStructureMissingError(err) || err?.code === 'P2025') {
+      throw new Error('NOTIFICATION_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  return {
+    deleted: true,
+    notificationId,
+  };
+};
+
 exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit = 10, search } = {}) => {
   await syncPendingReportNotifications();
 
-  const normalizedTargetType = targetType
+  const normalizedStatus = toDatabaseReportStatus(status);
+  const requestedTargetType = targetType
     ? String(targetType).trim().toUpperCase().replace(/-/g, '_')
     : null;
+  const normalizedTargetType = requestedTargetType && requestedTargetType !== 'ALL'
+    ? requestedTargetType
+    : null;
 
-  ensureValidReportStatus(status);
+  if (normalizedStatus) {
+    ensureValidReportStatus(normalizedStatus);
+  }
 
   if (normalizedTargetType) {
     ensureValidReportTargetType(normalizedTargetType);
   }
 
-  const reports = await loadReportItems(status, normalizedTargetType);
+  const reports = await loadReportItems(normalizedStatus, normalizedTargetType);
   const filteredReports = reports
     .map(mapReportItem)
     .filter((item) => matchesValidationSearch(item, search));
@@ -2682,7 +3059,7 @@ exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit =
 
   return {
     filters: {
-      status,
+      status: normalizedStatus,
       targetType: normalizedTargetType,
       search: search || null,
     },
@@ -2691,6 +3068,10 @@ exports.listReports = async ({ status = 'PENDING', targetType, page = 1, limit =
 };
 
 exports.getReportById = async (reportId) => mapReportItem(await getReportOrThrow(reportId));
+
+exports.getPendingReportsCount = async () => ({
+  count: await safeCount(() => prisma.report.count({ where: { status: 'PENDING' } })),
+});
 
 exports.approveReport = async (reportId, administratorId, resolutionNote = null) => {
   const report = await getReportOrThrow(reportId);
@@ -2746,6 +3127,87 @@ exports.rejectReport = async (reportId, administratorId, resolutionNote = null) 
   });
 
   return updatedReport;
+};
+
+exports.deleteReportedTarget = async (reportId, administratorId) => {
+  const report = await getReportOrThrow(reportId);
+
+  if (report.status !== 'PENDING') {
+    throw new Error('REPORT_INVALID_STATE');
+  }
+
+  if (!report.targetId || report.targetType === 'OTHER') {
+    throw new Error('REPORT_TARGET_DELETE_UNSUPPORTED');
+  }
+
+  const now = new Date();
+  let targetAction = 'DELETED';
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      switch (report.targetType) {
+        case 'COMMENT':
+          await tx.comment.delete({ where: { id: report.targetId } });
+          break;
+        case 'RECOMMENDATION':
+          await tx.recommendation.delete({ where: { id: report.targetId } });
+          break;
+        case 'PROJECT':
+          await tx.project.delete({ where: { id: report.targetId } });
+          break;
+        case 'INTERNSHIP':
+          await tx.internship.delete({ where: { id: report.targetId } });
+          break;
+        case 'PORTFOLIO':
+          await tx.portfolio.delete({ where: { id: report.targetId } });
+          break;
+        case 'USER':
+          await tx.user.update({
+            where: { id: report.targetId },
+            data: { accountStatus: 'SUSPENDED' },
+          });
+          targetAction = 'SUSPENDED';
+          break;
+        default:
+          throw new Error('REPORT_TARGET_DELETE_UNSUPPORTED');
+      }
+
+      await tx.report.update({
+        where: { id: reportId },
+        data: {
+          status: 'APPROVED',
+          reviewedByAdministratorId: administratorId,
+          reviewedAt: now,
+          resolutionNote:
+            targetAction === 'SUSPENDED'
+              ? 'Compte utilisateur suspendu suite au signalement.'
+              : 'Contenu signale supprime suite au signalement.',
+        },
+      });
+    });
+  } catch (err) {
+    if (err?.code === 'P2025') {
+      throw new Error('REPORT_TARGET_NOT_FOUND');
+    }
+
+    throw err;
+  }
+
+  const updatedReport = await exports.getReportById(reportId);
+  await notificationService.createAdminActionNotification({
+    title: 'Signalement traite',
+    message:
+      targetAction === 'SUSPENDED'
+        ? 'Le compte signale a ete suspendu.'
+        : 'Le contenu signale a ete supprime.',
+    relatedType: 'REPORT',
+    relatedId: reportId,
+  });
+
+  return {
+    ...updatedReport,
+    targetAction,
+  };
 };
 
 exports.getDashboardItemDetail = async (itemType, itemId) => {

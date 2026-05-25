@@ -1,10 +1,12 @@
 'use strict';
 
+const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
 const prisma = require('../config/prisma');
 
 const VALID_VISIBILITIES = new Set(['PUBLIC', 'PRIVATE', 'TEACHERS', 'SHARED_LINK']);
+const VALID_RECOMMENDATION_STATUSES = new Set(['PENDING', 'APPROVED', 'REJECTED', 'CHANGES_REQUESTED']);
 const VALID_PROJECT_TYPES = new Set(['MODULE', 'INTEGRATION', 'HACKATHON', 'PERSONAL', 'INTERNSHIP']);
 const VALID_ACTIVITY_TYPES = new Set([
   'CLUB',
@@ -30,6 +32,42 @@ const toEnum = (value, fallback, allowedValues) => {
 };
 
 const toDate = (value) => (value ? new Date(value) : null);
+
+const isPlainObject = (value) =>
+  Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+
+const normalizePreferences = (preferences) =>
+  isPlainObject(preferences)
+    ? preferences
+    : {
+        schema_version: 1,
+      };
+
+const requireBoolean = (value, code) => {
+  if (typeof value !== 'boolean') throw serviceError(code, 400);
+  return value;
+};
+
+const toRecommendationUiStatus = (status) => {
+  if (status === 'APPROVED') return 'RECEIVED';
+  if (status === 'CHANGES_REQUESTED') return 'PENDING';
+  return status;
+};
+
+const fromRecommendationUiStatus = (status) => {
+  const normalized = String(status || '').trim().toUpperCase().replace(/-/g, '_');
+  if (!normalized || normalized === 'ALL') return null;
+  if (normalized === 'RECEIVED') return 'APPROVED';
+  return normalized;
+};
+
+const getInitials = (name) =>
+  String(name || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('') || '?';
 
 const getStudentOrThrow = async (userId) => {
   const student = await prisma.student.findUnique({
@@ -96,6 +134,55 @@ const activityInclude = {
 };
 
 const fullName = (user) => `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+
+const recommendationInclude = {
+  authorUser: true,
+  validatorUser: true,
+  portfolio: true,
+};
+
+const mapStudentRecommendation = (recommendation) => {
+  const authorName = fullName(recommendation.authorUser) || 'Auteur inconnu';
+  const uiStatus = toRecommendationUiStatus(recommendation.status);
+
+  return {
+    id: recommendation.id,
+    title: recommendation.title,
+    content: recommendation.content,
+    status: uiStatus,
+    validationStatus: recommendation.status,
+    visibility: recommendation.visibility,
+    createdAt: recommendation.createdAt,
+    validatedAt: recommendation.validatedAt,
+    rejectionReason: recommendation.rejectionReason,
+    organization: recommendation.organization,
+    recommendationType: recommendation.recommendationType,
+    portfolio: recommendation.portfolio
+      ? {
+          id: recommendation.portfolio.id,
+          title: recommendation.portfolio.title,
+          publicSlug: recommendation.portfolio.publicSlug,
+        }
+      : null,
+    author: {
+      id: recommendation.authorUser?.id || null,
+      name: authorName,
+      fullName: authorName,
+      initials: getInitials(authorName),
+      email: recommendation.authorUser?.email || null,
+      role: recommendation.authorJobTitle || recommendation.recommendationType || 'Auteur',
+      organization: recommendation.organization || '',
+      profilePicture: recommendation.authorUser?.profilePicture || null,
+    },
+    validator: recommendation.validatorUser
+      ? {
+          id: recommendation.validatorUser.id,
+          fullName: fullName(recommendation.validatorUser),
+          email: recommendation.validatorUser.email,
+        }
+      : null,
+  };
+};
 
 const mapProjectMedia = (media) => ({
   id: media.id,
@@ -850,6 +937,203 @@ exports.updateCareerGoal = async (userId, payload) => {
     where: { id: student.id },
     data: { careerObjective: payload.careerObjective || payload.goal || null },
   });
+};
+
+exports.updatePassword = async (userId, payload = {}) => {
+  const currentPassword = String(payload.currentPassword || '');
+  const newPassword = String(payload.newPassword || '');
+  const confirmPassword = String(payload.confirmPassword || '');
+
+  if (!currentPassword || !newPassword) throw serviceError('MISSING_PASSWORD_FIELDS', 400);
+  if (newPassword.length < 8) throw serviceError('NEW_PASSWORD_TOO_SHORT', 400);
+  if (confirmPassword && newPassword !== confirmPassword) {
+    throw serviceError('PASSWORD_CONFIRMATION_MISMATCH', 400);
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, passwordHash: true },
+  });
+
+  if (!user) throw serviceError('USER_NOT_FOUND', 404);
+
+  const currentPasswordMatches = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!currentPasswordMatches) throw serviceError('CURRENT_PASSWORD_INVALID', 400);
+
+  const samePassword = await bcrypt.compare(newPassword, user.passwordHash);
+  if (samePassword) throw serviceError('NEW_PASSWORD_SAME_AS_CURRENT', 400);
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    }),
+    prisma.refreshTokenSession.updateMany({
+      where: { userId, isRevoked: false },
+      data: { isRevoked: true, revokedAt: new Date() },
+    }),
+  ]);
+
+  return { updated: true };
+};
+
+const updatePreferencesSection = async (userId, section, values) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, preferences: true },
+  });
+
+  if (!user) throw serviceError('USER_NOT_FOUND', 404);
+
+  const preferences = normalizePreferences(user.preferences);
+  const nextPreferences = {
+    ...preferences,
+    schema_version: preferences.schema_version || 1,
+    [section]: {
+      ...(isPlainObject(preferences[section]) ? preferences[section] : {}),
+      ...values,
+    },
+  };
+
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { preferences: nextPreferences },
+    select: { preferences: true },
+  });
+
+  return updatedUser.preferences;
+};
+
+exports.updatePrivacyPreferences = async (userId, payload = {}) => {
+  const profileVisibility = String(payload.profileVisibility || 'PUBLIC')
+    .trim()
+    .toUpperCase()
+    .replace(/-/g, '_');
+
+  if (!VALID_VISIBILITIES.has(profileVisibility)) {
+    throw serviceError('INVALID_PROFILE_VISIBILITY', 400);
+  }
+
+  const values = {
+    profileVisibility,
+    showEmail: requireBoolean(payload.showEmail, 'INVALID_PRIVACY_BOOLEAN_VALUE'),
+    showPhone: requireBoolean(payload.showPhone, 'INVALID_PRIVACY_BOOLEAN_VALUE'),
+  };
+
+  return updatePreferencesSection(userId, 'privacy', values);
+};
+
+exports.updateNotificationPreferences = async (userId, payload = {}) => {
+  const values = {
+    email: requireBoolean(payload.email, 'INVALID_NOTIFICATION_BOOLEAN_VALUE'),
+    push: requireBoolean(payload.push, 'INVALID_NOTIFICATION_BOOLEAN_VALUE'),
+    validationUpdates: requireBoolean(
+      payload.validationUpdates,
+      'INVALID_NOTIFICATION_BOOLEAN_VALUE'
+    ),
+    recommendations: requireBoolean(payload.recommendations, 'INVALID_NOTIFICATION_BOOLEAN_VALUE'),
+  };
+
+  return updatePreferencesSection(userId, 'notifications', values);
+};
+
+exports.listRecommendations = async (userId, params = {}) => {
+  const student = await getStudentOrThrow(userId);
+  const status = fromRecommendationUiStatus(params.status);
+
+  if (status && !VALID_RECOMMENDATION_STATUSES.has(status)) {
+    throw serviceError('INVALID_RECOMMENDATION_STATUS', 400);
+  }
+
+  const where = {
+    studentId: student.id,
+    ...(status ? { status } : {}),
+  };
+
+  const [received, pending, rejected, recommendations] = await Promise.all([
+    prisma.recommendation.count({ where: { studentId: student.id, status: 'APPROVED' } }),
+    prisma.recommendation.count({ where: { studentId: student.id, status: 'PENDING' } }),
+    prisma.recommendation.count({ where: { studentId: student.id, status: 'REJECTED' } }),
+    prisma.recommendation.findMany({
+      where,
+      include: recommendationInclude,
+      orderBy: [{ createdAt: 'desc' }],
+    }),
+  ]);
+
+  const mappedRecommendations = recommendations.map(mapStudentRecommendation);
+
+  return {
+    stats: { received, pending, rejected },
+    recommendations: mappedRecommendations,
+    items: mappedRecommendations,
+    filters: {
+      status: params.status || 'ALL',
+    },
+  };
+};
+
+exports.getRecommendation = async (userId, recommendationId) => {
+  const student = await getStudentOrThrow(userId);
+  const recommendation = await prisma.recommendation.findFirst({
+    where: { id: recommendationId, studentId: student.id },
+    include: recommendationInclude,
+  });
+
+  if (!recommendation) throw serviceError('RECOMMENDATION_NOT_FOUND', 404);
+  return mapStudentRecommendation(recommendation);
+};
+
+exports.updateRecommendationVisibility = async (userId, recommendationId, visibility) => {
+  const student = await getStudentOrThrow(userId);
+  const normalizedVisibility = toEnum(visibility, null, VALID_VISIBILITIES);
+
+  if (!normalizedVisibility) throw serviceError('INVALID_VISIBILITY', 400);
+
+  const existing = await prisma.recommendation.findFirst({
+    where: { id: recommendationId, studentId: student.id },
+    select: { id: true },
+  });
+
+  if (!existing) throw serviceError('RECOMMENDATION_NOT_FOUND', 404);
+
+  const recommendation = await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: { visibility: normalizedVisibility },
+    include: recommendationInclude,
+  });
+
+  return mapStudentRecommendation(recommendation);
+};
+
+exports.updateRecommendationStatus = async (userId, recommendationId, status) => {
+  const student = await getStudentOrThrow(userId);
+  const normalizedStatus = fromRecommendationUiStatus(status);
+
+  if (!normalizedStatus || !VALID_RECOMMENDATION_STATUSES.has(normalizedStatus)) {
+    throw serviceError('INVALID_RECOMMENDATION_STATUS', 400);
+  }
+
+  const existing = await prisma.recommendation.findFirst({
+    where: { id: recommendationId, studentId: student.id },
+    select: { id: true },
+  });
+
+  if (!existing) throw serviceError('RECOMMENDATION_NOT_FOUND', 404);
+
+  const recommendation = await prisma.recommendation.update({
+    where: { id: recommendationId },
+    data: {
+      status: normalizedStatus,
+      validatedAt: ['APPROVED', 'REJECTED'].includes(normalizedStatus) ? new Date() : null,
+      rejectionReason: normalizedStatus === 'REJECTED' ? 'Refuse par l etudiant.' : null,
+    },
+    include: recommendationInclude,
+  });
+
+  return mapStudentRecommendation(recommendation);
 };
 
 exports.listBadges = async () => prisma.badge.findMany({ orderBy: { createdAt: 'desc' } });
