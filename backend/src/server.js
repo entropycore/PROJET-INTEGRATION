@@ -25,6 +25,8 @@ const studentsRoutes = require('./routes/studentsRoutes');
 const academicPathRoutes = require('./routes/academicPathRoutes');
 const skillRoutes = require('./routes/skillRoutes');
 const portfolioRoutes = require('./routes/portfolioRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 
@@ -81,9 +83,11 @@ app.use('/api/professor', professorRoutes);
 
 app.use('/api/admin', administratorRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 
 app.use('/api/files', fileRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 
 

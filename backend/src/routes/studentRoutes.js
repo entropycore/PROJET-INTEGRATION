@@ -5,6 +5,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
 const studentController = require('../controllers/studentController');
 const workspaceController = require('../controllers/studentWorkspaceController');
+const notificationController = require('../controllers/userNotificationController');
 const {
   uploadMultipleFiles,
   uploadSingleFile,
@@ -18,12 +19,23 @@ router.use(checkRoles('STUDENT'));
 router.get('/dashboard', studentController.getDashboard);
 router.get('/profile', studentController.getProfile);
 router.get('/validators', workspaceController.listValidators);
+router.get('/notifications', notificationController.listNotifications);
+router.get('/notifications/unread-count', notificationController.getUnreadCount);
+router.patch('/notifications/read-all', notificationController.markAllAsRead);
+router.patch('/notifications/:notificationId/read', notificationController.markAsRead);
+router.delete('/notifications/:notificationId', notificationController.deleteNotification);
 
 router.get('/credibility-score', workspaceController.getCredibilityScore);
 router.get('/credibility-score/details', workspaceController.getCredibilityScore);
 router.get('/profile-completion', workspaceController.getProfileCompletion);
 router.get('/timeline', workspaceController.getTimeline);
 router.get('/badges', workspaceController.listBadges);
+router.put('/settings/password', workspaceController.updatePassword);
+router.put('/settings/privacy', workspaceController.updatePrivacyPreferences);
+router.put('/settings/notifications', workspaceController.updateNotificationPreferences);
+router.get('/recommendations', workspaceController.listRecommendations);
+router.patch('/recommendations/:id/visibility', workspaceController.updateRecommendationVisibility);
+router.patch('/recommendations/:id/status', workspaceController.updateRecommendationStatus);
 
 router.get('/stages', workspaceController.listStages);
 router.post('/stages', workspaceController.createStage);

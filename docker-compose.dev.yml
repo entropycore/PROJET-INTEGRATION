@@ -4,9 +4,6 @@ services:
     container_name: base_donnees
     restart: unless-stopped
 
-    env_file:
-      - .env
-
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -91,9 +88,6 @@ services:
 
     depends_on:
       - backend
-
-    env_file:
-      - .env
 
     environment:
       VITE_API_BASE_URL: http://localhost:${BACKEND_PORT:-3000}
