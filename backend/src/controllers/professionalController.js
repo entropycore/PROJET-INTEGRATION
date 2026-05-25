@@ -14,7 +14,11 @@ const handleProfessionalError = (res, err) => {
 exports.getDashboard = async (req, res, next) => {
   try {
     const dashboard = await professionalService.getProfessionalDashboard(req.user.userId);
-    return success(res, 200, 'Tableau de bord professionnel charge.', dashboard);
+    return success(res, 200, 'Tableau de bord professionnel charge.', {
+      area: 'professional',
+      user: req.user,
+      ...(dashboard && typeof dashboard === 'object' && !Array.isArray(dashboard) ? dashboard : {}),
+    });
   } catch (err) {
     if (handleProfessionalError(res, err)) return;
     next(err);

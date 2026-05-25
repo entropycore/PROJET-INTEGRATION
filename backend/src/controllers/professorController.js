@@ -14,7 +14,11 @@ const handleProfessorError = (res, err) => {
 exports.getDashboard = async (req, res, next) => {
   try {
     const dashboard = await professorService.getProfessorDashboard(req.user.userId);
-    return success(res, 200, 'Tableau de bord professeur charge.', dashboard);
+    return success(res, 200, 'Tableau de bord professeur charge.', {
+      area: 'professor',
+      user: req.user,
+      ...(dashboard && typeof dashboard === 'object' && !Array.isArray(dashboard) ? dashboard : {}),
+    });
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);
