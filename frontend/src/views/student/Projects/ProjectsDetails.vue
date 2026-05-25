@@ -1,11 +1,12 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
 import {
   getStudentProjectById,
   deleteStudentProject,
 } from "@/services/studentProjectsApis";
+import api from "@/services/api";
 
 import "@/assets/styles/student-project-details.css";
 
@@ -14,6 +15,10 @@ const router = useRouter();
 
 const project = ref(null);
 const isLoading = ref(false);
+const screenshotObjectUrls = ref({});
+const brokenScreenshotIds = ref(new Set());
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const statusLabels = {
   DRAFT: "Brouillon",
@@ -67,6 +72,7 @@ const fetchProject = async () => {
   try {
     const response = await getStudentProjectById(route.params.id);
     project.value = response.data.data;
+    await loadScreenshotObjectUrls();
   } catch (error) {
     console.warn("API project detail indisponible.");
   } finally {
@@ -74,10 +80,83 @@ const fetchProject = async () => {
   }
 };
 
+const buildBackendUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("blob:") || path.startsWith("data:")) return path;
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const normalizedBase = apiBaseUrl.replace(/\/$/, "");
+
+  return normalizedBase ? `${normalizedBase}${normalizedPath}` : normalizedPath;
+};
+
+const buildApiRequestUrl = (path) => {
+  const fullUrl = buildBackendUrl(path);
+  const withoutBase =
+    apiBaseUrl && fullUrl.startsWith(apiBaseUrl)
+      ? fullUrl.slice(apiBaseUrl.length) || "/"
+      : fullUrl;
+
+  return withoutBase.startsWith("/api/")
+    ? withoutBase.replace(/^\/api/, "")
+    : withoutBase;
+};
+
+const getMediaUrl = (media, action = "download") => {
+  const existingUrl = media?.imageUrl || media?.mediaUrl || media?.url;
+
+  if (existingUrl) return existingUrl;
+  if (!project.value?.id || !media?.id) return "";
+
+  return `/api/projects/${project.value.id}/media/${media.id}/${action}`;
+};
+
+const revokeScreenshotObjectUrls = () => {
+  Object.values(screenshotObjectUrls.value).forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
+
+  screenshotObjectUrls.value = {};
+};
+
+const handleScreenshotError = (id) => {
+  if (!id) return;
+
+  brokenScreenshotIds.value = new Set([...brokenScreenshotIds.value, id]);
+};
+
+const loadScreenshotObjectUrls = async () => {
+  revokeScreenshotObjectUrls();
+  brokenScreenshotIds.value = new Set();
+
+  const screenshots = project.value?.screenshots || [];
+  const entries = await Promise.all(
+    screenshots.map(async (screenshot) => {
+      const mediaUrl = getMediaUrl(screenshot, "content");
+
+      if (!screenshot.id || !mediaUrl) return null;
+
+      try {
+        const response = await api.get(buildApiRequestUrl(mediaUrl), {
+          responseType: "blob",
+        });
+
+        return [screenshot.id, URL.createObjectURL(response.data)];
+      } catch (error) {
+        handleScreenshotError(screenshot.id);
+        return null;
+      }
+    }),
+  );
+
+  screenshotObjectUrls.value = Object.fromEntries(entries.filter(Boolean));
+};
+
 const displayScreenshots = computed(() => {
   return (project.value?.screenshots || []).map((screenshot) => ({
     ...screenshot,
-    src: screenshotObjectUrls.value[screenshot.id] || null,
+    src: screenshotObjectUrls.value[screenshot.id] || "",
   }));
 });
 
@@ -109,6 +188,7 @@ const handleDeleteProject = async () => {
 };
 
 onMounted(fetchProject);
+onUnmounted(revokeScreenshotObjectUrls);
 </script>
 
 <template>
@@ -382,9 +462,12 @@ onMounted(fetchProject);
                 class="screenshot-card"
               >
                 <img
-                  v-if="screenshot.imageUrl"
-                  :src="screenshot.imageUrl"
+                  v-if="
+                    screenshot.src && !brokenScreenshotIds.has(screenshot.id)
+                  "
+                  :src="screenshot.src"
                   :alt="screenshot.title"
+                  @error="handleScreenshotError(screenshot.id)"
                 />
 
                 <div
