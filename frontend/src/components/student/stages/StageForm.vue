@@ -298,7 +298,11 @@ const submitButtonLabel = () => {
         Sauveg. brouillon
       </button>
 
-      <button type="submit" class="btn btn-primary" :disabled="!canSubmitValidation">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        :disabled="!canSubmitValidation"
+      >
         <span class="material-icons-round">send</span>
         {{ submitButtonLabel() }}
       </button>
