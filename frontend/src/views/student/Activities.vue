@@ -1,21 +1,27 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import {
   activities,
-  addActivity,
   deleteActivity,
   submitActivityValidation,
 } from "@/mockData/studentActivities.store";
 
-import ActivityCard from "@/components/student/activities/ActivityCard.vue";
-import ActivityFilters from "@/components/student/activities/ActivityFilters.vue";
-import ActivityForm from "@/components/student/activities/ActivityForm.vue";
+import ActivityCard from '@/components/student/activities/ActivityCard.vue'
+import ActivityFilters from '@/components/student/activities/ActivityFilters.vue'
+import {
+  canSubmitActivity,
+  hasActivityValidator,
+} from '@/components/student/activities/activityRules'
 
-const search = ref("");
-const selectedStatus = ref("ALL");
-const selectedType = ref("ALL");
-const showForm = ref(false);
+const router = useRouter()
+
+const search = ref('')
+const selectedStatus = ref('ALL')
+const selectedType = ref('ALL')
+const submitMessage = ref('')
+
 
 const filteredActivities = computed(() => {
   return activities.value.filter((activity) => {
@@ -37,16 +43,9 @@ const filteredActivities = computed(() => {
   });
 });
 
-const handleAddActivity = (payload) => {
-  addActivity({
-    id: Date.now(),
-    ...payload,
-    validationStatus: "DRAFT",
-    createdAt: new Date().toISOString().split("T")[0],
-  });
-
-  showForm.value = false;
-};
+const goToCreate = () => {
+  router.push('/student/activities/create')
+}
 
 const handleDeleteActivity = (activityId) => {
   const confirmDelete = window.confirm(
@@ -59,8 +58,26 @@ const handleDeleteActivity = (activityId) => {
 };
 
 const handleSubmitValidation = (activityId) => {
-  submitActivityValidation(activityId);
-};
+  const activity = activities.value.find(
+    (item) => String(item.id) === String(activityId),
+  )
+
+  if (!activity) return
+
+  if (!canSubmitActivity(activity)) {
+    submitMessage.value = "Seules les activités en brouillon peuvent être soumises."
+    return
+  }
+
+  if (!hasActivityValidator(activity)) {
+    submitMessage.value =
+      'Veuillez définir un validateur avant de soumettre cette activité.'
+    return
+  }
+
+  submitActivityValidation(activityId)
+  submitMessage.value = 'Activité soumise à validation.'
+}
 </script>
 
 <template>
@@ -72,25 +89,21 @@ const handleSubmitValidation = (activityId) => {
         <p>Ajoutez vos engagements avec une attestation de participation.</p>
       </div>
 
-      <button class="add-btn" @click="showForm = !showForm">
-        <span class="material-icons-round">
-          {{ showForm ? "close" : "add" }}
-        </span>
-        {{ showForm ? "Fermer" : "Ajouter une activité" }}
+      <button class="add-btn" @click="goToCreate">
+        <span class="material-icons-round">add</span>
+           Ajouter une activité
       </button>
     </div>
-
-    <ActivityForm
-      v-if="showForm"
-      @save-activity="handleAddActivity"
-      @cancel="showForm = false"
-    />
 
     <ActivityFilters
       v-model:search="search"
       v-model:status="selectedStatus"
       v-model:type="selectedType"
     />
+
+    <p v-if="submitMessage" class="submit-message">
+      {{ submitMessage }}
+    </p>
 
     <div v-if="filteredActivities.length" class="activities-grid">
       <ActivityCard
@@ -174,6 +187,17 @@ const handleSubmitValidation = (activityId) => {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
   margin-top: 1.5rem;
+}
+
+.submit-message {
+  margin: 1rem 0 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid #c4cdc1;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #2f575d;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .empty-state {

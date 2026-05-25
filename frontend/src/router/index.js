@@ -18,233 +18,246 @@ import ProfessionalDashboard from "../views/professional/Dashboard.vue";
 import DashboardLayout from "../layouts/DashboardLayout.vue";
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes: [
+    history: createWebHistory(),
+    routes: [
+        {
+            path: '/',
+            name: 'landing',
+            component: LandingView,
+        },
+        {
+            path: '/login',
+            name: 'login',
+            component: LoginView,
+        },
+        {
+            path: '/request-access',
+            name: 'request-access',
+            component: RequestAccessView,
+        },
+        {
+            path: '/verify-email',
+            name: 'verify-email',
+            component: VerifyEmailView,
+        },
+        {
+            path: '/forgot-password',
+            name: 'forgot-password',
+            component: ForgotPasswordView,
+        },
+        {
+            path: '/reset-password',
+            name: 'reset-password',
+            component: ResetPasswordView,
+        },
+        {
+  path: '/admin',
+  component: DashboardLayout,
+  meta: { requiresAuth: true, roles: ['ADMINISTRATOR'] },
+  children: [
     {
-      path: "/",
-      name: "landing",
-      component: LandingView,
+      path: '',
+      name: 'admin-dashboard',
+      component: AdminDashboard,
     },
     {
-      path: "/login",
-      name: "login",
-      component: LoginView,
+      path: 'users',
+      name: 'admin-users',
+      component: () => import('../views/admin/Users.vue'),
     },
     {
-      path: "/request-access",
-      name: "request-access",
-      component: RequestAccessView,
+      path: 'users/create',
+      name: 'admin-user-create',
+      component: () => import('../views/admin/UserCreate.vue'),
     },
     {
-      path: "/verify-email",
-      name: "verify-email",
-      component: VerifyEmailView,
+      path: 'users/:userId',
+      name: 'admin-user-details',
+      component: () => import('../views/admin/UserDetails.vue'),
     },
     {
-      path: "/forgot-password",
-      name: "forgot-password",
-      component: ForgotPasswordView,
+      path: 'users/:userId/edit',
+      name: 'admin-user-edit',
+      component: () => import('../views/admin/UserDetails.vue'),
     },
     {
-      path: "/reset-password",
-      name: "reset-password",
-      component: ResetPasswordView,
+      path: 'validations',
+      name: 'admin-validations',
+      component: () => import('../views/admin/Validations.vue'),
     },
     {
-      path: "/admin",
-      component: DashboardLayout,
-      meta: { requiresAuth: true, roles: ["ADMINISTRATOR"] },
-      children: [
-        {
-          path: "",
-          name: "admin-dashboard",
-          component: AdminDashboard,
-        },
-        {
-          path: "users",
-          name: "admin-users",
-          component: () => import("../views/admin/Users.vue"),
-        },
-        {
-          path: "users/create",
-          name: "admin-user-create",
-          component: () => import("../views/admin/UserCreate.vue"),
-        },
-        {
-          path: "users/:userId",
-          name: "admin-user-details",
-          component: () => import("../views/admin/UserDetails.vue"),
-        },
-        {
-          path: "users/:userId/edit",
-          name: "admin-user-edit",
-          component: () => import("../views/admin/UserDetails.vue"),
-        },
-        {
-          path: "validations",
-          name: "admin-validations",
-          component: () => import("../views/admin/Validations.vue"),
-        },
-        {
-          path: "profiles",
-          name: "admin-profiles",
-          component: () => import("../views/profiles.vue"),
-        },
-        {
-          path: "notifications",
-          name: "admin-notifications",
-          component: () => import("../views/Notifications.vue"),
-          meta: { baseApi: "/api/admin" },
-        },
-        {
-          path: "badges",
-          name: "admin-badges",
-          component: () => import("../views/admin/Badges.vue"),
-        },
-        {
-          path: "settings",
-          name: "admin-settings",
-          component: () => import("../views/Settings.vue"),
-        },
-        {
-          path: "profile",
-          name: "admin-profile",
-          component: () => import("../views/Profile.vue"),
-        },
-        {
-          path: "reports",
-          name: "admin-reports",
-          component: () => import("../views/admin/Reports.vue"),
-        },
-      ],
+      path: 'profiles',
+      name: 'admin-profiles',
+      component: () => import('../views/profiles.vue'),
     },
     {
-      path: "/student",
-      component: DashboardLayout,
-      meta: { role: "STUDENT" },
-      children: [
-        {
-          path: "",
-          name: "Studentdashboard",
-          component: () => import("@/views/student/Dashboard.vue"),
-        },
-        {
-          path: "profile",
-          name: "StudentProfile",
-          component: () => import("@/views/student/Profile.vue"),
-        },
-        {
-          path: "projects",
-          name: "StudentProjects",
-          component: () => import("@/views/student/Projects/Projects.vue"),
-        },
-        {
-          path: "projects/:id",
-          name: "StudentProjectDetails",
-          component: () =>
-            import("@/views/student/Projects/ProjectsDetails.vue"),
-        },
-        {
-          path: "projects/:id/edit",
-          name: "StudentProjectEdit",
-          component: () => import("@/views/student/Projects/ProjectEdit.vue"),
-        },
-        {
-          path: "projects/create",
-          name: "StudentProjectCreate",
-          component: () => import("@/views/student/Projects/ProjectCreate.vue"),
-        },
-        {
-          path: "/student/stages",
-          name: "student-stages",
-          component: () => import("@/views/student/stages/StagesView.vue"),
-        },
-        {
-          path: "/student/stages/create",
-          name: "student-stage-create",
-          component: () => import("@/views/student/stages/StageFormView.vue"),
-        },
-        {
-          path: "/student/stages/:id",
-          name: "student-stage-details",
-          component: () =>
-            import("@/views/student/stages/StageDetailsView.vue"),
-        },
-        {
-          path: "/student/stages/:id/edit",
-          name: "student-stage-edit",
-          component: () => import("@/views/student/stages/StageFormView.vue"),
-        },
-        {
-          path: "activities",
-          name: "StudentActivities",
-          component: () => import("@/views/student/Activities.vue"),
-        },
-        {
-          path: "competances",
-          name: "Studentcompetances",
-          component: () => import("@/views/student/competances.vue"),
-        },
-        {
-          path: "badges",
-          name: "Studentbadges",
-          component: () => import("@/views/student/Badges.vue"),
-        },
-        {
-          path: "portfolio",
-          name: "StudentPortfolio",
-          component: () => import("@/views/student/Portfolio.vue"),
-        },
-        {
-          path: "github",
-          name: "StudentGithub",
-          component: () => import("@/views/student/Github.vue"),
-        },
-        {
-          path: "recommendations",
-          name: "StudentRecommendations",
-          component: () => import("@/views/student/Recommendations.vue"),
-        },
-        {
-          path: "recommendation-letters",
-          name: "StudentRecommendationLetters",
-          component: () => import("@/views/student/RecommendationLetters.vue"),
-        },
-        {
-          path: "comments",
-          name: "StudentComments",
-          component: () => import("@/views/student/comments.vue"),
-        },
-        {
-          path: "settings",
-          name: "StudentSettings",
-          component: () => import("@/views/student/Settings.vue"),
-        },
-        {
-          path: "notifications",
-          name: "student-notifications",
-          component: () => import("../views/Notifications.vue"),
-          meta: { baseApi: "/api/student" },
-        },
-      ],
+      path: 'notifications',
+      name: 'admin-notifications',
+      component: () => import('../views/Notifications.vue'),
+      meta: { baseApi: '/api/admin' }
     },
     {
-      path: "/professor",
-      component: ProfessorDashboard,
-      meta: { requiresAuth: true, roles: ["PROFESSOR"] },
+      path: 'badges',
+      name: 'admin-badges',
+      component: () => import('../views/admin/Badges.vue'),
     },
     {
-      path: "/professional",
-      component: ProfessionalDashboard,
-      meta: { requiresAuth: true, roles: ["PROFESSIONAL"] },
+    path: 'settings',
+    name: 'admin-settings',
+    component: () => import('../views/Settings.vue'),
     },
     {
-      path: "/403",
-      name: "not-authorized",
-      component: () => import("../views/NotAuthorized.vue"),
+      path: 'profile',
+      name: 'admin-profile',
+      component: () => import('../views/Profile.vue'),
     },
+    {
+        path: 'reports',
+        name: 'admin-reports',
+        component: () => import('../views/admin/Reports.vue'),
+        }
   ],
-});
+},
+        {
+        path: '/student',
+        component: DashboardLayout,
+        meta: { role: 'STUDENT' },
+        children: [
+            {
+            path: '',
+            name: 'Studentdashboard',
+            component: () => import('@/views/student/Dashboard.vue'),
+            },
+            {
+            path: 'profile',
+            name: 'StudentProfile',
+            component: () => import('@/views/student/Profile.vue'),
+            },
+            {
+            path: 'projects',
+            name: 'StudentProjects',
+            component: () => import('@/views/student/Projects/Projects.vue'),
+            },
+            {
+              path: 'projects/:id',
+              name: 'StudentProjectDetails',
+              component: () => import('@/views/student/Projects/ProjectsDetails.vue'),
+            },
+            {
+              path: 'projects/:id/edit',
+              name: 'StudentProjectEdit',
+              component: () => import('@/views/student/Projects/ProjectEdit.vue'),
+            },
+            {
+              path: "projects/create",
+              name: "StudentProjectCreate",
+              component: () => import("@/views/student/Projects/ProjectCreate.vue"),
+            },
+            {
+            path: '/student/stages',
+            name: 'student-stages',
+            component: () => import('@/views/student/stages/StagesView.vue'),
+            },
+            {
+            path: '/student/stages/create',
+            name: 'student-stage-create',
+            component: () => import('@/views/student/stages/StageFormView.vue'),
+            },
+            {
+            path: '/student/stages/:id',
+            name: 'student-stage-details',
+            component: () => import('@/views/student/stages/StageDetailsView.vue'),
+            },
+            {
+            path: '/student/stages/:id/edit',
+            name: 'student-stage-edit',
+            component: () => import('@/views/student/stages/StageFormView.vue'),
+            },
+            {
+            path: 'activities',
+            name: 'StudentActivities',
+            component: () => import('@/views/student/Activities.vue'),
+            },
+            {
+              path: 'activities/create',
+              name: 'StudentActivityCreate',
+              component: () => import('@/views/student/ActivityCreate.vue'),
+              },
+              {
+              path: 'activities/:id/edit',
+              name: 'StudentActivityEdit',
+              component: () => import('@/views/student/ActivityEdit.vue'),
+              },
+              {
+              path: 'activities/:id',
+              name: 'StudentActivityDetails',
+              component: () => import('@/views/student/ActivityDetails.vue'),
+              },
+            {
+            path: 'competances',
+            name: 'Studentcompetances',
+            component: () => import('@/views/student/competances.vue'),
+            },
+            {
+            path: 'badges',
+            name: 'Studentbadges',
+            component: () => import('@/views/student/Badges.vue'),
+            },
+            {
+            path: 'portfolio',
+            name: 'StudentPortfolio',
+            component: () => import('@/views/student/Portfolio.vue'),
+            },
+            {
+            path: 'github',
+            name: 'StudentGithub',
+            component: () => import('@/views/student/Github.vue'),
+            },
+            {
+            path: 'recommendations',
+            name: 'StudentRecommendations',
+            component: () => import('@/views/student/Recommendations.vue'),
+            },
+            {
+            path: 'recommendation-letters',
+            name: 'StudentRecommendationLetters',
+            component: () => import('@/views/student/RecommendationLetters.vue'),
+            },
+            {
+            path: 'comments',
+            name: 'StudentComments',
+            component: () => import('@/views/student/comments.vue'),
+            },
+            {
+            path: 'settings',
+            name: 'StudentSettings',
+            component: () => import('@/views/student/Settings.vue'),
+            },
+            {
+            path: "notifications",
+            name: "student-notifications",
+            component: () => import("../views/Notifications.vue"),
+            meta: { baseApi: "/api/student" },
+            }
+        ],
+        },
+        {
+            path: '/professor',
+            component: ProfessorDashboard,
+            meta: { requiresAuth: true, roles: ['PROFESSOR'] },
+        },
+        {
+            path: '/professional',
+            component: ProfessionalDashboard,
+            meta: { requiresAuth: true, roles: ['PROFESSIONAL'] },
+        },
+        {
+            path: '/403',
+            name: 'not-authorized',
+            component: () => import('../views/NotAuthorized.vue'),
+        },
+    ],
+})
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore();
