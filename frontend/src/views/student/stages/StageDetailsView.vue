@@ -1,12 +1,13 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
 import StageImagesModal from "@/components/student/stages/StageImagesModal.vue";
 
 import {
+  downloadStudentStageReport,
   getStudentStageById,
-  updateStudentStageVisibility,
+  getStudentStageImageContent,
 } from "@/services/studentstageService";
 
 const route = useRoute();
@@ -14,6 +15,9 @@ const router = useRouter();
 
 const stage = ref(null);
 const isLoading = ref(false);
+const imagePreviewUrls = ref({});
+const reportPreviewUrl = ref("");
+const isReportLoading = ref(false);
 
 const extractData = (response) => {
   return response.data?.data || response.data;
@@ -24,7 +28,9 @@ const fetchStage = async () => {
 
   try {
     const response = await getStudentStageById(route.params.id);
-    stage.value = extractData(response);
+    const loadedStage = extractData(response);
+    stage.value = loadedStage;
+    await hydrateStageMedia(loadedStage);
   } catch (error) {
     console.error("Erreur chargement détail stage :", error);
   } finally {
@@ -35,6 +41,61 @@ const fetchStage = async () => {
 onMounted(() => {
   fetchStage();
 });
+
+onBeforeUnmount(() => {
+  revokeStageMediaUrls();
+});
+
+const revokeStageMediaUrls = () => {
+  Object.values(imagePreviewUrls.value).forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
+
+  if (reportPreviewUrl.value) {
+    URL.revokeObjectURL(reportPreviewUrl.value);
+  }
+
+  imagePreviewUrls.value = {};
+  reportPreviewUrl.value = "";
+};
+
+const hydrateStageMedia = async (loadedStage) => {
+  revokeStageMediaUrls();
+
+  const images = loadedStage?.images || [];
+
+  const loadedImageUrls = await Promise.all(
+    images.map(async (image) => {
+      if (!image.id) return null;
+
+      try {
+        const response = await getStudentStageImageContent(
+          loadedStage.id,
+          image.id,
+        );
+        return [image.id, URL.createObjectURL(response.data)];
+      } catch (error) {
+        console.error("Erreur chargement image de stage :", error);
+        return null;
+      }
+    }),
+  );
+
+  imagePreviewUrls.value = Object.fromEntries(loadedImageUrls.filter(Boolean));
+
+  if (!loadedStage?.reportUrl) return;
+
+  isReportLoading.value = true;
+
+  try {
+    const response = await downloadStudentStageReport(loadedStage.id);
+    reportPreviewUrl.value = URL.createObjectURL(response.data);
+  } catch (error) {
+    console.error("Erreur chargement rapport de stage :", error);
+  } finally {
+    isReportLoading.value = false;
+  }
+};
 
 const canEditStage = computed(() => {
   return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
@@ -109,8 +170,15 @@ const getTimelineIcon = (status) => {
 
 const showImagesModal = ref(false);
 
+const normalizedImages = computed(() => {
+  return (stage.value?.images || []).map((image) => ({
+    ...image,
+    url: imagePreviewUrls.value[image.id] || image.url || image.imageUrl || "",
+  }));
+});
+
 const visibleImages = computed(() => {
-  return stage.value?.images?.slice(0, 4) || [];
+  return normalizedImages.value.slice(0, 4);
 });
 
 const hasMoreImages = computed(() => {
@@ -123,24 +191,6 @@ const openImagesModal = () => {
 
 const closeImagesModal = () => {
   showImagesModal.value = false;
-};
-
-const toggleVisibility = async () => {
-  if (!stage.value || stage.value.validationStatus !== "APPROVED") return;
-
-  const newVisibility =
-    stage.value.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC";
-
-  try {
-    const response = await updateStudentStageVisibility(
-      stage.value.id,
-      newVisibility,
-    );
-
-    stage.value = extractData(response);
-  } catch (error) {
-    console.error("Erreur changement visibilité :", error);
-  }
 };
 
 const goBack = () => {
@@ -343,23 +393,6 @@ const goToEdit = () => {
               </strong>
             </div>
 
-            <button
-              v-if="stage.validationStatus === 'APPROVED'"
-              class="portfolio-btn"
-              @click="toggleVisibility"
-            >
-              <span class="material-icons-round">
-                {{
-                  stage.visibility === "PUBLIC" ? "visibility_off" : "public"
-                }}
-              </span>
-
-              {{
-                stage.visibility === "PUBLIC"
-                  ? "Retirer du portfolio"
-                  : "Afficher dans le portfolio"
-              }}
-            </button>
           </div>
 
           <div class="side-card">
@@ -387,12 +420,13 @@ const goToEdit = () => {
 
             <a
               v-if="stage.reportUrl"
-              :href="stage.reportUrl"
+              :href="reportPreviewUrl || undefined"
               target="_blank"
               class="report-btn"
+              :class="{ disabled: !reportPreviewUrl }"
             >
               <span class="material-icons-round"> open_in_new </span>
-              Voir le rapport
+              {{ isReportLoading ? "Chargement du rapport..." : "Voir le rapport" }}
             </a>
 
             <p v-else class="muted">Aucun rapport ajouté.</p>
@@ -402,7 +436,7 @@ const goToEdit = () => {
 
       <StageImagesModal
         v-if="showImagesModal"
-        :images="stage.images"
+        :images="normalizedImages"
         @close="closeImagesModal"
       />
     </template>
@@ -524,6 +558,11 @@ h1 {
 .edit-btn:hover,
 .report-btn:hover {
   background: #f8f9f8;
+}
+
+.report-btn.disabled {
+  pointer-events: none;
+  opacity: 0.65;
 }
 
 /* LAYOUT */
@@ -887,38 +926,6 @@ h3 .material-icons-round {
 .section-header h2 {
   margin-bottom: 0;
 }
-.portfolio-btn {
-  width: 100%;
-  min-height: 2.75rem;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  margin-top: 1rem;
-
-  border: none;
-  border-radius: 0.7rem;
-
-  background: #2f575d;
-  color: #ffffff;
-
-  font-size: 0.9rem;
-  font-weight: 800;
-
-  cursor: pointer;
-}
-
-.portfolio-btn:hover {
-  background: #26494d;
-}
-
-.portfolio-btn .material-icons-round {
-  color: #ffffff;
-  font-size: 1.1rem;
-}
-
 .view-all-btn {
   border: 1px solid #c4cdc1;
   background: #ffffff;

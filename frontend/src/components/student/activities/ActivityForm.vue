@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, watch } from "vue";
 
 const props = defineProps({
   initialActivity: {
@@ -8,91 +8,63 @@ const props = defineProps({
   },
   submitLabel: {
     type: String,
-    default: 'Enregistrer',
+    default: "Enregistrer",
   },
-})
+});
 
-const emit = defineEmits(['save-activity', 'cancel'])
+const emit = defineEmits(["save-activity", "cancel"]);
 
 const form = reactive({
-  title: props.initialActivity?.title || '',
-  type: props.initialActivity?.type || 'CLUB',
-  organization: props.initialActivity?.organization || '',
-  date: props.initialActivity?.date || '',
-  duration: props.initialActivity?.duration || '',
-  location: props.initialActivity?.location || '',
-  description: props.initialActivity?.description || '',
-  validatorName: props.initialActivity?.validatorName || '',
-  validatorId: props.initialActivity?.validatorId || null,
+  title: props.initialActivity?.title || "",
+  type: props.initialActivity?.type || "CLUB",
+  organization: props.initialActivity?.organization || "",
+  date: props.initialActivity?.date || props.initialActivity?.startDate || "",
+  duration: props.initialActivity?.duration || "",
+  location: props.initialActivity?.location || "",
+  description: props.initialActivity?.description || "",
   certificate: props.initialActivity?.certificate || null,
-  certificateName: props.initialActivity?.certificateName || '',
-  certificateUrl: props.initialActivity?.certificateUrl || '',
-})
+  certificateName: props.initialActivity?.certificateName || "",
+  certificateUrl: props.initialActivity?.certificateUrl || "",
+});
 
 watch(
   () => props.initialActivity,
   (activity) => {
-    form.title = activity?.title || ''
-    form.type = activity?.type || 'CLUB'
-    form.organization = activity?.organization || ''
-    form.date = activity?.date || ''
-    form.duration = activity?.duration || ''
-    form.location = activity?.location || ''
-    form.description = activity?.description || ''
-    form.validatorName = activity?.validatorName || ''
-    form.validatorId = activity?.validatorId || null
-    form.certificate = activity?.certificate || null
-    form.certificateName = activity?.certificateName || ''
-    form.certificateUrl = activity?.certificateUrl || ''
+    form.title = activity?.title || "";
+    form.type = activity?.type || "CLUB";
+    form.organization = activity?.organization || "";
+    form.date = activity?.date || activity?.startDate || "";
+    form.duration = activity?.duration || "";
+    form.location = activity?.location || "";
+    form.description = activity?.description || "";
+    form.certificate = activity?.certificate || null;
+    form.certificateName = activity?.certificateName || "";
+    form.certificateUrl = activity?.certificateUrl || "";
   },
-)
+);
 
 const handleCertificateUpload = (event) => {
   const file = event.target.files[0];
 
-const form = reactive({
-  title: props.initialActivity?.title || '',
-  type: props.initialActivity?.type || 'CLUB',
-  organization: props.initialActivity?.organization || '',
-  date: props.initialActivity?.date || '',
-  duration: props.initialActivity?.duration || '',
-  location: props.initialActivity?.location || '',
-  description: props.initialActivity?.description || '',
-  certificate: props.initialActivity?.certificate || null,
-  certificateName: props.initialActivity?.certificateName || '',
-  certificateUrl: props.initialActivity?.certificateUrl || '',
-})
+  if (!file) return;
+
+  form.certificate = file;
+  form.certificateName = file.name;
+  form.certificateUrl = URL.createObjectURL(file);
 };
-watch(
-  () => props.initialActivity,
-  (activity) => {
-    form.title = activity?.title || ''
-    form.type = activity?.type || 'CLUB'
-    form.organization = activity?.organization || ''
-    form.date = activity?.date || ''
-    form.duration = activity?.duration || ''
-    form.location = activity?.location || ''
-    form.description = activity?.description || ''
-    form.certificate = activity?.certificate || null
-    form.certificateName = activity?.certificateName || ''
-    form.certificateUrl = activity?.certificateUrl || ''
-  },
-)
 
 const resetForm = () => {
-  form.title = ''
-  form.type = 'CLUB'
-  form.organization = ''
-  form.date = ''
-  form.duration = ''
-  form.location = ''
-  form.description = ''
-  form.validatorName = ''
-  form.validatorId = null
-  form.certificate = null
-  form.certificateName = ''
-  form.certificateUrl = ''
-}
+  form.title = "";
+  form.type = "CLUB";
+  form.organization = "";
+  form.date = "";
+  form.duration = "";
+  form.location = "";
+  form.description = "";
+  form.certificate = null;
+  form.certificateName = "";
+  form.certificateUrl = "";
+};
 
 const submitForm = () => {
   emit("save-activity", {
@@ -103,8 +75,6 @@ const submitForm = () => {
     duration: form.duration,
     location: form.location,
     description: form.description,
-    validatorName: form.validatorName,
-    validatorId: form.validatorId,
     certificate: form.certificate,
     certificateName: form.certificateName,
     certificateUrl: form.certificateUrl,
@@ -173,15 +143,6 @@ const submitForm = () => {
             type="text"
             required
             placeholder="Ex : Casablanca"
-          />
-        </div>
-
-        <div class="form-group full-width">
-          <label>Validateur</label>
-          <input
-            v-model="form.validatorName"
-            type="text"
-            placeholder="Rechercher un professeur ou un administrateur..."
           />
         </div>
       </div>

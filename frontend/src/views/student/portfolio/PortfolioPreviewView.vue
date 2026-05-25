@@ -4,7 +4,6 @@ import { RouterLink, useRouter } from "vue-router";
 import {
   generateStudentPortfolio,
   getStudentPortfolioData,
-  saveGeneratedPortfolioConfig,
 } from "@/services/studentPortfolioService";
 
 const router = useRouter();
@@ -58,23 +57,46 @@ const themes = [
   },
 ];
 
+const syncConfigFromPortfolio = (data) => {
+  const portfolioConfig = data?.portfolioConfig;
+
+  if (!portfolioConfig) return;
+
+  const includedSections = new Set(portfolioConfig.includedSections || []);
+
+  config.theme = portfolioConfig.theme || config.theme;
+  config.includeSkills = includedSections.has("skills");
+  config.includeSoftSkills = includedSections.has("softSkills");
+  config.includeBadges = includedSections.has("badges");
+  config.includeAcademicPaths = includedSections.has("academicPaths");
+  config.includeGithubActivity = includedSections.has("githubActivity");
+};
+
 const fetchPortfolio = async () => {
   isLoading.value = true;
 
   try {
     portfolioData.value = await getStudentPortfolioData();
+    syncConfigFromPortfolio(portfolioData.value);
 
-    config.includedItems.projects = portfolioData.value.projects.map((p) => p.id);
-    config.includedItems.internships = portfolioData.value.internships.map(
+    const hasSavedPortfolio = Boolean(portfolioData.value.portfolio);
+    const includedItems = hasSavedPortfolio
+      ? portfolioData.value.portfolioConfig?.includedItems || {}
+      : {};
+
+    config.includedItems.projects =
+      includedItems.projects || portfolioData.value.projects.map((p) => p.id);
+    config.includedItems.internships = includedItems.internships || portfolioData.value.internships.map(
       (s) => s.id,
     );
-    config.includedItems.activities = portfolioData.value.activities.map(
+    config.includedItems.activities = includedItems.activities || portfolioData.value.activities.map(
       (a) => a.id,
     );
     config.includedItems.recommendationLetters =
-      portfolioData.value.recommendationLetters.map((l) => l.id);
+      includedItems.recommendationLetters || portfolioData.value.recommendationLetters.map((l) => l.id);
     config.includedItems.recommendations =
-      portfolioData.value.recommendations.map((r) => r.id);
+      includedItems.recommendations || portfolioData.value.recommendations.map((r) => r.id);
+    isGenerated.value = portfolioData.value.portfolio?.status === "ACTIVE";
   } finally {
     isLoading.value = false;
   }
@@ -118,6 +140,12 @@ const isSelected = (section, id) => {
   return config.includedItems[section].includes(id);
 };
 
+const getDisplayName = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return value.name || value.fullName || "";
+};
+
 const generatePortfolio = async () => {
   isGenerating.value = true;
 
@@ -145,12 +173,9 @@ const generatePortfolio = async () => {
   };
 
   try {
-    await generateStudentPortfolio(payload);
-    saveGeneratedPortfolioConfig(payload);
-    isGenerated.value = true;
-  } catch {
-    saveGeneratedPortfolioConfig(payload);
-    console.warn("Backend génération indisponible, simulation côté front.");
+    const response = await generateStudentPortfolio(payload);
+    portfolioData.value = response.data?.data || response.data;
+    syncConfigFromPortfolio(portfolioData.value);
     isGenerated.value = true;
   } finally {
     isGenerating.value = false;
@@ -442,7 +467,7 @@ onMounted(fetchPortfolio);
 
             <div>
               <strong>{{ letter.title }}</strong>
-              <p>{{ letter.author }} · {{ letter.objective }}</p>
+              <p>{{ getDisplayName(letter.author) }} · {{ letter.type }}</p>
             </div>
           </div>
 
@@ -459,8 +484,8 @@ onMounted(fetchPortfolio);
             />
 
             <div>
-              <strong>{{ rec.author }}</strong>
-              <p>{{ rec.role }} · {{ rec.organization }}</p>
+              <strong>{{ getDisplayName(rec.author) }}</strong>
+              <p>{{ rec.authorJobTitle }} · {{ rec.organization }}</p>
               <em>“{{ rec.content }}”</em>
             </div>
           </div>

@@ -1,17 +1,17 @@
 ﻿<script setup>
 import { computed, onMounted, ref } from "vue";
 import "@/assets/styles/PorftolioFullView.css";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import PortfolioHero from "@/components/student/portfolio/PortfolioHero.vue";
 import PortfolioSection from "@/components/student/portfolio/PortfolioSection.vue";
 import {
-  exportMyPortfolioPdf,
-  getGeneratedPortfolioConfig,
+  getPublicPortfolioData,
   getStudentPortfolioData,
 } from "@/services/studentPortfolioService";
-import { getGithubStats } from "@/services/studentGithub";
+import api from "@/services/api";
 
 const router = useRouter();
+const route = useRoute();
 
 const portfolioData = ref(null);
 const isLoading = ref(false);
@@ -22,6 +22,13 @@ const isModalOpen = ref(false);
 const selectedTheme = ref("modern-academic");
 const githubData = ref(null);
 const includeGithubActivity = ref(true);
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const mediaDataUrls = ref({});
+const defaultCoverByType = {
+  project: "/portfolio/project-1.jpg",
+  internship: "/portfolio/stage-1.jpg",
+  activity: "/portfolio/activity-1.jpg",
+};
 
 const normalizeTheme = (theme) => {
   const themeMap = {
@@ -37,8 +44,8 @@ const filterBySelectedIds = (items = [], selectedIds = []) => {
   return items.filter((item) => selectedIdSet.has(String(item.id)));
 };
 
-const applyGeneratedPortfolioConfig = (data) => {
-  const config = getGeneratedPortfolioConfig();
+const applyPortfolioConfig = (data) => {
+  const config = data?.portfolioConfig;
 
   if (!config) {
     includeGithubActivity.value = true;
@@ -99,17 +106,15 @@ const fetchPortfolio = async () => {
   isLoading.value = true;
 
   try {
-    const data = await getStudentPortfolioData();
-    portfolioData.value = applyGeneratedPortfolioConfig(data);
+    const data = route.params.slug
+      ? await getPublicPortfolioData(route.params.slug)
+      : await getStudentPortfolioData();
 
-    if (includeGithubActivity.value) {
-      try {
-        const response = await getGithubStats();
-        githubData.value = response.data?.data || null;
-      } catch {
-        githubData.value = null;
-      }
-    }
+    portfolioData.value = applyPortfolioConfig(data);
+    githubData.value = includeGithubActivity.value
+      ? portfolioData.value?.githubActivity || null
+      : null;
+    await loadPortfolioMediaDataUrls();
   } finally {
     isLoading.value = false;
   }
@@ -128,8 +133,142 @@ const githubCalendarColor = computed(() => {
   return colorByTheme[selectedTheme.value] || colorByTheme["modern-academic"];
 });
 
-const getCoverImage = (item) => {
-  return item?.coverImage || item?.screenshots?.[0] || "";
+const getCoverImage = (item, type = "project") => {
+  const image =
+    item?.coverImage ||
+    item?.screenshots?.[0] ||
+    item?.images?.[0] ||
+    null;
+
+  return getImageUrl(image) || defaultCoverByType[type] || defaultCoverByType.project;
+};
+
+const handleCoverImageError = (event, type = "project") => {
+  const fallback = defaultCoverByType[type] || defaultCoverByType.project;
+
+  if (event.target.src.endsWith(fallback)) return;
+
+  event.target.src = fallback;
+};
+
+const getDisplayName = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return value.name || value.fullName || "";
+};
+
+const buildBackendUrl = (url) => {
+  if (!url) return "";
+  if (/^(https?:|blob:|data:)/i.test(url)) return url;
+  return `${apiBaseUrl}${url.startsWith("/") ? url : `/${url}`}`;
+};
+
+const getRawImageUrl = (image) => {
+  if (!image) return "";
+  if (typeof image === "string") return image;
+  return image.imageUrl || image.url || image.mediaUrl || "";
+};
+
+const getImageUrl = (image) => {
+  const rawUrl = getRawImageUrl(image);
+  return mediaDataUrls.value[rawUrl] || buildBackendUrl(rawUrl);
+};
+
+const getImageKey = (image) => {
+  if (!image) return "";
+  if (typeof image === "string") return image;
+  return image.id || image.imageUrl || image.url || image.mediaUrl || image.title;
+};
+
+const getImageTitle = (image) => {
+  if (!image || typeof image === "string") return selectedItem.value?.title || "";
+  return image.title || image.fileName || selectedItem.value?.title || "";
+};
+
+const selectedImages = computed(() => [
+  ...(selectedItem.value?.screenshots || []),
+  ...(selectedItem.value?.images || []),
+]);
+
+const collectPortfolioImages = () => {
+  const data = portfolioData.value || {};
+  const items = [
+    ...(data.projects || []),
+    ...(data.internships || []),
+    ...(data.activities || []),
+  ];
+
+  return items.flatMap((item) => [
+    item.coverImage,
+    ...(item.screenshots || []),
+    ...(item.images || []),
+  ]);
+};
+
+const buildApiRequestUrl = (url) => {
+  if (!url) return "";
+
+  const normalizedBaseUrl = apiBaseUrl.replace(/\/$/, "");
+  const apiPrefix = `${normalizedBaseUrl}/api`;
+
+  if (normalizedBaseUrl && url.startsWith(`${apiPrefix}/`)) {
+    return url.slice(apiPrefix.length);
+  }
+
+  if (url.startsWith("/api/")) {
+    return url.slice(4);
+  }
+
+  return url;
+};
+
+const canFetchWithApi = (url) => {
+  if (!url) return false;
+  const normalizedBaseUrl = apiBaseUrl.replace(/\/$/, "");
+  return url.startsWith("/api/") || url.startsWith(`${normalizedBaseUrl}/api/`);
+};
+
+const blobToDataUrl = (blob) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+
+const loadPortfolioMediaDataUrls = async () => {
+  mediaDataUrls.value = {};
+
+  const urls = [
+    ...new Set(
+      collectPortfolioImages()
+        .map(getRawImageUrl)
+        .filter(canFetchWithApi),
+    ),
+  ];
+
+  const entries = await Promise.all(
+    urls.map(async (url) => {
+      try {
+        const response = await api.get(buildApiRequestUrl(url), {
+          responseType: "blob",
+        });
+        return [url, await blobToDataUrl(response.data)];
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  mediaDataUrls.value = Object.fromEntries(entries.filter(Boolean));
+};
+
+const getPublicPortfolioUrl = () => {
+  const slug = portfolioData.value?.portfolio?.publicSlug || route.params.slug;
+
+  if (!slug) return window.location.href;
+
+  return `${window.location.origin}/portfolio/${slug}`;
 };
 
 const openDetails = (type, item) => {
@@ -145,11 +284,16 @@ const closeDetails = () => {
 };
 
 const goBack = () => {
+  if (route.params.slug) {
+    router.push("/");
+    return;
+  }
+
   router.push("/student/portfolio");
 };
 
 const copyLink = async () => {
-  await navigator.clipboard.writeText(window.location.href);
+  await navigator.clipboard.writeText(getPublicPortfolioUrl());
   alert("Lien copié.");
 };
 
@@ -157,26 +301,14 @@ const sharePortfolio = async () => {
   if (navigator.share) {
     await navigator.share({
       title: "Portfolio Credencia",
-      url: window.location.href,
+      url: getPublicPortfolioUrl(),
     });
   } else {
     await copyLink();
   }
 };
 
-const exportPdf = async () => {
-  try {
-    const response = await exportMyPortfolioPdf();
-    const data = response.data?.data || response.data;
-
-    if (data?.downloadUrl) {
-      window.open(data.downloadUrl, "_blank");
-      return;
-    }
-  } catch {
-    console.warn("Export PDF backend indisponible.");
-  }
-
+const exportPdf = () => {
   window.print();
 };
 
@@ -304,8 +436,8 @@ onMounted(fetchPortfolio);
             :theme="selectedTheme"
           >
             <div class="chips">
-              <span v-for="skill in portfolioData.skills" :key="skill">
-                {{ skill }}
+              <span v-for="skill in portfolioData.skills" :key="skill.id || skill.name">
+                {{ getDisplayName(skill) }}
               </span>
             </div>
           </PortfolioSection>
@@ -317,8 +449,8 @@ onMounted(fetchPortfolio);
             :theme="selectedTheme"
           >
             <div class="chips">
-              <span v-for="skill in portfolioData.softSkills" :key="skill">
-                {{ skill }}
+              <span v-for="skill in portfolioData.softSkills" :key="skill.id || skill.name">
+                {{ getDisplayName(skill) }}
               </span>
             </div>
           </PortfolioSection>
@@ -355,10 +487,10 @@ onMounted(fetchPortfolio);
               class="portfolio-card"
             >
               <img
-                v-if="getCoverImage(project)"
-                :src="getCoverImage(project)"
+                :src="getCoverImage(project, 'project')"
                 :alt="project.title"
                 class="card-image"
+                @error="handleCoverImageError($event, 'project')"
               />
 
               <div class="card-content">
@@ -384,9 +516,19 @@ onMounted(fetchPortfolio);
                     Rôle : {{ project.roleInTeam }}
                   </span>
 
+                  <span v-if="project.role">
+                    <span class="material-icons-round">badge</span>
+                    Rôle : {{ project.role }}
+                  </span>
+
                   <span v-if="project.team">
                     <span class="material-icons-round">groups</span>
                     {{ project.team }}
+                  </span>
+
+                  <span v-if="project.teamSize">
+                    <span class="material-icons-round">groups</span>
+                    Équipe : {{ project.teamSize }}
                   </span>
                 </div>
 
@@ -406,7 +548,7 @@ onMounted(fetchPortfolio);
                 <div class="card-actions">
                   <a
                     v-if="project.githubUrl"
-                    :href="project.githubUrl"
+                    :href="buildBackendUrl(project.githubUrl)"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="icon-action"
@@ -420,7 +562,7 @@ onMounted(fetchPortfolio);
 
                   <a
                     v-if="project.demoUrl"
-                    :href="project.demoUrl"
+                    :href="buildBackendUrl(project.demoUrl)"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="icon-action"
@@ -453,10 +595,10 @@ onMounted(fetchPortfolio);
               class="portfolio-card"
             >
               <img
-                v-if="getCoverImage(stage)"
-                :src="getCoverImage(stage)"
+                :src="getCoverImage(stage, 'internship')"
                 :alt="stage.title"
                 class="card-image"
+                @error="handleCoverImageError($event, 'internship')"
               />
 
               <div class="card-content">
@@ -503,7 +645,7 @@ onMounted(fetchPortfolio);
                 <div class="card-actions">
                   <a
                     v-if="stage.reportUrl"
-                    :href="stage.reportUrl"
+                    :href="buildBackendUrl(stage.reportUrl)"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="icon-action"
@@ -536,10 +678,10 @@ onMounted(fetchPortfolio);
               class="portfolio-card"
             >
               <img
-                v-if="getCoverImage(activity)"
-                :src="getCoverImage(activity)"
+                :src="getCoverImage(activity, 'activity')"
                 :alt="activity.title"
                 class="card-image"
+                @error="handleCoverImageError($event, 'activity')"
               />
 
               <div class="card-content">
@@ -578,7 +720,7 @@ onMounted(fetchPortfolio);
                 <div class="card-actions">
                   <a
                     v-if="activity.certificateUrl"
-                    :href="activity.certificateUrl"
+                    :href="buildBackendUrl(activity.certificateUrl)"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="icon-action"
@@ -613,7 +755,7 @@ onMounted(fetchPortfolio);
             >
               <div>
                 <h3>{{ letter.title }}</h3>
-                <p>{{ letter.author }} · {{ letter.objective }}</p>
+                <p>{{ getDisplayName(letter.author) }} · {{ letter.type }}</p>
 
                 <small v-if="letter.validator">
                   Validée par {{ letter.validator }}
@@ -621,8 +763,8 @@ onMounted(fetchPortfolio);
               </div>
 
               <a
-                v-if="letter.downloadable"
-                :href="letter.downloadUrl"
+            v-if="letter.downloadable && letter.documentUrl"
+                :href="buildBackendUrl(letter.documentUrl)"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="download-link"
@@ -645,12 +787,12 @@ onMounted(fetchPortfolio);
               class="recommendation-card"
             >
               <div class="rec-avatar">
-                {{ rec.initials }}
+                {{ getDisplayName(rec.author).charAt(0) }}
               </div>
 
               <div>
-                <h3>{{ rec.author }}</h3>
-                <p class="meta">{{ rec.role }} · {{ rec.organization }}</p>
+                <h3>{{ getDisplayName(rec.author) }}</h3>
+                <p class="meta">{{ rec.authorJobTitle }} · {{ rec.organization }}</p>
                 <blockquote>“{{ rec.content }}”</blockquote>
               </div>
             </article>
@@ -701,9 +843,19 @@ onMounted(fetchPortfolio);
             <span>{{ selectedItem.roleInTeam }}</span>
           </div>
 
+          <div v-if="selectedItem?.role">
+            <strong>Rôle</strong>
+            <span>{{ selectedItem.role }}</span>
+          </div>
+
           <div v-if="selectedItem?.team">
             <strong>Équipe</strong>
             <span>{{ selectedItem.team }}</span>
+          </div>
+
+          <div v-if="selectedItem?.teamSize">
+            <strong>Équipe</strong>
+            <span>{{ selectedItem.teamSize }}</span>
           </div>
 
           <div v-if="selectedItem?.company">
@@ -757,6 +909,12 @@ onMounted(fetchPortfolio);
           </ul>
         </div>
 
+        <div v-if="selectedItem?.result" class="modal-block">
+          <h3>Résultat</h3>
+
+          <p>{{ selectedItem.result }}</p>
+        </div>
+
         <div v-if="selectedItem?.technologies?.length" class="modal-block">
           <h3>Technologies utilisées</h3>
 
@@ -767,15 +925,15 @@ onMounted(fetchPortfolio);
           </div>
         </div>
 
-        <div v-if="selectedItem?.screenshots?.length" class="modal-block">
+        <div v-if="selectedImages.length" class="modal-block">
           <h3>Captures</h3>
 
           <div class="screenshots-grid">
             <img
-              v-for="image in selectedItem.screenshots"
-              :key="image"
-              :src="image"
-              :alt="selectedItem.title"
+              v-for="image in selectedImages"
+              :key="getImageKey(image)"
+              :src="getImageUrl(image)"
+              :alt="getImageTitle(image)"
             />
           </div>
         </div>
@@ -788,7 +946,7 @@ onMounted(fetchPortfolio);
 
           <a
             v-if="selectedItem?.githubUrl"
-            :href="selectedItem.githubUrl"
+            :href="buildBackendUrl(selectedItem.githubUrl)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -800,7 +958,7 @@ onMounted(fetchPortfolio);
 
           <a
             v-if="selectedItem?.demoUrl"
-            :href="selectedItem.demoUrl"
+            :href="buildBackendUrl(selectedItem.demoUrl)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -810,7 +968,7 @@ onMounted(fetchPortfolio);
 
           <a
             v-if="selectedItem?.documentationUrl"
-            :href="selectedItem.documentationUrl"
+            :href="buildBackendUrl(selectedItem.documentationUrl)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -820,7 +978,7 @@ onMounted(fetchPortfolio);
 
           <a
             v-if="selectedItem?.reportUrl"
-            :href="selectedItem.reportUrl"
+            :href="buildBackendUrl(selectedItem.reportUrl)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -830,7 +988,7 @@ onMounted(fetchPortfolio);
 
           <a
             v-if="selectedItem?.certificateUrl"
-            :href="selectedItem.certificateUrl"
+            :href="buildBackendUrl(selectedItem.certificateUrl)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -841,7 +999,7 @@ onMounted(fetchPortfolio);
           <a
             v-for="file in selectedItem?.attachments || []"
             :key="file.url"
-            :href="file.url"
+            :href="buildBackendUrl(file.url)"
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -853,5 +1011,3 @@ onMounted(fetchPortfolio);
     </div>
   </section>
 </template>
-
-

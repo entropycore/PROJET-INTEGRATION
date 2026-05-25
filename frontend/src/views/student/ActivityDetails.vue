@@ -1,25 +1,31 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, onUnmounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import {
   canDeleteActivity as canDeleteActivityRule,
   canEditActivity as canEditActivityRule,
   canSubmitActivity,
-  hasActivityValidator,
-} from '@/components/student/activities/activityRules'
+  hasActivityCertificate,
+} from "@/components/student/activities/activityRules";
 import {
-  deleteActivity,
-  getActivityById,
-  submitActivityValidation,
-} from '@/mockData/studentActivities.store'
+  deleteStudentActivity,
+  downloadStudentActivityCertificate,
+  getStudentActivityById,
+  submitStudentActivityValidation,
+} from "@/services/studentActivitiesService";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const activity = computed(() => getActivityById(route.params.id))
-const isCertificatePreviewOpen = ref(false)
-const submitMessage = ref('')
+const activity = ref(null);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const isCertificatePreviewOpen = ref(false);
+const certificatePreviewUrl = ref("");
+const isCertificateLoading = ref(false);
+const certificatePreviewError = ref("");
+const submitMessage = ref("");
 
 const statusLabels = {
   DRAFT: 'Brouillon',
@@ -27,7 +33,27 @@ const statusLabels = {
   APPROVED: 'Validée',
   REJECTED: 'Refusée',
   CORRECTION_REQUIRED: 'Correction demandée',
-}
+};
+
+const extractData = (response) => response.data?.data || response.data;
+
+const fetchActivity = async () => {
+  isLoading.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await getStudentActivityById(route.params.id);
+    activity.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement activité :", error);
+    activity.value = null;
+    errorMessage.value = "Impossible de charger cette activité.";
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(fetchActivity);
 
 const typeLabels = {
   CLUB: 'Club',
@@ -48,6 +74,14 @@ const canSubmitCurrentActivity = computed(() =>
   canSubmitActivity(activity.value),
 )
 
+const hasCurrentCertificate = computed(() =>
+  hasActivityCertificate(activity.value),
+)
+
+const displayedValidationStatus = computed(() => {
+  return activity.value?.validationStatus || 'DRAFT'
+})
+
 const activityStatusClass = computed(() => {
   const statusClasses = {
     DRAFT: 'draft',
@@ -57,7 +91,7 @@ const activityStatusClass = computed(() => {
     REJECTED: 'rejected',
   }
 
-  return statusClasses[activity.value?.validationStatus] || 'draft'
+  return statusClasses[displayedValidationStatus.value] || 'draft'
 })
 
 const activityStatusMessage = computed(() => {
@@ -69,7 +103,7 @@ const activityStatusMessage = computed(() => {
     },
     PENDING: {
       title: 'Validation en cours',
-      text: 'Cette activité a été soumise et attend la réponse du validateur.',
+      text: 'Cette activité a été soumise et attend la réponse de l’administration.',
       icon: 'schedule',
     },
     APPROVED: {
@@ -89,16 +123,13 @@ const activityStatusMessage = computed(() => {
     },
   }
 
-  return messages[activity.value?.validationStatus] || messages.DRAFT
+  return messages[displayedValidationStatus.value] || messages.DRAFT
 })
 
-const validatorName = computed(() =>
-  activity.value?.validatorName ||
-  activity.value?.validator ||
-  '',
+const certificateDownloadUrl = computed(() =>
+  certificatePreviewUrl.value || activity.value?.certificateUrl || '',
 )
-
-const certificateUrl = computed(() => activity.value?.certificateUrl || '')
+const certificatePreviewSource = computed(() => certificatePreviewUrl.value)
 const activityMedia = computed(() => activity.value?.screenshots || activity.value?.media || [])
 
 const validationHistory = computed(() => {
@@ -119,7 +150,7 @@ const validationHistory = computed(() => {
     },
   ]
 
-  if (activity.value?.validationStatus === 'PENDING') {
+  if (displayedValidationStatus.value === 'PENDING') {
     items.unshift({
       id: 'submitted',
       title: 'Soumis à validation',
@@ -130,35 +161,35 @@ const validationHistory = computed(() => {
     })
   }
 
-  if (activity.value?.validationStatus === 'APPROVED') {
+  if (displayedValidationStatus.value === 'APPROVED') {
     items.unshift({
       id: 'approved',
       title: 'Activité validée',
       comment: 'L’activité a été validée.',
       createdAt: activity.value?.validatedAt || activity.value?.updatedAt,
-      actorName: validatorName.value || 'Validateur',
+      actorName: 'Administration',
       tone: 'approved',
     })
   }
 
-  if (activity.value?.validationStatus === 'REJECTED') {
+  if (displayedValidationStatus.value === 'REJECTED') {
     items.unshift({
       id: 'rejected',
       title: 'Activité refusée',
       comment: activity.value?.validationComment || 'L’activité a été refusée.',
       createdAt: activity.value?.updatedAt,
-      actorName: validatorName.value || 'Validateur',
+      actorName: 'Administration',
       tone: 'rejected',
     })
   }
 
-  if (activity.value?.validationStatus === 'CORRECTION_REQUIRED') {
+  if (displayedValidationStatus.value === 'CORRECTION_REQUIRED') {
     items.unshift({
       id: 'correction',
       title: 'Correction demandée',
       comment: activity.value?.validationComment || 'Des corrections sont demandées.',
       createdAt: activity.value?.updatedAt,
-      actorName: validatorName.value || 'Validateur',
+      actorName: 'Administration',
       tone: 'changes-requested',
     })
   }
@@ -170,7 +201,7 @@ const certificateExtension = computed(() => {
   const value = (
     activity.value?.certificateType ||
     activity.value?.certificateName ||
-    certificateUrl.value
+    certificateDownloadUrl.value
   ).toLowerCase()
 
   if (value.includes('pdf')) return 'pdf'
@@ -194,44 +225,86 @@ const goToEdit = () => {
   router.push(`/student/activities/${activity.value.id}/edit`)
 }
 
-const deleteCurrentActivity = () => {
-  if (!activity.value || !canDeleteCurrentActivity.value) return
+const deleteCurrentActivity = async () => {
+  if (!activity.value || !canDeleteCurrentActivity.value) return;
 
   const confirmDelete = window.confirm(
-    'Voulez-vous vraiment supprimer cette activité ?',
-  )
+    "Voulez-vous vraiment supprimer cette activité ?",
+  );
 
-  if (!confirmDelete) return
+  if (!confirmDelete) return;
 
-  deleteActivity(activity.value.id)
-  router.push('/student/activities')
-}
+  try {
+    await deleteStudentActivity(activity.value.id);
+    router.push("/student/activities");
+  } catch (error) {
+    console.error("Erreur suppression activité :", error);
+    errorMessage.value = "Impossible de supprimer cette activité.";
+  }
+};
 
-const submitCurrentActivity = () => {
-  if (!activity.value) return
+const submitCurrentActivity = async () => {
+  if (!activity.value) return;
 
   if (!canSubmitCurrentActivity.value) {
-    submitMessage.value = 'Seules les activités en brouillon peuvent être soumises.'
-    return
+    submitMessage.value = hasCurrentCertificate.value
+      ? "Seules les activités en brouillon peuvent être soumises."
+      : "Veuillez ajouter une attestation avant de soumettre cette activité.";
+    return;
   }
 
-  if (!hasActivityValidator(activity.value)) {
+  try {
+    const response = await submitStudentActivityValidation(activity.value.id);
+    activity.value = extractData(response);
+    submitMessage.value = "Activité soumise à validation.";
+  } catch (error) {
+    console.error("Erreur soumission activité :", error);
     submitMessage.value =
-      'Veuillez définir un validateur avant de soumettre cette activité.'
-    return
+      error?.response?.data?.message || "Impossible de soumettre cette activité.";
   }
+};
 
-  submitActivityValidation(activity.value.id)
-  submitMessage.value = 'Activité soumise à validation.'
-}
+const revokeCertificatePreviewUrl = () => {
+  if (!certificatePreviewUrl.value?.startsWith("blob:")) return;
 
-const openCertificatePreview = () => {
+  URL.revokeObjectURL(certificatePreviewUrl.value);
+  certificatePreviewUrl.value = "";
+};
+
+const loadCertificatePreview = async () => {
+  if (!activity.value?.id || certificatePreviewUrl.value) return;
+
+  isCertificateLoading.value = true;
+  certificatePreviewError.value = "";
+
+  try {
+    const response = await downloadStudentActivityCertificate(activity.value.id);
+    const contentType = response.data?.type || response.headers?.["content-type"] || "";
+
+    if (contentType.includes("text/html") || contentType.includes("application/json")) {
+      throw new Error("INVALID_CERTIFICATE_RESPONSE");
+    }
+
+    revokeCertificatePreviewUrl();
+    certificatePreviewUrl.value = URL.createObjectURL(response.data);
+  } catch (error) {
+    console.error("Erreur chargement attestation :", error);
+    certificatePreviewError.value = "Impossible de charger l’attestation.";
+  } finally {
+    isCertificateLoading.value = false;
+  }
+};
+
+const openCertificatePreview = async () => {
   isCertificatePreviewOpen.value = true
+  await loadCertificatePreview()
 }
 
 const closeCertificatePreview = () => {
   isCertificatePreviewOpen.value = false
 }
+
+onUnmounted(revokeCertificatePreviewUrl)
 
 const formatDate = (date) => {
   if (!date) return 'Non précisé'
@@ -246,7 +319,17 @@ const formatDate = (date) => {
 
 <template>
   <section class="activity-details-page project-details-page">
-    <div v-if="!activity" class="empty-state">
+    <div v-if="isLoading" class="empty-state">
+      <span class="material-icons-round">hourglass_top</span>
+      <h3>Chargement...</h3>
+      <p>Récupération de l’activité.</p>
+    </div>
+
+    <p v-else-if="errorMessage" class="submit-message">
+      {{ errorMessage }}
+    </p>
+
+    <div v-else-if="!activity" class="empty-state">
       <span class="material-icons-round">event_busy</span>
       <h3>Activité introuvable</h3>
       <p>Retournez à la liste et choisissez une activité existante.</p>
@@ -269,18 +352,17 @@ const formatDate = (date) => {
             </span>
           </div>
 
-          <p v-if="activity.validationStatus === 'APPROVED' && validatorName" class="project-header-validator">
-            Validée par <strong>{{ validatorName }}</strong>
+          <p v-if="displayedValidationStatus === 'APPROVED'" class="project-header-validator">
+            Validée par <strong>l’administration</strong>
           </p>
-          <p v-else-if="activity.validationStatus === 'PENDING'" class="project-header-validator pending">
+          <p v-else-if="displayedValidationStatus === 'PENDING'" class="project-header-validator pending">
             En attente de validation
           </p>
-          <p v-else-if="activity.validationStatus === 'CORRECTION_REQUIRED'" class="project-header-validator changes-requested">
-            Corrections demandées par
-            <strong>{{ validatorName || 'le validateur' }}</strong>
+          <p v-else-if="displayedValidationStatus === 'CORRECTION_REQUIRED'" class="project-header-validator changes-requested">
+            Corrections demandées par <strong>l’administration</strong>
           </p>
-          <p v-else-if="activity.validationStatus === 'REJECTED'" class="project-header-validator rejected">
-            Refusée par <strong>{{ validatorName || 'le validateur' }}</strong>
+          <p v-else-if="displayedValidationStatus === 'REJECTED'" class="project-header-validator rejected">
+            Refusée par <strong>l’administration</strong>
           </p>
           <p v-else class="project-header-validator muted">
             Brouillon non soumis
@@ -346,9 +428,9 @@ const formatDate = (date) => {
                 </button>
 
                 <a
-                  v-if="certificateUrl"
+                  v-if="certificateDownloadUrl"
                   class="outline-action"
-                  :href="certificateUrl"
+                  :href="certificateDownloadUrl"
                   :download="activity.certificateName"
                 >
                   <span class="material-icons-round">download</span>
@@ -430,19 +512,13 @@ const formatDate = (date) => {
             </div>
 
             <div class="validator-card">
-              <div class="validator-avatar">
-                {{ validatorName ? validatorName.charAt(0) : '?' }}
-              </div>
+              <div class="validator-avatar">A</div>
 
               <div>
-                <strong>{{ validatorName || 'Non assigné' }}</strong>
-                <p>Validateur académique</p>
+                <strong>Administration</strong>
+                <p>Validation des attestations</p>
               </div>
             </div>
-
-            <p v-if="!validatorName" class="validator-warning">
-              Veuillez définir un validateur avant de soumettre cette activité.
-            </p>
 
             <p v-if="submitMessage" class="submit-message">
               {{ submitMessage }}
@@ -452,7 +528,6 @@ const formatDate = (date) => {
               v-if="canSubmitCurrentActivity"
               type="button"
               class="primary-action validation-submit-btn"
-              :disabled="!validatorName"
               @click="submitCurrentActivity"
             >
               <span class="material-icons-round">send</span>
@@ -476,7 +551,7 @@ const formatDate = (date) => {
 
               <div class="details-info-row">
                 <span>Statut</span>
-                <strong>{{ statusLabels[activity.validationStatus] || activity.validationStatus }}</strong>
+                <strong>{{ statusLabels[displayedValidationStatus] || displayedValidationStatus }}</strong>
               </div>
 
               <div class="details-info-row">
@@ -534,15 +609,25 @@ const formatDate = (date) => {
           </header>
 
           <div class="certificate-preview">
+            <div v-if="isCertificateLoading" class="preview-empty">
+              <span class="material-icons-round">hourglass_top</span>
+              <p>Chargement de l’attestation...</p>
+            </div>
+
+            <div v-else-if="certificatePreviewError" class="preview-empty">
+              <span class="material-icons-round">error_outline</span>
+              <p>{{ certificatePreviewError }}</p>
+            </div>
+
             <iframe
-              v-if="certificateUrl && isPdfCertificate"
-              :src="certificateUrl"
+              v-else-if="certificatePreviewSource && isPdfCertificate"
+              :src="certificatePreviewSource"
               title="Prévisualisation de l’attestation"
             ></iframe>
 
             <img
-              v-else-if="certificateUrl && isImageCertificate"
-              :src="certificateUrl"
+              v-else-if="certificatePreviewSource && isImageCertificate"
+              :src="certificatePreviewSource"
               :alt="activity.certificateName"
             />
 
@@ -555,8 +640,8 @@ const formatDate = (date) => {
           <footer class="certificate-modal-footer">
             <a
               class="download-btn"
-              :class="{ disabled: !certificateUrl }"
-              :href="certificateUrl || undefined"
+              :class="{ disabled: !certificateDownloadUrl }"
+              :href="certificateDownloadUrl || undefined"
               :download="activity.certificateName"
             >
               <span class="material-icons-round">download</span>
