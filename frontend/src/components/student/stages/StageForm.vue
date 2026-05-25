@@ -6,9 +6,13 @@ const props = defineProps({
     type: Object,
     default: null,
   },
+  validators: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-const emit = defineEmits(["save-draft", "submit-validation"]);
+const emit = defineEmits(["save-draft", "submit-validation", "delete-image"]);
 
 const form = reactive({
   title: props.initialStage?.title || "",
@@ -18,6 +22,7 @@ const form = reactive({
   endDate: props.initialStage?.endDate || "",
   description: props.initialStage?.description || "",
   missions: props.initialStage?.missions?.join("\n") || "",
+  supervisorId: props.initialStage?.supervisor?.id || "",
   supervisorName: props.initialStage?.supervisor?.fullName || "",
   supervisorDepartment: props.initialStage?.supervisor?.department || "",
   technologies: props.initialStage?.technologies || [],
@@ -27,6 +32,8 @@ const form = reactive({
 });
 
 const technologyInput = ref("");
+const isSupervisorSuggestionsOpen = ref(false);
+
 const calculatedDuration = computed(() => {
   if (!form.startDate || !form.endDate) return "";
 
@@ -56,6 +63,26 @@ const hasReport = computed(() => {
   return Boolean(form.report || props.initialStage?.reportUrl);
 });
 
+const selectedSupervisor = computed(() => {
+  return props.validators.find((validator) => validator.id === form.supervisorId);
+});
+
+const filteredSupervisors = computed(() => {
+  const query = form.supervisorName.trim().toLowerCase();
+
+  if (!query) return props.validators.slice(0, 6);
+
+  return props.validators
+    .filter((validator) => {
+      return [validator.fullName, validator.email]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query));
+    })
+    .slice(0, 6);
+});
+
+const existingImages = computed(() => props.initialStage?.images || []);
+
 const missingSubmitFields = computed(() => {
   const missingFields = [];
 
@@ -63,7 +90,7 @@ const missingSubmitFields = computed(() => {
   if (!form.company.trim()) missingFields.push("entreprise");
   if (!form.startDate) missingFields.push("date début");
   if (!form.endDate) missingFields.push("date fin");
-  if (!form.supervisorName.trim()) missingFields.push("encadrant");
+  if (!form.supervisorId) missingFields.push("encadrant");
   if (!calculatedDuration.value) missingFields.push("durée");
   if (!hasReport.value) missingFields.push("rapport PDF");
 
@@ -98,6 +125,7 @@ const fillForm = (stage) => {
   form.endDate = formatDateInput(stage?.endDate);
   form.description = stage?.description || "";
   form.missions = stage?.missions?.join("\n") || "";
+  form.supervisorId = stage?.supervisor?.id || "";
   form.supervisorName = stage?.supervisor?.fullName || "";
   form.supervisorDepartment = stage?.supervisor?.department || "";
   form.technologies = Array.isArray(stage?.technologies)
@@ -108,12 +136,86 @@ const fillForm = (stage) => {
   form.images = [];
 };
 
+const syncSupervisorFromSelection = () => {
+  const supervisor = selectedSupervisor.value;
+
+  if (!supervisor) {
+    form.supervisorName = "";
+    form.supervisorDepartment = "";
+    return;
+  }
+
+  form.supervisorName = supervisor.fullName || "";
+  form.supervisorDepartment = supervisor.department || "";
+};
+
+const openSupervisorSuggestions = () => {
+  isSupervisorSuggestionsOpen.value = true;
+};
+
+const closeSupervisorSuggestions = () => {
+  window.setTimeout(() => {
+    isSupervisorSuggestionsOpen.value = false;
+  }, 120);
+};
+
+const handleSupervisorInput = () => {
+  if (
+    selectedSupervisor.value &&
+    form.supervisorName.trim() !== selectedSupervisor.value.fullName
+  ) {
+    form.supervisorId = "";
+    form.supervisorDepartment = "";
+  }
+
+  openSupervisorSuggestions();
+};
+
+const selectSupervisor = (supervisor) => {
+  form.supervisorId = supervisor.id;
+  form.supervisorName = supervisor.fullName || "";
+  form.supervisorDepartment = supervisor.department || "";
+  isSupervisorSuggestionsOpen.value = false;
+};
+
+const syncSupervisorSelectionFromStage = () => {
+  if (form.supervisorId || !form.supervisorName.trim()) return;
+
+  const matchingValidator = props.validators.find((validator) => {
+    return (
+      validator.fullName?.trim().toLowerCase() ===
+      form.supervisorName.trim().toLowerCase()
+    );
+  });
+
+  if (matchingValidator) {
+    form.supervisorId = matchingValidator.id;
+    syncSupervisorFromSelection();
+  }
+};
+
 watch(
   () => props.initialStage,
   (stage) => {
     fillForm(stage);
+    syncSupervisorSelectionFromStage();
   },
   { immediate: true },
+);
+
+watch(
+  () => props.validators,
+  () => {
+    syncSupervisorSelectionFromStage();
+  },
+  { immediate: true },
+);
+
+watch(
+  () => form.supervisorId,
+  () => {
+    syncSupervisorFromSelection();
+  },
 );
 
 const addTechnology = () => {
@@ -139,6 +241,12 @@ const handleImagesUpload = (event) => {
   form.images = Array.from(event.target.files);
 };
 
+const deleteExistingImage = (image) => {
+  if (!image?.id) return;
+
+  emit("delete-image", image.id);
+};
+
 const buildPayload = () => {
   return {
     title: form.title,
@@ -152,6 +260,7 @@ const buildPayload = () => {
       .map((mission) => mission.trim())
       .filter(Boolean),
     supervisor: {
+      id: form.supervisorId,
       fullName: form.supervisorName,
       department: form.supervisorDepartment,
     },
@@ -271,12 +380,49 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Nom de l’encadrant</label>
-              <input
-                v-model="form.supervisorName"
-                type="text"
-                required
-                placeholder="Ex : Pr. Karim Alaoui"
-              />
+              <div class="autocomplete-field">
+                <input
+                  v-model="form.supervisorName"
+                  type="text"
+                  required
+                  autocomplete="off"
+                  placeholder="Tapez le nom de l’encadrant"
+                  :disabled="!props.validators.length"
+                  @focus="openSupervisorSuggestions"
+                  @blur="closeSupervisorSuggestions"
+                  @input="handleSupervisorInput"
+                />
+
+                <div
+                  v-if="
+                    isSupervisorSuggestionsOpen &&
+                    props.validators.length &&
+                    filteredSupervisors.length
+                  "
+                  class="suggestions-list"
+                >
+                  <button
+                    v-for="validator in filteredSupervisors"
+                    :key="validator.id"
+                    type="button"
+                    class="suggestion-item"
+                    @mousedown.prevent="selectSupervisor(validator)"
+                  >
+                    <span class="suggestion-avatar">
+                      {{ validator.fullName?.charAt(0) || "E" }}
+                    </span>
+                    <span>
+                      <strong>{{ validator.fullName }}</strong>
+                      <small>
+                        {{ validator.department || "Département non renseigné" }}
+                        <template v-if="validator.specialty">
+                          · {{ validator.specialty }}
+                        </template>
+                      </small>
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
@@ -284,11 +430,18 @@ const submitButtonLabel = () => {
               <input
                 v-model="form.supervisorDepartment"
                 type="text"
-                required
+                readonly
                 placeholder="Ex : Génie Informatique"
               />
             </div>
           </div>
+
+          <p v-if="selectedSupervisor?.email" class="supervisor-meta">
+            {{ selectedSupervisor.email }}
+            <span v-if="selectedSupervisor.specialty">
+              · {{ selectedSupervisor.specialty }}
+            </span>
+          </p>
         </section>
 
         <section class="form-card">
@@ -346,6 +499,27 @@ const submitButtonLabel = () => {
           <p v-if="form.images.length" class="file-info">
             {{ form.images.length }} image(s) sélectionnée(s)
           </p>
+
+          <div v-if="existingImages.length" class="existing-media-list">
+            <span>Captures déjà ajoutées</span>
+
+            <div
+              v-for="image in existingImages"
+              :key="image.id || image.title"
+              class="existing-media-item"
+            >
+              <span class="material-icons-round">image</span>
+              <strong>{{ image.title || "Capture" }}</strong>
+              <button
+                type="button"
+                class="delete-media-btn"
+                title="Supprimer cette capture"
+                @click="deleteExistingImage(image)"
+              >
+                ×
+              </button>
+            </div>
+          </div>
         </section>
 
         <section class="form-card">
@@ -428,6 +602,7 @@ h2 .material-icons-round {
 }
 
 .form-group {
+  position: relative;
   margin-bottom: 1rem;
 }
 
@@ -485,6 +660,161 @@ textarea:focus {
   background: #ffffff;
   box-shadow: 0 0 0 0.18rem rgba(47, 87, 93, 0.08);
 }
+
+input[readonly] {
+  color: #6d9197;
+  cursor: default;
+}
+
+.supervisor-meta {
+  color: #6d9197;
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0;
+}
+
+.autocomplete-field {
+  position: relative;
+}
+
+.suggestions-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  max-height: 16.25rem;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #c4cdc1;
+  border-radius: 0.75rem;
+  box-shadow: 0 1rem 2.2rem rgba(40, 54, 61, 0.14);
+}
+
+.suggestions-list::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.suggestions-list::-webkit-scrollbar-track {
+  background: #f4f6f5;
+  border-radius: 999px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb {
+  background: #c4cdc1;
+  border-radius: 999px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb:hover {
+  background: #99aead;
+}
+
+.suggestion-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 0;
+  border-bottom: 1px solid #edf0ee;
+  background: #ffffff;
+  color: #28363d;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion-item:last-child {
+  border-bottom: 0;
+}
+
+.suggestion-item:hover {
+  background: #f8f9f8;
+}
+
+.suggestion-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: #edf2f0;
+  color: #2f575d;
+  font-weight: 800;
+}
+
+.suggestion-item strong,
+.suggestion-item small {
+  display: block;
+}
+
+.suggestion-item strong {
+  font-size: 0.9rem;
+}
+
+.suggestion-item small {
+  color: #6d9197;
+  font-size: 0.78rem;
+  margin-top: 0.12rem;
+}
+
+.existing-media-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.existing-media-list > span {
+  color: #6d9197;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.existing-media-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid #dee1dd;
+  border-radius: 0.7rem;
+  background: #f8f9f8;
+}
+
+.existing-media-item .material-icons-round {
+  color: #2f575d;
+  font-size: 1.1rem;
+}
+
+.existing-media-item strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #28363d;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-media-btn{
+    width: 1.7rem;
+    height: 0rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #7d7c79a1;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 100;
+    line-height: 0.7;
+}
+
 
 .tech-tags {
   display: flex;
