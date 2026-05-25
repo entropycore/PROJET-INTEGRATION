@@ -1,4 +1,6 @@
 <script setup>
+import { ref } from "vue";
+
 defineProps({
   validations: {
     type: Array,
@@ -8,12 +10,23 @@ defineProps({
 
 const emit = defineEmits(["view", "approve", "reject", "request-changes"]);
 
+const openMenuId = ref(null);
+
+const toggleMenu = (id) => {
+  openMenuId.value = openMenuId.value === id ? null : id;
+};
+
+const closeMenu = () => {
+  openMenuId.value = null;
+};
+
 const typeLabels = {
   PROJECT: "Projet",
   INTERNSHIP: "Stage",
   CERTIFICATE: "Certificat",
   ACTIVITY: "Activité",
 };
+
 const statusLabels = {
   PENDING: "En attente",
   APPROVED: "Approuvé",
@@ -26,6 +39,11 @@ const formatDate = (date) => {
     dateStyle: "medium",
     timeStyle: "short",
   });
+};
+
+const handleAction = (eventName, validation) => {
+  emit(eventName, validation);
+  closeMenu();
 };
 </script>
 
@@ -55,8 +73,8 @@ const formatDate = (date) => {
         <p>{{ validation.student.email }}</p>
       </div>
 
-      <span class="type-badge" :class="validation.targetType.toLowerCase()">
-        {{ typeLabels[validation.targetType] }}
+      <span class="validation-type">
+        {{ typeLabels[validation.targetType] || validation.targetType }}
       </span>
 
       <span class="status-badge" :class="validation.status.toLowerCase()">
@@ -67,31 +85,49 @@ const formatDate = (date) => {
         {{ formatDate(validation.submittedAt) }}
       </span>
 
-      <div class="actions">
-        <button title="Voir" @click="emit('view', validation)">👁</button>
+      <div class="actions-cell">
+        <div class="actions-dropdown">
+          <button
+            type="button"
+            class="actions-trigger"
+            title="Actions"
+            @click="toggleMenu(validation.id)"
+          >
+            <span class="material-icons-round">more_horiz</span>
+          </button>
 
-        <button
-          title="Approuver"
-          class="approve"
-          @click="emit('approve', validation)"
-        >
-          ✓
-        </button>
+          <div
+            v-if="openMenuId === validation.id"
+            class="actions-dropdown-menu"
+          >
+            <button type="button" @click="handleAction('view', validation)">
+              Voir détails
+            </button>
 
-        <button
-          title="Refuser"
-          class="reject"
-          @click="emit('reject', validation)"
-        >
-          ×
-        </button>
+            <button
+              type="button"
+              class="success"
+              @click="handleAction('approve', validation)"
+            >
+              Valider
+            </button>
 
-        <button
-          title="Demander correction"
-          @click="emit('request-changes', validation)"
-        >
-          ✎
-        </button>
+            <button
+              type="button"
+              @click="handleAction('request-changes', validation)"
+            >
+              Demander correction
+            </button>
+
+            <button
+              type="button"
+              class="danger"
+              @click="handleAction('reject', validation)"
+            >
+              Rejeter
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -105,135 +141,192 @@ const formatDate = (date) => {
 .validations-table {
   display: flex;
   flex-direction: column;
+  font-family: var(--app-font-body);
+  overflow: visible;
 }
 
 .table-head,
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1.4fr 0.9fr 0.9fr 1fr 1.1fr;
-  gap: 16px;
+  grid-template-columns:
+    minmax(0, 34%)
+    minmax(0, 26%)
+    minmax(5rem, 9%)
+    minmax(6rem, 10%)
+    minmax(7rem, 11%)
+    minmax(3rem, 4%);
+  gap: 0.55rem;
   align-items: center;
-  padding: 16px 8px;
+  padding: 0.9rem 1rem;
+}
+.table-head span:last-child,
+.actions-cell {
+  justify-self: end;
+}
+.table-head {
+  color: var(--app-muted);
+  font-size: var(--app-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--app-surface-soft);
+  border-bottom: 1px solid var(--app-border);
 }
 
-.table-head {
-  color: #5f6f70;
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  border-bottom: 1px solid #e5e0d8;
+.table-head span:nth-child(6) {
+  text-align: right;
 }
 
 .table-row {
-  border-bottom: 1px solid #edf0ec;
+  position: relative;
+  border-bottom: 1px solid var(--app-border);
+  min-height: 4.5rem;
+}
+
+.table-row:hover {
+  background: var(--app-surface-soft);
 }
 
 .title-cell strong,
 .student-cell strong {
-  color: #0f2f3a;
-  font-weight: 800;
+  color: var(--app-text);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
 }
 
 .title-cell p,
 .student-cell p {
-  margin: 5px 0 0;
-  color: #7f9699;
-  font-size: 0.88rem;
+  margin: 0.2rem 0 0;
+  color: var(--app-muted);
+  font-size: var(--app-text-xs);
+  line-height: var(--app-leading-normal);
 }
 
-.type-badge,
+.validation-type {
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .status-badge {
   width: fit-content;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  min-height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.65rem;
+  border-radius: var(--app-radius-pill);
+  font-size: var(--app-text-xs);
   font-weight: 800;
+  white-space: nowrap;
 }
 
-.status-badge.pending {
-  background: #fff7ed;
-  color: #ea580c;
+.status-badge,
+.status-badge.pending,
+.status-badge.changes_requested {
+  background: var(--app-warning-bg);
+  color: var(--app-warning);
 }
 
 .status-badge.approved {
-  background: #e8f5f1;
-  color: #2f5d62;
+  background: var(--app-active-bg);
+  color: var(--app-active);
 }
 
 .status-badge.rejected {
-  background: #fef2f2;
-  color: #dc2626;
-}
-
-.status-badge.changes_requested {
-  background: #fff7ed;
-  color: #d97706;
-}
-
-.type-badge.project {
-  background: #e8f5f1;
-  color: #2f5d62;
-}
-
-.type-badge.internship {
-  background: #e8f5f1;
-  color: #194f54;
-}
-
-.type-badge.certificate {
-  background: #fff4e6;
-  color: #ed8f5d;
-}
-
-.type-badge.activity {
-  background: #fff4e6;
-  color: #ea580c;
-}
-
-.status-badge {
-  background: #fff7ed;
-  color: #ea580c;
+  background: var(--app-error-bg);
+  color: var(--app-error);
 }
 
 .date-cell {
-  color: #5f6f70;
-  font-size: 0.9rem;
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
 }
 
-.actions {
+.actions-cell {
+  position: relative;
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
+  overflow: visible;
 }
 
-.actions button {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #dfe3dd;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #2f5d62;
-  font-weight: 800;
+.actions-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.actions-trigger {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--app-muted);
+  display: grid;
+  place-items: center;
   cursor: pointer;
 }
 
-.actions .approve {
-  background: #ecfdf5;
-  color: #059669;
+.actions-trigger:hover {
+  border-color: var(--app-border);
+  background: var(--app-surface-soft);
+  color: var(--app-primary);
 }
 
-.actions .reject {
-  background: #fef2f2;
-  color: #dc2626;
+.actions-trigger .material-icons-round {
+  font-size: 1.25rem;
+}
+
+.actions-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 2.35rem;
+  min-width: 11rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-popover);
+  padding: 0.35rem;
+  z-index: 9999;
+}
+
+.actions-dropdown-menu button {
+  width: 100%;
+  min-height: 2.1rem;
+  border: none;
+  background: transparent;
+  color: var(--app-text);
+  border-radius: var(--app-radius-sm);
+  padding: 0 0.75rem;
+  text-align: left;
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actions-dropdown-menu button:hover {
+  background: var(--app-surface-soft);
+}
+
+.actions-dropdown-menu button.success {
+  color: var(--app-primary);
+}
+
+.actions-dropdown-menu button.danger {
+  color: var(--app-error);
+}
+
+.actions-dropdown-menu button.danger:hover {
+  background: var(--app-error-bg);
 }
 
 .empty {
-  padding: 22px;
-  border-radius: 16px;
-  background: #fbfaf7;
-  border: 1px solid #dfe3dd;
-  color: #6b7280;
+  padding: 2rem;
+  color: var(--app-muted);
   text-align: center;
-  margin-top: 16px;
+  font-size: var(--app-text-md);
 }
 
 @media (max-width: 1100px) {
@@ -243,8 +336,12 @@ const formatDate = (date) => {
 
   .table-row {
     grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 18px 0;
+    gap: 0.65rem;
+    padding: 1.1rem;
+  }
+
+  .actions-cell {
+    justify-content: flex-start;
   }
 }
 </style>
