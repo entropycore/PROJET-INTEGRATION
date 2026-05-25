@@ -191,63 +191,75 @@ const handleDeleteImage = async (imageId) => {
 
 <style scoped>
 .form-page {
+  width: 100%;
   padding: 0;
+  color: var(--app-text);
+  font-family: var(--app-font-body);
 }
 
 .back-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  margin-bottom: 0.9rem;
   border: none;
   background: transparent;
-  color: #2f575d;
-  font-size: 0.9rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
   font-weight: 700;
   cursor: pointer;
-  margin-bottom: 1.15rem;
+}
+
+.back-btn:hover {
+  color: var(--app-primary);
 }
 
 .back-btn .material-icons-round {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .page-header {
-  margin-bottom: 5rem;
+  margin-bottom: 2rem;
 }
 
-h1 {
-  color: #28363d;
-  font-size: 1.7rem;
-  line-height: 1.2;
-  font-weight: 800;
-  margin: 0.2rem 0 0.45rem;
-}
-
-p {
-  color: #6d9197;
-  font-size: 1rem;
-  line-height: 1.6;
+.page-header h1 {
   margin: 0;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.7rem, 2.4vw, var(--app-text-page));
+  font-weight: 400;
+  line-height: var(--app-leading-tight);
+}
+
+.page-header p {
   max-width: 46rem;
+  margin: 0.45rem 0 0;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  line-height: var(--app-leading-normal);
 }
 
 .loading-state {
-  background: #ffffff;
-  border: 1px solid #dee1dd;
-  border-radius: 0.875rem;
   padding: 1.5rem;
-  color: #6d9197;
-  font-size: 0.95rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
   font-weight: 700;
+  box-shadow: var(--app-shadow-card);
 }
 
-@media (max-width: 700px) {
-  h1 {
-    font-size: 1.65rem;
+@media (max-width: 44rem) {
+  .page-header {
+    margin-bottom: 1rem;
   }
 
-  p {
-    font-size: 0.95rem;
+  .page-header h1 {
+    font-size: 1.65rem;
   }
 }
 </style>
