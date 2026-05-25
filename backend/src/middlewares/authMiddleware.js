@@ -3,25 +3,12 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../logs/logger');
 
-const getAccessToken = (req) => {
-  const cookieToken = req.cookies?.accessToken;
-  if (cookieToken) return cookieToken;
-
-  const authorization =
-    (typeof req.get === 'function' ? req.get('authorization') : req.headers?.authorization) || '';
-  const [scheme, token] = authorization.split(' ');
-
-  if (scheme?.toLowerCase() === 'bearer' && token) {
-    return token;
-  }
-
-  return null;
-};
-
 const authMiddleware = (req, res, next) => {
   try {
-    const token = getAccessToken(req);
+    // Lire l'access token depuis le cookie
+    const token = req.cookies?.accessToken;
 
+    // Pas de token → non autorisé
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -29,16 +16,20 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
+    // Vérifier et décoder le token
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
+    // Injecter les données dans req.user
+    // Disponible dans tous les middlewares suivants
     req.user = {
       userId: decoded.userId,
       role: decoded.role,
       roleId: decoded.roleId,
     };
 
+    // Logger l'accès pour audit sécurité
     logger.info({
-      message: 'Acces autorise',
+      message: 'Accès autorisé',
       userId: req.user.userId,
       role: req.user.role,
       method: req.method,
@@ -46,23 +37,26 @@ const authMiddleware = (req, res, next) => {
       ip: req.ip,
     });
 
-    return next();
+    next();
   } catch (err) {
+    // Logger la tentative échouée
     logger.warn({
-      message: 'Tentative acces non autorise',
+      message: 'Tentative accès non autorisé',
       error: err.name,
       method: req.method,
       url: req.url,
       ip: req.ip,
     });
 
+    // Token expiré
     if (err.name === 'TokenExpiredError') {
       return res.status(401).json({
         success: false,
-        message: 'Session expiree - veuillez vous reconnecter',
+        message: 'Session expirée — veuillez vous reconnecter',
       });
     }
 
+    // Token invalide
     return res.status(401).json({
       success: false,
       message: 'Token invalide',

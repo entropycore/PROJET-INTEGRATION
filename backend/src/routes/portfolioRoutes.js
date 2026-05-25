@@ -1,11 +1,10 @@
 'use strict';
 
 const express = require('express');
-
-const workspaceController = require('../controllers/studentWorkspaceController');
+const publicPortfolioController = require('../controllers/publicPortfolioController');
 
 const router = express.Router();
 
-router.get('/:slug', workspaceController.getPublicPortfolio);
+router.get('/:slug', publicPortfolioController.getPublicPortfolio);
 
 module.exports = router;
