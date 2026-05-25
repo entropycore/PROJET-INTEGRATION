@@ -3,14 +3,29 @@
 const jwt = require('jsonwebtoken');
 const logger = require('../logs/logger');
 
+const getAccessToken = (req) => {
+  const cookieToken = req.cookies?.accessToken;
+  if (cookieToken) return cookieToken;
+
+  const authorization =
+    (typeof req.get === 'function' ? req.get('authorization') : req.headers?.authorization) || '';
+  const [scheme, token] = authorization.split(' ');
+
+  if (scheme?.toLowerCase() === 'bearer' && token) {
+    return token;
+  }
+
+  return null;
+};
+
 const authMiddleware = (req, res, next) => {
   try {
-    const token = req.cookies?.accessToken;
+    const token = getAccessToken(req);
 
     if (!token) {
       return res.status(401).json({
         success: false,
-        message: 'Acces refuse - authentification requise',
+        message: 'Accès refusé — authentification requise',
       });
     }
 
@@ -31,7 +46,7 @@ const authMiddleware = (req, res, next) => {
       ip: req.ip,
     });
 
-    next();
+    return next();
   } catch (err) {
     logger.warn({
       message: 'Tentative acces non autorise',

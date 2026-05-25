@@ -1,13 +1,10 @@
-FROM node:24-alpine
+FROM node:24 
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --include=dev
-
-COPY prisma ./prisma
-RUN npx prisma generate
+RUN npm install
 
 COPY . .
 
