@@ -1,0 +1,47 @@
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus_mon
+    restart: unless-stopped
+
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+    networks:
+      - mon_net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana_mon
+    restart: unless-stopped
+
+    depends_on:
+      - prometheus
+
+    env_file:
+      - .env.mon
+
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+    networks:
+      - mon_net
+
+volumes:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  mon_net:
+    driver: bridge
