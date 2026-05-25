@@ -8,26 +8,6 @@ const cookieParser = require('cookie-parser');
 // Charger le .env avant tout
 require('dotenv').config();
 
-jest.mock('../../../src/services/professionalService', () => ({
-  getProfessionalDashboard: jest.fn().mockResolvedValue({
-    area: 'professional',
-    user: { id: 10, firstName: 'Expert', lastName: 'Najim' },
-    stats: {
-      totalApplications: 12,
-      pendingRequests: 3
-    },
-    recentActivity: []
-  }),
-  getProfessionalProfile: jest.fn().mockResolvedValue({
-    user: { id: 10, firstName: 'Expert', email: 'pro@company.com' },
-    profile: {
-      company: 'ENSA Tech',
-      position: 'Senior Developer',
-      verified: true
-    }
-  })
-}));
-
 jest.mock('../../../src/logs/logger', () => ({
   info: jest.fn(),
   warn: jest.fn(),
