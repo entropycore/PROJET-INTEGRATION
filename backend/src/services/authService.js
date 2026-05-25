@@ -244,6 +244,7 @@ exports.getUserById = async (userId) => {
       profilePicture: true,
       accountStatus: true,
       role: true,
+      preferences: true,
       createdAt: true,
       lastLoginAt: true,
     }

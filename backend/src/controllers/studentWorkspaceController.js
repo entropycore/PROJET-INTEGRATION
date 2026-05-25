@@ -6,7 +6,12 @@ const { success, error } = require('../utils/apiResponse');
 
 const handleWorkspaceError = (res, err) => {
   if (!err.status) return false;
-  return error(res, err.status, err.message);
+  return res.status(err.status).json({
+    success: false,
+    message: err.message,
+    error: { code: err.message },
+    errors: { code: err.message },
+  });
 };
 
 const wrap = (handler) => async (req, res, next) => {
@@ -301,6 +306,72 @@ exports.getCareerGoal = wrap(async (req, res) =>
 
 exports.updateCareerGoal = wrap(async (req, res) =>
   success(res, 200, 'Objectif de carriere mis a jour.', await workspaceService.updateCareerGoal(req.user.userId, req.body))
+);
+
+exports.updatePassword = wrap(async (req, res) =>
+  success(res, 200, 'Mot de passe mis a jour.', await workspaceService.updatePassword(req.user.userId, req.body))
+);
+
+exports.updatePrivacyPreferences = wrap(async (req, res) =>
+  success(
+    res,
+    200,
+    'Preferences de confidentialite mises a jour.',
+    await workspaceService.updatePrivacyPreferences(req.user.userId, req.body)
+  )
+);
+
+exports.updateNotificationPreferences = wrap(async (req, res) =>
+  success(
+    res,
+    200,
+    'Preferences de notifications mises a jour.',
+    await workspaceService.updateNotificationPreferences(req.user.userId, req.body)
+  )
+);
+
+exports.listRecommendations = wrap(async (req, res) =>
+  success(
+    res,
+    200,
+    'Recommandations recuperees.',
+    await workspaceService.listRecommendations(req.user.userId, req.query)
+  )
+);
+
+exports.getRecommendation = wrap(async (req, res) =>
+  success(
+    res,
+    200,
+    'Recommandation recuperee.',
+    await workspaceService.getRecommendation(req.user.userId, req.params.id)
+  )
+);
+
+exports.updateRecommendationVisibility = wrap(async (req, res) =>
+  success(
+    res,
+    200,
+    'Visibilite de la recommandation mise a jour.',
+    await workspaceService.updateRecommendationVisibility(
+      req.user.userId,
+      req.params.id,
+      req.body?.visibility
+    )
+  )
+);
+
+exports.updateRecommendationStatus = wrap(async (req, res) =>
+  success(
+    res,
+    200,
+    'Statut de la recommandation mis a jour.',
+    await workspaceService.updateRecommendationStatus(
+      req.user.userId,
+      req.params.id,
+      req.body?.status
+    )
+  )
 );
 
 exports.getCredibilityScore = wrap(async (req, res) => {
