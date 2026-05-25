@@ -309,6 +309,11 @@ const router = createRouter({
           ],
         },
         {
+            path: '/portfolio/:slug',
+            name: 'public-portfolio',
+            component: () => import('@/views/student/portfolio/PortfolioFullView.vue'),
+        },
+        {
             path: '/403',
             name: 'not-authorized',
             component: () => import('../views/NotAuthorized.vue'),

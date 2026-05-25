@@ -8,7 +8,6 @@ import {
   downloadStudentStageReport,
   getStudentStageById,
   getStudentStageImageContent,
-  updateStudentStageVisibility,
 } from "@/services/studentstageService";
 
 const route = useRoute();
@@ -192,26 +191,6 @@ const openImagesModal = () => {
 
 const closeImagesModal = () => {
   showImagesModal.value = false;
-};
-
-const toggleVisibility = async () => {
-  if (!stage.value || stage.value.validationStatus !== "APPROVED") return;
-
-  const newVisibility =
-    stage.value.visibility === "PUBLIC" ? "PRIVATE" : "PUBLIC";
-
-  try {
-    const response = await updateStudentStageVisibility(
-      stage.value.id,
-      newVisibility,
-    );
-
-    const updatedStage = extractData(response);
-    stage.value = updatedStage;
-    await hydrateStageMedia(updatedStage);
-  } catch (error) {
-    console.error("Erreur changement visibilité :", error);
-  }
 };
 
 const goBack = () => {
@@ -414,23 +393,6 @@ const goToEdit = () => {
               </strong>
             </div>
 
-            <button
-              v-if="stage.validationStatus === 'APPROVED'"
-              class="portfolio-btn"
-              @click="toggleVisibility"
-            >
-              <span class="material-icons-round">
-                {{
-                  stage.visibility === "PUBLIC" ? "visibility_off" : "public"
-                }}
-              </span>
-
-              {{
-                stage.visibility === "PUBLIC"
-                  ? "Retirer du portfolio"
-                  : "Afficher dans le portfolio"
-              }}
-            </button>
           </div>
 
           <div class="side-card">
@@ -964,38 +926,6 @@ h3 .material-icons-round {
 .section-header h2 {
   margin-bottom: 0;
 }
-.portfolio-btn {
-  width: 100%;
-  min-height: 2.75rem;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-
-  margin-top: 1rem;
-
-  border: none;
-  border-radius: 0.7rem;
-
-  background: #2f575d;
-  color: #ffffff;
-
-  font-size: 0.9rem;
-  font-weight: 800;
-
-  cursor: pointer;
-}
-
-.portfolio-btn:hover {
-  background: #26494d;
-}
-
-.portfolio-btn .material-icons-round {
-  color: #ffffff;
-  font-size: 1.1rem;
-}
-
 .view-all-btn {
   border: 1px solid #c4cdc1;
   background: #ffffff;
