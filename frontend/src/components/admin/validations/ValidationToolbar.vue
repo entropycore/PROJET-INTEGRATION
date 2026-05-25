@@ -29,7 +29,7 @@ const emit = defineEmits([
       <input
         :value="search"
         type="text"
-        placeholder="Rechercher par titre, etudiant ou email..."
+        placeholder="Rechercher par titre, étudiant ou email..."
         @input="emit('update:search', $event.target.value)"
       />
     </div>
