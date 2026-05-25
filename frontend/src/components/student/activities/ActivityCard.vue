@@ -1,4 +1,13 @@
 <script setup>
+import { computed, ref } from "vue";
+import { RouterLink } from "vue-router";
+
+import {
+  canDeleteActivity,
+  canEditActivity,
+  canSubmitActivity,
+} from '@/components/student/activities/activityRules'
+
 const props = defineProps({
   activity: {
     type: Object,
@@ -25,24 +34,39 @@ const typeLabels = {
   OTHER: "Autre",
 };
 
-const canSubmitValidation = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED"].includes(
-    props.activity.validationStatus,
-  );
-};
-
-const canDeleteActivity = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
-    props.activity.validationStatus,
-  );
-};
-
 const submitValidation = () => {
   emit("submit-validation", props.activity.id);
 };
 
 const deleteCurrentActivity = () => {
   emit("delete-activity", props.activity.id);
+};
+
+const isCertificatePreviewOpen = ref(false);
+
+const certificateUrl = computed(() => props.activity.certificateUrl || "");
+
+const certificateExtension = computed(() => {
+  const value = (
+    props.activity.certificateType ||
+    props.activity.certificateName ||
+    certificateUrl.value
+  ).toLowerCase();
+
+  if (value.includes("pdf")) return "pdf";
+  if (value.includes("png")) return "image";
+  if (value.includes("jpg") || value.includes("jpeg")) return "image";
+
+  return "";
+});
+
+const isPdfCertificate = computed(() => certificateExtension.value === "pdf");
+const isImageCertificate = computed(
+  () => certificateExtension.value === "image",
+);
+
+const closeCertificatePreview = () => {
+  isCertificatePreviewOpen.value = false;
 };
 </script>
 
@@ -114,13 +138,25 @@ const deleteCurrentActivity = () => {
     </div>
 
     <div class="actions">
-      <button v-if="activity.certificateName" type="button" class="action-btn">
+      <RouterLink
+        class="action-btn"
+        :to="`/student/activities/${activity.id}`"
+      >
         <span class="material-icons-round">visibility</span>
-        Attestation
-      </button>
+        Voir détails
+      </RouterLink>
+
+      <RouterLink
+        v-if="canEditActivity(activity)"
+        class="action-btn icon-only"
+        :to="`/student/activities/${activity.id}/edit`"
+        title="Modifier"
+      >
+        <span class="material-icons-round">edit</span>
+      </RouterLink>
 
       <button
-        v-if="canDeleteActivity()"
+        v-if="canDeleteActivity(activity)"
         type="button"
         class="delete-btn"
         @click="deleteCurrentActivity"
@@ -129,7 +165,7 @@ const deleteCurrentActivity = () => {
       </button>
 
       <button
-        v-if="canSubmitValidation()"
+        v-if="canSubmitActivity(activity)"
         type="button"
         class="submit-btn"
         @click="submitValidation"
@@ -138,6 +174,63 @@ const deleteCurrentActivity = () => {
         Soumettre
       </button>
     </div>
+
+    <Teleport to="body">
+      <div
+        v-if="isCertificatePreviewOpen"
+        class="certificate-modal-backdrop"
+        @click.self="closeCertificatePreview"
+      >
+        <section class="certificate-modal" role="dialog" aria-modal="true">
+          <header class="certificate-modal-header">
+            <div>
+              <span>Attestation</span>
+              <h4>{{ activity.certificateName }}</h4>
+            </div>
+
+            <button
+              type="button"
+              class="modal-close-btn"
+              aria-label="Fermer"
+              @click="closeCertificatePreview"
+            >
+              <span class="material-icons-round">close</span>
+            </button>
+          </header>
+
+          <div class="certificate-preview">
+            <iframe
+              v-if="certificateUrl && isPdfCertificate"
+              :src="certificateUrl"
+              title="Prévisualisation de l’attestation"
+            ></iframe>
+
+            <img
+              v-else-if="certificateUrl && isImageCertificate"
+              :src="certificateUrl"
+              :alt="activity.certificateName"
+            />
+
+            <div v-else class="preview-empty">
+              <span class="material-icons-round">description</span>
+              <p>Prévisualisation indisponible pour cette attestation.</p>
+            </div>
+          </div>
+
+          <footer class="certificate-modal-footer">
+            <a
+              class="download-btn"
+              :class="{ disabled: !certificateUrl }"
+              :href="certificateUrl || undefined"
+              :download="activity.certificateName"
+            >
+              <span class="material-icons-round">download</span>
+              Télécharger
+            </a>
+          </footer>
+        </section>
+      </div>
+    </Teleport>
   </article>
 </template>
 
@@ -239,7 +332,6 @@ h3 {
   margin: 0 0 0.875rem;
 
   display: -webkit-box;
-  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -287,6 +379,7 @@ h3 {
 .actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: auto;
 }
@@ -306,13 +399,19 @@ h3 {
   cursor: pointer;
   transition: 0.2s ease;
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .action-btn {
-  min-width: 7rem;
   background: #ffffff;
   color: #2f575d;
   border: 1px solid #c4cdc1;
+}
+
+.action-btn.icon-only {
+  width: 2.55rem;
+  min-width: 2.55rem;
+  padding: 0;
 }
 
 .submit-btn {
@@ -351,6 +450,122 @@ h3 {
 
 .submit-btn .material-icons-round {
   color: #ffffff;
+}
+
+.certificate-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(40, 54, 61, 0.48);
+}
+
+.certificate-modal {
+  width: min(58rem, 100%);
+  max-height: 90vh;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 0.875rem;
+  border: 1px solid #dee1dd;
+  box-shadow: 0 1.5rem 3.5rem rgba(40, 54, 61, 0.2);
+  display: flex;
+  flex-direction: column;
+}
+
+.certificate-modal-header,
+.certificate-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.125rem;
+  border-bottom: 1px solid #edf0ee;
+}
+
+.certificate-modal-footer {
+  justify-content: flex-end;
+  border-top: 1px solid #edf0ee;
+  border-bottom: 0;
+}
+
+.certificate-modal-header span {
+  color: #6d9197;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.certificate-modal-header h4 {
+  color: #28363d;
+  font-size: 1rem;
+  margin: 0.2rem 0 0;
+}
+
+.modal-close-btn {
+  width: 2.35rem;
+  height: 2.35rem;
+  border: 1px solid #c4cdc1;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  color: #2f575d;
+  cursor: pointer;
+}
+
+.certificate-preview {
+  min-height: 28rem;
+  background: #f8f9f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.certificate-preview iframe,
+.certificate-preview img {
+  width: 100%;
+  height: 28rem;
+  border: 0;
+}
+
+.certificate-preview img {
+  object-fit: contain;
+  padding: 1rem;
+}
+
+.preview-empty {
+  text-align: center;
+  color: #6d9197;
+  padding: 2rem;
+}
+
+.preview-empty .material-icons-round {
+  color: #99aead;
+  font-size: 2.4rem;
+}
+
+.download-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.55rem;
+  padding: 0 1rem;
+  border-radius: 0.625rem;
+  background: #2f575d;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.download-btn.disabled {
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.download-btn .material-icons-round {
+  color: #ffffff;
+  font-size: 1rem;
 }
 
 @media (max-width: 760px) {
