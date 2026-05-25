@@ -1,8 +1,8 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { mount } from '@vue/test-utils'
-import { createRouter, createMemoryHistory } from 'vue-router'
-import { createPinia, setActivePinia } from 'pinia'
-import { defineComponent } from 'vue'
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { mount } from "@vue/test-utils";
+import { createRouter, createMemoryHistory } from "vue-router";
+import { createPinia, setActivePinia } from "pinia";
+import { defineComponent } from "vue";
 
 // Mocks
 vi.mock('../../assets/styles/topbar.css', () => ({}))
@@ -17,30 +17,30 @@ vi.mock('../AppLogo.vue', () => ({
 }))
 vi.mock('@/stores/auth', () => ({
   useAuthStore: vi.fn(),
-}))
+}));
 
-import { useAuthStore } from '@/stores/auth'
-import Topbar from '@/components/dashboard/Topbar.vue'
+import { useAuthStore } from "@/stores/auth";
+import Topbar from "@/components/dashboard/Topbar.vue";
 
 // Fonctions d'aide
 const router = createRouter({
   history: createMemoryHistory(),
-  routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div />' } }],
-})
+  routes: [{ path: "/:pathMatch(.*)*", component: { template: "<div />" } }],
+});
 
 function mountTopBar(user = null) {
-  useAuthStore.mockReturnValue({ user })
+  useAuthStore.mockReturnValue({ user });
   return mount(Topbar, {
     global: {
       plugins: [router],
       stubs: {
         RouterLink: {
           template: '<a :href="to"><slot /></a>',
-          props: ['to'],
+          props: ["to"],
         },
       },
     },
-  })
+  });
 }
 
 // Tests de fumee

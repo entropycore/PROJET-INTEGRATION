@@ -36,10 +36,7 @@ export const getStudentDashboardData = async () => {
       limitNotifications: 4,
     });
 
-    return {
-      ...studentDashboardMock,
-      ...response.data.data,
-    };
+    return response.data?.data || studentDashboardMock;
   } catch (error) {
     console.warn("Dashboard backend indisponible, utilisation du mock data.");
     return studentDashboardMock;
