@@ -6,24 +6,6 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
-jest.mock('../../../src/services/professorService', () => ({
-  getProfessorDashboard: jest.fn().mockResolvedValue({
-    area: 'professor',
-    user: { id: 1, fullName: 'Najim QA' },
-    profileSnapshot: { id: 1, fullName: 'Najim QA', email: 'prof@ensa.ac.ma' },
-    summaryCards: { pendingProjects: { value: 5 } },
-    recentPendingProjects: [],
-    supervisedInternships: [],
-    recentReviewActivity: []
-  }),
-  getProfessorProfile: jest.fn().mockResolvedValue({
-    user: { id: 1, firstName: 'Najim', lastName: 'QA', email: 'prof@ensa.ac.ma' },
-    profile: { id: 1, employeeId: 'P123', grade: 'PES', department: 'Informatique' },
-    supervisedInternships: [],
-    recentProjectValidations: [],
-    recentInternshipValidations: []
-  })
-}));
 
 jest.mock('../../../src/logs/logger', () => ({
   info: jest.fn(),
@@ -88,7 +70,7 @@ describe("Tests d'Intégration - Routes Professeur", () => {
       expect(res.status).toBe(200);
       expect(res.body.data.area).toBe('professor');
       expect(res.body.data.user).toBeDefined();
-    }, 15000);
+    });
 
     it('TC-PRF-05 : Professeur accède au Profil → 200 OK', async () => {
       const res = await request(app)
