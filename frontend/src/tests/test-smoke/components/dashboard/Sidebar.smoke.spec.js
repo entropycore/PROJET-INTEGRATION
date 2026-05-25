@@ -7,20 +7,24 @@ import Sidebar from '../../../../components/dashboard/Sidebar.vue'
 // Mocks
 vi.mock('../../../../services/authService', () => ({
   logout: vi.fn().mockResolvedValue(undefined),
-}))
+}));
 
 vi.mock('../../../../config/sidebarConfig', () => ({
   sidebarConfig: {
     admin: [
       {
-        section: 'Principal',
+        section: "Principal",
         items: [
-          { label: 'Tableau de bord', path: '/dashboard', icon: 'dashboard.svg' },
+          {
+            label: "Tableau de bord",
+            path: "/dashboard",
+            icon: "dashboard.svg",
+          },
         ],
       },
     ],
   },
-}))
+}));
 
 // Stub des imports d'icones, car new URL(...).href n'existe pas dans jsdom.
 vi.stubGlobal('URL', class {
@@ -31,11 +35,11 @@ vi.stubGlobal('URL', class {
 const router = createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', component: { template: '<div />' } },
-    { path: '/dashboard', component: { template: '<div />' } },
-    { path: '/login', component: { template: '<div />' } },
+    { path: "/", component: { template: "<div />" } },
+    { path: "/dashboard", component: { template: "<div />" } },
+    { path: "/login", component: { template: "<div />" } },
   ],
-})
+});
 
 // Fonction de montage
 const mountSidebar = (props = {}) =>
@@ -46,7 +50,7 @@ const mountSidebar = (props = {}) =>
         createTestingPinia({
           initialState: {
             auth: {
-              user: { firstName: 'Alice', lastName: 'Dupont', role: 'admin' },
+              user: { firstName: "Alice", lastName: "Dupont", role: "admin" },
             },
           },
         }),
@@ -54,7 +58,7 @@ const mountSidebar = (props = {}) =>
       ],
       stubs: { RouterLink: true },
     },
-  })
+  });
 
 // Tests de fumee
 describe('Sidebar - Tests de fumee', () => {
@@ -72,10 +76,10 @@ describe('Sidebar - Tests de fumee', () => {
     expect(wrapper.find('.logout-btn').exists()).toBe(true)
   })
 
-  it('affiche la navigation', () => {
-    const wrapper = mountSidebar()
-    expect(wrapper.find('nav').exists()).toBe(true)
-  })
+  it("affiche la navigation", () => {
+    const wrapper = mountSidebar();
+    expect(wrapper.find("nav").exists()).toBe(true);
+  });
 
   it('accepte la propriete collapsed sans planter', () => {
     expect(() => mountSidebar({ collapsed: true })).not.toThrow()

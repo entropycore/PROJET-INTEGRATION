@@ -327,3 +327,399 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* CREATE USER PAGE */
+
+.admin-user-create-page {
+  color: var(--app-text);
+  font-family: var(--app-font-body);
+}
+
+.admin-user-create-page .admin-kicker {
+  display: none;
+}
+
+.admin-user-create-page .back-btn {
+  margin-bottom: 0.9rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+}
+
+.admin-user-create-page .details-header {
+  align-items: flex-start;
+  margin-bottom: 0.9rem;
+}
+
+.admin-user-create-page .details-header h1 {
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.7rem, 2.4vw, var(--app-text-page));
+  font-weight: 400;
+  line-height: var(--app-leading-tight);
+}
+
+.admin-user-create-page .details-email {
+  margin-top: 0.45rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  line-height: var(--app-leading-normal);
+}
+
+.admin-user-create-page .details-grid {
+  gap: 0.95rem;
+}
+
+.admin-user-create-page .details-card,
+.admin-user-create-page .details-state,
+.admin-user-create-page .admin-modal {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+}
+
+.admin-user-create-page .details-card {
+  padding: 1.35rem;
+}
+
+.admin-user-create-page .details-card h2,
+.admin-user-create-page .admin-modal h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+  color: var(--app-primary);
+  font-family: var(--app-font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: var(--app-leading-tight);
+}
+
+.admin-user-create-page .details-card h2 .material-icons-round {
+  color: var(--app-primary);
+  font-size: 1.15rem;
+  line-height: 1;
+  opacity: 0.92;
+}
+
+.admin-user-create-page .form-grid {
+  gap: 1rem 1rem;
+}
+
+.admin-user-create-page .form-grid label {
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  gap: 0.4rem;
+}
+
+.admin-user-create-page .form-grid input,
+.admin-user-create-page .form-grid select,
+.admin-user-create-page .form-grid textarea {
+  min-height: 2.7rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface);
+  color: var(--app-text);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  line-height: var(--app-leading-normal);
+  padding: 0 0.8rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-user-create-page .form-grid textarea {
+  min-height: 5.75rem;
+  padding-top: 0.8rem;
+}
+
+.admin-user-create-page .form-grid input:focus,
+.admin-user-create-page .form-grid select:focus,
+.admin-user-create-page .form-grid textarea:focus {
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 0.18rem rgba(47, 87, 93, 0.12);
+  outline: none;
+}
+
+.admin-user-create-page .form-grid input::placeholder {
+  color: var(--app-subtle);
+}
+
+.admin-user-create-page .security-text,
+.admin-user-create-page .admin-modal-text {
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  line-height: var(--app-leading-normal);
+}
+
+.admin-user-create-page .primary-btn,
+.admin-user-create-page .secondary-btn {
+  height: 2.55rem;
+  border-radius: var(--app-radius-md);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+}
+
+.admin-user-create-page .primary-btn {
+  border-color: var(--app-primary);
+  background: var(--app-primary);
+}
+
+.admin-user-create-page .primary-btn:hover {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+  opacity: 1;
+}
+
+.admin-user-create-page .secondary-btn {
+  border-color: var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.admin-user-create-page .secondary-btn:hover {
+  background: var(--app-surface-soft);
+  border-color: var(--app-border-strong);
+  color: var(--app-primary);
+}
+
+.admin-user-create-page .details-state.error {
+  color: var(--app-error);
+}
+
+.admin-user-create-page .temporary-password-box {
+  border-color: var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface-soft);
+  color: var(--app-text);
+}
+
+.admin-user-create-page .password-toggle {
+  border-radius: var(--app-radius-sm);
+}
+
+.admin-user-create-page .password-toggle:hover {
+  background: var(--app-surface-soft);
+}
+
+/* VIEW / EDIT USER PAGE */
+
+.admin-user-view-page {
+  color: var(--app-text);
+  font-family: var(--app-font-body);
+}
+
+.admin-user-view-page .back-btn {
+  margin-bottom: 0.9rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+}
+
+.admin-user-view-page .details-header {
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.admin-user-view-page .details-user {
+  align-items: center;
+}
+
+.admin-user-view-page .details-avatar {
+  width: 4rem;
+  height: 4rem;
+  background: var(--app-primary);
+  font-family: var(--app-font-body);
+}
+
+.admin-user-view-page .admin-kicker {
+  margin: 0 0 0.35rem;
+  color: var(--app-subtle);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-xs);
+  font-style: italic;
+}
+
+.admin-user-view-page .details-header h1 {
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.7rem, 2.4vw, var(--app-text-page));
+  font-weight: 400;
+  line-height: var(--app-leading-tight);
+}
+
+.admin-user-view-page .details-email {
+  margin-top: 0.35rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  line-height: var(--app-leading-normal);
+}
+
+.admin-user-view-page .details-grid {
+  gap: 0.95rem;
+}
+
+.admin-user-view-page .details-card,
+.admin-user-view-page .details-state,
+.admin-user-view-page .admin-modal {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+}
+
+.admin-user-view-page .details-card {
+  padding: 1.35rem;
+}
+
+.admin-user-view-page .details-card h2,
+.admin-user-view-page .admin-modal h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.1rem;
+  color: var(--app-primary);
+  font-family: var(--app-font-body);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: var(--app-leading-tight);
+}
+
+.admin-user-view-page .details-card h2 .material-icons-round {
+  color: var(--app-primary);
+  font-size: 1.15rem;
+  line-height: 1;
+  opacity: 0.92;
+}
+
+.admin-user-view-page .form-grid {
+  gap: 1rem;
+}
+
+.admin-user-view-page .form-grid label {
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  gap: 0.4rem;
+}
+
+.admin-user-view-page .form-grid input,
+.admin-user-view-page .form-grid select,
+.admin-user-view-page .form-grid textarea {
+  min-height: 2.7rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface);
+  color: var(--app-text);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  line-height: var(--app-leading-normal);
+  padding: 0 0.8rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.admin-user-view-page .form-grid textarea {
+  min-height: 5.75rem;
+  padding-top: 0.8rem;
+}
+
+.admin-user-view-page .form-grid input:focus,
+.admin-user-view-page .form-grid select:focus,
+.admin-user-view-page .form-grid textarea:focus {
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 0.18rem rgba(47, 87, 93, 0.12);
+  outline: none;
+}
+
+.admin-user-view-page .form-grid input:disabled,
+.admin-user-view-page .form-grid select:disabled,
+.admin-user-view-page .form-grid textarea:disabled {
+  background: var(--app-surface-soft);
+  color: var(--app-muted);
+  cursor: not-allowed;
+}
+
+.admin-user-view-page .security-text,
+.admin-user-view-page .admin-modal-text {
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  line-height: var(--app-leading-normal);
+}
+
+.admin-user-view-page .primary-btn,
+.admin-user-view-page .secondary-btn,
+.admin-user-view-page .danger-btn {
+  height: 2.55rem;
+  border-radius: var(--app-radius-md);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+}
+
+.admin-user-view-page .primary-btn {
+  border-color: var(--app-primary);
+  background: var(--app-primary);
+}
+
+.admin-user-view-page .primary-btn:hover {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+  opacity: 1;
+}
+
+.admin-user-view-page .secondary-btn {
+  border-color: var(--app-border);
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.admin-user-view-page .secondary-btn:hover {
+  background: var(--app-surface-soft);
+  border-color: var(--app-border-strong);
+  color: var(--app-primary);
+}
+
+.admin-user-view-page .danger-btn {
+  border-color: var(--app-error);
+  background: var(--app-surface);
+  color: var(--app-error);
+}
+
+.admin-user-view-page .danger-btn:hover {
+  background: var(--app-error-bg);
+}
+
+.admin-user-view-page .meta-row {
+  border-bottom-color: var(--app-border);
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+}
+
+.admin-user-view-page .meta-row strong {
+  color: var(--app-text);
+}
+
+.admin-user-view-page .temporary-password-box {
+  border-color: var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface-soft);
+  color: var(--app-text);
+}
+
+.admin-user-view-page .details-state.error {
+  color: var(--app-error);
+}
