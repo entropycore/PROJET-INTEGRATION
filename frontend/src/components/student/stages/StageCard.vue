@@ -60,12 +60,12 @@ const submitButtonLabel = () => {
 const isStageCompleteForSubmission = computed(() => {
   return Boolean(
     props.stage.title?.trim() &&
-      props.stage.company?.trim() &&
-      props.stage.startDate &&
-      props.stage.endDate &&
-      props.stage.duration?.trim() &&
-      props.stage.supervisor?.fullName?.trim() &&
-      props.stage.reportUrl,
+    props.stage.company?.trim() &&
+    props.stage.startDate &&
+    props.stage.endDate &&
+    props.stage.duration?.trim() &&
+    props.stage.supervisor?.fullName?.trim() &&
+    props.stage.reportUrl,
   );
 });
 
