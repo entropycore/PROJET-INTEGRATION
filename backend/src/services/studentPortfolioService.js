@@ -73,6 +73,18 @@ const projectSelect = {
   validationStatus: true,
   createdAt: true,
   submittedAt: true,
+  validatorProfessor: {
+    select: {
+      id: true,
+      department: true,
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  },
   media: {
     orderBy: { id: 'asc' },
     select: {
@@ -110,6 +122,18 @@ const internshipSelect = {
   reportUrl: true,
   validationStatus: true,
   visibility: true,
+  supervisorProfessor: {
+    select: {
+      id: true,
+      department: true,
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+  },
   technologies: {
     orderBy: { id: 'asc' },
     select: {
@@ -387,6 +411,9 @@ const splitProjectMedia = (media) => {
 
 const mapProject = (project) => {
   const media = splitProjectMedia(project.media);
+  const validatorName = project.validatorProfessor?.user
+    ? formatFullName(project.validatorProfessor.user)
+    : '';
 
   return {
     id: project.id,
@@ -399,6 +426,9 @@ const mapProject = (project) => {
     githubUrl: project.githubUrl || '',
     demoUrl: project.youtubeUrl || '',
     result: project.result || '',
+    validator: validatorName,
+    validatorId: project.validatorProfessor?.id || null,
+    validatorDepartment: project.validatorProfessor?.department || '',
     visibility: project.visibility,
     validationStatus: project.validationStatus,
     createdAt: project.createdAt,
@@ -444,6 +474,11 @@ const parseInternshipContent = (internship) => {
 
 const mapInternship = (internship) => {
   const content = parseInternshipContent(internship);
+  const supervisorName = internship.supervisorProfessor?.user
+    ? formatFullName(internship.supervisorProfessor.user)
+    : content.supervisor?.fullName || '';
+  const supervisorDepartment =
+    internship.supervisorProfessor?.department || content.supervisor?.department || '';
 
   return {
     id: internship.id,
@@ -454,6 +489,9 @@ const mapInternship = (internship) => {
     endDate: internship.endDate,
     description: content.description,
     missions: content.missions,
+    supervisor: supervisorName,
+    supervisorId: internship.supervisorProfessor?.id || content.supervisor?.id || null,
+    department: supervisorDepartment,
     technologies: internship.technologies.map((item) => item.technology.name),
     reportUrl: internship.reportUrl || '',
     images: internship.media.map((media) => ({
