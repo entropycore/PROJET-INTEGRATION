@@ -22,23 +22,30 @@ const typeClassByType = {
   REPORT: "alert",
 };
 
+const typeLabelByType = {
+  INFO: "Information",
+  SYSTEM: "Système",
+  VALIDATION: "Validation",
+  CERTIFICATE_VALIDATION: "Validation",
+  RECOMMENDATION_LETTER_VALIDATION: "Validation",
+  COMMENT_VALIDATION: "Validation",
+  RECOMMENDATION_VALIDATION: "Validation",
+  ACCESS_REQUEST: "Inscription",
+  ACCESS_REQUEST_APPROVED: "Inscription",
+  ALERT: "Alerte",
+  REPORT: "Rapport",
+};
+
 const getTypeClass = (type) => {
   return typeClassByType[type] || "system";
 };
 
+const getTypeLabel = (type) => {
+  return typeLabelByType[type] || type;
+};
+
 const formatDate = (date) => {
   const created = new Date(date);
-  const now = new Date();
-
-  const diffMs = now - created;
-  const minutes = Math.floor(diffMs / 60000);
-  const hours = Math.floor(diffMs / 3600000);
-  const days = Math.floor(diffMs / 86400000);
-
-  if (minutes < 1) return "à l’instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
-  if (hours < 24) return `il y a ${hours} h`;
-  if (days < 7) return `il y a ${days} jour${days > 1 ? "s" : ""}`;
 
   return created.toLocaleDateString("fr-FR");
 };
@@ -52,6 +59,9 @@ const formatDate = (date) => {
     <div class="content">
       <div class="title-row">
         <span class="type-dot"></span>
+        <span class="type" :class="getTypeClass(notification.type)">
+          {{ getTypeLabel(notification.type) }}
+        </span>
         <h3>{{ notification.title }}</h3>
       </div>
 
@@ -65,14 +75,18 @@ const formatDate = (date) => {
     <div class="actions">
       <button
         v-if="!notification.read"
-        class="action-btn read"
+        class="action-btn icon-btn read"
         type="button"
         @click="emit('read')"
       >
         Marquer lu
       </button>
 
-      <button class="action-btn delete" type="button" @click="emit('delete')">
+      <button
+        class="action-btn icon-btn delete"
+        type="button"
+        @click="emit('delete')"
+      >
         Supprimer
       </button>
     </div>

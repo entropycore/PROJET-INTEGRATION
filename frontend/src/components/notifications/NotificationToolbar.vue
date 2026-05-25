@@ -15,15 +15,17 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
     </div>
 
     <div class="toolbar-actions">
-      <select
-        :value="selectedType"
-        @change="emit('update:selectedType', $event.target.value)"
-      >
-        <option value="ALL">Tous les types</option>
-        <option value="INFO">Information</option>
-        <option value="VALIDATION">Validation</option>
-        <option value="ALERT">Alerte</option>
-      </select>
+      <div class="filter-group">
+        <select
+          :value="selectedType"
+          @change="emit('update:selectedType', $event.target.value)"
+        >
+          <option value="ALL">Tous les types</option>
+          <option value="INFO">Inscription</option>
+          <option value="VALIDATION">Validation</option>
+          <option value="ALERT">Alerte</option>
+        </select>
+      </div>
 
       <button type="button" @click="emit('read-all')">
         Tout marquer comme lu
@@ -71,6 +73,10 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
   display: flex;
   align-items: center;
   gap: 0.8rem;
+}
+
+.filter-group {
+  display: flex;
 }
 
 select {
