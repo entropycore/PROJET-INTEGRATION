@@ -77,8 +77,8 @@ const handleView = async (report) => {
     selectedReport.value = await getReportDetails(report.id);
     showDetailsModal.value = true;
   } catch (e) {
-    console.error("Erreur detail signalement:", e);
-    alert("Impossible de charger le detail du signalement.");
+    console.error("Erreur détail signalement:", e);
+    alert("Impossible de charger le détail du signalement.");
   }
 };
 
@@ -88,7 +88,7 @@ const closeDetailsModal = () => {
 };
 
 const handleResolve = async (report) => {
-  if (!confirm("Voulez-vous marquer ce signalement comme traite ?")) return;
+  if (!confirm("Voulez-vous marquer ce signalement comme traité ?")) return;
 
   try {
     await resolveReport(report.id);
@@ -116,15 +116,15 @@ const handleReject = async (report) => {
 };
 
 const handleDeleteTarget = async (report) => {
-  if (!confirm("Voulez-vous vraiment supprimer le contenu signale ?")) return;
+  if (!confirm("Voulez-vous vraiment supprimer le contenu signalé ?")) return;
 
   try {
     await deleteReportedTarget(report.id);
     await fetchReports();
     closeDetailsModal();
   } catch (e) {
-    console.error("Erreur suppression contenu signale:", e);
-    alert("Impossible de supprimer le contenu signale.");
+    console.error("Erreur suppression contenu signalé:", e);
+    alert("Impossible de supprimer le contenu signalé.");
   }
 };
 </script>
@@ -135,7 +135,7 @@ const handleDeleteTarget = async (report) => {
       <div>
         <span>ADMINISTRATION</span>
         <h1>Signalements</h1>
-        <p>Moderez les contenus signales par les utilisateurs</p>
+        <p>Modérez les contenus signalés par les utilisateurs</p>
       </div>
     </header>
 
