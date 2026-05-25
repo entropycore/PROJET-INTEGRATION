@@ -118,7 +118,7 @@ const submitCreate = async () => {
 </script>
 
 <template>
-  <section class="admin-user-details-page">
+  <section class="admin-user-details-page admin-user-create-page">
     <button class="back-btn" type="button" @click="goBack">← Retour</button>
 
     <div class="details-header">
@@ -152,7 +152,10 @@ const submitCreate = async () => {
 
     <div class="details-grid">
       <section class="details-card">
-        <h2>Informations générales</h2>
+        <h2>
+          <span class="material-icons-round">person</span>
+          Informations générales
+        </h2>
 
         <div class="form-grid">
           <label>
@@ -203,7 +206,10 @@ const submitCreate = async () => {
       </section>
 
       <section class="details-card">
-        <h2>Détails du rôle</h2>
+        <h2>
+          <span class="material-icons-round">badge</span>
+          Détails du rôle
+        </h2>
 
         <div v-if="form.role === 'STUDENT'" class="form-grid">
           <label>Filière <input v-model="form.major" /></label>
@@ -238,7 +244,10 @@ const submitCreate = async () => {
         </div>
       </section>
       <section class="details-card security-card">
-        <h2>Mot de passe</h2>
+        <h2>
+          <span class="material-icons-round">lock</span>
+          Mot de passe
+        </h2>
 
         <p class="security-text">
           Si vous laissez ce champ vide, un mot de passe temporaire sera généré
