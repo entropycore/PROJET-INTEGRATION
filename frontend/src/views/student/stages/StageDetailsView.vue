@@ -9,6 +9,7 @@ import {
   getStudentStageById,
   getStudentStageImageContent,
 } from "@/services/studentstageService";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 const route = useRoute();
 const router = useRouter();
@@ -173,7 +174,9 @@ const showImagesModal = ref(false);
 const normalizedImages = computed(() => {
   return (stage.value?.images || []).map((image) => ({
     ...image,
-    url: imagePreviewUrls.value[image.id] || image.url || image.imageUrl || "",
+    url:
+      imagePreviewUrls.value[image.id] ||
+      buildBackendUrl(image.url || image.imageUrl || ""),
   }));
 });
 

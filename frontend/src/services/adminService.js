@@ -18,6 +18,13 @@ export const createAdminUser = (data) => {
   return api.post("/admin/users", data);
 };
 
+export const importAdminUsersCsv = (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return api.post("/admin/users/import-csv", formData);
+};
+
 // update user
 export const updateAdminUser = (id, data) => {
   return api.put(`/admin/users/${id}`, data);

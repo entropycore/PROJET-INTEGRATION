@@ -14,6 +14,7 @@ import {
   getStudentActivityById,
   submitStudentActivityValidation,
 } from "@/services/studentActivitiesService";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 const route = useRoute();
 const router = useRouter();
@@ -125,7 +126,9 @@ const activityStatusMessage = computed(() => {
 });
 
 const certificateDownloadUrl = computed(
-  () => certificatePreviewUrl.value || activity.value?.certificateUrl || "",
+  () =>
+    certificatePreviewUrl.value ||
+    buildBackendUrl(activity.value?.certificateUrl || ""),
 );
 const certificatePreviewSource = computed(() => certificatePreviewUrl.value);
 const activityMedia = computed(
@@ -491,7 +494,7 @@ const formatDate = (date) => {
                   v-if="
                     media.imageUrl || media.url || typeof media === 'string'
                   "
-                  :src="media.imageUrl || media.url || media"
+                  :src="buildBackendUrl(media.imageUrl || media.url || media)"
                   :alt="media.title || 'Média de l’activité'"
                 />
               </button>
