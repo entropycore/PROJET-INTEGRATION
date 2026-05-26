@@ -84,7 +84,7 @@ const handleView = async (validation) => {
   try {
     selectedValidation.value = await getValidationDetails(validation.id);
   } catch (err) {
-    console.error("Erreur detail validation:", err);
+    console.error("Erreur détail validation:", err);
     selectedValidation.value = validation;
   }
 
@@ -127,7 +127,7 @@ const handleReject = async (validation) => {
 };
 
 const handleRequestChanges = async (validation) => {
-  const comment = prompt("Quelle correction demander a l'etudiant ?");
+  const comment = prompt("Quelle correction demander à l'étudiant ?");
   if (!comment) return;
 
   try {
@@ -146,7 +146,7 @@ const handleRequestChanges = async (validation) => {
       <div>
         <span>ADMINISTRATION</span>
         <h1>Centre de validations</h1>
-        <p>Examinez et validez les soumissions des etudiants</p>
+        <p>Examinez et validez les soumissions des étudiants</p>
       </div>
     </header>
 
