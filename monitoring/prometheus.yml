@@ -1,7 +1,26 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
   - job_name: "prometheus"
     static_configs:
-      - targets: ["prometheus:9090"]
+      - targets: ["prometheus_mon:9090"]
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets: ["node_exporter_mon:9100"]
+
+  - job_name: "cadvisor"
+    static_configs:
+      - targets: ["cadvisor_mon:8080"]
+
+  - job_name: "credencia-backend"
+    static_configs:
+      - targets: ["backend_api:3000"]
+    metrics_path: /metrics
+
+  - job_name: "keycloak"
+    static_configs:
+      - targets: ["keycloak_sec:8080"]
+    metrics_path: /metrics
