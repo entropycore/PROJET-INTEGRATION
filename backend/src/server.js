@@ -1,4 +1,9 @@
 require('dotenv').config();
+
+const client = require('prom-client');
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics();
+
 const express = require('express');
 const cookieParser = require('cookie-parser');
 
@@ -57,9 +62,15 @@ app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reports', reportRoutes);
 
 
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
+
 
 app.use(notFound);
 app.use(handleErrors);
+
 
 
 const PORT = process.env.BACKEND_PORT || 5000;
