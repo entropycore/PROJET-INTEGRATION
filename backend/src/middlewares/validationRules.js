@@ -11,7 +11,7 @@ const rules = {
       .withMessage('Email obligatoire')
       .isEmail()
       .withMessage('Email invalide')
-      .normalizeEmail(), //convertir en minuscules
+      .toLowerCase(),
 
     body('password')
       .notEmpty()
@@ -44,7 +44,7 @@ register: [
     .withMessage('Email obligatoire')
     .isEmail()
     .withMessage('Email invalide')
-    .normalizeEmail(),
+    .toLowerCase(),
 
   body('password')
     .notEmpty()
@@ -78,7 +78,7 @@ register: [
       .withMessage('Email obligatoire')
       .isEmail()
       .withMessage('Email invalide')
-      .normalizeEmail(),
+      .toLowerCase(),
   ],
 
   // Règles resetPassword
