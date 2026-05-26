@@ -1,8 +1,6 @@
 node_modules/
+dist/
 .env
 Dockerfile
-Dockerfile.prod
-dist/
-.git/
-*.md
-npm-debug.log
+cypress/screenshots/
+cypress/videos/

@@ -2,13 +2,15 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
 RUN npm install
 
-COPY prisma ./prisma
+COPY --chown=node:node prisma ./prisma
 RUN npx prisma generate
 
-COPY . .
+COPY --chown=node:node . .
+
+USER node
 
 EXPOSE 3000
 
