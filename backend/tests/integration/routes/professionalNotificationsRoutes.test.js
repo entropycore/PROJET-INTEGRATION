@@ -13,17 +13,17 @@ jest.mock('../../../src/logs/logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../src/controllers/administratorController', () => ({
+jest.mock('../../../src/controllers/userNotificationController', () => ({
   listNotifications: jest.fn((req, res) =>
     res.status(200).json({ success: true, data: { items: [] } })
   ),
-  getUnreadNotificationsCount: jest.fn((req, res) =>
+  getUnreadCount: jest.fn((req, res) =>
     res.status(200).json({ success: true, data: { count: 0 } })
   ),
-  markAllNotificationsAsRead: jest.fn((req, res) =>
+  markAllAsRead: jest.fn((req, res) =>
     res.status(200).json({ success: true, data: { updatedCount: 0 } })
   ),
-  markNotificationAsRead: jest.fn((req, res) =>
+  markAsRead: jest.fn((req, res) =>
     res.status(200).json({ success: true, data: { id: req.params.notificationId } })
   ),
   deleteNotification: jest.fn((req, res) =>
@@ -31,7 +31,7 @@ jest.mock('../../../src/controllers/administratorController', () => ({
   ),
 }));
 
-const administratorController = require('../../../src/controllers/administratorController');
+const notificationController = require('../../../src/controllers/userNotificationController');
 const professionalRouter = require('../../../src/routes/professionalRoutes');
 
 const app = express();
@@ -50,22 +50,22 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('Professional notifications admin alias', () => {
-  it('allows an admin to read notifications from the professional alias', async () => {
-    const res = await request(app)
-      .get('/api/professional/notifications')
-      .set('Cookie', `accessToken=${makeToken('ADMINISTRATOR', 'admin-role-id')}`);
-
-    expect(res.status).toBe(200);
-    expect(administratorController.listNotifications).toHaveBeenCalled();
-  });
-
-  it('blocks a professional from accessing the admin notifications alias', async () => {
+describe('Professional notifications routes', () => {
+  it('allows a professional to read professional notifications', async () => {
     const res = await request(app)
       .get('/api/professional/notifications')
       .set('Cookie', `accessToken=${makeToken('PROFESSIONAL', 'professional-role-id')}`);
 
+    expect(res.status).toBe(200);
+    expect(notificationController.listNotifications).toHaveBeenCalled();
+  });
+
+  it('blocks an admin from accessing professional notifications', async () => {
+    const res = await request(app)
+      .get('/api/professional/notifications')
+      .set('Cookie', `accessToken=${makeToken('ADMINISTRATOR', 'admin-role-id')}`);
+
     expect(res.status).toBe(403);
-    expect(administratorController.listNotifications).not.toHaveBeenCalled();
+    expect(notificationController.listNotifications).not.toHaveBeenCalled();
   });
 });
