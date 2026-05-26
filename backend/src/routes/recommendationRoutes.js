@@ -2,14 +2,13 @@
 
 const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
-const checkRoles = require('../middlewares/checkRoles');
-const workspaceController = require('../controllers/studentWorkspaceController');
+const recommendationController = require('../controllers/recommendationController');
 
 const router = express.Router();
 
 router.use(authMiddleware);
-router.use(checkRoles('STUDENT'));
 
-router.get('/:id', workspaceController.getRecommendation);
+router.get('/:recommendationId', recommendationController.getRecommendationById);
+router.post('/:recommendationId/report', recommendationController.reportRecommendation);
 
 module.exports = router;

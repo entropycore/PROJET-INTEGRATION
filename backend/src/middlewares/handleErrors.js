@@ -14,7 +14,7 @@ const handleErrors = (err, req, res, _next) => {
   });
 
   // Erreur CORS
-  if (String(err.message || '').includes('CORS')) {
+  if (err.message.includes('CORS')) {
     return res.status(403).json({
       success: false,
       message: 'Accès refusé — origine non autorisée',

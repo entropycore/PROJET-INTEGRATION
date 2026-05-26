@@ -6,7 +6,7 @@ module.exports = {
   ...require('./administrator/notificationController'),
   ...require('./administrator/reportController'),
   ...require('./administrator/profileController'),
+  ...require('./administrator/badgeController'),
   ...require('./administrator/userController'),
   ...require('./administrator/professionalRequestController'),
-  ...require('./administrator/badgeController'),
 };

@@ -206,8 +206,10 @@ model Student {
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
   githubAccessToken String? @map("github_access_token") @db.Text
+  
   academicPaths   AcademicPath[]
-  academicTimeline AcademicTimeline[]
+  academicTimelineEntries AcademicTimelineEntry[]
+
   studentSkills   StudentSkill[]
   projects        Project[]
   internships     Internship[]
@@ -229,7 +231,7 @@ model Professor {
   specialty       String?   @db.VarChar(150)
   department      String?   @db.VarChar(150)
   projectValidations ProjectValidation[]
-  validatedProjects Project[] @relation("ProjectValidatorProfessor")
+  projectsToValidate Project[] @relation("ProjectAssignedValidator")
   supervisedInternships Internship[]        @relation("InternshipSupervisor")
   internshipValidations InternshipValidation[]
 
@@ -302,6 +304,19 @@ model AcademicPath {
   @@map("academic_paths")
 }
 
+model SkillDomain {
+  id           String  @id @default(uuid()) @map("id_skill_domain")
+  name         String  @unique @db.VarChar(120)
+  slug         String  @unique @db.VarChar(120)
+  description  String? @db.Text
+  displayOrder Int     @default(0) @map("display_order")
+
+  skills Skill[]
+
+  @@index([displayOrder])
+  @@map("skill_domains")
+}
+
 model Skill {
   id          String       @id @default(uuid()) @map("id_skill")
   name        String       @unique @map("name") @db.VarChar(120)
@@ -353,7 +368,7 @@ model Project {
   teamRole          String?              @map("team_role") @db.VarChar(120)
   teamSize          String?              @map("team_size") @db.VarChar(80)
   validatorProfessorId String?           @map("validator_professor_id")
-  validatorProfessor   Professor?        @relation("ProjectValidatorProfessor", fields: [validatorProfessorId], references: [id], onDelete: SetNull)
+  validatorProfessor Professor?          @relation("ProjectAssignedValidator", fields: [validatorProfessorId], references: [id], onDelete: SetNull)
   githubUrl         String?              @map("github_url") @db.Text
   youtubeUrl        String?              @map("youtube_url") @db.Text
   result            String?              @db.Text
@@ -445,6 +460,22 @@ model Internship {
   @@index([validationStatus])
   @@index([studentId, validationStatus])
   @@map("internships")
+}
+
+model InternshipMedia {
+  id           String     @id @default(uuid()) @map("id_internship_media")
+  internshipId String     @map("internship_id")
+  internship   Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  mediaType    String     @map("media_type") @db.VarChar(50)
+  mediaUrl     String     @map("media_url") @db.Text
+  description  String?    @db.Text
+  fileName     String?    @map("file_name") @db.VarChar(255)
+  mimeType     String?    @map("mime_type") @db.VarChar(120)
+  fileSize     Int?       @map("file_size")
+  storagePath  String?    @map("storage_path") @db.Text
+
+  @@index([internshipId])
+  @@map("internship_media")
 }
 
 model InternshipTechnology {
@@ -628,6 +659,21 @@ model Recommendation {
   @@index([status])
   @@map("recommendations")
 }
+model AcademicTimelineEntry {
+  id          Int       @id @default(autoincrement())
+  studentId   String    @map("student_id") 
+  title       String    @db.VarChar(255)
+  institution String    @db.VarChar(255)
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("academic_timeline")
+}
 
 model Report {
   id                          String          @id @default(uuid()) @map("id_report")
@@ -670,8 +716,22 @@ model Notification {
   @@index([isRead, createdAt])
   @@index([relatedType, relatedId])
   @@map("notifications")
-  }
-  
+}
+
+model Badge {
+  id          String   @id @default(uuid()) @map("id_badge")
+  name        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  rule        String   @db.Text
+  iconUrl     String?  @map("icon_url") @db.Text
+  tone        String   @default("blue") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([createdAt])
+  @@map("badges")
+}
+
 model SystemSettings {
   id                       String   @id @default(uuid()) @map("id_system_settings")
   
@@ -690,62 +750,4 @@ model SystemSettings {
   updatedAt                DateTime @updatedAt @map("updated_at")
 
   @@map("system_settings")
-}
-
-model AcademicTimeline {
-  id          Int       @id @default(autoincrement())
-  studentId   String    @map("student_id")
-  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  title       String    @db.VarChar(255)
-  institution String    @db.VarChar(255)
-  startDate   DateTime  @map("start_date") @db.Date
-  endDate     DateTime? @map("end_date") @db.Date
-  description String?   @db.Text
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  @@index([studentId])
-  @@map("academic_timeline")
-}
-
-model Badge {
-  id          String   @id @default(uuid()) @map("id_badge")
-  name        String   @unique @db.VarChar(120)
-  description String?  @db.Text
-  rule        String   @db.Text
-  iconUrl     String?  @map("icon_url") @db.Text
-  tone        String   @default("blue") @db.VarChar(50)
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@index([createdAt])
-  @@map("badges")
-}
-
-model InternshipMedia {
-  id           String     @id @default(uuid()) @map("id_internship_media")
-  internshipId String     @map("internship_id")
-  internship   Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
-  mediaType    String     @map("media_type") @db.VarChar(50)
-  mediaUrl     String     @map("media_url") @db.Text
-  description  String?    @db.Text
-  fileName     String?    @map("file_name") @db.VarChar(255)
-  mimeType     String?    @map("mime_type") @db.VarChar(120)
-  fileSize     Int?       @map("file_size")
-  storagePath  String?    @map("storage_path") @db.Text
-
-  @@index([internshipId])
-  @@map("internship_media")
-}
-
-model SkillDomain {
-  id           String  @id @default(uuid()) @map("id_skill_domain")
-  name         String  @unique @db.VarChar(120)
-  slug         String  @unique @db.VarChar(120)
-  description  String? @db.Text
-  displayOrder Int     @default(0) @map("display_order")
-  skills       Skill[]
-
-  @@index([displayOrder])
-  @@map("skill_domains")
 }
