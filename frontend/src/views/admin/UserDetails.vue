@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { buildBackendUrl } from "../../services/backendUrl";
 import {
   getAdminUserById,
   updateAdminUser,
@@ -230,7 +231,11 @@ const handleDelete = async () => {
       <div class="details-header">
         <div class="details-user">
           <div class="details-avatar">
-            <img v-if="user.profilePicture" :src="user.profilePicture" alt="" />
+            <img
+              v-if="user.profilePicture"
+              :src="buildBackendUrl(user.profilePicture)"
+              alt=""
+            />
             <span v-else>{{ initials }}</span>
           </div>
 
