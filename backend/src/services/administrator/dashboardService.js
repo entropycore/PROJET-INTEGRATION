@@ -1,115 +1,37 @@
 'use strict';
 
+const prisma = require('../../config/prisma');
 const {
-  bcrypt,
-  crypto,
-  prisma,
-  notificationService,
-  USER_ROLES,
-  ACCOUNT_STATUSES,
-  VALIDATION_ITEM_TYPES,
-  NOTIFICATION_TYPES,
-  REPORT_STATUSES,
-  REPORT_TARGET_TYPES,
-  BCRYPT_ROUNDS,
-  isStructureMissingError,
-  safeCount,
-  safeAggregateCount,
-  safeReadWithFallback,
-  buildUserSearch,
-  normalizePagination,
-  buildPagination,
-  normalizeValidationType,
-  ensureValidValidationType,
-  ensureValidNotificationType,
-  ensureValidReportStatus,
-  ensureValidReportTargetType,
-  paginateItems,
-  normalizeSearch,
-  matchesValidationSearch,
-  getNotificationTone,
-  getNotificationLink,
-  mapNotificationItem,
-  buildProfessionalProfileData,
-  ensureValidRole,
-  ensureValidStatus,
-  buildRoleCreateData,
-  buildRoleUpdateData,
-  stripUndefined,
-  getUserOrThrow,
-  certificateDetailSelect,
-  getProfessionalRequestOrThrow,
-  getCertificateRequestOrThrow,
-  getValidationCertificateOrThrow,
-  getReportOrThrow,
-  getNotificationOrThrow,
-  getRecommendationLetterValidationOrThrow,
-  getCommentValidationOrThrow,
-  getRecommendationValidationOrThrow,
-  deleteCurrentProfile,
-  ensureRoleChangeAllowed,
-  createProfileForRole,
-  buildTemporaryPassword,
-  getPendingValidationCounts,
-  getRecentProfessionalRequests,
-  getRecentCertificateRequests,
-  getRecentReportItems,
-  getRecentDashboardRequests,
-  syncPendingAccessRequestNotifications,
-  syncPendingValidationNotifications,
-  syncPendingReportNotifications,
-  syncAdminNotifications,
-  getProfessionalRequestsList,
-  loadCertificateValidationItems,
-  loadRecommendationLetterValidationItems,
-  loadCommentValidationItems,
-  loadRecommendationValidationItems,
-  loadReportItems,
-  approveCertificateRequest,
-  rejectCertificateRequest,
-  approveRecommendationLetterValidation,
-  rejectRecommendationLetterValidation,
-  approveCommentValidation,
-  rejectCommentValidation,
-  approveRecommendationValidation,
-  rejectRecommendationValidation,
-  requestCertificateChanges,
-  requestRecommendationLetterChanges,
-  requestCommentChanges,
-  requestRecommendationChanges,
-  professionalRequestSelect,
-  professionalRequestLegacySelect,
-  recentCertificateSelect,
-  reportSelect,
-  notificationSelect,
-  recommendationLetterValidationSelect,
-  commentValidationSelect,
-  recommendationValidationSelect,
-  userSelect,
-  formatFullName,
-  normalizeProfessionalData,
-  getEmailVerifiedValue,
-  mapUserSummary,
-  mapProfessionalRequestDetail,
+  mapCertificateRequestDetail,
   mapDashboardAccessRequest,
   mapDashboardCertificateRequest,
-  toFullName,
-  mapFrontendStudent,
-  mapFrontendAuthor,
-  toFrontendReportStatus,
-  toDatabaseReportStatus,
-  mapCertificateRequestDetail,
-  mapRecommendationLetterValidationItem,
-  mapCommentValidationItem,
-  mapRecommendationValidationItem,
   mapReportItem,
-} = require('./shared');
-
+} = require('./mappers');
+const adminNotificationService = require('./adminNotificationService');
 const professionalRequestService = require('./professionalRequestService');
-const reportAdminService = require('./reportAdminService');
+const reportService = require('./reportService');
+const validationService = require('./validationService');
+const { getRecentCertificateRequests } = require('./validationData');
+const { readTextValue, safeCount } = require('./serviceUtils');
 
-exports.getDashboardData = async () => {
-  await syncAdminNotifications();
+const getRecentDashboardRequests = async () => {
+  const [professionalRequests, certificateRequests, reports] = await Promise.all([
+    professionalRequestService.getRecentProfessionalRequests(),
+    getRecentCertificateRequests(),
+    reportService.loadReportItems('PENDING', null),
+  ]);
+
+  return [
+    ...professionalRequests.map(mapDashboardAccessRequest),
+    ...certificateRequests.map(mapDashboardCertificateRequest),
+    ...reports.slice(0, 5).map(mapReportItem),
+  ]
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .slice(0, 5);
+};
+
+const getDashboardData = async () => {
+  await adminNotificationService.syncAdminNotifications();
 
   const [
     totalUsers,
@@ -129,19 +51,22 @@ exports.getDashboardData = async () => {
           role: 'PROFESSIONAL',
           accountStatus: 'PENDING',
         },
-      })
+      }),
     ),
-    getPendingValidationCounts(),
+    validationService.getPendingValidationCounts(),
     safeCount(() => prisma.report.count({ where: { status: 'PENDING' } })),
     getRecentDashboardRequests(),
   ]);
 
   return {
     summaryCards: {
-      totalUsers: { value: totalUsers, variation: 'Comptes enregistres' },
-      totalStudents: { value: totalStudents, variation: 'Profils etudiants' },
+      totalUsers: { value: totalUsers, variation: 'Comptes enregistrés' },
+      totalStudents: { value: totalStudents, variation: 'Profils étudiants' },
       totalProfessors: { value: totalProfessors, variation: 'Profils professeurs' },
-      pendingRequests: { value: pendingRequests, variation: 'Demandes professionnelles' },
+      pendingRequests: {
+        value: pendingRequests,
+        variation: 'Demandes professionnelles',
+      },
     },
     urgentActions: {
       pendingAccessRequests: pendingRequests,
@@ -152,90 +77,64 @@ exports.getDashboardData = async () => {
   };
 };
 
-exports.getDashboardItemDetail = async (itemType, itemId) => {
-  const normalizedType = String(itemType || '')
-    .trim()
-    .toUpperCase()
-    .replace(/-/g, '_');
+const getDashboardItemDetail = async (itemType, itemId) => {
+  const type = String(itemType || '').trim().toUpperCase().replace(/-/g, '_');
 
-  switch (normalizedType) {
-    case 'ACCESS_REQUEST': {
-      const request = await getProfessionalRequestOrThrow(itemId);
-      return mapProfessionalRequestDetail(request);
-    }
-
-    case 'CERTIFICATE_VALIDATION': {
-      const certificate = await getCertificateRequestOrThrow(itemId);
-      return mapCertificateRequestDetail(certificate);
-    }
-
+  switch (type) {
+    case 'ACCESS_REQUEST':
+      return professionalRequestService.getProfessionalRequest(itemId);
+    case 'CERTIFICATE_VALIDATION':
+      return mapCertificateRequestDetail(await validationService.getCertificateRequestOrThrow(itemId));
     case 'REPORT':
-      return reportAdminService.getReportById(itemId);
-
+      return reportService.getReportById(itemId);
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ITEM_TYPE');
   }
 };
 
-exports.approveDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
-  const normalizedType = String(itemType || '')
-    .trim()
-    .toUpperCase()
-    .replace(/-/g, '_');
+const approveDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
+  const type = String(itemType || '').trim().toUpperCase().replace(/-/g, '_');
 
-  switch (normalizedType) {
+  switch (type) {
     case 'ACCESS_REQUEST':
       return professionalRequestService.approveProfessionalRequest(itemId, administratorId);
-
     case 'CERTIFICATE_VALIDATION':
-      return approveCertificateRequest(
+      return validationService.createCertificateValidation(
         itemId,
         administratorId,
-        typeof payload.comment === 'string' ? payload.comment.trim() || null : null
+        'APPROVED',
+        readTextValue(payload, ['comment']),
       );
-
     case 'REPORT':
-      return reportAdminService.approveReport(
+      return reportService.approveReport(
         itemId,
         administratorId,
-        typeof payload.resolutionNote === 'string'
-          ? payload.resolutionNote.trim() || null
-          : typeof payload.comment === 'string'
-            ? payload.comment.trim() || null
-            : null
+        readTextValue(payload, ['resolutionNote', 'comment']),
       );
-
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
   }
 };
 
-exports.rejectDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
-  const normalizedType = String(itemType || '')
-    .trim()
-    .toUpperCase()
-    .replace(/-/g, '_');
+const rejectDashboardItem = async (itemType, itemId, administratorId, payload = {}) => {
+  const type = String(itemType || '').trim().toUpperCase().replace(/-/g, '_');
+  const comment = readTextValue(payload, ['comment', 'rejectionReason', 'reason']);
 
-  const normalizedComment =
-    typeof payload.comment === 'string'
-      ? payload.comment.trim() || null
-      : typeof payload.rejectionReason === 'string'
-        ? payload.rejectionReason.trim() || null
-        : typeof payload.reason === 'string'
-          ? payload.reason.trim() || null
-          : null;
-
-  switch (normalizedType) {
+  switch (type) {
     case 'ACCESS_REQUEST':
-      return professionalRequestService.rejectProfessionalRequest(itemId, administratorId, normalizedComment);
-
+      return professionalRequestService.rejectProfessionalRequest(itemId, administratorId, comment);
     case 'CERTIFICATE_VALIDATION':
-      return rejectCertificateRequest(itemId, administratorId, normalizedComment);
-
+      return validationService.createCertificateValidation(itemId, administratorId, 'REJECTED', comment);
     case 'REPORT':
-      return reportAdminService.rejectReport(itemId, administratorId, normalizedComment);
-
+      return reportService.rejectReport(itemId, administratorId, comment);
     default:
       throw new Error('UNSUPPORTED_DASHBOARD_ACTION_TYPE');
   }
+};
+
+module.exports = {
+  approveDashboardItem,
+  getDashboardData,
+  getDashboardItemDetail,
+  rejectDashboardItem,
 };

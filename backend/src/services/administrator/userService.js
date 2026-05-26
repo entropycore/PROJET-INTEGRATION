@@ -1,111 +1,36 @@
 'use strict';
 
+const bcrypt = require('bcrypt');
+const prisma = require('../../config/prisma');
+const sendEmail = require('../../utils/sendEmail');
 const {
-  bcrypt,
-  crypto,
-  prisma,
-  notificationService,
-  USER_ROLES,
-  ACCOUNT_STATUSES,
-  VALIDATION_ITEM_TYPES,
-  NOTIFICATION_TYPES,
-  REPORT_STATUSES,
-  REPORT_TARGET_TYPES,
-  BCRYPT_ROUNDS,
-  isStructureMissingError,
-  safeCount,
-  safeAggregateCount,
-  safeReadWithFallback,
-  buildUserSearch,
-  normalizePagination,
-  buildPagination,
-  normalizeValidationType,
-  ensureValidValidationType,
-  ensureValidNotificationType,
-  ensureValidReportStatus,
-  ensureValidReportTargetType,
-  paginateItems,
-  normalizeSearch,
-  matchesValidationSearch,
-  getNotificationTone,
-  getNotificationLink,
-  mapNotificationItem,
-  buildProfessionalProfileData,
-  ensureValidRole,
-  ensureValidStatus,
+  buildPasswordResetEmail,
   buildRoleCreateData,
   buildRoleUpdateData,
-  stripUndefined,
-  getUserOrThrow,
-  certificateDetailSelect,
-  getProfessionalRequestOrThrow,
-  getCertificateRequestOrThrow,
-  getValidationCertificateOrThrow,
-  getReportOrThrow,
-  getNotificationOrThrow,
-  getRecommendationLetterValidationOrThrow,
-  getCommentValidationOrThrow,
-  getRecommendationValidationOrThrow,
+  buildTemporaryPassword,
+  buildUserCredentialsEmail,
+  ensureValidRole,
+  ensureValidStatus,
+} = require('./userHelpers');
+const { mapUserSummary } = require('./mappers');
+const { userSelect } = require('./serviceSelects');
+const { buildPagination, normalizePagination, stripUndefined } = require('./serviceUtils');
+const {
+  buildUserSearch,
+  createProfileForRole,
   deleteCurrentProfile,
   ensureRoleChangeAllowed,
-  createProfileForRole,
-  buildTemporaryPassword,
-  getPendingValidationCounts,
-  getRecentProfessionalRequests,
-  getRecentCertificateRequests,
-  getRecentReportItems,
-  getRecentDashboardRequests,
-  syncPendingAccessRequestNotifications,
-  syncPendingValidationNotifications,
-  syncPendingReportNotifications,
-  syncAdminNotifications,
-  getProfessionalRequestsList,
-  loadCertificateValidationItems,
-  loadRecommendationLetterValidationItems,
-  loadCommentValidationItems,
-  loadRecommendationValidationItems,
-  loadReportItems,
-  approveCertificateRequest,
-  rejectCertificateRequest,
-  approveRecommendationLetterValidation,
-  rejectRecommendationLetterValidation,
-  approveCommentValidation,
-  rejectCommentValidation,
-  approveRecommendationValidation,
-  rejectRecommendationValidation,
-  requestCertificateChanges,
-  requestRecommendationLetterChanges,
-  requestCommentChanges,
-  requestRecommendationChanges,
-  professionalRequestSelect,
-  professionalRequestLegacySelect,
-  recentCertificateSelect,
-  reportSelect,
-  notificationSelect,
-  recommendationLetterValidationSelect,
-  commentValidationSelect,
-  recommendationValidationSelect,
-  userSelect,
-  formatFullName,
-  normalizeProfessionalData,
-  getEmailVerifiedValue,
-  mapUserSummary,
-  mapProfessionalRequestDetail,
-  mapDashboardAccessRequest,
-  mapDashboardCertificateRequest,
-  toFullName,
-  mapFrontendStudent,
-  mapFrontendAuthor,
-  toFrontendReportStatus,
-  toDatabaseReportStatus,
-  mapCertificateRequestDetail,
-  mapRecommendationLetterValidationItem,
-  mapCommentValidationItem,
-  mapRecommendationValidationItem,
-  mapReportItem,
-} = require('./shared');
+  getUserOrThrow,
+} = require('./userData');
 
-exports.listUsers = async ({ page = 1, limit = 10, search, role, status } = {}) => {
+const BCRYPT_ROUNDS = 10;
+
+const getUserById = async (userId) => {
+  const user = await getUserOrThrow(userId);
+  return mapUserSummary(user);
+};
+
+const listUsers = async ({ page = 1, limit = 10, search, role, status } = {}) => {
   if (role) {
     ensureValidRole(role);
   }
@@ -115,7 +40,6 @@ exports.listUsers = async ({ page = 1, limit = 10, search, role, status } = {}) 
   }
 
   const { skip, page: safePage, limit: safeLimit } = normalizePagination(page, limit);
-
   const where = {
     ...(role ? { role } : {}),
     ...(status ? { accountStatus: status } : {}),
@@ -139,12 +63,7 @@ exports.listUsers = async ({ page = 1, limit = 10, search, role, status } = {}) 
   };
 };
 
-exports.getUserById = async (userId) => {
-  const user = await getUserOrThrow(userId);
-  return mapUserSummary(user);
-};
-
-exports.createUser = async (payload) => {
+const createUser = async (payload) => {
   const role = String(payload.role || '').toUpperCase();
   const accountStatus = String(payload.accountStatus || 'ACTIVE').toUpperCase();
 
@@ -164,9 +83,10 @@ exports.createUser = async (payload) => {
     throw new Error('EMAIL_ALREADY_EXISTS');
   }
 
-  const temporaryPassword = payload.password || buildTemporaryPassword();
-  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
-
+  const providedPassword =
+    typeof payload.password === 'string' && payload.password.trim().length > 0 ? payload.password : null;
+  const initialPassword = providedPassword || buildTemporaryPassword();
+  const passwordHash = await bcrypt.hash(initialPassword, BCRYPT_ROUNDS);
   const createdUser = await prisma.user.create({
     data: {
       firstName: payload.firstName,
@@ -182,13 +102,29 @@ exports.createUser = async (payload) => {
     select: userSelect,
   });
 
+  try {
+    const emailPayload = buildUserCredentialsEmail({
+      firstName: createdUser.firstName,
+      email: createdUser.email,
+      password: initialPassword,
+      role,
+      accountStatus,
+    });
+
+    await sendEmail(createdUser.email, emailPayload.subject, emailPayload.text);
+  } catch (err) {
+    await prisma.user.delete({ where: { id: createdUser.id } });
+    throw new Error('USER_EMAIL_SEND_FAILED', { cause: err });
+  }
+
   return {
     user: mapUserSummary(createdUser),
-    temporaryPassword: payload.password ? null : temporaryPassword,
+    temporaryPassword: providedPassword ? null : initialPassword,
+    credentialsSent: true,
   };
 };
 
-exports.updateUser = async (userId, payload) => {
+const updateUser = async (userId, payload) => {
   const user = await getUserOrThrow(userId);
 
   if (payload.role && String(payload.role).toUpperCase() !== user.role) {
@@ -223,12 +159,11 @@ exports.updateUser = async (userId, payload) => {
     }
   });
 
-  return exports.getUserById(userId);
+  return getUserById(userId);
 };
 
-exports.updateUserStatus = async (userId, status, administratorId, reason) => {
+const updateUserStatus = async (userId, status, administratorId, reason) => {
   ensureValidStatus(status);
-
   const user = await getUserOrThrow(userId);
 
   if (user.role === 'PROFESSIONAL' && status === 'ACTIVE' && !user.professional?.isVerified) {
@@ -264,10 +199,10 @@ exports.updateUserStatus = async (userId, status, administratorId, reason) => {
     }
   });
 
-  return exports.getUserById(userId);
+  return getUserById(userId);
 };
 
-exports.updateUserRole = async (userId, role, payload = {}, currentUserId = null) => {
+const updateUserRole = async (userId, role, payload = {}, currentUserId = null) => {
   const targetRole = String(role || '').toUpperCase();
   ensureValidRole(targetRole);
 
@@ -276,52 +211,25 @@ exports.updateUserRole = async (userId, role, payload = {}, currentUserId = null
   }
 
   const user = await getUserOrThrow(userId);
-
   if (user.role === targetRole) {
-    return exports.getUserById(userId);
+    return getUserById(userId);
   }
 
   await ensureRoleChangeAllowed(user);
 
   await prisma.$transaction(async (tx) => {
     await deleteCurrentProfile(tx, user);
-
     await tx.user.update({
       where: { id: userId },
       data: { role: targetRole },
     });
-
     await createProfileForRole(tx, userId, targetRole, payload, user.accountStatus);
   });
 
-  return exports.getUserById(userId);
+  return getUserById(userId);
 };
 
-exports.resetUserPassword = async (userId) => {
-  await getUserOrThrow(userId);
-
-  const temporaryPassword = buildTemporaryPassword();
-  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
-
-  await prisma.$transaction(async (tx) => {
-    await tx.user.update({
-      where: { id: userId },
-      data: { passwordHash },
-    });
-
-    await tx.refreshTokenSession.updateMany({
-      where: { userId, isRevoked: false },
-      data: { isRevoked: true, revokedAt: new Date() },
-    });
-  });
-
-  return {
-    userId,
-    temporaryPassword,
-  };
-};
-
-exports.deleteUser = async (userId, currentUserId) => {
+const deleteUser = async (userId, currentUserId) => {
   if (userId === currentUserId) {
     throw new Error('CANNOT_DELETE_SELF');
   }
@@ -329,12 +237,10 @@ exports.deleteUser = async (userId, currentUserId) => {
   await getUserOrThrow(userId);
 
   try {
-    await prisma.user.delete({
-      where: { id: userId },
-    });
+    await prisma.user.delete({ where: { id: userId } });
   } catch (err) {
     if (err?.code === 'P2003') {
-      throw new Error('USER_DELETE_BLOCKED_BY_RELATED_DATA');
+      throw new Error('USER_DELETE_BLOCKED_BY_RELATED_DATA', { cause: err });
     }
 
     throw err;
@@ -344,4 +250,90 @@ exports.deleteUser = async (userId, currentUserId) => {
     deleted: true,
     userId,
   };
+};
+
+const resetUserPassword = async (userId) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      firstName: true,
+      email: true,
+      role: true,
+      accountStatus: true,
+      passwordHash: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('USER_NOT_FOUND');
+  }
+
+  const temporaryPassword = buildTemporaryPassword();
+  const passwordHash = await bcrypt.hash(temporaryPassword, BCRYPT_ROUNDS);
+  let activeSessionIds = [];
+
+  await prisma.$transaction(async (tx) => {
+    const activeSessions = await tx.refreshTokenSession.findMany({
+      where: { userId, isRevoked: false },
+      select: { id: true },
+    });
+
+    activeSessionIds = activeSessions.map((session) => session.id);
+    await tx.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    if (activeSessionIds.length > 0) {
+      await tx.refreshTokenSession.updateMany({
+        where: { id: { in: activeSessionIds } },
+        data: { isRevoked: true, revokedAt: new Date() },
+      });
+    }
+  });
+
+  try {
+    const emailPayload = buildPasswordResetEmail({
+      firstName: user.firstName,
+      email: user.email,
+      password: temporaryPassword,
+      role: user.role,
+    });
+
+    await sendEmail(user.email, emailPayload.subject, emailPayload.text);
+  } catch (err) {
+    await prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { passwordHash: user.passwordHash },
+      });
+
+      if (activeSessionIds.length > 0) {
+        await tx.refreshTokenSession.updateMany({
+          where: { id: { in: activeSessionIds } },
+          data: { isRevoked: false, revokedAt: null },
+        });
+      }
+    });
+
+    throw new Error('USER_RESET_EMAIL_SEND_FAILED', { cause: err });
+  }
+
+  return {
+    userId,
+    temporaryPassword,
+    credentialsSent: true,
+  };
+};
+
+module.exports = {
+  createUser,
+  deleteUser,
+  getUserById,
+  listUsers,
+  resetUserPassword,
+  updateUser,
+  updateUserRole,
+  updateUserStatus,
 };
