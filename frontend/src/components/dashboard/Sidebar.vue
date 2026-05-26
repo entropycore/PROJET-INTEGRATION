@@ -1,59 +1,73 @@
 <script setup>
+import { computed, ref } from "vue";
+import { useAuthStore } from "../../stores/auth";
+import { useRouter, useRoute } from "vue-router";
+import { logout } from "../../services/authService";
+import { sidebarConfig } from "../../config/sidebarConfig";
 
-import { computed ,ref} from 'vue'
-import { useAuthStore } from '../../stores/auth'
-import { useRouter , useRoute } from 'vue-router'
-import { logout } from '../../services/authService'
-import { sidebarConfig } from '../../config/sidebarConfig'
-
-import '../../assets/styles/sidebar.css'
+import "../../assets/styles/sidebar.css";
 
 const props = defineProps({
   collapsed: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const emit = defineEmits(['toggle-sidebar'])
+const emit = defineEmits(["toggle-sidebar"]);
 
-const authStore = useAuthStore()
-const router = useRouter()
+const authStore = useAuthStore();
+const router = useRouter();
 //pour les routes enfqnts de gestions utilisateurs
-const route = useRoute()
+const route = useRoute();
 const isChildActive = (child) => {
-  return route.fullPath === child.path
-}
+  return route.fullPath === child.path;
+};
 
-const user = computed(() => authStore.user)
+const user = computed(() => authStore.user);
 
 const sections = computed(() => {
-  return sidebarConfig[user.value?.role] || []
-})
+  return sidebarConfig[user.value?.role] || [];
+});
 
-const getIcon = (icon) => {
-  return new URL(`../../assets/icons/${icon}`, import.meta.url).href
-}
+const profilePath = computed(() => {
+  const paths = {
+    ADMINISTRATOR: "/admin/profile",
+    STUDENT: "/student/profile",
+    PROFESSOR: "/professor/profile",
+    PROFESSIONAL: "/professional/profile",
+  };
+
+  return paths[user.value?.role] || "/profile";
+});
+
+const userDisplayName = computed(() => {
+  const fullName = `${user.value?.firstName || ""} ${
+    user.value?.lastName || ""
+  }`.trim();
+
+  return fullName || user.value?.email || "Utilisateur";
+});
 
 const userInitial = computed(() => {
-  return user.value?.firstName?.charAt(0)?.toUpperCase() || 'A'
-})
+  return user.value?.firstName?.charAt(0).toUpperCase() || "A";
+});
 
 const handleLogout = async () => {
   try {
-    await logout()
-  } catch(err) {
-    console.error(err)
+    await logout();
+  } catch (err) {
+    console.error(err);
   }
 
-  authStore.clearAuthSession()
-  router.push('/login')
-}
-const openDropdown = ref(null)
+  authStore.clearAuthSession();
+  router.push("/login");
+};
+const openDropdown = ref(null);
 
 const toggleDropdown = (label) => {
-  openDropdown.value = openDropdown.value === label ? null : label
-}
+  openDropdown.value = openDropdown.value === label ? null : label;
+};
 </script>
 
 <template>
@@ -61,19 +75,23 @@ const toggleDropdown = (label) => {
     <div>
       <!-- USER -->
       <div class="sidebar-user">
-        <div class="sidebar-avatar">{{ userInitial }}</div>
+        <RouterLink :to="profilePath" class="sidebar-user-profile">
+          <div class="sidebar-avatar">{{ userInitial }}</div>
 
-        <div class="sidebar-user-info">
-          <h3>{{ user?.firstName }} {{ user?.lastName }}</h3>
-          <p>{{ user?.role }}</p>
-        </div>
+          <div class="sidebar-user-info">
+            <h3>{{ userDisplayName }}</h3>
+            <p>{{ user?.role }}</p>
+          </div>
+        </RouterLink>
 
         <button
           class="sidebar-collapse-btn"
           type="button"
           @click="emit('toggle-sidebar')"
         >
-          <img :src="getIcon('curtain.svg')" alt="Collapse sidebar" />
+          <span class="material-icons-round sidebar-control-icon">
+            {{ collapsed ? "menu_open" : "menu" }}
+          </span>
         </button>
       </div>
 
@@ -83,56 +101,62 @@ const toggleDropdown = (label) => {
           <p class="sidebar-section">{{ section.section }}</p>
 
           <div v-for="item in section.items" :key="item.label">
-  <button
-    v-if="item.children"
-    type="button"
-    class="sidebar-link sidebar-dropdown-trigger"
-    @click="toggleDropdown(item.label)"
-  >
-    <span class="sidebar-link-left">
-      <img :src="getIcon(item.icon)" class="sidebar-icon" />
-      <span class="sidebar-label">{{ item.label }}</span>
-    </span>
+            <button
+              v-if="item.children"
+              type="button"
+              class="sidebar-link sidebar-dropdown-trigger"
+              @click="toggleDropdown(item.label)"
+            >
+              <span class="sidebar-link-left">
+                <span class="sidebar-icon material-icons-round">
+                  {{ item.icon }}
+                </span>
+                <span class="sidebar-label">{{ item.label }}</span>
+              </span>
 
-    <span class="sidebar-chevron">
-      {{ openDropdown === item.label ? '⌃' : '⌄' }}
-    </span>
-  </button>
+              <span class="sidebar-chevron material-icons-round">
+                {{ openDropdown === item.label ? "expand_less" : "expand_more" }}
+              </span>
+            </button>
 
-  <div
-    v-if="item.children && openDropdown === item.label"
-    class="sidebar-submenu"
-  >
-  <RouterLink
-  v-for="child in item.children"
-  :key="child.path"
-  :to="child.path"
-  class="sidebar-sublink"
-  :class="{ 'sidebar-sublink-active': isChildActive(child) }"
->
-  <img :src="getIcon(child.icon)" class="sidebar-icon" />
-  <span class="sidebar-label">{{ child.label }}</span>
-</RouterLink>
-  </div>
+            <div
+              v-if="item.children && openDropdown === item.label"
+              class="sidebar-submenu"
+            >
+              <RouterLink
+                v-for="child in item.children"
+                :key="child.path"
+                :to="child.path"
+                class="sidebar-sublink"
+                :class="{ 'sidebar-sublink-active': isChildActive(child) }"
+              >
+                <span class="sidebar-icon material-icons-round">
+                  {{ child.icon }}
+                </span>
+                <span class="sidebar-label">{{ child.label }}</span>
+              </RouterLink>
+            </div>
 
-  <RouterLink
-    v-else-if="!item.children"
-    :to="item.path"
-    class="sidebar-link"
-    active-class="sidebar-link-active"
-    exact-active-class="sidebar-link-exact-active"
-  >
-    <img :src="getIcon(item.icon)" class="sidebar-icon" />
-    <span class="sidebar-label">{{ item.label }}</span>
-  </RouterLink>
-</div>
+            <RouterLink
+              v-else-if="!item.children"
+              :to="item.path"
+              class="sidebar-link"
+              active-class="sidebar-link-active"
+              exact-active-class="sidebar-link-exact-active"
+            >
+              <span class="sidebar-icon material-icons-round">
+                {{ item.icon }}
+              </span>
+              <span class="sidebar-label">{{ item.label }}</span>
+            </RouterLink>
+          </div>
         </div>
       </nav>
     </div>
 
     <!-- LOGOUT -->
     <button class="logout-btn" @click="handleLogout">
-      <img :src="getIcon('logout.svg')" />
+      <span class="sidebar-icon material-icons-round">logout</span>
       <span class="sidebar-label">Déconnexion</span>
     </button>
   </aside>

@@ -1,78 +1,99 @@
 <script setup>
-import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 import {
-  stages,
-  deleteStage,
-  submitStageValidation,
-} from '@/mockData/studentStages.store'
+  getStudentStages,
+  deleteStudentStage,
+  submitStudentStageValidation,
+} from "@/services/studentstageService";
 
-import StageCard from '@/components/student/stages/StageCard.vue'
-import StageFilters from '@/components/student/stages/StageFilters.vue'
+import StageCard from "@/components/student/stages/StageCard.vue";
+import StageFilters from "@/components/student/stages/StageFilters.vue";
 
-const router = useRouter()
+const router = useRouter();
 
-const search = ref('')
-const selectedStatus = ref('ALL')
-const selectedVisibility = ref('ALL')
+const stages = ref([]);
+const isLoading = ref(false);
+
+const search = ref("");
+const selectedStatus = ref("ALL");
+const selectedVisibility = ref("ALL");
+
+const extractData = (response) => {
+  return response.data?.data || response.data || [];
+};
+
+const fetchStages = async () => {
+  isLoading.value = true;
+
+  try {
+    const response = await getStudentStages();
+    stages.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement stages :", error);
+    stages.value = [];
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchStages();
+});
 
 const filteredStages = computed(() => {
   return stages.value.filter((stage) => {
-    const value = search.value.toLowerCase()
+    const value = search.value.toLowerCase();
+
+    const technologies = Array.isArray(stage.technologies)
+      ? stage.technologies
+      : [];
 
     const matchesSearch =
-      stage.title.toLowerCase().includes(value) ||
-      stage.company.toLowerCase().includes(value) ||
-      stage.technologies.some((tech) => tech.toLowerCase().includes(value))
+      stage.title?.toLowerCase().includes(value) ||
+      stage.company?.toLowerCase().includes(value) ||
+      technologies.some((tech) => tech.toLowerCase().includes(value));
 
     const matchesStatus =
-      selectedStatus.value === 'ALL' ||
-      stage.validationStatus === selectedStatus.value
+      selectedStatus.value === "ALL" ||
+      stage.validationStatus === selectedStatus.value;
 
     const matchesVisibility =
-      selectedVisibility.value === 'ALL' ||
-      stage.visibility === selectedVisibility.value
+      selectedVisibility.value === "ALL" ||
+      stage.visibility === selectedVisibility.value;
 
-    return matchesSearch && matchesStatus && matchesVisibility
-  })
-})
+    return matchesSearch && matchesStatus && matchesVisibility;
+  });
+});
 
 const goToCreate = () => {
-  router.push('/student/stages/create')
-}
+  router.push("/student/stages/create");
+};
 
-const handleDeleteStage = (stageId) => {
+const handleDeleteStage = async (stageId) => {
   const confirmDelete = window.confirm(
-    'Voulez-vous vraiment supprimer ce stage ?',
-  )
+    "Voulez-vous vraiment supprimer ce stage ?",
+  );
 
-  if (!confirmDelete) return
+  if (!confirmDelete) return;
 
-  /*
-  BACKEND PLUS TARD :
-  await deleteStudentStage(stageId)
-  await fetchStages()
+  try {
+    await deleteStudentStage(stageId);
+    await fetchStages();
+  } catch (error) {
+    console.error("Erreur suppression stage :", error);
+  }
+};
 
-  À SUPPRIMER :
-  deleteStage(stageId)
-  */
-
-  deleteStage(stageId)
-}
-
-const handleSubmitValidation = (stageId) => {
-  /*
-  BACKEND PLUS TARD :
-  await submitStudentStageValidation(stageId)
-  await fetchStages()
-
-  À SUPPRIMER :
-  submitStageValidation(stageId)
-  */
-
-  submitStageValidation(stageId)
-}
+const handleSubmitValidation = async (stageId) => {
+  try {
+    await submitStudentStageValidation(stageId);
+    await fetchStages();
+  } catch (error) {
+    console.error("Erreur soumission stage :", error);
+  }
+};
 </script>
 
 <template>
@@ -96,7 +117,13 @@ const handleSubmitValidation = (stageId) => {
       v-model:visibility="selectedVisibility"
     />
 
-    <div v-if="filteredStages.length" class="stages-grid">
+    <div v-if="isLoading" class="empty-state">
+      <span class="material-icons-round">hourglass_top</span>
+      <h3>Chargement...</h3>
+      <p>Récupération de vos stages.</p>
+    </div>
+
+    <div v-else-if="filteredStages.length" class="stages-grid">
       <StageCard
         v-for="stage in filteredStages"
         :key="stage.id"

@@ -1,24 +1,17 @@
 <script setup>
-import { computed, ref } from "vue";
-// import { onMounted } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 
 import ReportsStats from "@/components/admin/reports/ReportsStats.vue";
 import ReportsToolbar from "@/components/admin/reports/ReportsToolbar.vue";
 import ReportsTable from "@/components/admin/reports/ReportsTable.vue";
 import ReportDetailsModal from "@/components/admin/reports/ReportDetailsModal.vue";
-
-/*
-  BACKEND À ACTIVER QUAND L’API SERA PRÊTE
-
 import {
-  getReports,
-  getPendingReportsCount,
-  getReportDetails,
-  resolveReport,
-  rejectReport,
   deleteReportedTarget,
+  getReportDetails,
+  getReports,
+  rejectReport,
+  resolveReport,
 } from "@/services/adminReportsApi";
-*/
 
 const loading = ref(false);
 const error = ref(null);
@@ -30,62 +23,27 @@ const selectedStatus = ref("ALL");
 const showDetailsModal = ref(false);
 const selectedReport = ref(null);
 
-const reports = ref([
-  {
-    id: 1,
-    targetType: "PROJECT",
-    targetId: 12,
-    reason: "Contenu inapproprié",
-    description: "Le contenu signalé semble non conforme aux règles de la plateforme.",
-    status: "PENDING",
-    reportedBy: {
-      id: 30,
-      fullName: "Sara Bensaid",
-      email: "sara.bensaid@accenture.com",
-    },
-    createdAt: "2026-05-02T13:00:00.000Z",
-  },
-  {
-    id: 2,
-    targetType: "COMMENT",
-    targetId: 44,
-    reason: "Commentaire offensant",
-    description: "Un commentaire contient un langage non respectueux.",
-    status: "RESOLVED",
-    reportedBy: {
-      id: 18,
-      fullName: "Yassine K.",
-      email: "yassine.k@ensa.ma",
-    },
-    createdAt: "2026-05-01T10:40:00.000Z",
-  },
-  {
-    id: 3,
-    targetType: "PORTFOLIO",
-    targetId: 8,
-    reason: "Informations incorrectes",
-    description: "Le portfolio contient des informations douteuses.",
-    status: "REJECTED",
-    reportedBy: {
-      id: 22,
-      fullName: "Meryem A.",
-      email: "meryem.a@ensa.ma",
-    },
-    createdAt: "2026-04-30T16:15:00.000Z",
-  },
-]);
+const reports = ref([]);
 
-/*
 const fetchReports = async () => {
   loading.value = true;
   error.value = null;
 
   try {
-    const data = await getReports({
-      search: search.value,
-      type: selectedType.value,
+    const params = {
       status: selectedStatus.value,
-    });
+      limit: 100,
+    };
+
+    if (search.value.trim()) {
+      params.search = search.value.trim();
+    }
+
+    if (selectedType.value !== "ALL") {
+      params.type = selectedType.value;
+    }
+
+    const data = await getReports(params);
 
     reports.value = data.items || [];
   } catch (e) {
@@ -97,57 +55,31 @@ const fetchReports = async () => {
 };
 
 onMounted(fetchReports);
-*/
+
+watch([search, selectedType, selectedStatus], fetchReports);
 
 const stats = computed(() => {
   return {
     total: reports.value.length,
-    pending: reports.value.filter((report) => report.status === "PENDING").length,
-    resolved: reports.value.filter((report) => report.status === "RESOLVED").length,
-    rejected: reports.value.filter((report) => report.status === "REJECTED").length,
+    pending: reports.value.filter((report) => report.status === "PENDING")
+      .length,
+    resolved: reports.value.filter((report) => report.status === "RESOLVED")
+      .length,
+    rejected: reports.value.filter((report) => report.status === "REJECTED")
+      .length,
   };
 });
 
-const filteredReports = computed(() => {
-  return reports.value.filter((report) => {
-    const keyword = search.value.toLowerCase();
-
-    const matchSearch =
-      report.reason.toLowerCase().includes(keyword) ||
-      report.reportedBy.fullName.toLowerCase().includes(keyword) ||
-      report.reportedBy.email.toLowerCase().includes(keyword);
-
-    const matchType =
-      selectedType.value === "ALL" || report.targetType === selectedType.value;
-
-    const matchStatus =
-      selectedStatus.value === "ALL" || report.status === selectedStatus.value;
-
-    return matchSearch && matchType && matchStatus;
-  });
-});
-
-const updateReportStatus = (id, status) => {
-  reports.value = reports.value.map((report) =>
-    report.id === id ? { ...report, status } : report
-  );
-
-  if (selectedReport.value?.id === id) {
-    selectedReport.value = {
-      ...selectedReport.value,
-      status,
-    };
-  }
-};
+const filteredReports = computed(() => reports.value);
 
 const handleView = async (report) => {
-  /*
-    BACKEND PLUS TARD :
+  try {
     selectedReport.value = await getReportDetails(report.id);
-  */
-
-  selectedReport.value = report;
-  showDetailsModal.value = true;
+    showDetailsModal.value = true;
+  } catch (e) {
+    console.error("Erreur detail signalement:", e);
+    alert("Impossible de charger le detail du signalement.");
+  }
 };
 
 const closeDetailsModal = () => {
@@ -156,17 +88,16 @@ const closeDetailsModal = () => {
 };
 
 const handleResolve = async (report) => {
-  if (!confirm("Voulez-vous marquer ce signalement comme traité ?")) return;
+  if (!confirm("Voulez-vous marquer ce signalement comme traite ?")) return;
 
-  /*
-    BACKEND PLUS TARD :
+  try {
     await resolveReport(report.id);
     await fetchReports();
     closeDetailsModal();
-    return;
-  */
-
-  updateReportStatus(report.id, "RESOLVED");
+  } catch (e) {
+    console.error("Erreur traitement signalement:", e);
+    alert("Impossible de traiter ce signalement.");
+  }
 };
 
 const handleReject = async (report) => {
@@ -174,29 +105,27 @@ const handleReject = async (report) => {
 
   if (!comment) return;
 
-  /*
-    BACKEND PLUS TARD :
+  try {
     await rejectReport(report.id, { comment });
     await fetchReports();
     closeDetailsModal();
-    return;
-  */
-
-  updateReportStatus(report.id, "REJECTED");
+  } catch (e) {
+    console.error("Erreur rejet signalement:", e);
+    alert("Impossible de rejeter ce signalement.");
+  }
 };
 
 const handleDeleteTarget = async (report) => {
-  if (!confirm("Voulez-vous vraiment supprimer le contenu signalé ?")) return;
+  if (!confirm("Voulez-vous vraiment supprimer le contenu signale ?")) return;
 
-  /*
-    BACKEND PLUS TARD :
+  try {
     await deleteReportedTarget(report.id);
     await fetchReports();
     closeDetailsModal();
-    return;
-  */
-
-  updateReportStatus(report.id, "RESOLVED");
+  } catch (e) {
+    console.error("Erreur suppression contenu signale:", e);
+    alert("Impossible de supprimer le contenu signale.");
+  }
 };
 </script>
 
@@ -206,7 +135,7 @@ const handleDeleteTarget = async (report) => {
       <div>
         <span>ADMINISTRATION</span>
         <h1>Signalements</h1>
-        <p>Modérez les contenus signalés par les utilisateurs</p>
+        <p>Moderez les contenus signales par les utilisateurs</p>
       </div>
     </header>
 
@@ -219,9 +148,7 @@ const handleDeleteTarget = async (report) => {
         v-model:selected-status="selectedStatus"
       />
 
-      <div v-if="loading" class="state-box">
-        Chargement des signalements...
-      </div>
+      <div v-if="loading" class="state-box">Chargement des signalements...</div>
 
       <div v-else-if="error" class="state-box error">
         {{ error }}
@@ -250,53 +177,64 @@ const handleDeleteTarget = async (report) => {
 
 <style scoped>
 .reports-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: clamp(1rem, 1.6vw, 1.4rem);
+  color: var(--app-text);
+  font-family: var(--app-font-body);
+}
+
+.page-header,
+.table-card {
+  width: 100%;
+  margin: 0;
 }
 
 .page-header span {
   display: block;
-  margin-bottom: 6px;
-  color: #8b8f8c;
+  margin-bottom: 0.4rem;
+  color: var(--app-subtle);
   font-size: 0.8rem;
   font-style: italic;
-  letter-spacing: 0.04em;
 }
 
 .page-header h1 {
   margin: 0;
-  color: #0f2f3a;
-  font-size: clamp(2rem, 3vw, 2.6rem);
-  font-weight: 800;
-  line-height: 1.1;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.6rem, 2.2vw, 2.1rem);
+  font-weight: 300;
+  line-height: var(--app-leading-tight);
 }
 
 .page-header p {
-  margin-top: 8px;
-  color: #8aa0a3;
-  font-size: 1.05rem;
-  font-style: italic;
+  margin: 0.5rem 0 0;
+  color: var(--app-muted);
+  font-size: clamp(0.85rem, 1vw, 1rem);
 }
 
 .table-card {
-  background: #ffffff;
-  border: 1px solid #dfe3dd;
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.035);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+  overflow: visible;
+  font-family: var(--app-font-body);
 }
 
 .state-box {
-  padding: 22px;
-  border-radius: 16px;
-  background: #fbfaf7;
-  border: 1px solid #dfe3dd;
-  color: #6b7280;
+  padding: 2rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
   text-align: center;
 }
 
 .error {
-  color: #dc2626;
+  color: var(--app-error);
 }
 </style>

@@ -1,106 +1,193 @@
 export const sidebarConfig = {
   ADMINISTRATOR: [
     {
-      section: 'TABLEAU DE BORD',
-      items: [
-        { label: 'Vue globale', path: '/admin', icon: 'dashboard.svg' },
-      ],
+      section: "TABLEAU DE BORD",
+      items: [{ label: "Vue globale", path: "/admin", icon: "dashboard" }],
     },
     {
-      section: 'Gestion Utilisateurs',
+      section: "Gestion Utilisateurs",
       items: [
         {
-        label: 'Gestion des utilisateurs',
-        icon: 'users.svg',
-        children: [
-          { label: 'Étudiants', path: '/admin/users?role=STUDENT', icon: 'student.svg' },
-          { label: 'Professeurs', path: '/admin/users?role=PROFESSOR', icon: 'profile.svg'},
-          { label: 'Recruiters', path: '/admin/users?role=PROFESSIONAL', icon: 'recruters.svg'},
-        ],
-         },
-        { label: 'Validation en attente', path: '/admin/validations', icon: 'validation.svg' },
-        { label: 'Signalements', path: '/admin/reports', icon: 'reports.svg' },
-      ],
-     },
-      {
-      section: 'RÉPERTOIRE',
-      items: [
-        { label: 'Explore Profiles', path: '/admin/profiles', icon: 'profiles.svg' },
+          label: "Gestion des utilisateurs",
+          icon: "groups",
+          children: [
+            {
+              label: "Étudiants",
+              path: "/admin/users?role=STUDENT",
+              icon: "school",
+            },
+            {
+              label: "Professeurs",
+              path: "/admin/users?role=PROFESSOR",
+              icon: "person",
+            },
+            {
+              label: "Recruteurs",
+              path: "/admin/users?role=PROFESSIONAL",
+              icon: "business_center",
+            },
+          ],
+        },
+        {
+          label: "Validation en attente",
+          path: "/admin/validations",
+          icon: "fact_check",
+        },
+        { label: "Signalements", path: "/admin/reports", icon: "report" },
       ],
     },
     {
-      section: 'SYSTÈME',
+      section: "RÉPERTOIRE",
       items: [
-        { label: 'Système de badges', path: '/admin/Badges', icon: 'badge.svg' },
-        { label: 'Notifications', path: '/admin/notifications', icon: 'notification.svg', danger: true },
-        { label: 'Paramètres ', path: '/admin/settings', icon: 'settings.svg' },
+        {
+          label: "Explore Profiles",
+          path: "/admin/profiles",
+          icon: "manage_search",
+        },
+      ],
+    },
+    {
+      section: "SYSTÈME",
+      items: [
+        {
+          label: "Système de badges",
+          path: "/admin/Badges",
+          icon: "workspace_premium",
+        },
+        {
+          label: "Notifications",
+          path: "/admin/notifications",
+          icon: "notifications",
+          danger: true,
+        },
+        { label: "Paramètres ", path: "/admin/settings", icon: "settings" },
       ],
     },
   ],
 
   STUDENT: [
-  {
-    section: 'TABLEAU DE BORD',
-    items: [
-      { label: "Vue d'ensemble", path: '/student', icon: 'dashboard.svg' },
-      { label: 'Mon profil', path: '/student/profile', icon: 'profile.svg' },
-    ],
-  },
+    {
+      section: "TABLEAU DE BORD",
+      items: [
+        { label: "Vue d'ensemble", path: "/student", icon: "dashboard" },
+        { label: "Mon profil", path: "/student/profile", icon: "person" },
+      ],
+    },
 
-  {
-    section: 'ACADÉMIQUE',
-    items: [
-      { label: 'Mes projets', path: '/student/projects', icon: 'projects.svg' },
-      { label: 'Stages', path: '/student/stages', icon: 'internship.svg' },
-      { label: 'Activités parascolaires', path: '/student/activities', icon: 'activity.svg' },
-      { label: 'Compétences', path: '/student/competances', icon: 'skills.svg' },
-      { label: 'Mes Badges ', path: '/student/badges', icon: 'badges.svg' },
-    ],
-  },
+    {
+      section: "ACADÉMIQUE",
+      items: [
+        {
+          label: "Mes projets",
+          path: "/student/projects",
+          icon: "folder_open",
+        },
+        { label: "Stages", path: "/student/stages", icon: "business_center" },
+        {
+          label: "Activités parascolaires",
+          path: "/student/activities",
+          icon: "event",
+        },
+        {
+          label: "Compétences",
+          path: "/student/competances",
+          icon: "psychology",
+        },
+        { label: "Mes Badges ", path: "/student/badges", icon: "workspace_premium" },
+      ],
+    },
 
-  {
-    section: 'PORTFOLIO',
-    items: [
-      { label: 'Portfolio public', path: '/student/portfolio', icon: 'portfolio.svg' },
-      { label: 'Mon GitHub', path: '/student/github', icon: 'github.svg' },
-    ],
-  },
+    {
+      section: "PORTFOLIO",
+      items: [
+          {
+            label: "Portfolio public",
+            path: "/student/portfolio",
+            icon: "contact_page",
+          },
+          { label: "Mon GitHub", path: "/student/github", icon: "hub" },
+        ],
+      },
 
-  {
-    section: 'INTERACTIONS',
-    items: [
-      { label: 'Recommandations', path: '/student/recommendations', icon: 'recommendation.svg' },
-      { label: 'Lettres de reco.', path: '/student/recommendation-letters', icon: 'letter.svg' },
-      { label: 'Commentaires', path: '/student/comments', icon: 'comments.svg' },
-    ],
-  },
+    {
+      section: "INTERACTIONS",
+      items: [
+        {
+          label: "Recommandations",
+          path: "/student/recommendations",
+          icon: "recommend",
+        },
+        {
+          label: "Lettres de reco.",
+          path: "/student/recommendation-letters",
+          icon: "history_edu",
+        },
+        {
+          label: "Commentaires",
+          path: "/student/comments",
+          icon: "forum",
+        },
+      ],
+    },
 
-  {
-    section: 'SYSTÈME',
-    items: [
-      { label: 'Notifications', path: '/student/notifications', icon: 'notification.svg' },
-      { label: 'Paramètres', path: '/student/settings', icon: 'settings.svg' },
-    ],
-  },
-],
+    {
+      section: "SYSTÈME",
+      items: [
+        {
+          label: "Notifications",
+          path: "/student/notifications",
+          icon: "notifications",
+        },
+        {
+          label: "Paramètres",
+          path: "/student/settings",
+          icon: "settings",
+        },
+      ],
+    },
+  ],
 
   PROFESSOR: [
     {
-      section: 'TABLEAU DE BORD',
+      section: "TABLEAU DE BORD",
       items: [
-        { label: 'Vue globale', path: '/professor', icon: 'dashboard.svg' },
-        { label: 'Validations', path: '/professor/validations', icon: 'validation.svg' },
+        { label: "Vue globale", path: "/professor", icon: "dashboard" },
+        {
+          label: "Validations",
+          path: "/professor/validations",
+          icon: "fact_check",
+        },
+      ],
+    },
+    {
+      section: "SYSTÈME",
+      items: [
+        {
+          label: "Notifications",
+          path: "/professor/notifications",
+          icon: "notifications",
+        },
       ],
     },
   ],
 
   PROFESSIONAL: [
     {
-      section: 'TABLEAU DE BORD',
+      section: "TABLEAU DE BORD",
       items: [
-        { label: 'Vue globale', path: '/professional', icon: 'dashboard.svg' },
-        { label: 'Explore Profiles', path: '/profiles', icon: 'profiles.svg' },
+        { label: "Vue globale", path: "/professional", icon: "dashboard" },
+        { label: "Explore Profiles", path: "/profiles", icon: "manage_search" },
+      ],
+    },
+    {
+      section: "SYSTÈME",
+      items: [
+        {
+          label: "Notifications",
+          path: "/professional/notifications",
+          icon: "notifications",
+        },
       ],
     },
   ],
-}
+};
