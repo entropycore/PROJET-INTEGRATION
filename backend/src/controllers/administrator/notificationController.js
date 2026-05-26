@@ -3,25 +3,18 @@
 const administratorService = require('../../services/administratorService');
 const { success, error } = require('../../utils/apiResponse');
 const {
-  VALID_ACCOUNT_STATUSES,
-  VALID_USER_ROLES,
-  VALID_VALIDATION_STATUSES,
-  VALID_VALIDATION_TYPES,
   VALID_NOTIFICATION_TYPES,
-  VALID_REPORT_STATUSES,
-  VALID_REPORT_TARGET_TYPES,
+  handleAdminError,
+  normalizeItemType,
   parseBooleanFilter,
   parsePositiveInt,
-  normalizeRole,
-  normalizeStatus,
-  normalizeItemType,
-  handleAdminError,
-} = require('./shared');
+} = require('../administratorHelpers');
 
 exports.listNotifications = async (req, res, next) => {
   try {
     const type = normalizeItemType(req.query.type);
-    const isRead = parseBooleanFilter(req.query.isRead);
+    const rawReadFilter = typeof req.query.isRead !== 'undefined' ? req.query.isRead : req.query.read;
+    const isRead = parseBooleanFilter(rawReadFilter);
 
     if (type && !VALID_NOTIFICATION_TYPES.has(type)) {
       return error(res, 400, 'Le filtre type est invalide.');
@@ -40,7 +33,17 @@ exports.listNotifications = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Notifications recuperees.', data);
+    return success(res, 200, 'Notifications récupérées.', data);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getUnreadNotificationsCount = async (req, res, next) => {
+  try {
+    const count = await administratorService.getUnreadNotificationsCount(req.user.roleId);
+    return success(res, 200, 'Compteur des notifications non lues récupéré.', { count });
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -51,32 +54,9 @@ exports.markNotificationAsRead = async (req, res, next) => {
   try {
     const notification = await administratorService.markNotificationAsRead(
       req.params.notificationId,
-      req.user.roleId
+      req.user.roleId,
     );
-
-    return success(res, 200, 'Notification marquee comme lue.', notification);
-  } catch (err) {
-    if (handleAdminError(res, err)) return;
-    next(err);
-  }
-};
-
-exports.markAllNotificationsAsRead = async (req, res, next) => {
-  try {
-    const result = await administratorService.markAllNotificationsAsRead(req.user.roleId);
-
-    return success(res, 200, 'Toutes les notifications ont ete marquees comme lues.', result);
-  } catch (err) {
-    if (handleAdminError(res, err)) return;
-    next(err);
-  }
-};
-
-exports.getUnreadNotificationsCount = async (req, res, next) => {
-  try {
-    const result = await administratorService.getUnreadNotificationsCount(req.user.roleId);
-
-    return success(res, 200, 'Nombre de notifications non lues recupere.', result);
+    return success(res, 200, 'Notification marquée comme lue.', notification);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -87,10 +67,19 @@ exports.deleteNotification = async (req, res, next) => {
   try {
     const result = await administratorService.deleteNotification(
       req.params.notificationId,
-      req.user.roleId
+      req.user.roleId,
     );
+    return success(res, 200, 'Notification supprimée.', result);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
 
-    return success(res, 200, 'Notification supprimee.', result);
+exports.markAllNotificationsAsRead = async (req, res, next) => {
+  try {
+    const result = await administratorService.markAllNotificationsAsRead(req.user.roleId);
+    return success(res, 200, 'Toutes les notifications ont été marquées comme lues.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);

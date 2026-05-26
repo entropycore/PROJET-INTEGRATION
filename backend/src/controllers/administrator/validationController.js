@@ -3,23 +3,14 @@
 const administratorService = require('../../services/administratorService');
 const { success, error } = require('../../utils/apiResponse');
 const {
-  VALID_ACCOUNT_STATUSES,
-  VALID_USER_ROLES,
+  VALID_LEGACY_VALIDATION_TYPES,
   VALID_VALIDATION_STATUSES,
   VALID_VALIDATION_TYPES,
-  VALID_NOTIFICATION_TYPES,
-  VALID_REPORT_STATUSES,
-  VALID_REPORT_TARGET_TYPES,
-  parseBooleanFilter,
-  parsePositiveInt,
-  normalizeRole,
-  normalizeStatus,
-  normalizeItemType,
   handleAdminError,
-} = require('./shared');
-
-const getValidationTypeById = async (validationId) =>
-  administratorService.getValidationTypeById(validationId);
+  normalizeItemType,
+  normalizeStatus,
+  parsePositiveInt,
+} = require('../administratorHelpers');
 
 exports.listValidationItems = async (req, res, next) => {
   try {
@@ -42,113 +33,45 @@ exports.listValidationItems = async (req, res, next) => {
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Validations recuperees.', data);
+    return success(res, 200, 'Validations récupérées.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
   }
 };
 
-exports.listPendingValidationItems = async (req, res, next) => {
+exports.listPendingValidationsLegacy = async (req, res, next) => {
   try {
     const type = normalizeItemType(req.query.type);
+    const status = normalizeStatus(req.query.status || 'PENDING');
 
-    const data = await administratorService.listValidationItems({
-      type: type === 'ALL' ? null : type,
-      status: 'PENDING',
+    if (type && !VALID_LEGACY_VALIDATION_TYPES.has(type)) {
+      return error(res, 400, 'Le filtre type legacy est invalide.');
+    }
+
+    if (status && !VALID_VALIDATION_STATUSES.has(status)) {
+      return error(res, 400, 'Le filtre status est invalide.');
+    }
+
+    const data = await administratorService.listPendingValidationsLegacy({
+      type,
+      status,
       search: req.query.search?.trim(),
       page: parsePositiveInt(req.query.page, 1),
       limit: parsePositiveInt(req.query.limit, 10),
     });
 
-    return success(res, 200, 'Validations en attente recuperees.', data);
+    return success(res, 200, 'Validations en attente récupérées.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
   }
 };
 
-exports.getPendingValidationsCount = async (_req, res, next) => {
+exports.getPendingValidationCountsLegacy = async (req, res, next) => {
   try {
-    const counts = await administratorService.getPendingValidationCounts();
-
-    return success(res, 200, 'Nombre de validations en attente recupere.', {
-      count: counts.total,
-      projects: 0,
-      internships: 0,
-      certificates: counts.pendingCertificates,
-      activities: counts.pendingCertificates,
-      recommendationLetters: counts.pendingLetters,
-      comments: counts.pendingComments,
-      recommendations: counts.pendingRecommendations,
-      raw: counts,
-    });
-  } catch (err) {
-    if (handleAdminError(res, err)) return;
-    next(err);
-  }
-};
-
-exports.getValidationItemById = async (req, res, next) => {
-  try {
-    const itemType = await getValidationTypeById(req.params.validationId);
-    const item = await administratorService.getValidationItemDetail(itemType, req.params.validationId);
-
-    return success(res, 200, 'Element de validation recupere.', item);
-  } catch (err) {
-    if (handleAdminError(res, err)) return;
-    next(err);
-  }
-};
-
-exports.approveValidationItemById = async (req, res, next) => {
-  try {
-    const itemType = await getValidationTypeById(req.params.validationId);
-    const item = await administratorService.approveValidationItem(
-      itemType,
-      req.params.validationId,
-      req.user.userId,
-      req.user.roleId,
-      req.body || {}
-    );
-
-    return success(res, 200, 'Validation approuvee.', item);
-  } catch (err) {
-    if (handleAdminError(res, err)) return;
-    next(err);
-  }
-};
-
-exports.rejectValidationItemById = async (req, res, next) => {
-  try {
-    const itemType = await getValidationTypeById(req.params.validationId);
-    const item = await administratorService.rejectValidationItem(
-      itemType,
-      req.params.validationId,
-      req.user.userId,
-      req.user.roleId,
-      req.body || {}
-    );
-
-    return success(res, 200, 'Validation rejetee.', item);
-  } catch (err) {
-    if (handleAdminError(res, err)) return;
-    next(err);
-  }
-};
-
-exports.requestValidationChangesById = async (req, res, next) => {
-  try {
-    const itemType = await getValidationTypeById(req.params.validationId);
-    const item = await administratorService.requestValidationChanges(
-      itemType,
-      req.params.validationId,
-      req.user.userId,
-      req.user.roleId,
-      req.body || {}
-    );
-
-    return success(res, 200, 'Correction demandee.', item);
+    const data = await administratorService.getPendingValidationCountsLegacy();
+    return success(res, 200, 'Compteurs des validations en attente récupérés.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -159,10 +82,19 @@ exports.getValidationItemDetail = async (req, res, next) => {
   try {
     const item = await administratorService.getValidationItemDetail(
       req.params.itemType,
-      req.params.itemId
+      req.params.itemId,
     );
+    return success(res, 200, 'Élément de validation récupéré.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
 
-    return success(res, 200, 'Element de validation recupere.', item);
+exports.getLegacyValidationDetail = async (req, res, next) => {
+  try {
+    const item = await administratorService.getLegacyValidationDetail(req.params.validationId);
+    return success(res, 200, 'Validation récupérée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -176,10 +108,24 @@ exports.approveValidationItem = async (req, res, next) => {
       req.params.itemId,
       req.user.userId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
+    return success(res, 200, 'Validation approuvée.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
 
-    return success(res, 200, 'Validation approuvee.', item);
+exports.approveLegacyValidationItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.approveLegacyValidationItem(
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {},
+    );
+    return success(res, 200, 'Validation approuvée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -193,10 +139,39 @@ exports.rejectValidationItem = async (req, res, next) => {
       req.params.itemId,
       req.user.userId,
       req.user.roleId,
-      req.body || {}
+      req.body || {},
     );
+    return success(res, 200, 'Validation rejetée.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
 
-    return success(res, 200, 'Validation rejetee.', item);
+exports.rejectLegacyValidationItem = async (req, res, next) => {
+  try {
+    const item = await administratorService.rejectLegacyValidationItem(
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {},
+    );
+    return success(res, 200, 'Validation rejetée.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.requestLegacyValidationChanges = async (req, res, next) => {
+  try {
+    const item = await administratorService.requestLegacyValidationChanges(
+      req.params.validationId,
+      req.user.userId,
+      req.user.roleId,
+      req.body || {},
+    );
+    return success(res, 200, 'Demande de correction envoyée.', item);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);

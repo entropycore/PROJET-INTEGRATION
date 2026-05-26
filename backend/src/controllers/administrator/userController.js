@@ -6,18 +6,12 @@ const { success, error } = require('../../utils/apiResponse');
 const {
   VALID_ACCOUNT_STATUSES,
   VALID_USER_ROLES,
-  VALID_VALIDATION_STATUSES,
-  VALID_VALIDATION_TYPES,
-  VALID_NOTIFICATION_TYPES,
-  VALID_REPORT_STATUSES,
-  VALID_REPORT_TARGET_TYPES,
-  parseBooleanFilter,
-  parsePositiveInt,
+  handleAdminError,
   normalizeRole,
   normalizeStatus,
-  normalizeItemType,
-  handleAdminError,
-} = require('./shared');
+  parsePositiveInt,
+  readBodyText,
+} = require('../administratorHelpers');
 
 exports.listUsers = async (req, res, next) => {
   try {
@@ -25,7 +19,7 @@ exports.listUsers = async (req, res, next) => {
     const status = normalizeStatus(req.query.status);
 
     if (role && !VALID_USER_ROLES.has(role)) {
-      return error(res, 400, 'Le filtre role est invalide.');
+      return error(res, 400, 'Le filtre rôle est invalide.');
     }
 
     if (status && !VALID_ACCOUNT_STATUSES.has(status)) {
@@ -39,8 +33,7 @@ exports.listUsers = async (req, res, next) => {
       page: parsePositiveInt(req.query.page, 1),
       limit: parsePositiveInt(req.query.limit, 10),
     });
-
-    return success(res, 200, 'Utilisateurs recuperes.', data);
+    return success(res, 200, 'Utilisateurs récupérés.', data);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -50,7 +43,7 @@ exports.listUsers = async (req, res, next) => {
 exports.getUserById = async (req, res, next) => {
   try {
     const user = await administratorService.getUserById(req.params.userId);
-    return success(res, 200, 'Utilisateur recupere.', user);
+    return success(res, 200, 'Utilisateur récupéré.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -64,8 +57,7 @@ exports.createUser = async (req, res, next) => {
       role: normalizeRole(req.body?.role),
       accountStatus: normalizeStatus(req.body?.accountStatus),
     });
-
-    return success(res, 201, 'Utilisateur cree.', result);
+    return success(res, 201, 'Utilisateur créé.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -75,17 +67,17 @@ exports.createUser = async (req, res, next) => {
 exports.importUsersCsv = async (req, res, next) => {
   try {
     if (!req.file?.buffer) {
-      return error(res, 400, 'Ajoutez un fichier CSV a importer.');
+      return error(res, 400, 'Ajoutez un fichier CSV à importer.');
     }
 
     const result = await adminCsvImportService.importUsersFromCsv(req.file.buffer);
-    return success(res, 201, 'Import CSV termine.', result);
+    return success(res, 201, 'Import CSV terminé.', result);
   } catch (err) {
     if (err.message === 'CSV_EMPTY') {
       return error(
         res,
         400,
-        'Le fichier CSV doit contenir une ligne d en-tete et au moins un utilisateur.'
+        "Le fichier CSV doit contenir une ligne d'en-tête et au moins un utilisateur."
       );
     }
 
@@ -98,7 +90,7 @@ exports.importUsersCsv = async (req, res, next) => {
     }
 
     if (err.message === 'CSV_FILE_REQUIRED') {
-      return error(res, 400, 'Ajoutez un fichier CSV a importer.');
+      return error(res, 400, 'Ajoutez un fichier CSV à importer.');
     }
 
     if (handleAdminError(res, err)) return;
@@ -112,8 +104,7 @@ exports.updateUser = async (req, res, next) => {
       ...req.body,
       role: normalizeRole(req.body?.role),
     });
-
-    return success(res, 200, 'Utilisateur mis a jour.', user);
+    return success(res, 200, 'Utilisateur mis à jour.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -131,10 +122,9 @@ exports.updateUserStatus = async (req, res, next) => {
       req.params.userId,
       status,
       req.user.roleId,
-      typeof req.body?.reason === 'string' ? req.body.reason.trim() || null : null
+      readBodyText(req.body, ['reason']),
     );
-
-    return success(res, 200, 'Status utilisateur mis a jour.', user);
+    return success(res, 200, 'Status utilisateur mis à jour.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -145,16 +135,16 @@ exports.updateUserRole = async (req, res, next) => {
   try {
     const role = normalizeRole(req.body?.role);
     if (!role || !VALID_USER_ROLES.has(role)) {
-      return error(res, 400, 'Le role fourni est invalide.');
+      return error(res, 400, 'Le rôle fourni est invalide.');
     }
 
     const user = await administratorService.updateUserRole(
       req.params.userId,
       role,
       req.body,
-      req.user.userId
+      req.user.userId,
     );
-    return success(res, 200, 'Role utilisateur mis a jour.', user);
+    return success(res, 200, 'Rôle utilisateur mis à jour.', user);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -164,7 +154,7 @@ exports.updateUserRole = async (req, res, next) => {
 exports.resetUserPassword = async (req, res, next) => {
   try {
     const result = await administratorService.resetUserPassword(req.params.userId);
-    return success(res, 200, 'Mot de passe reinitialise.', result);
+    return success(res, 200, 'Mot de passe réinitialisé.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
@@ -174,7 +164,7 @@ exports.resetUserPassword = async (req, res, next) => {
 exports.deleteUser = async (req, res, next) => {
   try {
     const result = await administratorService.deleteUser(req.params.userId, req.user.userId);
-    return success(res, 200, 'Utilisateur supprime.', result);
+    return success(res, 200, 'Utilisateur supprimé.', result);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);

@@ -1,117 +1,95 @@
 'use strict';
 
+const prisma = require('../../config/prisma');
+const notificationService = require('../notificationService');
+const { mapDashboardAccessRequest, mapProfessionalRequestDetail } = require('./mappers');
 const {
-  bcrypt,
-  crypto,
-  prisma,
-  notificationService,
-  USER_ROLES,
-  ACCOUNT_STATUSES,
-  VALIDATION_ITEM_TYPES,
-  NOTIFICATION_TYPES,
-  REPORT_STATUSES,
-  REPORT_TARGET_TYPES,
-  BCRYPT_ROUNDS,
-  isStructureMissingError,
-  safeCount,
-  safeAggregateCount,
-  safeReadWithFallback,
-  buildUserSearch,
-  normalizePagination,
-  buildPagination,
-  normalizeValidationType,
-  ensureValidValidationType,
-  ensureValidNotificationType,
-  ensureValidReportStatus,
-  ensureValidReportTargetType,
-  paginateItems,
-  normalizeSearch,
-  matchesValidationSearch,
-  getNotificationTone,
-  getNotificationLink,
-  mapNotificationItem,
-  buildProfessionalProfileData,
-  ensureValidRole,
-  ensureValidStatus,
-  buildRoleCreateData,
-  buildRoleUpdateData,
-  stripUndefined,
-  getUserOrThrow,
-  certificateDetailSelect,
-  getProfessionalRequestOrThrow,
-  getCertificateRequestOrThrow,
-  getValidationCertificateOrThrow,
-  getReportOrThrow,
-  getNotificationOrThrow,
-  getRecommendationLetterValidationOrThrow,
-  getCommentValidationOrThrow,
-  getRecommendationValidationOrThrow,
-  deleteCurrentProfile,
-  ensureRoleChangeAllowed,
-  createProfileForRole,
-  buildTemporaryPassword,
-  getPendingValidationCounts,
-  getRecentProfessionalRequests,
-  getRecentCertificateRequests,
-  getRecentReportItems,
-  getRecentDashboardRequests,
-  syncPendingAccessRequestNotifications,
-  syncPendingValidationNotifications,
-  syncPendingReportNotifications,
-  syncAdminNotifications,
-  getProfessionalRequestsList,
-  loadCertificateValidationItems,
-  loadRecommendationLetterValidationItems,
-  loadCommentValidationItems,
-  loadRecommendationValidationItems,
-  loadReportItems,
-  approveCertificateRequest,
-  rejectCertificateRequest,
-  approveRecommendationLetterValidation,
-  rejectRecommendationLetterValidation,
-  approveCommentValidation,
-  rejectCommentValidation,
-  approveRecommendationValidation,
-  rejectRecommendationValidation,
-  requestCertificateChanges,
-  requestRecommendationLetterChanges,
-  requestCommentChanges,
-  requestRecommendationChanges,
-  professionalRequestSelect,
   professionalRequestLegacySelect,
-  recentCertificateSelect,
-  reportSelect,
-  notificationSelect,
-  recommendationLetterValidationSelect,
-  commentValidationSelect,
-  recommendationValidationSelect,
-  userSelect,
-  formatFullName,
-  normalizeProfessionalData,
-  getEmailVerifiedValue,
-  mapUserSummary,
-  mapProfessionalRequestDetail,
-  mapDashboardAccessRequest,
-  mapDashboardCertificateRequest,
-  toFullName,
-  mapFrontendStudent,
-  mapFrontendAuthor,
-  toFrontendReportStatus,
-  toDatabaseReportStatus,
-  mapCertificateRequestDetail,
-  mapRecommendationLetterValidationItem,
-  mapCommentValidationItem,
-  mapRecommendationValidationItem,
-  mapReportItem,
-} = require('./shared');
+  professionalRequestSelect,
+} = require('./serviceSelects');
+const {
+  buildPagination,
+  normalizePagination,
+  safeCount,
+  safeReadWithFallback,
+} = require('./serviceUtils');
+const { buildUserSearch } = require('./userData');
+const { ensureValidStatus } = require('./userHelpers');
 
-exports.listProfessionalRequests = async ({ status, emailVerified, page = 1, limit = 10, search } = {}) => {
+const getProfessionalRequestOrThrow = async (userId) => {
+  const user = await safeReadWithFallback(
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: professionalRequestLegacySelect,
+      }),
+    null,
+  );
+
+  if (!user || user.role !== 'PROFESSIONAL' || !user.professional) {
+    throw new Error('REQUEST_NOT_FOUND');
+  }
+
+  return user;
+};
+
+const getRecentProfessionalRequests = async (take = 5) =>
+  safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where: {
+          role: 'PROFESSIONAL',
+          accountStatus: 'PENDING',
+        },
+        orderBy: [{ createdAt: 'desc' }],
+        take,
+        select: professionalRequestLegacySelect,
+      }),
+    [],
+  );
+
+const getProfessionalRequestsList = async (where, skip, take) =>
+  safeReadWithFallback(
+    () =>
+      prisma.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip,
+        take,
+        select: professionalRequestSelect,
+      }),
+    () =>
+      prisma.user.findMany({
+        where,
+        orderBy: [{ createdAt: 'desc' }],
+        skip,
+        take,
+        select: professionalRequestLegacySelect,
+      }),
+    [],
+  );
+
+const listProfessionalRequests = async ({ status, emailVerified, page = 1, limit = 10, search } = {}) => {
   if (status) {
     ensureValidStatus(status);
   }
 
   const { skip, page: safePage, limit: safeLimit } = normalizePagination(page, limit);
-
   const where = {
     role: 'PROFESSIONAL',
     ...(status ? { accountStatus: status } : {}),
@@ -138,12 +116,10 @@ exports.listProfessionalRequests = async ({ status, emailVerified, page = 1, lim
   };
 };
 
-exports.getProfessionalRequest = async (userId) => {
-  const request = await getProfessionalRequestOrThrow(userId);
-  return mapProfessionalRequestDetail(request);
-};
+const getProfessionalRequest = async (userId) =>
+  mapProfessionalRequestDetail(await getProfessionalRequestOrThrow(userId));
 
-exports.approveProfessionalRequest = async (userId, administratorId) => {
+const approveProfessionalRequest = async (userId, administratorId) => {
   const request = await getProfessionalRequestOrThrow(userId);
 
   if (!request.professional.isEmailVerified) {
@@ -180,10 +156,10 @@ exports.approveProfessionalRequest = async (userId, administratorId) => {
     });
   });
 
-  const updatedRequest = await exports.getProfessionalRequest(userId);
+  const updatedRequest = await getProfessionalRequest(userId);
   await notificationService.createAdminActionNotification({
-    title: "Demande d'acces approuvee",
-    message: `La demande d'acces de ${updatedRequest.requesterName} a ete approuvee.`,
+    title: "Demande d'accès approuvée",
+    message: `La demande d'accès de ${updatedRequest.requesterName} a été approuvée.`,
     relatedType: 'ACCESS_REQUEST',
     relatedId: userId,
   });
@@ -191,7 +167,7 @@ exports.approveProfessionalRequest = async (userId, administratorId) => {
   return updatedRequest;
 };
 
-exports.rejectProfessionalRequest = async (userId, administratorId, rejectionReason) => {
+const rejectProfessionalRequest = async (userId, administratorId, rejectionReason) => {
   const request = await getProfessionalRequestOrThrow(userId);
 
   if (request.accountStatus !== 'PENDING') {
@@ -220,13 +196,22 @@ exports.rejectProfessionalRequest = async (userId, administratorId, rejectionRea
     });
   });
 
-  const updatedRequest = await exports.getProfessionalRequest(userId);
+  const updatedRequest = await getProfessionalRequest(userId);
   await notificationService.createAdminActionNotification({
-    title: "Demande d'acces rejetee",
-    message: `La demande d'acces de ${updatedRequest.requesterName} a ete rejetee.`,
+    title: "Demande d'accès rejetée",
+    message: `La demande d'accès de ${updatedRequest.requesterName} a été rejetée.`,
     relatedType: 'ACCESS_REQUEST',
     relatedId: userId,
   });
 
   return updatedRequest;
+};
+
+module.exports = {
+  approveProfessionalRequest,
+  getProfessionalRequest,
+  getProfessionalRequestOrThrow,
+  getRecentProfessionalRequests,
+  listProfessionalRequests,
+  rejectProfessionalRequest,
 };
