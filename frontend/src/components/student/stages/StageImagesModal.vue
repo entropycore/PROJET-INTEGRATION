@@ -4,13 +4,13 @@ defineProps({
     type: Array,
     default: () => [],
   },
-})
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
 const closeModal = () => {
-  emit('close')
-}
+  emit("close");
+};
 </script>
 
 <template>
@@ -28,11 +28,7 @@ const closeModal = () => {
       </div>
 
       <div class="images-grid">
-        <div
-          v-for="image in images"
-          :key="image.id"
-          class="image-card"
-        >
+        <div v-for="image in images" :key="image.id" class="image-card">
           <img :src="image.url" :alt="image.title" />
           <span>{{ image.title }}</span>
         </div>

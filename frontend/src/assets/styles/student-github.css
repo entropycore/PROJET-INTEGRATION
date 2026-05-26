@@ -61,23 +61,17 @@
   display: flex;
   align-items: center;
   padding: 2.3rem;
-  background:
-    linear-gradient(
-      90deg,
-      #ffffff 0%,
-      #ffffff 55%,
-      #f7f8f5 100%
-    );
+  background: linear-gradient(90deg, #ffffff 0%, #ffffff 55%, #f7f8f5 100%);
 }
 
 .github-connect-hero::after {
-  content: '';
+  content: "";
   position: absolute;
   right: -95px;
   top: 50%;
   width: 460px;
   height: 460px;
-  background-image: url('../icons/github-octocat.svg');
+  background-image: url("../icons/github-octocat.svg");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
@@ -362,7 +356,7 @@
 }
 
 .github-stat-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0 0 auto;
   height: 3px;

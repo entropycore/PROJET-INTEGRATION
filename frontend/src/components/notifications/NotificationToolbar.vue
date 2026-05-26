@@ -9,10 +9,13 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
 
 <template>
   <div class="toolbar">
+    <div class="unread-count">
+      <span>Non lues</span>
+      <strong>{{ unreadCount }}</strong>
+    </div>
+
     <div class="toolbar-actions">
       <div class="filter-group">
-        <span>Filtrer par catégorie :</span>
-
         <select
           :value="selectedType"
           @change="emit('update:selectedType', $event.target.value)"
@@ -24,8 +27,8 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
         </select>
       </div>
 
-      <button @click="emit('read-all')">
-        ✓ Tout marquer comme lu
+      <button type="button" @click="emit('read-all')">
+        Tout marquer comme lu
       </button>
     </div>
   </div>
@@ -34,73 +37,95 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
 <style scoped>
 .toolbar {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.65rem 0.8rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-card);
+  font-family: var(--app-font-body);
+}
+
+.unread-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--app-muted);
+  font-size: var(--app-text-xs);
+  font-weight: 700;
+}
+
+.unread-count strong {
+  min-width: 1.45rem;
+  min-height: 1.45rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-active-bg);
+  color: var(--app-active);
+  font-size: var(--app-text-xs);
+  font-weight: 800;
 }
 
 .toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 0.8rem;
 }
 
 .filter-group {
   display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.filter-group span {
-  color: #5f6f70;
-  font-size: 0.95rem;
-  font-weight: 600;
 }
 
 select {
-  min-width: 175px;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 10px 14px;
-  background: #f9fafb;
-  color: #0f2f3a;
-  font-weight: 100;
-  cursor: pointer;
+  height: 2.15rem;
+  min-width: 12rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  padding: 0 0.75rem;
+  background: var(--app-surface);
+  color: var(--app-text);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 500;
   outline: none;
+  cursor: pointer;
 }
 
 select:focus {
-  border-color: #2f5d62;
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 0.18rem rgba(47, 87, 93, 0.1);
 }
 
 button {
-  border: none;
-  border-radius: 12px;
-  padding: 11px 18px;
-  background: #2f5d62;
-  color: #ffffff;
-  font-weight: 800;
+  height: 2.15rem;
+  border: 1px solid var(--app-primary);
+  border-radius: var(--app-radius-md);
+  padding: 0 0.85rem;
+  background: var(--app-primary);
+  color: var(--app-surface);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 button:hover {
-  background: #274f53;
+  border-color: var(--app-primary-hover);
+  background: var(--app-primary-hover);
 }
 
-@media (max-width: 700px) {
+@media (max-width: 43.75rem) {
   .toolbar,
-  .toolbar-actions,
-  .filter-group {
-    width: 100%;
-  }
-
   .toolbar-actions {
-    flex-direction: column;
     align-items: stretch;
-  }
-
-  .filter-group {
     flex-direction: column;
-    align-items: flex-start;
   }
 
   select,

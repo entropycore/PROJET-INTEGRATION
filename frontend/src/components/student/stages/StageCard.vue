@@ -1,57 +1,82 @@
 <script setup>
-import { useRouter } from 'vue-router'
-import StageValidationBadge from './StageValidationBadge.vue'
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import StageValidationBadge from "./StageValidationBadge.vue";
 
 const props = defineProps({
   stage: {
     type: Object,
     required: true,
   },
-})
+});
 
-const emit = defineEmits(['delete-stage', 'submit-validation'])
+const emit = defineEmits(["delete-stage", "submit-validation"]);
 
-const router = useRouter()
+const router = useRouter();
+
+const formatDate = (value) => {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+};
+
+const stageStatus = computed(() => {
+  return String(props.stage.validationStatus || "")
+    .trim()
+    .toUpperCase();
+});
 
 const goToDetails = () => {
-  router.push(`/student/stages/${props.stage.id}`)
-}
+  router.push(`/student/stages/${props.stage.id}`);
+};
 
 const goToEdit = () => {
-  router.push(`/student/stages/${props.stage.id}/edit`)
-}
+  if (!canEditStage.value) return;
+  router.push(`/student/stages/${props.stage.id}/edit`);
+};
 
-const canEditStage = () => {
-  return ['DRAFT', 'PENDING', 'CORRECTION_REQUIRED'].includes(
-    props.stage.validationStatus,
-  )
-}
+const canEditStage = computed(() => {
+  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+});
 
 const canSubmitValidation = () => {
-  return ['DRAFT', 'CORRECTION_REQUIRED'].includes(
-    props.stage.validationStatus,
-  )
-}
+  return (
+    ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value) &&
+    isStageCompleteForSubmission.value
+  );
+};
 
 const canDeleteStage = () => {
-  return ['DRAFT', 'CORRECTION_REQUIRED', 'REJECTED'].includes(
-    props.stage.validationStatus,
-  )
-}
+  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
+    stageStatus.value,
+  );
+};
 
 const submitButtonLabel = () => {
-  return props.stage.validationStatus === 'CORRECTION_REQUIRED'
-    ? 'Resoumettre'
-    : 'Soumettre'
-}
+  return stageStatus.value === "CORRECTION_REQUIRED"
+    ? "Resoumettre"
+    : "Soumettre";
+};
+
+const isStageCompleteForSubmission = computed(() => {
+  return Boolean(
+    props.stage.title?.trim() &&
+    props.stage.company?.trim() &&
+    props.stage.startDate &&
+    props.stage.endDate &&
+    props.stage.duration?.trim() &&
+    props.stage.supervisor?.fullName?.trim() &&
+    props.stage.reportUrl,
+  );
+});
 
 const submitValidation = () => {
-  emit('submit-validation', props.stage.id)
-}
+  if (!canSubmitValidation()) return;
+  emit("submit-validation", props.stage.id);
+};
 
 const deleteCurrentStage = () => {
-  emit('delete-stage', props.stage.id)
-}
+  emit("delete-stage", props.stage.id);
+};
 </script>
 
 <template>
@@ -59,7 +84,7 @@ const deleteCurrentStage = () => {
     <div class="card-top">
       <h3>{{ stage.title }}</h3>
 
-      <StageValidationBadge :status="stage.validationStatus" />
+      <StageValidationBadge :status="stageStatus" />
     </div>
 
     <div class="company">
@@ -86,7 +111,7 @@ const deleteCurrentStage = () => {
         <span>Période</span>
         <strong>
           <span class="material-icons-round small-icon">calendar_month</span>
-          {{ stage.startDate }} → {{ stage.endDate }}
+          {{ formatDate(stage.startDate) }} → {{ formatDate(stage.endDate) }}
         </strong>
       </div>
 
@@ -102,9 +127,9 @@ const deleteCurrentStage = () => {
         <span>Visibilité</span>
         <strong>
           <span class="material-icons-round small-icon">
-            {{ stage.visibility === 'PUBLIC' ? 'public' : 'lock' }}
+            {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
           </span>
-          {{ stage.visibility === 'PUBLIC' ? 'Publique' : 'Privée' }}
+          {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
         </strong>
       </div>
     </div>
@@ -116,11 +141,7 @@ const deleteCurrentStage = () => {
       </div>
 
       <div class="tech-list">
-        <span
-          v-for="tech in stage.technologies"
-          :key="tech"
-          class="tech-tag"
-        >
+        <span v-for="tech in stage.technologies" :key="tech" class="tech-tag">
           {{ tech }}
         </span>
       </div>
@@ -132,11 +153,7 @@ const deleteCurrentStage = () => {
         Détails
       </button>
 
-      <button
-        v-if="canEditStage()"
-        class="action-btn"
-        @click="goToEdit"
-      >
+      <button v-if="canEditStage" class="action-btn" @click="goToEdit">
         <span class="material-icons-round">edit</span>
         Modifier
       </button>
@@ -148,14 +165,14 @@ const deleteCurrentStage = () => {
         <span class="material-icons-round">delete</span>
       </button>
       <button
-        v-if="canSubmitValidation()"
+        v-if="['DRAFT', 'CORRECTION_REQUIRED'].includes(stageStatus)"
         class="submit-btn"
+        :disabled="!canSubmitValidation()"
         @click="submitValidation"
       >
         <span class="material-icons-round">send</span>
         {{ submitButtonLabel() }}
       </button>
-
     </div>
   </article>
 </template>

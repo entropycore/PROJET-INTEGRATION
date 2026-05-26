@@ -1,4 +1,6 @@
 <script setup>
+import { ref } from "vue";
+
 defineProps({
   reports: {
     type: Array,
@@ -8,17 +10,35 @@ defineProps({
 
 const emit = defineEmits(["view", "resolve", "reject", "delete-target"]);
 
+const openMenuId = ref(null);
+
+const toggleMenu = (id) => {
+  openMenuId.value = openMenuId.value === id ? null : id;
+};
+
+const closeMenu = () => {
+  openMenuId.value = null;
+};
+
+const handleAction = (eventName, report) => {
+  emit(eventName, report);
+  closeMenu();
+};
+
 const typeLabels = {
   PROJECT: "Projet",
   PORTFOLIO: "Portfolio",
   COMMENT: "Commentaire",
   USER: "Utilisateur",
+  INTERNSHIP: "Stage",
+  RECOMMENDATION: "Recommandation",
+  OTHER: "Autre",
 };
 
 const statusLabels = {
   PENDING: "En attente",
-  RESOLVED: "Traité",
-  REJECTED: "Rejeté",
+  RESOLVED: "Traite",
+  REJECTED: "Rejete",
 };
 
 const formatDate = (date) => {
@@ -34,7 +54,7 @@ const formatDate = (date) => {
     <div class="table-head">
       <span>Signalement</span>
       <span>Type</span>
-      <span>Signalé par</span>
+      <span>Signale par</span>
       <span>Statut</span>
       <span>Date</span>
       <span>Actions</span>
@@ -46,7 +66,7 @@ const formatDate = (date) => {
         <p>{{ report.description }}</p>
       </div>
 
-      <span class="type-badge" :class="report.targetType.toLowerCase()">
+      <span class="report-type">
         {{ typeLabels[report.targetType] || report.targetType }}
       </span>
 
@@ -63,40 +83,54 @@ const formatDate = (date) => {
         {{ formatDate(report.createdAt) }}
       </span>
 
-      <div class="actions">
-        <button title="Voir" @click="emit('view', report)">👁</button>
+      <div class="actions-cell">
+        <div class="actions-dropdown">
+          <button
+            type="button"
+            class="actions-trigger"
+            title="Actions"
+            @click="toggleMenu(report.id)"
+          >
+            <span class="material-icons-round">more_horiz</span>
+          </button>
 
-        <button
-          v-if="report.status === 'PENDING'"
-          title="Marquer traité"
-          class="resolve"
-          @click="emit('resolve', report)"
-        >
-          ✓
-        </button>
+          <div v-if="openMenuId === report.id" class="actions-dropdown-menu">
+            <button type="button" @click="handleAction('view', report)">
+              Voir details
+            </button>
 
-        <button
-          v-if="report.status === 'PENDING'"
-          title="Rejeter"
-          class="reject"
-          @click="emit('reject', report)"
-        >
-          ×
-        </button>
+            <template v-if="report.status === 'PENDING'">
+              <button
+                type="button"
+                class="success"
+                @click="handleAction('resolve', report)"
+              >
+                Marquer traite
+              </button>
 
-        <button
-          v-if="report.status === 'PENDING'"
-          title="Supprimer contenu"
-          class="delete"
-          @click="emit('delete-target', report)"
-        >
-          🗑
-        </button>
+              <button
+                type="button"
+                class="danger"
+                @click="handleAction('reject', report)"
+              >
+                Rejeter
+              </button>
+
+              <button
+                type="button"
+                class="danger"
+                @click="handleAction('delete-target', report)"
+              >
+                Supprimer contenu
+              </button>
+            </template>
+          </div>
+        </div>
       </div>
     </div>
 
     <div v-if="reports.length === 0" class="empty">
-      Aucun signalement trouvé.
+      Aucun signalement trouve.
     </div>
   </div>
 </template>
@@ -105,129 +139,208 @@ const formatDate = (date) => {
 .reports-table {
   display: flex;
   flex-direction: column;
+  font-family: var(--app-font-body);
+  overflow: visible;
 }
 
 .table-head,
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.4fr 0.9fr 1fr 1.1fr;
-  gap: 16px;
+  grid-template-columns:
+    minmax(0, 34%)
+    minmax(5rem, 10%)
+    minmax(0, 24%)
+    minmax(6rem, 10%)
+    minmax(7rem, 12%)
+    minmax(3rem, 4%);
+  gap: 0.55rem;
   align-items: center;
-  padding: 16px 8px;
+  padding: 0.9rem 1rem;
+}
+
+.table-head span:last-child,
+.actions-cell {
+  justify-self: end;
 }
 
 .table-head {
-  color: #5f6f70;
-  font-size: 0.78rem;
+  color: var(--app-muted);
+  font-size: var(--app-text-xs);
   font-weight: 800;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  border-bottom: 1px solid #e5e0d8;
+  background: var(--app-surface-soft);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.table-head span:nth-child(6) {
+  text-align: right;
 }
 
 .table-row {
-  border-bottom: 1px solid #edf0ec;
+  position: relative;
+  min-height: 4.5rem;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.table-row:hover {
+  background: var(--app-surface-soft);
 }
 
 .reason-cell strong,
 .user-cell strong {
-  color: #0f2f3a;
-  font-weight: 800;
+  color: var(--app-text);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
 }
 
 .reason-cell p,
 .user-cell p {
-  margin: 5px 0 0;
-  color: #7f9699;
-  font-size: 0.88rem;
+  margin: 0.2rem 0 0;
+  color: var(--app-muted);
+  font-size: var(--app-text-xs);
+  line-height: var(--app-leading-normal);
 }
 
-.type-badge,
+.report-type {
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .status-badge {
   width: fit-content;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.75rem;
+  min-height: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.65rem;
+  border-radius: var(--app-radius-pill);
+  font-size: var(--app-text-xs);
   font-weight: 800;
-}
-
-.type-badge.project,
-.type-badge.portfolio {
-  background: #e8f5f1;
-  color: #2f5d62;
-}
-
-.type-badge.comment,
-.type-badge.user {
-  background: #fff4e6;
-  color: #ea580c;
+  white-space: nowrap;
 }
 
 .status-badge.pending {
-  background: #fff7ed;
-  color: #ea580c;
+  background: var(--app-warning-bg);
+  color: var(--app-warning);
 }
 
 .status-badge.resolved {
-  background: #e8f5f1;
-  color: #2f5d62;
+  background: var(--app-active-bg);
+  color: var(--app-active);
 }
 
 .status-badge.rejected {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--app-error-bg);
+  color: var(--app-error);
 }
 
 .date-cell {
-  color: #5f6f70;
-  font-size: 0.9rem;
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
+  white-space: nowrap;
 }
 
-.actions {
+.actions-cell {
+  position: relative;
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
+  overflow: visible;
 }
 
-.actions button {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #dfe3dd;
-  border-radius: 10px;
-  background: #ffffff;
-  color: #2f5d62;
-  font-weight: 800;
+.actions-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.actions-trigger {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid transparent;
+  border-radius: var(--app-radius-sm);
+  background: transparent;
+  color: var(--app-muted);
+  display: grid;
+  place-items: center;
   cursor: pointer;
 }
 
-.actions .resolve {
-  background: #e8f5f1;
-  color: #2f5d62;
+.actions-trigger:hover {
+  border-color: var(--app-border);
+  background: var(--app-surface-soft);
+  color: var(--app-primary);
 }
 
-.actions .reject,
-.actions .delete {
-  background: #fef2f2;
-  color: #dc2626;
+.actions-trigger .material-icons-round {
+  font-size: 1.25rem;
+}
+
+.actions-dropdown-menu {
+  position: absolute;
+  right: 0;
+  top: 2.35rem;
+  min-width: 11.5rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-popover);
+  padding: 0.35rem;
+  z-index: 9999;
+}
+
+.actions-dropdown-menu button {
+  width: 100%;
+  min-height: 2.1rem;
+  border: none;
+  background: transparent;
+  color: var(--app-text);
+  border-radius: var(--app-radius-sm);
+  padding: 0 0.75rem;
+  text-align: left;
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actions-dropdown-menu button:hover {
+  background: var(--app-surface-soft);
+}
+
+.actions-dropdown-menu button.success {
+  color: var(--app-primary);
+}
+
+.actions-dropdown-menu button.danger {
+  color: var(--app-error);
+}
+
+.actions-dropdown-menu button.danger:hover {
+  background: var(--app-error-bg);
 }
 
 .empty {
-  padding: 22px;
-  border-radius: 16px;
-  background: #fbfaf7;
-  border: 1px solid #dfe3dd;
-  color: #6b7280;
+  padding: 2rem;
+  color: var(--app-muted);
   text-align: center;
-  margin-top: 16px;
+  font-size: var(--app-text-md);
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 68.75rem) {
   .table-head {
     display: none;
   }
 
   .table-row {
     grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 18px 0;
+    gap: 0.65rem;
+    padding: 1.1rem;
+  }
+
+  .actions-cell {
+    justify-content: flex-start;
   }
 }
 </style>

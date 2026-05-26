@@ -1,11 +1,13 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from "vue";
 
 import {
   getStudentRecommendationsData,
-} from '@/services/studentRecommendationsService'
+  updateRecommendationStatus,
+} from "@/services/studentRecommendationsService";
 
-const loading = ref(false)
+const loading = ref(false);
+const actionLoadingId = ref(null);
 
 const recommendationsData = ref({
   stats: {
@@ -15,143 +17,127 @@ const recommendationsData = ref({
   },
 
   recommendations: [],
-})
+});
 
-const selectedFilter = ref('ALL')
+const selectedFilter = ref("ALL");
 
 const loadRecommendations = async () => {
-  loading.value = true
+  loading.value = true;
 
   try {
-    recommendationsData.value =
-      await getStudentRecommendationsData()
+    recommendationsData.value = await getStudentRecommendationsData({
+      status: selectedFilter.value,
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
-
-onMounted(() => {
-  loadRecommendations()
-})
+};
 
 const filteredRecommendations = computed(() => {
-  if (selectedFilter.value === 'ALL') {
-    return recommendationsData.value.recommendations
+  if (selectedFilter.value === "ALL") {
+    return recommendationsData.value.recommendations;
   }
 
   return recommendationsData.value.recommendations.filter(
-    (recommendation) =>
-      recommendation.status === selectedFilter.value,
-  )
-})
+    (recommendation) => recommendation.status === selectedFilter.value,
+  );
+});
 
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
+  return new Date(date).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};
 const viewAuthorProfile = (authorId) => {
   // Plus tard : router.push(`/student/users/${authorId}`)
-  console.log('Voir profil auteur :', authorId)
-}
+  console.log("Voir profil auteur :", authorId);
+};
+
+const decideRecommendation = async (id, status) => {
+  actionLoadingId.value = id;
+
+  try {
+    await updateRecommendationStatus(id, status);
+    await loadRecommendations();
+  } finally {
+    actionLoadingId.value = null;
+  }
+};
 
 const acceptRecommendation = (id) => {
-  recommendationsData.value.recommendations =
-    recommendationsData.value.recommendations.map((recommendation) =>
-      recommendation.id === id
-        ? { ...recommendation, status: 'RECEIVED', visibility: 'PUBLIC' }
-        : recommendation,
-    )
-
-  recommendationsData.value.stats.pending -= 1
-  recommendationsData.value.stats.received += 1
-}
+  decideRecommendation(id, "APPROVED");
+};
 
 const rejectRecommendation = (id) => {
-  recommendationsData.value.recommendations =
-    recommendationsData.value.recommendations.map((recommendation) =>
-      recommendation.id === id
-        ? { ...recommendation, status: 'REJECTED', visibility: 'PRIVATE' }
-        : recommendation,
-    )
+  decideRecommendation(id, "REJECTED");
+};
 
-  recommendationsData.value.stats.pending -= 1
-  recommendationsData.value.stats.rejected += 1
-}
+onMounted(() => {
+  loadRecommendations();
+});
 </script>
 
 <template>
   <section class="recommendations-page">
     <header class="page-header">
       <div>
-        <span class="page-label">
-          RECOMMANDATIONS
-        </span>
+        <span class="page-label"> RECOMMANDATIONS </span>
 
         <h1>Mes recommandations</h1>
 
         <p>
-          Consultez les recommandations reçues
-          sur votre portfolio académique.
+          Consultez les recommandations reçues sur votre portfolio académique.
         </p>
       </div>
     </header>
 
-    
-
     <div class="filters">
-        <button
-            :class="{ active: selectedFilter === 'ALL' }"
-            @click="selectedFilter = 'ALL'"
-        >
-            Toutes
-            <span>
-            {{
-                recommendationsData.stats.received +
-                recommendationsData.stats.pending +
-                recommendationsData.stats.rejected
-            }}
-            </span>
-        </button>
+      <button
+        :class="{ active: selectedFilter === 'ALL' }"
+        @click="selectedFilter = 'ALL'"
+      >
+        Toutes
+        <span>
+          {{
+            recommendationsData.stats.received +
+            recommendationsData.stats.pending +
+            recommendationsData.stats.rejected
+          }}
+        </span>
+      </button>
 
-        <button
-            :class="{ active: selectedFilter === 'RECEIVED' }"
-            @click="selectedFilter = 'RECEIVED'"
-        >
-            Reçues
-            <span>{{ recommendationsData.stats.received }}</span>
-        </button>
+      <button
+        :class="{ active: selectedFilter === 'RECEIVED' }"
+        @click="selectedFilter = 'RECEIVED'"
+      >
+        Reçues
+        <span>{{ recommendationsData.stats.received }}</span>
+      </button>
 
-        <button
-            :class="{ active: selectedFilter === 'PENDING' }"
-            @click="selectedFilter = 'PENDING'"
-        >
-            En attente
-            <span>{{ recommendationsData.stats.pending }}</span>
-        </button>
+      <button
+        :class="{ active: selectedFilter === 'PENDING' }"
+        @click="selectedFilter = 'PENDING'"
+      >
+        En attente
+        <span>{{ recommendationsData.stats.pending }}</span>
+      </button>
 
-        <button
-            :class="{ active: selectedFilter === 'REJECTED' }"
-            @click="selectedFilter = 'REJECTED'"
-        >
-            Refusées
-            <span>{{ recommendationsData.stats.rejected }}</span>
-        </button>
-        </div>
+      <button
+        :class="{ active: selectedFilter === 'REJECTED' }"
+        @click="selectedFilter = 'REJECTED'"
+      >
+        Refusées
+        <span>{{ recommendationsData.stats.rejected }}</span>
+      </button>
+    </div>
 
-    <div
-      v-if="loading"
-      class="loading-state"
-    >
+    <div v-if="loading" class="loading-state">
       Chargement des recommandations...
     </div>
 
-    <div
-      v-else
-      class="recommendations-list"
-    >
+    <div v-else class="recommendations-list">
       <article
         v-for="recommendation in filteredRecommendations"
         :key="recommendation.id"
@@ -169,10 +155,7 @@ const rejectRecommendation = (id) => {
               />
             </div>
 
-            <div
-              v-else
-              class="author-avatar fallback"
-            >
+            <div v-else class="author-avatar fallback">
               {{ recommendation.author.initials }}
             </div>
 
@@ -184,9 +167,7 @@ const rejectRecommendation = (id) => {
               <span>
                 {{ recommendation.author.role }}
                 ·
-                {{
-                  recommendation.author.organization
-                }}
+                {{ recommendation.author.organization }}
               </span>
             </div>
           </div>
@@ -196,18 +177,16 @@ const rejectRecommendation = (id) => {
             :class="recommendation.status.toLowerCase()"
           >
             {{
-              recommendation.status === 'RECEIVED'
-                ? 'Reçue'
-                : recommendation.status === 'PENDING'
-                  ? 'En attente'
-                  : 'Refusée'
+              recommendation.status === "RECEIVED"
+                ? "Reçue"
+                : recommendation.status === "PENDING"
+                  ? "En attente"
+                  : "Refusée"
             }}
           </span>
         </div>
 
-        <p class="recommendation-content">
-          "{{ recommendation.content }}"
-        </p>
+        <p class="recommendation-content">"{{ recommendation.content }}"</p>
 
         <div class="recommendation-footer">
           <span class="recommendation-date">
@@ -215,26 +194,29 @@ const rejectRecommendation = (id) => {
           </span>
 
           <div class="recommendation-actions">
-            <button class="secondary-btn"
-                @click="viewAuthorProfile(recommendation.author.id)"
-                >
-                Voir profil
-                </button>
-
             <button
-                v-if="recommendation.status === 'PENDING'"
-                class="primary-btn"
-                @click="acceptRecommendation(recommendation.id)"
-                >
-                Accepter
-                </button>
-
-            <button
-            v-if="recommendation.status === 'PENDING'"
-            class="danger-btn"
-            @click="rejectRecommendation(recommendation.id)"
+              class="secondary-btn"
+              @click="viewAuthorProfile(recommendation.author.id)"
             >
-            Refuser
+              Voir profil
+            </button>
+
+            <button
+              v-if="recommendation.status === 'PENDING'"
+              class="primary-btn"
+              :disabled="actionLoadingId === recommendation.id"
+              @click="acceptRecommendation(recommendation.id)"
+            >
+              Accepter
+            </button>
+
+            <button
+              v-if="recommendation.status === 'PENDING'"
+              class="danger-btn"
+              :disabled="actionLoadingId === recommendation.id"
+              @click="rejectRecommendation(recommendation.id)"
+            >
+              Refuser
             </button>
           </div>
         </div>
@@ -272,8 +254,6 @@ const rejectRecommendation = (id) => {
   font-size: 1rem;
   margin: 0;
 }
-
-
 
 .filters {
   width: fit-content;

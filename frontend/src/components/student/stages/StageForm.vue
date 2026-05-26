@@ -1,70 +1,268 @@
 <script setup>
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from "vue";
 
 const props = defineProps({
   initialStage: {
     type: Object,
     default: null,
   },
-})
+  validators: {
+    type: Array,
+    default: () => [],
+  },
+});
 
-const emit = defineEmits(['save-draft', 'submit-validation'])
+const emit = defineEmits(["save-draft", "submit-validation", "delete-image"]);
 
 const form = reactive({
-  title: props.initialStage?.title || '',
-  company: props.initialStage?.company || '',
-  duration: props.initialStage?.duration || '',
-  startDate: props.initialStage?.startDate || '',
-  endDate: props.initialStage?.endDate || '',
-  description: props.initialStage?.description || '',
-  missions: props.initialStage?.missions?.join('\n') || '',
-  supervisorName: props.initialStage?.supervisor?.fullName || '',
-  supervisorDepartment: props.initialStage?.supervisor?.department || '',
+  title: props.initialStage?.title || "",
+  company: props.initialStage?.company || "",
+  duration: props.initialStage?.duration || "",
+  startDate: props.initialStage?.startDate || "",
+  endDate: props.initialStage?.endDate || "",
+  description: props.initialStage?.description || "",
+  missions: props.initialStage?.missions?.join("\n") || "",
+  supervisorId: props.initialStage?.supervisor?.id || "",
+  supervisorName: props.initialStage?.supervisor?.fullName || "",
+  supervisorDepartment: props.initialStage?.supervisor?.department || "",
   technologies: props.initialStage?.technologies || [],
-  visibility: props.initialStage?.visibility || 'PRIVATE',
+  visibility: props.initialStage?.visibility || "PRIVATE",
   report: null,
   images: [],
-})
+});
 
-const technologyInput = ref('')
+const technologyInput = ref("");
+const isSupervisorSuggestionsOpen = ref(false);
 
-const addTechnology = () => {
-  const value = technologyInput.value.trim()
+const calculatedDuration = computed(() => {
+  if (!form.startDate || !form.endDate) return "";
 
-  if (!value) return
+  const start = new Date(form.startDate);
+  const end = new Date(form.endDate);
 
-  if (!form.technologies.includes(value)) {
-    form.technologies.push(value)
+  if (end < start) return "";
+
+  let months =
+    (end.getFullYear() - start.getFullYear()) * 12 +
+    (end.getMonth() - start.getMonth());
+
+  const remainingDays = end.getDate() - start.getDate();
+
+  if (remainingDays > 15) {
+    months += 1;
   }
 
-  technologyInput.value = ''
-}
+  if (months <= 0) {
+    months = 1;
+  }
+
+  return `${months} mois`;
+});
+
+const hasReport = computed(() => {
+  return Boolean(form.report || props.initialStage?.reportUrl);
+});
+
+const selectedSupervisor = computed(() => {
+  return props.validators.find(
+    (validator) => validator.id === form.supervisorId,
+  );
+});
+
+const filteredSupervisors = computed(() => {
+  const query = form.supervisorName.trim().toLowerCase();
+
+  if (!query) return props.validators.slice(0, 6);
+
+  return props.validators
+    .filter((validator) => {
+      return [validator.fullName, validator.email]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query));
+    })
+    .slice(0, 6);
+});
+
+const existingImages = computed(() => props.initialStage?.images || []);
+
+const missingSubmitFields = computed(() => {
+  const missingFields = [];
+
+  if (!form.title.trim()) missingFields.push("titre");
+  if (!form.company.trim()) missingFields.push("entreprise");
+  if (!form.startDate) missingFields.push("date début");
+  if (!form.endDate) missingFields.push("date fin");
+  if (!form.supervisorId) missingFields.push("encadrant");
+  if (!calculatedDuration.value) missingFields.push("durée");
+  if (!hasReport.value) missingFields.push("rapport PDF");
+
+  return missingFields;
+});
+
+const canSubmitValidation = computed(() => {
+  return missingSubmitFields.value.length === 0;
+});
+
+const submitRequirementsMessage = computed(() => {
+  if (canSubmitValidation.value) return "";
+
+  return `Pour soumettre le stage, veuillez compléter : ${missingSubmitFields.value.join(", ")}.`;
+});
+
+const formatDateInput = (value) => {
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    return value.slice(0, 10);
+  }
+
+  return new Date(value).toISOString().slice(0, 10);
+};
+
+const fillForm = (stage) => {
+  form.title = stage?.title || "";
+  form.company = stage?.company || "";
+  form.duration = stage?.duration || "";
+  form.startDate = formatDateInput(stage?.startDate);
+  form.endDate = formatDateInput(stage?.endDate);
+  form.description = stage?.description || "";
+  form.missions = stage?.missions?.join("\n") || "";
+  form.supervisorId = stage?.supervisor?.id || "";
+  form.supervisorName = stage?.supervisor?.fullName || "";
+  form.supervisorDepartment = stage?.supervisor?.department || "";
+  form.technologies = Array.isArray(stage?.technologies)
+    ? [...stage.technologies]
+    : [];
+  form.visibility = stage?.visibility || "PRIVATE";
+  form.report = null;
+  form.images = [];
+};
+
+const syncSupervisorFromSelection = () => {
+  const supervisor = selectedSupervisor.value;
+
+  if (!supervisor) {
+    form.supervisorName = "";
+    form.supervisorDepartment = "";
+    return;
+  }
+
+  form.supervisorName = supervisor.fullName || "";
+  form.supervisorDepartment = supervisor.department || "";
+};
+
+const openSupervisorSuggestions = () => {
+  isSupervisorSuggestionsOpen.value = true;
+};
+
+const closeSupervisorSuggestions = () => {
+  window.setTimeout(() => {
+    isSupervisorSuggestionsOpen.value = false;
+  }, 120);
+};
+
+const handleSupervisorInput = () => {
+  if (
+    selectedSupervisor.value &&
+    form.supervisorName.trim() !== selectedSupervisor.value.fullName
+  ) {
+    form.supervisorId = "";
+    form.supervisorDepartment = "";
+  }
+
+  openSupervisorSuggestions();
+};
+
+const selectSupervisor = (supervisor) => {
+  form.supervisorId = supervisor.id;
+  form.supervisorName = supervisor.fullName || "";
+  form.supervisorDepartment = supervisor.department || "";
+  isSupervisorSuggestionsOpen.value = false;
+};
+
+const syncSupervisorSelectionFromStage = () => {
+  if (form.supervisorId || !form.supervisorName.trim()) return;
+
+  const matchingValidator = props.validators.find((validator) => {
+    return (
+      validator.fullName?.trim().toLowerCase() ===
+      form.supervisorName.trim().toLowerCase()
+    );
+  });
+
+  if (matchingValidator) {
+    form.supervisorId = matchingValidator.id;
+    syncSupervisorFromSelection();
+  }
+};
+
+watch(
+  () => props.initialStage,
+  (stage) => {
+    fillForm(stage);
+    syncSupervisorSelectionFromStage();
+  },
+  { immediate: true },
+);
+
+watch(
+  () => props.validators,
+  () => {
+    syncSupervisorSelectionFromStage();
+  },
+  { immediate: true },
+);
+
+watch(
+  () => form.supervisorId,
+  () => {
+    syncSupervisorFromSelection();
+  },
+);
+
+const addTechnology = () => {
+  const value = technologyInput.value.trim();
+  if (!value) return;
+
+  if (!form.technologies.includes(value)) {
+    form.technologies.push(value);
+  }
+
+  technologyInput.value = "";
+};
 
 const removeTechnology = (tech) => {
-  form.technologies = form.technologies.filter((item) => item !== tech)
-}
+  form.technologies = form.technologies.filter((item) => item !== tech);
+};
 
 const handleReportUpload = (event) => {
-  form.report = event.target.files[0]
-}
+  form.report = event.target.files[0];
+};
 
 const handleImagesUpload = (event) => {
-  form.images = Array.from(event.target.files)
-}
+  form.images = Array.from(event.target.files);
+};
+
+const deleteExistingImage = (image) => {
+  if (!image?.id) return;
+
+  emit("delete-image", image.id);
+};
 
 const buildPayload = () => {
   return {
     title: form.title,
     company: form.company,
-    duration: form.duration,
+    duration: calculatedDuration.value,
     startDate: form.startDate,
     endDate: form.endDate,
     description: form.description,
     missions: form.missions
-      .split('\n')
+      .split("\n")
       .map((mission) => mission.trim())
       .filter(Boolean),
     supervisor: {
+      id: form.supervisorId,
       fullName: form.supervisorName,
       department: form.supervisorDepartment,
     },
@@ -72,22 +270,27 @@ const buildPayload = () => {
     visibility: form.visibility,
     report: form.report,
     images: form.images,
-  }
-}
+  };
+};
 
 const saveDraft = () => {
-  emit('save-draft', buildPayload())
-}
+  emit("save-draft", buildPayload());
+};
 
 const submitValidation = () => {
-  emit('submit-validation', buildPayload())
-}
+  if (!canSubmitValidation.value) {
+    alert(submitRequirementsMessage.value);
+    return;
+  }
+
+  emit("submit-validation", buildPayload());
+};
 
 const submitButtonLabel = () => {
-  return props.initialStage?.validationStatus === 'CORRECTION_REQUIRED'
-    ? 'Resoumettre pour validation'
-    : 'Soumettre validation'
-}
+  return props.initialStage?.validationStatus === "CORRECTION_REQUIRED"
+    ? "Resoumettre pour validation"
+    : "Soumettre validation";
+};
 </script>
 
 <template>
@@ -97,11 +300,19 @@ const submitButtonLabel = () => {
         Sauveg. brouillon
       </button>
 
-      <button type="submit" class="btn btn-primary">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        :disabled="!canSubmitValidation"
+      >
         <span class="material-icons-round">send</span>
         {{ submitButtonLabel() }}
       </button>
     </div>
+
+    <p v-if="submitRequirementsMessage" class="submit-warning-card">
+      {{ submitRequirementsMessage }}
+    </p>
 
     <div class="form-layout">
       <main class="form-main">
@@ -114,35 +325,32 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Titre du stage</label>
-              <input v-model="form.title" type="text" placeholder="Ex : Développement Frontend Vue.js" />
+              <input
+                v-model="form.title"
+                type="text"
+                required
+                placeholder="Ex : Développement Frontend Vue.js"
+              />
             </div>
 
             <div class="form-group">
               <label>Entreprise</label>
-              <input v-model="form.company" type="text" placeholder="Ex : Capgemini Maroc" />
-            </div>
-
-            <div class="form-group">
-              <label>Durée</label>
-              <input v-model="form.duration" type="text" placeholder="Ex : 2 mois" />
-            </div>
-
-            <div class="form-group">
-              <label>Visibilité</label>
-              <select v-model="form.visibility">
-                <option value="PUBLIC">Publique</option>
-                <option value="PRIVATE">Privée</option>
-              </select>
+              <input
+                v-model="form.company"
+                type="text"
+                required
+                placeholder="Ex : Capgemini Maroc"
+              />
             </div>
 
             <div class="form-group">
               <label>Date début</label>
-              <input v-model="form.startDate" type="date" />
+              <input v-model="form.startDate" type="date" required />
             </div>
 
             <div class="form-group">
               <label>Date fin</label>
-              <input v-model="form.endDate" type="date" />
+              <input v-model="form.endDate" type="date" required />
             </div>
           </div>
 
@@ -150,6 +358,7 @@ const submitButtonLabel = () => {
             <label>Description</label>
             <textarea
               v-model="form.description"
+              required
               placeholder="Décrivez le contexte général du stage..."
             ></textarea>
           </div>
@@ -158,6 +367,7 @@ const submitButtonLabel = () => {
             <label>Missions réalisées</label>
             <textarea
               v-model="form.missions"
+              required
               placeholder="Écrivez une mission par ligne..."
             ></textarea>
           </div>
@@ -172,14 +382,70 @@ const submitButtonLabel = () => {
           <div class="form-grid">
             <div class="form-group">
               <label>Nom de l’encadrant</label>
-              <input v-model="form.supervisorName" type="text" placeholder="Ex : Pr. Karim Alaoui" />
+              <div class="autocomplete-field">
+                <input
+                  v-model="form.supervisorName"
+                  type="text"
+                  required
+                  autocomplete="off"
+                  placeholder="Tapez le nom de l’encadrant"
+                  :disabled="!props.validators.length"
+                  @focus="openSupervisorSuggestions"
+                  @blur="closeSupervisorSuggestions"
+                  @input="handleSupervisorInput"
+                />
+
+                <div
+                  v-if="
+                    isSupervisorSuggestionsOpen &&
+                    props.validators.length &&
+                    filteredSupervisors.length
+                  "
+                  class="suggestions-list"
+                >
+                  <button
+                    v-for="validator in filteredSupervisors"
+                    :key="validator.id"
+                    type="button"
+                    class="suggestion-item"
+                    @mousedown.prevent="selectSupervisor(validator)"
+                  >
+                    <span class="suggestion-avatar">
+                      {{ validator.fullName?.charAt(0) || "E" }}
+                    </span>
+                    <span>
+                      <strong>{{ validator.fullName }}</strong>
+                      <small>
+                        {{
+                          validator.department || "Département non renseigné"
+                        }}
+                        <template v-if="validator.specialty">
+                          · {{ validator.specialty }}
+                        </template>
+                      </small>
+                    </span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div class="form-group">
               <label>Département</label>
-              <input v-model="form.supervisorDepartment" type="text" placeholder="Ex : Génie Informatique" />
+              <input
+                v-model="form.supervisorDepartment"
+                type="text"
+                readonly
+                placeholder="Ex : Génie Informatique"
+              />
             </div>
           </div>
+
+          <p v-if="selectedSupervisor?.email" class="supervisor-meta">
+            {{ selectedSupervisor.email }}
+            <span v-if="selectedSupervisor.specialty">
+              · {{ selectedSupervisor.specialty }}
+            </span>
+          </p>
         </section>
 
         <section class="form-card">
@@ -195,9 +461,7 @@ const submitButtonLabel = () => {
               class="tech-tag"
             >
               {{ tech }}
-              <button type="button" @click="removeTechnology(tech)">
-                ×
-              </button>
+              <button type="button" @click="removeTechnology(tech)">×</button>
             </span>
           </div>
 
@@ -226,14 +490,40 @@ const submitButtonLabel = () => {
           <label class="upload-box">
             <span class="material-icons-round">add_photo_alternate</span>
             <strong>Ajouter des captures</strong>
-            <small>PNG, JPG ou WEBP</small>
+            <small>PNG, JPG ou WEBP — facultatif</small>
 
-            <input type="file" multiple accept="image/*" @change="handleImagesUpload" />
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              @change="handleImagesUpload"
+            />
           </label>
 
           <p v-if="form.images.length" class="file-info">
             {{ form.images.length }} image(s) sélectionnée(s)
           </p>
+
+          <div v-if="existingImages.length" class="existing-media-list">
+            <span>Captures déjà ajoutées</span>
+
+            <div
+              v-for="image in existingImages"
+              :key="image.id || image.title"
+              class="existing-media-item"
+            >
+              <span class="material-icons-round">image</span>
+              <strong>{{ image.title || "Capture" }}</strong>
+              <button
+                type="button"
+                class="delete-media-btn"
+                title="Supprimer cette capture"
+                @click="deleteExistingImage(image)"
+              >
+                ×
+              </button>
+            </div>
+          </div>
         </section>
 
         <section class="form-card">
@@ -245,13 +535,21 @@ const submitButtonLabel = () => {
           <label class="upload-box">
             <span class="material-icons-round">attach_file</span>
             <strong>Ajouter le rapport</strong>
-            <small>PDF uniquement</small>
+            <small>PDF uniquement — requis pour validation</small>
 
-            <input type="file" accept="application/pdf" @change="handleReportUpload" />
+            <input
+              type="file"
+              accept="application/pdf"
+              @change="handleReportUpload"
+            />
           </label>
 
           <p v-if="form.report" class="file-info">
             {{ form.report.name }}
+          </p>
+
+          <p v-else-if="props.initialStage?.reportUrl" class="file-info">
+            Rapport déjà ajouté.
           </p>
         </section>
       </aside>
@@ -308,6 +606,7 @@ h2 .material-icons-round {
 }
 
 .form-group {
+  position: relative;
   margin-bottom: 1rem;
 }
 
@@ -364,6 +663,160 @@ textarea:focus {
   border-color: #2f575d;
   background: #ffffff;
   box-shadow: 0 0 0 0.18rem rgba(47, 87, 93, 0.08);
+}
+
+input[readonly] {
+  color: #6d9197;
+  cursor: default;
+}
+
+.supervisor-meta {
+  color: #6d9197;
+  font-size: 0.86rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0;
+}
+
+.autocomplete-field {
+  position: relative;
+}
+
+.suggestions-list {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  max-height: 16.25rem;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #c4cdc1;
+  border-radius: 0.75rem;
+  box-shadow: 0 1rem 2.2rem rgba(40, 54, 61, 0.14);
+}
+
+.suggestions-list::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.suggestions-list::-webkit-scrollbar-track {
+  background: #f4f6f5;
+  border-radius: 999px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb {
+  background: #c4cdc1;
+  border-radius: 999px;
+}
+
+.suggestions-list::-webkit-scrollbar-thumb:hover {
+  background: #99aead;
+}
+
+.suggestion-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 0;
+  border-bottom: 1px solid #edf0ee;
+  background: #ffffff;
+  color: #28363d;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion-item:last-child {
+  border-bottom: 0;
+}
+
+.suggestion-item:hover {
+  background: #f8f9f8;
+}
+
+.suggestion-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: #edf2f0;
+  color: #2f575d;
+  font-weight: 800;
+}
+
+.suggestion-item strong,
+.suggestion-item small {
+  display: block;
+}
+
+.suggestion-item strong {
+  font-size: 0.9rem;
+}
+
+.suggestion-item small {
+  color: #6d9197;
+  font-size: 0.78rem;
+  margin-top: 0.12rem;
+}
+
+.existing-media-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.existing-media-list > span {
+  color: #6d9197;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.existing-media-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid #dee1dd;
+  border-radius: 0.7rem;
+  background: #f8f9f8;
+}
+
+.existing-media-item .material-icons-round {
+  color: #2f575d;
+  font-size: 1.1rem;
+}
+
+.existing-media-item strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #28363d;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.delete-media-btn {
+  width: 1.7rem;
+  height: 0rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #7d7c79a1;
+  cursor: pointer;
+  font-size: 1.2rem;
+  font-weight: 100;
+  line-height: 0.7;
 }
 
 .tech-tags {
@@ -465,6 +918,18 @@ textarea:focus {
   color: #6d9197;
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.submit-warning-card {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border: 1px solid #f4e8d1;
+  border-radius: 0.75rem;
+  background: #fffaf0;
+  color: #b87518;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .form-actions {

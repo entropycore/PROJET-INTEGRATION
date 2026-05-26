@@ -1,36 +1,67 @@
 <script setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { computed, onMounted, ref } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 import {
-  stages,
-  addStage,
-  updateStage,
-} from '@/mockData/studentStages.store'
+  getStudentStageById,
+  getStudentValidators,
+  createStudentStage,
+  deleteStudentStageImage,
+  updateStudentStage,
+  submitStudentStageValidation,
+  uploadStudentStageImages,
+  uploadStudentStageReport,
+} from "@/services/studentstageService";
 
-import StageForm from '@/components/student/stages/StageForm.vue'
+import StageForm from "@/components/student/stages/StageForm.vue";
 
-const route = useRoute()
-const router = useRouter()
+const route = useRoute();
+const router = useRouter();
 
-const isEditMode = computed(() => Boolean(route.params.id))
+const currentStage = ref(null);
+const validators = ref([]);
+const isEditMode = computed(() => Boolean(route.params.id));
+const isLoading = ref(true);
 
-const currentStage = computed(() => {
-  if (!isEditMode.value) return null
+const extractData = (response) => {
+  return response.data?.data || response.data;
+};
 
-  return stages.value.find((stage) => stage.id === route.params.id)
-})
+const fetchStage = async () => {
+  if (!isEditMode.value) return;
+
+  try {
+    const response = await getStudentStageById(route.params.id);
+    currentStage.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement stage :", error);
+  }
+};
+
+const fetchValidators = async () => {
+  try {
+    const response = await getStudentValidators();
+    validators.value = extractData(response);
+  } catch (error) {
+    console.error("Erreur chargement encadrants :", error);
+    validators.value = [];
+  }
+};
+
+onMounted(async () => {
+  isLoading.value = true;
+
+  await Promise.all([fetchStage(), fetchValidators()]);
+
+  isLoading.value = false;
+});
 
 const goBack = () => {
-  router.push('/student/stages')
-}
+  router.push("/student/stages");
+};
 
-const createLocalStage = (payload, validationStatus = 'DRAFT') => {
-  const today = new Date().toISOString().split('T')[0]
-
+const buildStagePayload = (payload) => {
   return {
-    id: isEditMode.value ? route.params.id : Date.now().toString(),
-
     title: payload.title,
     company: payload.company,
     duration: payload.duration,
@@ -40,143 +71,88 @@ const createLocalStage = (payload, validationStatus = 'DRAFT') => {
     missions: payload.missions,
     supervisor: payload.supervisor,
     technologies: payload.technologies,
-    visibility: payload.visibility,
-    validationStatus,
 
-    reportUrl: payload.report
-      ? URL.createObjectURL(payload.report)
-      : currentStage.value?.reportUrl || '',
+    // RÈGLE MÉTIER :
+    // À la création/modification du formulaire, le stage reste privé.
+    // La visibilité PUBLIC sera gérée seulement après validation APPROVED
+    // depuis la page détails.
+    visibility: currentStage.value?.visibility || "PRIVATE",
+  };
+};
 
-    images: payload.images?.length
-      ? payload.images.map((image, index) => ({
-          id: index + 1,
-          title: image.name,
-          url: URL.createObjectURL(image),
-        }))
-      : currentStage.value?.images || [],
+const handleSaveDraft = async (payload) => {
+  try {
+    const stagePayload = buildStagePayload(payload);
+    let stageId = route.params.id;
 
-    validationHistory: [
-      {
-        status: validationStatus,
-        comment:
-          validationStatus === 'PENDING'
-            ? 'Stage soumis pour validation.'
-            : 'Stage enregistré comme brouillon.',
-        createdAt: today,
-      },
-      ...(currentStage.value?.validationHistory || []),
-    ],
+    if (isEditMode.value) {
+      await updateStudentStage(stageId, stagePayload);
+    } else {
+      const response = await createStudentStage(stagePayload);
+      const createdStage = extractData(response);
+      stageId = createdStage.id;
+    }
 
-    createdAt: currentStage.value?.createdAt || today,
-    updatedAt: today,
+    if (payload.report) {
+      await uploadStudentStageReport(stageId, payload.report);
+    }
+
+    if (payload.images?.length) {
+      await uploadStudentStageImages(stageId, payload.images);
+    }
+
+    router.push("/student/stages");
+  } catch (error) {
+    console.error("Erreur sauvegarde brouillon :", error);
   }
-}
+};
 
-const handleSaveDraft = (payload) => {
-  /*
-  BACKEND PLUS TARD :
+const handleSubmitValidation = async (payload) => {
+  try {
+    const stagePayload = buildStagePayload(payload);
 
-  const formData = new FormData()
+    let stageId = route.params.id;
 
-  formData.append('title', payload.title)
-  formData.append('company', payload.company)
-  formData.append('duration', payload.duration)
-  formData.append('startDate', payload.startDate)
-  formData.append('endDate', payload.endDate)
-  formData.append('description', payload.description)
-  formData.append('missions', JSON.stringify(payload.missions))
-  formData.append('supervisor', JSON.stringify(payload.supervisor))
-  formData.append('technologies', JSON.stringify(payload.technologies))
-  formData.append('visibility', payload.visibility)
+    if (isEditMode.value) {
+      await updateStudentStage(stageId, stagePayload);
+    } else {
+      const response = await createStudentStage(stagePayload);
+      const createdStage = extractData(response);
+      stageId = createdStage.id;
+    }
 
-  if (payload.report) {
-    formData.append('report', payload.report)
+    if (payload.report) {
+      await uploadStudentStageReport(stageId, payload.report);
+    }
+
+    if (payload.images?.length) {
+      await uploadStudentStageImages(stageId, payload.images);
+    }
+
+    await submitStudentStageValidation(stageId);
+
+    router.push("/student/stages");
+  } catch (error) {
+    console.error("Erreur soumission validation :", error);
   }
+};
 
-  payload.images.forEach((image) => {
-    formData.append('images', image)
-  })
+const handleDeleteImage = async (imageId) => {
+  if (!route.params.id || !imageId) return;
 
-  if (isEditMode.value) {
-    await updateStudentStage(route.params.id, formData)
-  } else {
-    await createStudentStage(formData)
+  const confirmDelete = window.confirm(
+    "Voulez-vous vraiment supprimer cette capture ?",
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    await deleteStudentStageImage(route.params.id, imageId);
+    await fetchStage();
+  } catch (error) {
+    console.error("Erreur suppression capture de stage :", error);
   }
-
-  await fetchStages()
-  router.push('/student/stages')
-
-  À SUPPRIMER quand backend prêt :
-  - createLocalStage(...)
-  - addStage(...)
-  - updateStage(...)
-  */
-
-  const localStage = createLocalStage(payload, 'DRAFT')
-
-  if (isEditMode.value) {
-    updateStage(localStage)
-  } else {
-    addStage(localStage)
-  }
-
-  router.push('/student/stages')
-}
-
-const handleSubmitValidation = (payload) => {
-  /*
-  BACKEND PLUS TARD :
-
-  const formData = new FormData()
-
-  formData.append('title', payload.title)
-  formData.append('company', payload.company)
-  formData.append('duration', payload.duration)
-  formData.append('startDate', payload.startDate)
-  formData.append('endDate', payload.endDate)
-  formData.append('description', payload.description)
-  formData.append('missions', JSON.stringify(payload.missions))
-  formData.append('supervisor', JSON.stringify(payload.supervisor))
-  formData.append('technologies', JSON.stringify(payload.technologies))
-  formData.append('visibility', payload.visibility)
-
-  if (payload.report) {
-    formData.append('report', payload.report)
-  }
-
-  payload.images.forEach((image) => {
-    formData.append('images', image)
-  })
-
-  let stageId = route.params.id
-
-  if (isEditMode.value) {
-    await updateStudentStage(stageId, formData)
-  } else {
-    const response = await createStudentStage(formData)
-    stageId = response.data.id
-  }
-
-  await submitStudentStageValidation(stageId)
-  await fetchStages()
-  router.push('/student/stages')
-
-  À SUPPRIMER quand backend prêt :
-  - createLocalStage(...)
-  - addStage(...)
-  - updateStage(...)
-  */
-
-  const localStage = createLocalStage(payload, 'PENDING')
-
-  if (isEditMode.value) {
-    updateStage(localStage)
-  } else {
-    addStage(localStage)
-  }
-
-  router.push('/student/stages')
-}
+};
 </script>
 
 <template>
@@ -188,75 +164,102 @@ const handleSubmitValidation = (payload) => {
 
     <div class="page-header">
       <h1>
-        {{ isEditMode ? 'Modifier le stage' : 'Ajouter un stage' }}
+        {{ isEditMode ? "Modifier le stage" : "Ajouter un stage" }}
       </h1>
 
       <p>
         {{
           isEditMode
-            ? 'Mettez à jour les informations de votre stage.'
-            : 'Enregistrez les informations de votre stage. Il sera soumis à votre enseignant encadrant pour validation.'
+            ? "Mettez à jour les informations de votre stage."
+            : "Enregistrez les informations de votre stage. Il sera soumis à votre enseignant encadrant pour validation."
         }}
       </p>
     </div>
 
+    <div v-if="isLoading" class="loading-state">Chargement du stage...</div>
+
     <StageForm
+      v-else
       :initial-stage="currentStage"
+      :validators="validators"
       @save-draft="handleSaveDraft"
       @submit-validation="handleSubmitValidation"
+      @delete-image="handleDeleteImage"
     />
   </section>
 </template>
 
 <style scoped>
 .form-page {
+  width: 100%;
   padding: 0;
+  color: var(--app-text);
+  font-family: var(--app-font-body);
 }
 
 .back-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  margin-bottom: 0.9rem;
   border: none;
   background: transparent;
-  color: #2f575d;
-  font-size: 0.9rem;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
   font-weight: 700;
   cursor: pointer;
-  margin-bottom: 1.15rem;
+}
+
+.back-btn:hover {
+  color: var(--app-primary);
 }
 
 .back-btn .material-icons-round {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .page-header {
-  margin-bottom: 5rem;
+  margin-bottom: 2rem;
 }
 
-h1 {
-  color: #28363d;
-  font-size: 1.7rem;
-  line-height: 1.2;
-  font-weight: 800;
-  margin: 0.2rem 0 0.45rem;
-}
-
-p {
-  color: #6d9197;
-  font-size: 1rem;
-  line-height: 1.6;
+.page-header h1 {
   margin: 0;
-  max-width: 46rem;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.7rem, 2.4vw, var(--app-text-page));
+  font-weight: 400;
+  line-height: var(--app-leading-tight);
 }
 
-@media (max-width: 700px) {
-  h1 {
-    font-size: 1.65rem;
+.page-header p {
+  max-width: 46rem;
+  margin: 0.45rem 0 0;
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  line-height: var(--app-leading-normal);
+}
+
+.loading-state {
+  padding: 1.5rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
+  box-shadow: var(--app-shadow-card);
+}
+
+@media (max-width: 44rem) {
+  .page-header {
+    margin-bottom: 1rem;
   }
 
-  p {
-    font-size: 0.95rem;
+  .page-header h1 {
+    font-size: 1.65rem;
   }
 }
 </style>

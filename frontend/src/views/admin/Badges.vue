@@ -1,115 +1,169 @@
 <script setup>
-import { ref } from "vue";
-// import { onMounted } from "vue";
-import '../../assets/styles/admin-badges.css'
+import { onMounted, ref } from "vue";
+import {
+  createBadge,
+  deleteBadge,
+  getBadges,
+  updateBadge,
+} from "@/services/adminBadgesApi";
+import "../../assets/styles/admin-badges.css";
 
 /*
-  BACKEND À ACTIVER QUAND L’API SERA PRÊTE
+  BACKEND NOTE
 
-  APIs nécessaires :
+  Backend admin badges disponible :
   GET    /api/admin/badges
   POST   /api/admin/badges
   PUT    /api/admin/badges/:id
   DELETE /api/admin/badges/:id
 
-  Quand le backend sera prêt :
-  - décommenter les imports
-  - remplacer les mock data par const badges = ref([])
-  - décommenter fetchBadges() + onMounted(fetchBadges)
-  - dans handleSaveBadge(), activer createBadge/updateBadge
-  - dans handleDeleteBadge(), activer deleteBadge
-*/
-
-/*
-import {
-  getBadges,
-  createBadge,
-  updateBadge,
-  deleteBadge,
-} from "@/services/adminBadgesApi";
+  Limites temporaires :
+  - pas d'upload d'image pour l'instant ;
+  - iconUrl est une simple URL texte ;
+  - attributionCount n'est pas encore relie a une table d'attribution.
 */
 
 const loading = ref(false);
 const error = ref(null);
 
-const badges = ref([
-  {
-    id: 1,
-    name: "Web Developer",
-    description: "Badge pour les étudiants actifs en développement web.",
-    rule: "3 projets web validés (HTML, CSS, JS, PHP, Node.js)",
-    iconUrl: "",
-    iconFallback: "🌐",
-    tone: "blue",
-    attributionCount: 89,
-  },
-  {
-    id: 2,
-    name: "DevOps Explorer",
-    description: "Badge lié aux outils DevOps.",
-    rule: "Projet avec Docker + pipeline CI/CD + dépôt GitHub",
-    iconUrl: "",
-    iconFallback: "☁️",
-    tone: "cyan",
-    attributionCount: 34,
-  },
-  {
-    id: 3,
-    name: "Hackathon Participant",
-    description: "Badge pour participation aux événements.",
-    rule: "Participation à un hackathon avec attestation vérifiée",
-    iconUrl: "",
-    iconFallback: "👥",
-    tone: "purple",
-    attributionCount: 67,
-  },
-  {
-    id: 4,
-    name: "Full Stack Developer",
-    rule: "Projets frontend ET backend validés",
-    iconUrl: "",
-    iconFallback: "💠",
-    tone: "green",
-    attributionCount: 45,
-  },
-  {
-    id: 5,
-    name: "Security Aware",
-    rule: "Projet avec bonnes pratiques OWASP documentées",
-    iconUrl: "",
-    iconFallback: "🛡️",
-    tone: "red",
-    attributionCount: 22,
-  },
-  {
-    id: 6,
-    name: "AI / Data",
-    rule: "Projet en IA ou Data Science validé",
-    iconUrl: "",
-    iconFallback: "📊",
-    tone: "orange",
-    attributionCount: 18,
-  },
-]);
+const TEMP_ATTRIBUTION_COUNTS = {
+  "Web Developer": 89,
+  "DevOps Explorer": 34,
+  "Hackathon Participant": 67,
+  "Full Stack Developer": 45,
+  "Security Aware": 22,
+  "AI / Data": 18,
+};
 
-/*
+const MOCK_BADGES = [
+  {
+    id: "mock-web-developer",
+    name: "Web Developer",
+    description: "Badge pour les etudiants actifs en developpement web.",
+    rule: "Avoir au moins un projet web valide.",
+    iconFallback: "WD",
+    tone: "blue",
+  },
+  {
+    id: "mock-devops-explorer",
+    name: "DevOps Explorer",
+    description: "Badge lie aux outils DevOps et a l'integration continue.",
+    rule: "Avoir un projet avec pipeline, Docker ou workflow GitHub.",
+    iconFallback: "DX",
+    tone: "green",
+  },
+  {
+    id: "mock-hackathon-participant",
+    name: "Hackathon Participant",
+    description: "Badge attribue apres validation d'une participation.",
+    rule: "Declarer une activite de type hackathon validee.",
+    iconFallback: "HP",
+    tone: "purple",
+  },
+  {
+    id: "mock-full-stack-developer",
+    name: "Full Stack Developer",
+    description: "Badge pour les projets frontend ET backend valides.",
+    rule: "Projets frontend ET backend valides.",
+    iconFallback: "FS",
+    tone: "green",
+  },
+  {
+    id: "mock-security-aware",
+    name: "Security Aware",
+    description: "Badge pour les bonnes pratiques et la securite.",
+    rule: "Projet avec bonnes pratiques OWASP documentees.",
+    iconFallback: "SA",
+    tone: "red",
+  },
+  {
+    id: "mock-ai-data",
+    name: "AI / Data",
+    description: "Badge pour les projets en IA ou Data Science valides.",
+    rule: "Projet IA ou Data valide.",
+    iconFallback: "AI",
+    tone: "orange",
+  },
+];
+
+const FALLBACK_BADGE_ICON = "*";
+
+const BADGE_ICON_BY_NAME = {
+  "Web Developer": "terminal",
+  "DevOps Explorer": "cloud_sync",
+  "Hackathon Participant": "emoji_events",
+  "Full Stack Developer": "layers",
+  "Security Aware": "verified_user",
+  "AI / Data": "psychology",
+};
+
+const BADGE_ICON_BY_TONE = {
+  blue: "code_blocks",
+  cyan: "cloud_sync",
+  purple: "groups",
+  green: "layers",
+  red: "verified_user",
+  orange: "psychology",
+};
+
+const normalizeBadge = (badge) => ({
+  ...badge,
+  iconUrl: badge.iconUrl || "",
+  iconFallback: badge.iconFallback || FALLBACK_BADGE_ICON,
+  tone: badge.tone || "blue",
+  attributionCount:
+    badge.attributionCount ?? TEMP_ATTRIBUTION_COUNTS[badge.name] ?? 0,
+});
+
+const badges = ref([]);
+const useMockFallback = ref(false);
+
+const getBadgeIcon = (badge) => {
+  return (
+    BADGE_ICON_BY_NAME[badge.name] ||
+    BADGE_ICON_BY_TONE[badge.tone] ||
+    "workspace_premium"
+  );
+};
+
+const extractBadgeItems = (response) => {
+  if (Array.isArray(response)) return response;
+  if (Array.isArray(response?.items)) return response.items;
+  if (Array.isArray(response?.data?.items)) return response.data.items;
+  if (Array.isArray(response?.data)) return response.data;
+
+  return [];
+};
+
+const loadTemporaryBadges = () => {
+  useMockFallback.value = true;
+  badges.value = MOCK_BADGES.map(normalizeBadge);
+};
+
 const fetchBadges = async () => {
   loading.value = true;
   error.value = null;
+  useMockFallback.value = false;
 
   try {
     const response = await getBadges();
-    badges.value = response.items || [];
+    const items = extractBadgeItems(response);
+
+    if (items.length) {
+      badges.value = items.map(normalizeBadge);
+      return;
+    }
+
+    loadTemporaryBadges();
   } catch (e) {
     console.error("Erreur badges:", e);
-    error.value = "Impossible de charger les badges.";
+    loadTemporaryBadges();
   } finally {
     loading.value = false;
   }
 };
 
 onMounted(fetchBadges);
-*/
 
 const showCreateModal = ref(false);
 const isEditMode = ref(false);
@@ -119,8 +173,7 @@ const newBadge = ref({
   name: "",
   description: "",
   rule: "",
-  iconFile: null,
-  iconPreview: "",
+  iconUrl: "",
   tone: "blue",
 });
 
@@ -129,8 +182,7 @@ const resetForm = () => {
     name: "",
     description: "",
     rule: "",
-    iconFile: null,
-    iconPreview: "",
+    iconUrl: "",
     tone: "blue",
   };
 };
@@ -149,15 +201,6 @@ const closeCreateModal = () => {
   resetForm();
 };
 
-const handleIconUpload = (event) => {
-  const file = event.target.files?.[0];
-
-  if (!file) return;
-
-  newBadge.value.iconFile = file;
-  newBadge.value.iconPreview = URL.createObjectURL(file);
-};
-
 const handleEditBadge = (badge) => {
   isEditMode.value = true;
   selectedBadgeId.value = badge.id;
@@ -167,70 +210,58 @@ const handleEditBadge = (badge) => {
     name: badge.name,
     description: badge.description || "",
     rule: badge.rule,
-    iconFile: null,
-    iconPreview: badge.iconUrl || "",
+    iconUrl: badge.iconUrl || "",
     tone: badge.tone || "blue",
   };
 };
 
-const handleSaveBadge = async () => {
-  if (!newBadge.value.name || !newBadge.value.rule) {
-    alert("Veuillez remplir au moins le nom et la règle d’attribution.");
+const buildBadgePayload = () => ({
+  name: newBadge.value.name,
+  description: newBadge.value.description,
+  rule: newBadge.value.rule,
+  iconUrl: newBadge.value.iconUrl,
+  tone: newBadge.value.tone,
+});
+
+const upsertTemporaryBadge = (payload) => {
+  const localBadge = normalizeBadge({
+    id: selectedBadgeId.value || `local-${Date.now()}`,
+    ...payload,
+  });
+
+  if (isEditMode.value) {
+    badges.value = badges.value.map((badge) =>
+      badge.id === selectedBadgeId.value ? localBadge : badge,
+    );
     return;
   }
 
-  /*
-    BACKEND À ACTIVER PLUS TARD :
+  badges.value = [localBadge, ...badges.value];
+};
 
-    const formData = new FormData();
+const handleSaveBadge = async () => {
+  if (!newBadge.value.name || !newBadge.value.rule) {
+    alert("Veuillez remplir au moins le nom et la regle d'attribution.");
+    return;
+  }
 
-    formData.append("name", newBadge.value.name);
-    formData.append("description", newBadge.value.description);
-    formData.append("rule", newBadge.value.rule);
-    formData.append("tone", newBadge.value.tone);
+  const payload = buildBadgePayload();
 
-    if (newBadge.value.iconFile) {
-      formData.append("icon", newBadge.value.iconFile);
-    }
-
+  try {
     if (isEditMode.value) {
-      await updateBadge(selectedBadgeId.value, formData);
+      await updateBadge(selectedBadgeId.value, payload);
     } else {
-      await createBadge(formData);
+      await createBadge(payload);
     }
 
     await fetchBadges();
     closeCreateModal();
-    return;
-  */
-
-  if (isEditMode.value) {
-    badges.value = badges.value.map((badge) =>
-      badge.id === selectedBadgeId.value
-        ? {
-            ...badge,
-            name: newBadge.value.name,
-            description: newBadge.value.description,
-            rule: newBadge.value.rule,
-            iconUrl: newBadge.value.iconPreview,
-            tone: newBadge.value.tone,
-          }
-        : badge
-    );
-  } else {
-    badges.value.unshift({
-      id: Date.now(),
-      name: newBadge.value.name,
-      description: newBadge.value.description,
-      rule: newBadge.value.rule,
-      iconUrl: newBadge.value.iconPreview,
-      iconFallback: "🏅",
-      tone: newBadge.value.tone,
-      attributionCount: 0,
-    });
+  } catch (e) {
+    console.error("Erreur sauvegarde badge:", e);
+    useMockFallback.value = true;
+    upsertTemporaryBadge(payload);
+    closeCreateModal();
   }
-
-  closeCreateModal();
 };
 
 const handleDeleteBadge = async (id) => {
@@ -238,15 +269,14 @@ const handleDeleteBadge = async (id) => {
 
   if (!confirmed) return;
 
-  /*
-    BACKEND À ACTIVER PLUS TARD :
-
+  try {
     await deleteBadge(id);
     await fetchBadges();
-    return;
-  */
-
-  badges.value = badges.value.filter((badge) => badge.id !== id);
+  } catch (e) {
+    console.error("Erreur suppression badge:", e);
+    useMockFallback.value = true;
+    badges.value = badges.value.filter((badge) => badge.id !== id);
+  }
 };
 </script>
 
@@ -255,8 +285,8 @@ const handleDeleteBadge = async (id) => {
     <header class="page-header">
       <div>
         <span>ADMINISTRATION</span>
-        <h1>Système de badges</h1>
-        <p>Configurez les règles d’attribution automatique des badges</p>
+        <h1>Systeme de badges</h1>
+        <p>Configurez les regles d'attribution automatique des badges</p>
       </div>
 
       <button class="primary-btn" @click="handleNewBadge">
@@ -264,86 +294,95 @@ const handleDeleteBadge = async (id) => {
       </button>
     </header>
 
-    <div v-if="loading" class="state-box">
-      Chargement des badges...
-    </div>
+    <div v-if="loading" class="state-box">Chargement des badges...</div>
 
     <div v-else-if="error" class="state-box error">
       {{ error }}
     </div>
 
-    <div v-else class="badges-grid">
-      <article v-for="badge in badges" :key="badge.id" class="badge-card">
-        <div class="card-top">
-          <div class="badge-identity">
-            <div class="badge-icon" :class="badge.tone">
-              <img
-                v-if="badge.iconUrl"
-                :src="badge.iconUrl"
-                alt="Icône badge"
-              />
-              <span v-else>{{ badge.iconFallback }}</span>
-            </div>
+    <template v-else>
+      <div class="badges-grid">
+        <article v-for="badge in badges" :key="badge.id" class="badge-card">
+  <div class="badge-main">
+    <div class="badge-icon">
+      <img v-if="badge.iconUrl" :src="badge.iconUrl" alt="Icone badge" />
 
-            <h3>{{ badge.name }}</h3>
-          </div>
-
-          <div class="card-actions">
-            <button
-              class="edit-btn"
-              title="Modifier ce badge"
-              @click="handleEditBadge(badge)"
-            >
-              ✎
-            </button>
-
-            <button
-              class="delete-btn"
-              title="Supprimer ce badge"
-              @click="handleDeleteBadge(badge.id)"
-            >
-              🗑
-            </button>
-          </div>
-        </div>
-
-        <p class="description">
-          {{ badge.description }}
-        </p>
-
-        <p class="rule">
-          <strong>Règle :</strong> {{ badge.rule }}
-        </p>
-
-        <div class="divider"></div>
-
-        <p class="count">
-          🏆 {{ badge.attributionCount }} attributions
-        </p>
-      </article>
+      <span v-else class="material-icons-round">
+        {{ getBadgeIcon(badge) }}
+      </span>
     </div>
+
+    <div class="badge-copy">
+      <h3>{{ badge.name }}</h3>
+
+      <p class="description">
+        {{ badge.description || "Aucune description renseignée." }}
+      </p>
+    </div>
+  </div>
+
+  <div class="rule">
+    <span class="material-icons-round">verified_user</span>
+
+    <p>
+      <strong>Règle :</strong>
+      {{ badge.rule }}
+    </p>
+  </div>
+
+  <div class="badge-card-footer">
+    <p class="count">
+      <span class="material-icons-round">groups</span>
+      {{ badge.attributionCount }} attributions
+    </p>
+
+    <div class="card-actions">
+      <button
+        class="edit-btn"
+        title="Modifier ce badge"
+        @click="handleEditBadge(badge)"
+      >
+        <span class="material-icons-round">edit</span>
+      </button>
+
+      <button
+        class="delete-btn"
+        title="Supprimer ce badge"
+        @click="handleDeleteBadge(badge.id)"
+      >
+        <span class="material-icons-round">delete</span>
+      </button>
+    </div>
+  </div>
+</article>
+      </div>
+
+      <div v-if="useMockFallback" class="state-box temporary-note">
+        <span class="material-icons-round">info</span>
+        Mode temporaire : le backend badges ne renvoie pas encore de donnees
+        utilisables, donc l'affichage conserve des badges locaux.
+      </div>
+    </template>
 
     <div v-if="showCreateModal" class="modal-overlay">
       <div class="modal">
         <div class="modal-header">
           <h2>{{ isEditMode ? "Modifier le badge" : "Nouveau badge" }}</h2>
 
-          <button class="close-btn" @click="closeCreateModal">
-            ×
-          </button>
+          <button class="close-btn" @click="closeCreateModal">x</button>
         </div>
 
         <div class="form-group">
-          <label>Importer l’icône</label>
+          <label>URL de l'icone</label>
 
           <input
-            type="file"
-            accept=".svg,.png,.jpg,.jpeg"
-            @change="handleIconUpload"
+            v-model="newBadge.iconUrl"
+            type="text"
+            placeholder="https://exemple.com/badge.svg"
           />
 
-          <div v-if="newBadge.iconPreview" class="icon-preview">
-            <img :src="newBadge.iconPreview" alt="Aperçu icône" />
+          <div v-if="newBadge.iconUrl" class="icon-preview">
+            <img :src="newBadge.iconUrl" alt="Apercu icone" />
           </div>
         </div>
 
@@ -366,21 +405,19 @@ const handleDeleteBadge = async (id) => {
         </div>
 
         <div class="form-group">
-          <label>Règle d’attribution</label>
+          <label>Regle d'attribution</label>
           <textarea
             v-model="newBadge.rule"
             rows="4"
-            placeholder="Décrivez les critères..."
+            placeholder="Decrivez les criteres..."
           ></textarea>
         </div>
 
         <div class="modal-actions">
-          <button class="cancel-btn" @click="closeCreateModal">
-            Annuler
-          </button>
+          <button class="cancel-btn" @click="closeCreateModal">Annuler</button>
 
           <button class="create-btn" @click="handleSaveBadge">
-            {{ isEditMode ? "Enregistrer" : "+ Créer" }}
+            {{ isEditMode ? "Enregistrer" : "+ Creer" }}
           </button>
         </div>
       </div>

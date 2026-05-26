@@ -1,49 +1,36 @@
-import axios from "axios";
+import api from "./api";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const normalizeBaseApi = (baseApi = "") => {
+  const normalizedBaseApi = String(baseApi || "").replace(/\/$/, "");
+  return normalizedBaseApi.startsWith("/api")
+    ? normalizedBaseApi.slice(4) || "/"
+    : normalizedBaseApi;
+};
 
 export async function getNotifications(baseApi, params = {}) {
-  const res = await axios.get(`${API_URL}${baseApi}/notifications`, {
+  const res = await api.get(`${normalizeBaseApi(baseApi)}/notifications`, {
     params,
-    withCredentials: true,
   });
 
   return res.data.data;
 }
 
 export async function getUnreadCount(baseApi) {
-  const res = await axios.get(
-    `${API_URL}${baseApi}/notifications/unread-count`,
-    {
-      withCredentials: true,
-    }
+  const res = await api.get(
+    `${normalizeBaseApi(baseApi)}/notifications/unread-count`,
   );
 
   return res.data.data;
 }
 
 export async function markAsRead(baseApi, id) {
-  await axios.patch(
-    `${API_URL}${baseApi}/notifications/${id}/read`,
-    {},
-    {
-      withCredentials: true,
-    }
-  );
+  await api.patch(`${normalizeBaseApi(baseApi)}/notifications/${id}/read`, {});
 }
 
 export async function markAllAsRead(baseApi) {
-  await axios.patch(
-    `${API_URL}${baseApi}/notifications/read-all`,
-    {},
-    {
-      withCredentials: true,
-    }
-  );
+  await api.patch(`${normalizeBaseApi(baseApi)}/notifications/read-all`, {});
 }
 
 export async function deleteNotif(baseApi, id) {
-  await axios.delete(`${API_URL}${baseApi}/notifications/${id}`, {
-    withCredentials: true,
-  });
+  await api.delete(`${normalizeBaseApi(baseApi)}/notifications/${id}`);
 }
