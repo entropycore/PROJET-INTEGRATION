@@ -237,6 +237,7 @@ const handleDelete = async () => {
           <div>
             <h1>{{ fullName }}</h1>
             <p class="details-email">{{ user.email }}</p>
+            <p class="details-role">{{ roleTitle }}</p>
           </div>
         </div>
 
@@ -301,7 +302,7 @@ const handleDelete = async () => {
             </label>
             <label>
               Rôle
-              <input v-model="form.role" disabled />
+              <input :value="roleTitle" disabled />
             </label>
 
             <label>
