@@ -14,7 +14,6 @@ router.use(checkRoles('PROFESSOR'));
 
 router.get('/dashboard', professorController.getDashboard);
 router.get('/profile', professorController.getProfile);
-router.put('/profile', professorController.updateProfile);
 router.post(
   '/profile-picture',
   uploadProfilePicture,

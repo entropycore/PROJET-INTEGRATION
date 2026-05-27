@@ -1,7 +1,21 @@
 'use strict';
 
+const path = require('path');
+
 const { getProfilePicturePath } = require('../services/student/profilePictureStorage');
 const sendStoredFile = require('../utils/sendStoredFile');
+
+const imageMimeTypes = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+};
+
+const getImageMimeType = (fileName) => {
+  const extension = path.extname(String(fileName || '')).toLowerCase();
+  return imageMimeTypes[extension] || 'application/octet-stream';
+};
 
 exports.getProfilePicture = async (req, res, next) => {
   try {
@@ -11,7 +25,7 @@ exports.getProfilePicture = async (req, res, next) => {
       {
         target,
         downloadName: req.params.fileName || 'profile-picture',
-        mimeType: 'application/octet-stream',
+        mimeType: getImageMimeType(req.params.fileName),
       },
       next
     );
