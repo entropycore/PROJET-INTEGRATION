@@ -167,7 +167,7 @@ model UploadedFile {
   id              String    @id @default(uuid()) @map("id_uploaded_file")
   ownerUserId     String?   @map("owner_user_id")
   ownerUser       User?     @relation("UploadedFilesOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
-  storageProvider String    @default("s3") @map("storage_provider") @db.VarChar(50)
+  storageProvider String    @default("local") @map("storage_provider") @db.VarChar(50)
   bucket          String    @db.VarChar(120)
   objectKey       String    @unique @map("object_key") @db.Text
   originalName    String    @map("original_name") @db.VarChar(255)
