@@ -525,7 +525,7 @@ async function main() {
 
   await upsertBadge({
     name: 'Hackathon Participant',
-    description: 'Badge attribué après validation d'une participation à un hackathon.',
+    description: "Badge attribué après validation d'une participation à un hackathon.",
     rule: 'Une activité hackathon avec certificat valide.',
     tone: 'orange',
   });
