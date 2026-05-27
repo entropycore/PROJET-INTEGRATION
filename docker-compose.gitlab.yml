@@ -1,0 +1,56 @@
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab_ce
+
+    restart: unless-stopped
+
+    hostname: gitlab.local
+
+    env_file:
+      - .env.gitlab
+
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:${GITLAB_HTTP_PORT}'
+
+    ports:
+      - "${GITLAB_HTTP_PORT}:8929"
+      - "${GITLAB_SSH_PORT}:22"
+
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+
+    shm_size: '256m'
+
+    networks:
+      - gitlab_net
+
+  gitlab_runner:
+    image: gitlab/gitlab-runner:latest
+
+    container_name: gitlab_runner
+
+    restart: unless-stopped
+
+    depends_on:
+      - gitlab
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gitlab_runner_config:/etc/gitlab-runner
+
+    networks:
+      - gitlab_net
+
+volumes:
+  gitlab_config:
+  gitlab_logs:
+  gitlab_data:
+  gitlab_runner_config:
+
+networks:
+  gitlab_net:
+    driver: bridge

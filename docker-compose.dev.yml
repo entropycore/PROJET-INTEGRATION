@@ -48,15 +48,29 @@ services:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
       DIRECT_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
       PORT: 3000
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      LOCAL_UPLOAD_DIR: /app/uploads
+      UPLOAD_MAX_MB: ${UPLOAD_MAX_MB:-10}
+      UPLOAD_ALLOWED_MIME_TYPES: ${UPLOAD_ALLOWED_MIME_TYPES:-application/msword,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/gif,image/jpeg,image/png,image/webp,text/plain}
+      S3_BUCKET: ${S3_BUCKET:-student-uploads}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+      S3_PUBLIC_BASE_URL: ${S3_PUBLIC_BASE_URL:-}
+      STORAGE_AUTO_CREATE_BUCKET: ${STORAGE_AUTO_CREATE_BUCKET:-false}
+      STORAGE_BUCKET_PUBLIC_READ: ${STORAGE_BUCKET_PUBLIC_READ:-false}
+      SIGNED_URL_TTL_SECONDS: ${SIGNED_URL_TTL_SECONDS:-300}
 
     command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev"
 
     ports:
       - "${BACKEND_PORT:-3000}:3000"
 
-    # seulement node_modules en volume
     volumes:
       - backend_node_modules:/app/node_modules
+      - backend_uploads:/app/uploads
 
     networks:
       - credencia_net
@@ -70,8 +84,8 @@ services:
             - node_modules/
             - dist/
             - .git/
-            - prisma/ 
-            
+            - prisma/
+
         - action: rebuild
           path: ./backend/prisma/schema.prisma
 
@@ -98,12 +112,11 @@ services:
     environment:
       VITE_API_BASE_URL: http://localhost:${BACKEND_PORT:-3000}
 
-    command: npm run dev -- --host
+    command: npm run dev -- --host 0.0.0.0
 
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
 
-    # seulement node_modules en volume
     volumes:
       - frontend_node_modules:/app/node_modules
 
@@ -129,8 +142,150 @@ services:
 volumes:
   postgres_data:
   backend_node_modules:
+  backend_uploads:
   frontend_node_modules:
 
 networks:
   credencia_net:
     driver: bridge
+
+
+
+#Ancienne version 
+
+# services:
+#   db:
+#     image: postgres:15-alpine
+#     container_name: base_donnees
+#     restart: unless-stopped
+
+#     env_file:
+#       - .env
+
+#     environment:
+#       POSTGRES_USER: ${DB_USER}
+#       POSTGRES_PASSWORD: ${DB_PASSWORD}
+#       POSTGRES_DB: ${DB_NAME}
+
+#     ports:
+#       - "${DB_PORT:-5433}:5432"
+
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+#       interval: 10s
+#       timeout: 5s
+#       retries: 5
+#       start_period: 30s
+
+#     networks:
+#       - credencia_net
+
+#   backend:
+#     build:
+#       context: ./backend
+#       dockerfile: Dockerfile
+
+#     container_name: dev_back
+#     restart: unless-stopped
+
+#     depends_on:
+#       db:
+#         condition: service_healthy
+
+#     env_file:
+#       - .env
+
+#     environment:
+#       NODE_ENV: development
+#       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
+#       DIRECT_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
+#       PORT: 3000
+
+#     command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev"
+
+#     ports:
+#       - "${BACKEND_PORT:-3000}:3000"
+
+#     # seulement node_modules en volume
+#     volumes:
+#       - backend_node_modules:/app/node_modules
+
+#     networks:
+#       - credencia_net
+
+#     develop:
+#       watch:
+#         - action: sync
+#           path: ./backend
+#           target: /app
+#           ignore:
+#             - node_modules/
+#             - dist/
+#             - .git/
+#             - prisma/ 
+            
+#         - action: rebuild
+#           path: ./backend/prisma/schema.prisma
+
+#         - action: rebuild
+#           path: ./backend/package.json
+
+#         - action: rebuild
+#           path: ./backend/package-lock.json
+
+#   frontend:
+#     build:
+#       context: ./frontend
+#       dockerfile: Dockerfile
+
+#     container_name: dev_front
+#     restart: unless-stopped
+
+#     depends_on:
+#       - backend
+
+#     env_file:
+#       - .env
+
+#     environment:
+#       VITE_API_BASE_URL: http://localhost:${BACKEND_PORT:-3000}
+
+#     command: npm run dev -- --host
+
+#     ports:
+#       - "${FRONTEND_PORT:-5173}:5173"
+
+#     # seulement node_modules en volume
+#     volumes:
+#       - frontend_node_modules:/app/node_modules
+
+#     networks:
+#       - credencia_net
+
+#     develop:
+#       watch:
+#         - action: sync
+#           path: ./frontend
+#           target: /app
+#           ignore:
+#             - node_modules/
+#             - dist/
+#             - .git/
+
+#         - action: rebuild
+#           path: ./frontend/package.json
+
+#         - action: rebuild
+#           path: ./frontend/package-lock.json
+
+# volumes:
+#   postgres_data:
+#   backend_node_modules:
+#   frontend_node_modules:
+
+# networks:
+#   credencia_net:
+#     driver: bridge
