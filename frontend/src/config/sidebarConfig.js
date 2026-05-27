@@ -172,6 +172,11 @@ export const sidebarConfig = {
           path: "/professor/notifications",
           icon: "notifications",
         },
+        {
+          label: "Paramètres",
+          path: "/professor/settings",
+          icon: "settings",
+        },
       ],
     },
   ],
