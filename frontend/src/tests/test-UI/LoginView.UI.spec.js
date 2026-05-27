@@ -84,7 +84,7 @@ describe('Tests UI & Logique - Page de Connexion', () => {
     await flushPromises()
   })
 
-  it("doit naviguer vers la demande d'accès via le lien dedie", async () => {
+  it("doit naviguer vers la demande d'acces via le lien dedie", async () => {
     await wrapper.find('.access-request-link').trigger('click')
     expect(mockRouter.push).toHaveBeenCalledWith('/request-access')
   })

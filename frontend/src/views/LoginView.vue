@@ -17,7 +17,7 @@ const successMessage = ref('')
 const isLoading = ref(false)
 const showPassword = ref(false)
 
-watch( //j'observe si l'user n'est pas autorisé(cas de /admin dans l'url)
+watch( //j'observe si l'user n'est pas autorise(cas de /admin dans l'url)
   () => route.query.error,
   (error) => {
     if (error === 'unauthorized') {
