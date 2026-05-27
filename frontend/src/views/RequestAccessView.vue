@@ -88,7 +88,7 @@ const handleSubmit = async () => {
 
     successMessage.value =
       response?.message ||
-      "Demande envoyee. Veuillez verifier votre boite de reception pour valider votre email."
+      "Demande envoyée. Veuillez vérifier votre boîte de réception pour valider votre email."
   } catch (error) {
     errorMessage.value = getRequestAccessErrorMessage(error)
   } finally {

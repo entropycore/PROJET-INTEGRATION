@@ -44,11 +44,11 @@ const mockCheckRole = (role) => (req, res, next) => {
 
 const dashboardMethod = studentController.getDashboard || 
                         studentController.getStudentDashboard || 
-                        (async (req, res) => res.status(200).json({ success: true, message: 'Tableau de bord etudiant charge.', data: { area: 'student' } }));
+                        (async (req, res) => res.status(200).json({ success: true, message: 'Tableau de bord étudiant chargé.', data: { area: 'student' } }));
 
 const profileMethod = studentController.getProfile || 
                       studentController.getStudentProfile || 
-                      (async (req, res) => res.status(200).json({ success: true, message: 'Profil etudiant charge.', data: { user: { userId: 'stu-007' } } }));
+                      (async (req, res) => res.status(200).json({ success: true, message: 'Profil étudiant chargé.', data: { user: { userId: 'stu-007' } } }));
 
 app.get('/api/student/dashboard', mockAuth, mockCheckRole('STUDENT'), dashboardMethod);
 app.get('/api/student/profile', mockAuth, mockCheckRole('STUDENT'), profileMethod);

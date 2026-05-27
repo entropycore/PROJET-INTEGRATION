@@ -71,7 +71,7 @@ describe('NotAuthorized - Test UI', () => {
     expect(message.text()).toContain('Votre compte est bien reconnu')
   })
 
-  it("devrait verifier que le conteneur d'actions utilise le Flexbox (via classes)", () => {
+  it("devrait vérifier que le conteneur d'actions utilise le Flexbox (via classes)", () => {
     const actions = wrapper.find('.forbidden-actions')
     expect(actions.exists()).toBe(true)
     expect(actions.element).toBeTruthy()

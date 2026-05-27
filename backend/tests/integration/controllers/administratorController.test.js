@@ -61,7 +61,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
             const res = await request(app).patch('/api/admin/professional-requests/user-789/approve');
 
             expect(res.statusCode).toBe(409); // Conflit de logique métier
-            expect(res.body.message).toMatch(/doit etre verifie/i);
+            expect(res.body.message).toMatch(/doit être vérifié/i);
         });
 
         test('TC-ADM-06 : Erreur si la demande a déjà été approuvée auparavant', async () => {
@@ -71,7 +71,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
             const res = await request(app).patch('/api/admin/professional-requests/user-789/approve');
 
             expect(res.statusCode).toBe(409);
-            expect(res.body.message).toMatch(/deja ete approuvee/i);
+            expect(res.body.message).toMatch(/déjà été approuvée/i);
         });
 
         test('TC-ADM-07 : Rejet d\'une demande avec un motif de refus spécifié', async () => {
@@ -82,7 +82,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
                 .patch('/api/admin/professional-requests/user-789/reject')
                 .send({ rejectionReason: 'Documents non valides' });
             expect(res.statusCode).toBe(200);
-            expect(res.body.message).toMatch(/Demande professionnelle rejetee/i);
+            expect(res.body.message).toMatch(/Demande professionnelle rejetée/i);
         });
     });
 

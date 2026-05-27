@@ -130,7 +130,7 @@ const mapValidationTitle = (decision) => {
   const titles = {
     PENDING: 'Projet soumis',
     APPROVED: 'Projet valide',
-    REJECTED: 'Projet refuse',
+    REJECTED: 'Projet refusé',
     CHANGES_REQUESTED: 'Corrections demandees',
   };
 

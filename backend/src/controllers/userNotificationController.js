@@ -31,7 +31,7 @@ exports.listNotifications = async (req, res) =>
   success(
     res,
     200,
-    'Notifications recuperees.',
+    'Notifications récupérées.',
     emptyNotificationPage(
       parsePositiveInt(req.query.page, 1),
       parsePositiveInt(req.query.limit, 10)
@@ -39,25 +39,25 @@ exports.listNotifications = async (req, res) =>
   );
 
 exports.getUnreadCount = async (_req, res) =>
-  success(res, 200, 'Nombre de notifications non lues recupere.', { count: 0 });
+  success(res, 200, 'Nombre de notifications non lues récupéré.', { count: 0 });
 
 exports.getMyUnreadNotifications = async (_req, res) =>
-  success(res, 200, 'Notifications non lues recuperees.', { count: 0, items: [] });
+  success(res, 200, 'Notifications non lues récupérées.', { count: 0, items: [] });
 
 exports.markAsRead = async (req, res) =>
-  success(res, 200, 'Notification marquee comme lue.', {
+  success(res, 200, 'Notification marquée comme lue.', {
     updated: true,
     notificationId: req.params.notificationId,
   });
 
 exports.markAllAsRead = async (_req, res) =>
-  success(res, 200, 'Toutes les notifications ont ete marquees comme lues.', {
+  success(res, 200, 'Toutes les notifications ont été marquées comme lues.', {
     updatedCount: 0,
     readAt: new Date(),
   });
 
 exports.deleteNotification = async (req, res) =>
-  success(res, 200, 'Notification supprimee.', {
+  success(res, 200, 'Notification supprimée.', {
     deleted: true,
     notificationId: req.params.notificationId,
   });
