@@ -1,9 +1,15 @@
 'use strict';
 
+const prisma = require('../../config/prisma');
 const { getProfessorByUserId } = require('./data');
 const { formatFullName } = require('./helpers');
 const { mapProfessorSnapshot, mapUserSummary } = require('./mappers');
 const { professorProfileSelect } = require('./selects');
+const {
+  deleteProfilePicture,
+  getStoragePathFromUrl,
+  storeProfilePicture,
+} = require('../student/profilePictureStorage');
 
 const mapProfileInternship = (internship) => ({
   id: internship.id,
@@ -73,6 +79,87 @@ const getProfessorProfile = async (userId) => {
   };
 };
 
+const readRequiredText = (value, fallback, errorCode) => {
+  const normalized = String(value ?? fallback ?? '').trim();
+
+  if (!normalized) {
+    throw new Error(errorCode);
+  }
+
+  return normalized;
+};
+
+const readOptionalText = (value, fallback) => {
+  if (value === undefined) return fallback;
+
+  const normalized = String(value || '').trim();
+  return normalized || null;
+};
+
+const updateProfessorProfile = async (userId, payload = {}) => {
+  const professor = await getProfessorByUserId(userId, professorProfileSelect);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: professor.user.id },
+      data: {
+        firstName: readRequiredText(
+          payload.firstName,
+          professor.user.firstName,
+          'PROFESSOR_PROFILE_REQUIRED_FIELDS',
+        ),
+        lastName: readRequiredText(
+          payload.lastName,
+          professor.user.lastName,
+          'PROFESSOR_PROFILE_REQUIRED_FIELDS',
+        ),
+        phone: readOptionalText(payload.phone, professor.user.phone),
+      },
+    }),
+    prisma.professor.update({
+      where: { id: professor.id },
+      data: {
+        grade: readOptionalText(payload.grade, professor.grade),
+        specialty: readOptionalText(payload.specialty, professor.specialty),
+        department: readOptionalText(payload.department, professor.department),
+      },
+    }),
+  ]);
+
+  return getProfessorProfile(userId);
+};
+
+const updateProfessorProfilePicture = async (userId, file) => {
+  if (!file) {
+    throw new Error('PROFILE_PICTURE_UPLOAD_EMPTY');
+  }
+
+  const professor = await getProfessorByUserId(userId);
+  const oldStoragePath = getStoragePathFromUrl(professor.user.profilePicture);
+  const storedFile = await storeProfilePicture(file);
+
+  try {
+    await prisma.user.update({
+      where: { id: professor.user.id },
+      data: { profilePicture: storedFile.publicUrl },
+    });
+  } catch (err) {
+    await deleteProfilePicture(storedFile.storagePath);
+    throw err;
+  }
+
+  await deleteProfilePicture(oldStoragePath);
+
+  return {
+    profilePicture: storedFile.publicUrl,
+    fileName: storedFile.fileName,
+    mimeType: storedFile.mimeType,
+    fileSize: storedFile.fileSize,
+  };
+};
+
 module.exports = {
   getProfessorProfile,
+  updateProfessorProfile,
+  updateProfessorProfilePicture,
 };

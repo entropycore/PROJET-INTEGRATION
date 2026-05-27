@@ -111,7 +111,7 @@ exports.verifyEmailToken = async (token) => {
   return true;
 };
 
-// Demande de reinitialisation de mot de passe
+// Demande de réinitialisation de mot de passe
 exports.requestPasswordReset = async (email) => {
   const user = await prisma.user.findUnique({
     where: { email },
@@ -145,8 +145,8 @@ exports.requestPasswordReset = async (email) => {
   try {
     await sendEmail(
       user.email,
-      'Reinitialisation du mot de passe',
-      `Bonjour ${user.firstName},\n\nVous avez demande une reinitialisation de mot de passe.\n\nCliquez ici pour definir un nouveau mot de passe :\n${resetUrl}\n\nSi vous n'etes pas a l'origine de cette demande, vous pouvez ignorer cet email.`
+      'Réinitialisation du mot de passe',
+      `Bonjour ${user.firstName},\n\nVous avez demandé une réinitialisation de mot de passe.\n\nCliquez ici pour définir un nouveau mot de passe :\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.`
     );
   } catch (err) {
     throw new Error('EMAIL_SEND_FAILED', { cause: err });
@@ -155,7 +155,7 @@ exports.requestPasswordReset = async (email) => {
   return true;
 };
 
-// Reinitialisation de mot de passe
+// Réinitialisation de mot de passe
 exports.resetPassword = async (token, newPassword) => {
   let decoded;
 

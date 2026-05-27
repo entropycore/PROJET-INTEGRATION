@@ -111,7 +111,7 @@ exports.uploadObject = async ({ objectKey, buffer, mimeType, metadata = {} }) =>
       Key: objectKey,
       Body: buffer,
       ContentType: mimeType,
-      Metadata: metadata,
+      Métadonnées: metadata,
     })
   );
 
