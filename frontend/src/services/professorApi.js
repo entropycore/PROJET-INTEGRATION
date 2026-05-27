@@ -10,6 +10,44 @@ export const getProfessorProfile = async () => {
   return response.data.data;
 };
 
+export const updateProfessorProfile = async (payload) => {
+  const response = await api.put("/professor/profile", payload);
+  return response.data.data;
+};
+
+export const uploadProfessorProfilePicture = async (file) => {
+  const formData = new FormData();
+  formData.append("profilePicture", file);
+
+  const response = await api.post("/professor/profile-picture", formData);
+  return response.data.data;
+};
+
+export const getProfessorSettings = async () => {
+  const response = await api.get("/professor/settings");
+  return response.data.data;
+};
+
+export const updateProfessorPassword = async (payload) => {
+  const response = await api.put("/professor/settings/password", payload);
+  return response.data.data;
+};
+
+export const updateProfessorPrivacy = async (payload) => {
+  const response = await api.put("/professor/settings/privacy", payload);
+  return response.data.data;
+};
+
+export const updateProfessorNotifications = async (payload) => {
+  const response = await api.put("/professor/settings/notifications", payload);
+  return response.data.data;
+};
+
+export const sendProfessorPasswordReset = async (email) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
 export const getProfessorValidations = async (params = {}) => {
   const response = await api.get("/professor/validations", { params });
   return response.data.data;
