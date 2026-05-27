@@ -18,7 +18,7 @@ const isLoading = ref(false);
 const screenshotObjectUrls = ref({});
 const brokenScreenshotIds = ref(new Set());
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 const statusLabels = {
   DRAFT: "Brouillon",

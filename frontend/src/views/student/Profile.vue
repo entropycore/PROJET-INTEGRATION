@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useAuthStore } from "../../stores/auth";
+import { buildBackendUrl } from "../../services/backendUrl";
 import {
   getStudentProfile,
   updateStudentProfile,
+  uploadStudentProfilePicture,
   getAcademicPaths,
   addAcademicPath,
   deleteAcademicPath,
@@ -26,6 +28,8 @@ const isEditing = ref(false);
 const showAddPath = ref(false);
 const showAddSkill = ref(false);
 const newSkillName = ref("");
+const pictureInput = ref(null);
+const isUploadingPicture = ref(false);
 
 const careerGoals = [
   { value: "WEB_DEVELOPER", label: "Développeur Web" },
@@ -211,6 +215,51 @@ const handleDeleteSkill = async (id) => {
   }
 };
 
+const openPicturePicker = () => {
+  pictureInput.value?.click();
+};
+
+const handleProfilePictureChange = async (event) => {
+  const file = event.target.files?.[0];
+
+  if (!file) return;
+
+  errorMessage.value = "";
+  successMessage.value = "";
+
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    errorMessage.value = "Format image non autorise. Utilisez JPG, PNG ou WebP.";
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > 3 * 1024 * 1024) {
+    errorMessage.value = "La photo doit faire moins de 3 Mo.";
+    event.target.value = "";
+    return;
+  }
+
+  isUploadingPicture.value = true;
+
+  try {
+    const response = await uploadStudentProfilePicture(file);
+    const data = unwrapData(response);
+
+    profile.value = {
+      ...profile.value,
+      profilePicture: data?.profilePicture || profile.value.profilePicture,
+    };
+
+    successMessage.value = "Photo de profil mise a jour.";
+  } catch (error) {
+    errorMessage.value =
+      error?.response?.data?.message || "Erreur upload photo de profil.";
+  } finally {
+    isUploadingPicture.value = false;
+    event.target.value = "";
+  }
+};
+
 const getInitials = (fn, ln) =>
   `${fn?.[0] || ""}${ln?.[0] || ""}`.toUpperCase();
 
@@ -244,7 +293,14 @@ onMounted(loadAll);
         <div class="content-card">
           <div class="avatar-row">
             <div class="profile-avatar">
-              {{ getInitials(profile.firstName, profile.lastName) }}
+              <img
+                v-if="profile.profilePicture"
+                :src="buildBackendUrl(profile.profilePicture)"
+                alt=""
+              />
+              <span v-else>
+                {{ getInitials(profile.firstName, profile.lastName) }}
+              </span>
             </div>
             <div>
               <div class="profile-name">
@@ -255,6 +311,24 @@ onMounted(loadAll);
                 <span class="badge badge-info"
                   >{{ profile.field }} {{ profile.level }}</span
                 >
+              </div>
+              <div class="avatar-actions">
+                <input
+                  ref="pictureInput"
+                  class="visually-hidden"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  @change="handleProfilePictureChange"
+                />
+                <button
+                  class="btn btn-secondary btn-sm"
+                  type="button"
+                  :disabled="isUploadingPicture"
+                  @click="openPicturePicker"
+                >
+                  <span class="material-icons-round">photo_camera</span>
+                  {{ isUploadingPicture ? "Upload..." : "Changer photo" }}
+                </button>
               </div>
             </div>
           </div>
@@ -568,6 +642,26 @@ onMounted(loadAll);
   font-family: "DM Serif Display", serif;
   color: #fff;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-actions {
+  margin-top: 8px;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .profile-name {
   font-size: 20px;
@@ -777,6 +871,10 @@ onMounted(loadAll);
 }
 .btn-danger:hover {
   background: #fff5f5;
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .btn-sm {
   padding: 6px 12px;
