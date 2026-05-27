@@ -27,12 +27,16 @@ jest.mock('../../../src/middlewares/checkRoles', () => () => (req, res, next) =>
 describe('INTEGRATION TEST: Administrator Controller - Professional Requests Management', () => {
 
     describe('Section A: Gestion des listes et filtres', () => {
-        
+
         test('TC-ADM-01 : Récupération réussie de la liste des demandes en attente', async () => {
             // BUT: Vérifier que l'admin peut lister les demandes avec le statut par défaut (PENDING)
             administratorService.listProfessionalRequests.mockResolvedValue([{ id: 1, status: 'PENDING' }]);
 
             const res = await request(app).get('/api/admin/professional-requests?status=PENDING');
+
+            //console.log('--- QA DEBUG START ---');
+            //console.log(Object.keys(res.body.data)); // va donner les infos qui ont dadata
+            //console.log('--- QA DEBUG END ---');
 
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
@@ -75,7 +79,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
             administratorService.rejectProfessionalRequest.mockResolvedValue({ id: 789, status: 'REJECTED' });
 
             const res = await request(app)
-               .patch('/api/admin/professional-requests/user-789/reject')
+                .patch('/api/admin/professional-requests/user-789/reject')
                 .send({ rejectionReason: 'Documents non valides' });
             expect(res.statusCode).toBe(200);
             expect(res.body.message).toMatch(/Demande professionnelle rejetée/i);

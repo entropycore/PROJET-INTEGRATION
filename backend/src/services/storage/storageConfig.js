@@ -13,7 +13,7 @@ const parseInteger = (value, defaultValue) => {
 };
 
 const normalizeDriver = (value) => {
-  const driver = String(value || 's3').toLowerCase();
+  const driver = String(value || 'local').toLowerCase();
   return driver === 'local' ? 'local' : 's3';
 };
 
