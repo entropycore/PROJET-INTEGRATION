@@ -16,12 +16,12 @@ const flushPromises = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0))
 }
 
-describe("Tests Unitaires - Page Demande d'accès", () => {
+describe("Tests Unitaires - Page Demande d'acces", () => {
   let wrapper
 
   beforeEach(() => {
     vi.clearAllMocks()
-    requestAccessMock.mockResolvedValue({ message: 'Demande envoyée.' })
+    requestAccessMock.mockResolvedValue({ message: 'Demande envoyee.' })
 
     wrapper = mount(RequestAccessPage, {
       global: {
@@ -60,7 +60,7 @@ describe("Tests Unitaires - Page Demande d'accès", () => {
     expect(passwordInput.attributes('type')).toBe('text')
   })
 
-  it('doit afficher un message de succès apres une soumission valide', async () => {
+  it('doit afficher un message de succes apres une soumission valide', async () => {
     await wrapper.find('#lastName').setValue('Berrada')
     await wrapper.find('#firstName').setValue('Amina')
     await wrapper.find('#email').setValue('amina@email.ma')
@@ -73,6 +73,6 @@ describe("Tests Unitaires - Page Demande d'accès", () => {
 
     const success = wrapper.find('.success-message')
     expect(success.exists()).toBe(true)
-    expect(success.text()).toContain('Demande envoyée.')
+    expect(success.text()).toContain('Demande envoyee.')
   })
 })
