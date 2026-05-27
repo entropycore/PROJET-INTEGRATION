@@ -16,6 +16,14 @@ const PROJECT_TYPE_BY_LABEL = {
   Stage: 'INTERNSHIP',
 };
 
+const PROJECT_TYPE_BY_NORMALIZED_LABEL = {
+  module: 'MODULE',
+  integration: 'INTEGRATION',
+  hackathon: 'HACKATHON',
+  personnel: 'PERSONAL',
+  stage: 'INTERNSHIP',
+};
+
 const projectSelect = {
   id: true,
   studentId: true,
@@ -41,6 +49,8 @@ const projectSelect = {
       mediaUrl: true,
       description: true,
       fileName: true,
+      mimeType: true,
+      fileSize: true,
       storagePath: true,
     },
   },
@@ -100,7 +110,15 @@ const normalizeProjectType = (type) => {
   if (!type) return 'MODULE';
   if (PROJECT_TYPE_LABELS[type]) return type;
 
-  const normalized = PROJECT_TYPE_BY_LABEL[type];
+  const normalized =
+    PROJECT_TYPE_BY_LABEL[type] ||
+    PROJECT_TYPE_BY_NORMALIZED_LABEL[
+      String(type)
+        .trim()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+    ];
   if (!normalized) {
     throw new Error('INVALID_PROJECT_TYPE');
   }
@@ -164,16 +182,33 @@ const splitProjectMedia = (media) => {
       name: item.fileName || item.description || 'Piece jointe',
       type: mediaType || 'ATTACHMENT',
       url: item.mediaUrl,
+      mimeType: item.mimeType || '',
+      fileSize: item.fileSize || null,
     });
   });
 
   return bucket;
 };
 
+const mapValidator = (validator) =>
+  validator
+    ? {
+        id: validator.id,
+        fullName: formatFullName(validator.user),
+        department: validator.department || '',
+      }
+    : null;
+
 const mapProjectRecord = (project) => {
   const latestValidation = project.validations[0] || null;
   const validator = project.validatorProfessor || latestValidation?.professor || null;
   const media = splitProjectMedia(project.media);
+  const validatorData = mapValidator(validator);
+  const validationComment =
+    project.generalFeedback ||
+    latestValidation?.professorFeedback ||
+    latestValidation?.comment ||
+    '';
 
   return {
     id: project.id,
@@ -195,28 +230,25 @@ const mapProjectRecord = (project) => {
     screenshots: media.screenshots,
     attachments: media.attachments,
     result: project.result || '',
-    feedback: project.generalFeedback || latestValidation?.comment || '',
-    validator: validator
-      ? {
-          id: validator.id,
-          fullName: formatFullName(validator.user),
-          department: validator.department || '',
-        }
-      : null,
-    validationHistory: project.validations.map((validation) => ({
-      id: validation.id,
-      title: mapValidationTitle(validation.decision),
-      status: validation.decision,
-      comment: validation.comment || validation.professorFeedback || '',
-      createdAt: validation.decisionDate,
-      validator: validation.professor
-        ? {
-            id: validation.professor.id,
-            fullName: formatFullName(validation.professor.user),
-            department: validation.professor.department || '',
-          }
-        : null,
-    })),
+    feedback: validationComment,
+    validationComment,
+    validator: validatorData,
+    validatorId: validatorData?.id || '',
+    validatorName: validatorData?.fullName || '',
+    validationHistory: project.validations.map((validation) => {
+      const validationProfessor = mapValidator(validation.professor);
+
+      return {
+        id: validation.id,
+        title: mapValidationTitle(validation.decision),
+        status: validation.decision,
+        comment: validation.comment || validation.professorFeedback || '',
+        createdAt: validation.decisionDate,
+        validator: validationProfessor,
+        actorName: validationProfessor?.fullName || 'Validateur',
+        actorRole: 'Validateur academique',
+      };
+    }),
   };
 };
 

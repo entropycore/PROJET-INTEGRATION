@@ -13,7 +13,7 @@ const sendEmail = async (to, subject, text) => {
     });
 
     const mailOptions = {
-      from: `"ValiDia Support" <${process.env.EMAIL_USER}>`,
+      from: `"Credencia Support" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
       text: text,
