@@ -4,30 +4,19 @@ import { computed, onMounted, ref } from "vue";
 import { buildBackendUrl } from "@/services/backendUrl";
 import {
   getProfessorProfile,
-  updateProfessorProfile,
   uploadProfessorProfilePicture,
 } from "@/services/professorApi";
 import { useAuthStore } from "@/stores/auth";
 
 const profile = ref(null);
 const isLoading = ref(true);
-const isSaving = ref(false);
-const isEditing = ref(false);
 const isUploadingPicture = ref(false);
 const errorMessage = ref("");
 const successMessage = ref("");
 const pictureInput = ref(null);
 const profilePictureFailed = ref(false);
+const profilePictureVersion = ref(Date.now());
 const authStore = useAuthStore();
-
-const editForm = ref({
-  firstName: "",
-  lastName: "",
-  phone: "",
-  grade: "",
-  specialty: "",
-  department: "",
-});
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -79,6 +68,15 @@ const hasProfilePicture = computed(
     Boolean(profile.value?.user?.profilePicture) && !profilePictureFailed.value,
 );
 
+const profilePictureUrl = computed(() => {
+  if (!hasProfilePicture.value) return "";
+
+  const url = buildBackendUrl(profile.value.user.profilePicture);
+  const separator = url.includes("?") ? "&" : "?";
+
+  return `${url}${separator}v=${profilePictureVersion.value}`;
+});
+
 const profileBadges = computed(() => {
   if (!profile.value) return [];
 
@@ -95,19 +93,6 @@ const profileBadges = computed(() => {
 });
 
 const valueClass = (value) => ({ "is-empty": !value });
-
-const fillEditForm = () => {
-  if (!profile.value) return;
-
-  editForm.value = {
-    firstName: profile.value.user.firstName || "",
-    lastName: profile.value.user.lastName || "",
-    phone: profile.value.user.phone || "",
-    grade: profile.value.profile?.grade || "",
-    specialty: profile.value.profile?.specialty || "",
-    department: profile.value.profile?.department || "",
-  };
-};
 
 const syncAuthUser = (user) => {
   if (!authStore.user || !user) return;
@@ -128,50 +113,11 @@ const loadProfile = async () => {
   try {
     profile.value = await getProfessorProfile();
     profilePictureFailed.value = false;
-    fillEditForm();
   } catch (error) {
     console.error("Erreur profil professeur :", error);
     errorMessage.value = "Impossible de charger le profil professeur.";
   } finally {
     isLoading.value = false;
-  }
-};
-
-const startEdit = () => {
-  fillEditForm();
-  successMessage.value = "";
-  errorMessage.value = "";
-  isEditing.value = true;
-};
-
-const cancelEdit = () => {
-  fillEditForm();
-  isEditing.value = false;
-};
-
-const saveProfile = async () => {
-  errorMessage.value = "";
-  successMessage.value = "";
-
-  if (!editForm.value.firstName.trim() || !editForm.value.lastName.trim()) {
-    errorMessage.value = "Le prénom et le nom sont obligatoires.";
-    return;
-  }
-
-  isSaving.value = true;
-
-  try {
-    profile.value = await updateProfessorProfile(editForm.value);
-    syncAuthUser(profile.value.user);
-    isEditing.value = false;
-    successMessage.value = "Profil professeur mis à jour.";
-  } catch (error) {
-    console.error("Erreur modification profil professeur :", error);
-    errorMessage.value =
-      error?.response?.data?.message ||
-      "Impossible de mettre à jour le profil.";
-  } finally {
-    isSaving.value = false;
   }
 };
 
@@ -211,6 +157,7 @@ const handleProfilePictureChange = async (event) => {
       },
     };
     profilePictureFailed.value = false;
+    profilePictureVersion.value = Date.now();
     syncAuthUser(profile.value.user);
     successMessage.value = "Photo de profil mise à jour.";
   } catch (error) {
@@ -239,7 +186,8 @@ onMounted(loadProfile);
         <div class="avatar-block">
           <img
             v-if="hasProfilePicture"
-            :src="buildBackendUrl(profile.user.profilePicture)"
+            :key="`${profile.user.profilePicture}-${profilePictureVersion}`"
+            :src="profilePictureUrl"
             alt="Photo professeur"
             @error="profilePictureFailed = true"
           />
@@ -278,15 +226,6 @@ onMounted(loadProfile);
             <span class="material-icons-round">photo_camera</span>
             {{ isUploadingPicture ? "Chargement..." : "Changer la photo" }}
           </button>
-          <button
-            v-if="!isEditing"
-            type="button"
-            class="primary-btn"
-            @click="startEdit"
-          >
-            <span class="material-icons-round">edit</span>
-            Modifier
-          </button>
         </div>
       </header>
 
@@ -294,52 +233,7 @@ onMounted(loadProfile);
       <p v-if="errorMessage" class="error-text">{{ errorMessage }}</p>
 
       <div class="profile-grid">
-        <section v-if="isEditing" class="profile-panel wide edit-panel">
-          <h2>Modifier les informations</h2>
-
-          <div class="form-grid">
-            <label>
-              <span>Prénom</span>
-              <input v-model="editForm.firstName" type="text" />
-            </label>
-            <label>
-              <span>Nom</span>
-              <input v-model="editForm.lastName" type="text" />
-            </label>
-            <label>
-              <span>Téléphone</span>
-              <input v-model="editForm.phone" type="tel" />
-            </label>
-            <label>
-              <span>Grade</span>
-              <input v-model="editForm.grade" type="text" />
-            </label>
-            <label>
-              <span>Spécialité</span>
-              <input v-model="editForm.specialty" type="text" />
-            </label>
-            <label>
-              <span>Département</span>
-              <input v-model="editForm.department" type="text" />
-            </label>
-          </div>
-
-          <footer class="edit-actions">
-            <button type="button" class="secondary-btn" @click="cancelEdit">
-              Annuler
-            </button>
-            <button
-              type="button"
-              class="primary-btn"
-              :disabled="isSaving"
-              @click="saveProfile"
-            >
-              {{ isSaving ? "Enregistrement..." : "Enregistrer" }}
-            </button>
-          </footer>
-        </section>
-
-        <section v-else class="profile-panel">
+        <section class="profile-panel">
           <h2>Informations académiques</h2>
 
           <div class="info-list">
@@ -370,7 +264,7 @@ onMounted(loadProfile);
           </div>
         </section>
 
-        <section v-if="!isEditing" class="profile-panel">
+        <section class="profile-panel">
           <h2>Compte</h2>
 
           <div class="info-list">
@@ -655,44 +549,6 @@ onMounted(loadProfile);
   font-size: var(--app-text-lg);
 }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-
-.form-grid label {
-  display: grid;
-  gap: 0.35rem;
-  color: var(--app-muted);
-  font-size: var(--app-text-xs);
-  font-weight: 800;
-}
-
-.form-grid input {
-  min-height: 2.75rem;
-  border: 1px solid var(--app-border-strong);
-  border-radius: var(--app-radius-md);
-  background: var(--app-surface);
-  color: var(--app-text);
-  font: inherit;
-  padding: 0 0.85rem;
-  outline: none;
-}
-
-.form-grid input:focus {
-  border-color: var(--app-primary);
-  box-shadow: 0 0 0 3px var(--app-active-bg);
-}
-
-.edit-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.7rem;
-  margin-top: 1.15rem;
-}
-
-.primary-btn,
 .secondary-btn {
   min-height: 2.55rem;
   display: inline-flex;
@@ -705,25 +561,17 @@ onMounted(loadProfile);
   cursor: pointer;
 }
 
-.primary-btn {
-  border: 1px solid var(--app-primary);
-  background: var(--app-primary);
-  color: #ffffff;
-}
-
 .secondary-btn {
   border: 1px solid var(--app-border-strong);
   background: var(--app-surface);
   color: var(--app-primary);
 }
 
-.primary-btn:disabled,
 .secondary-btn:disabled {
   opacity: 0.65;
   cursor: not-allowed;
 }
 
-.primary-btn .material-icons-round,
 .secondary-btn .material-icons-round {
   font-size: 1.1rem;
 }
@@ -880,21 +728,15 @@ onMounted(loadProfile);
     flex-direction: column;
   }
 
-  .header-actions,
-  .edit-actions {
+  .header-actions {
     width: 100%;
   }
 
-  .header-actions button,
-  .edit-actions button {
+  .header-actions button {
     flex: 1;
   }
 
   .profile-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .form-grid {
     grid-template-columns: 1fr;
   }
 }

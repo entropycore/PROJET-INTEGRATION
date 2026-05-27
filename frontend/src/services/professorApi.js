@@ -10,11 +10,6 @@ export const getProfessorProfile = async () => {
   return response.data.data;
 };
 
-export const updateProfessorProfile = async (payload) => {
-  const response = await api.put("/professor/profile", payload);
-  return response.data.data;
-};
-
 export const uploadProfessorProfilePicture = async (file) => {
   const formData = new FormData();
   formData.append("profilePicture", file);
