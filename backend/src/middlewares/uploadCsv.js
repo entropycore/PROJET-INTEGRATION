@@ -16,7 +16,7 @@ const uploadCsv = multer({
       file.originalname.toLowerCase().endsWith('.csv');
 
     if (!isCsv) {
-      const error = new Error('Le fichier importe doit etre un CSV.');
+      const error = new Error('Le fichier importe doit être un CSV.');
       error.status = 400;
       return callback(error);
     }

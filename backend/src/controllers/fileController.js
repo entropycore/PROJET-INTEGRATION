@@ -4,14 +4,14 @@ const fileService = require('../services/fileService');
 const { success, error } = require('../utils/apiResponse');
 
 const fileErrorMessages = {
-  FILE_REQUIRED: 'Aucun fichier recu.',
+  FILE_REQUIRED: 'Aucun fichier reçu.',
   FILE_NOT_FOUND: 'Fichier introuvable.',
-  FILE_ACCESS_DENIED: 'Acces refuse au fichier.',
-  INVALID_FILE_ACCESS: 'Visibilite de fichier invalide.',
-  INVALID_FILE_METADATA: 'Metadata de fichier invalide.',
-  INVALID_FILE_ENTITY: 'Entite de fichier invalide.',
-  FILE_ENTITY_NOT_FOUND: 'Entite liee au fichier introuvable.',
-  UNSUPPORTED_FILE_TYPE: 'Type de fichier non autorise.',
+  FILE_ACCESS_DENIED: 'Accès refusé au fichier.',
+  INVALID_FILE_ACCESS: 'Visibilité de fichier invalide.',
+  INVALID_FILE_METADATA: 'Métadonnées de fichier invalide.',
+  INVALID_FILE_ENTITY: 'Entité de fichier invalide.',
+  FILE_ENTITY_NOT_FOUND: 'Entité liée au fichier introuvable.',
+  UNSUPPORTED_FILE_TYPE: 'Type de fichier non autorisé.',
 };
 
 const buildContentDisposition = (type, filename) => {
@@ -39,7 +39,7 @@ exports.uploadFile = async (req, res, next) => {
       payload: req.body,
     });
 
-    return success(res, 201, 'Fichier envoye avec succes.', uploadedFile);
+    return success(res, 201, 'Fichier envoyé avec succès.', uploadedFile);
   } catch (err) {
     if (handleFileError(res, err)) return;
     next(err);
@@ -54,7 +54,7 @@ exports.uploadFiles = async (req, res, next) => {
       payload: req.body,
     });
 
-    return success(res, 201, 'Fichiers envoyes avec succes.', uploadedFiles);
+    return success(res, 201, 'Fichiers envoyés avec succès.', uploadedFiles);
   } catch (err) {
     if (handleFileError(res, err)) return;
     next(err);
@@ -68,7 +68,7 @@ exports.getFileMetadata = async (req, res, next) => {
       fileId: req.params.fileId,
     });
 
-    return success(res, 200, 'Fichier charge.', file);
+    return success(res, 200, 'Fichier chargé.', file);
   } catch (err) {
     if (handleFileError(res, err)) return;
     next(err);
@@ -81,7 +81,7 @@ exports.getPublicFileMetadata = async (req, res, next) => {
       fileId: req.params.fileId,
     });
 
-    return success(res, 200, 'Fichier public charge.', file);
+    return success(res, 200, 'Fichier public chargé.', file);
   } catch (err) {
     if (handleFileError(res, err)) return;
     next(err);
@@ -142,7 +142,7 @@ exports.deleteFile = async (req, res, next) => {
       fileId: req.params.fileId,
     });
 
-    return success(res, 200, 'Fichier supprime.', deletedFile);
+    return success(res, 200, 'Fichier supprimé.', deletedFile);
   } catch (err) {
     if (handleFileError(res, err)) return;
     next(err);

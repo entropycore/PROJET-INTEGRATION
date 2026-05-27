@@ -62,7 +62,7 @@ afterAll(async () => {
 // *************************
 describe('AUTH - POST /register', () => {
 
-  test('TC-AUTH-01 : Inscription reussie -> 201', async () => {
+  test('TC-AUTH-01 : Inscription réussie -> 201', async () => {
     const res = await request(app)
       .post('/api/auth/register')
       .send({
@@ -79,7 +79,7 @@ describe('AUTH - POST /register', () => {
     expect(res.body.data?.passwordHash).toBeUndefined();
   });
 
-  test('TC-AUTH-02 : Email deja utilise -> 409', async () => {
+  test('TC-AUTH-02 : Email déjà utilisé -> 409', async () => {
     const res = await request(app)
       .post('/api/auth/register')
       .send({
@@ -184,7 +184,7 @@ describe('AUTH - POST /login', () => {
 // *************************
 describe('AUTH - GET /me', () => {
 
-  test('TC-AUTH-ME-01 : Cookie valide -> 200 + donnees sans passwordHash', async () => {
+  test('TC-AUTH-ME-01 : Cookie valide -> 200 + données sans passwordHash', async () => {
     const res = await request(app)
       .get('/api/auth/me')
       .set('Cookie', cookieHeader);
@@ -340,7 +340,7 @@ describe('AUTH - POST /logout', () => {
     expect(res.body.success).toBe(true);
   });
 
-  test('TC-AUTH-13 : Deconnexion reussie -> 200 + cookies effaces', async () => {
+  test('TC-AUTH-13 : Déconnexion réussie -> 200 + cookies effacés', async () => {
     const res = await request(app)
       .post('/api/auth/logout')
       .set('Cookie', cookieHeader);
