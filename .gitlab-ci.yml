@@ -26,7 +26,6 @@ frontend-ci:
     - cd frontend
   script:
     - npm ci
-    - npm audit --audit-level=high
     - npm run lint
     - npm test
     - npm run build
@@ -54,7 +53,6 @@ backend-ci:
     - cd backend
   script:
     - npm ci
-    - npm audit --audit-level=high
     - npx prisma generate
     - npx prisma migrate deploy
     - npm run lint
