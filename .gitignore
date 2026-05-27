@@ -1,5 +1,9 @@
 node_modules/
 .env
-dist/backend/reports/
-backend/scripts/reports/
-reports/
+dist/
+
+# Environments
+.env
+.env.*
+!.env.example
+!.env.*.example
