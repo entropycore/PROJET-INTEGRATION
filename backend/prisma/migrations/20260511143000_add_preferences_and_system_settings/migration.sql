@@ -1,9 +1,9 @@
 -- AlterTable
 ALTER TABLE "users"
-ADD COLUMN "preferences" JSONB NOT NULL DEFAULT '{"schema_version": 1}';
+ADD COLUMN IF NOT EXISTS "preferences" JSONB NOT NULL DEFAULT '{"schema_version": 1}';
 
 -- CreateTable
-CREATE TABLE "system_settings" (
+CREATE TABLE IF NOT EXISTS "system_settings" (
     "id_system_settings" TEXT NOT NULL,
     "institution_name" VARCHAR(150) NOT NULL DEFAULT 'ENSA Tanger',
     "email_domain" VARCHAR(100) NOT NULL DEFAULT '@ensa.ac.ma',
