@@ -93,21 +93,25 @@ export const sidebarConfig = {
           path: "/student/competances",
           icon: "psychology",
         },
-        { label: "Mes Badges ", path: "/student/badges", icon: "workspace_premium" },
+        {
+          label: "Mes Badges ",
+          path: "/student/badges",
+          icon: "workspace_premium",
+        },
       ],
     },
 
     {
       section: "PORTFOLIO",
       items: [
-          {
-            label: "Portfolio public",
-            path: "/student/portfolio",
-            icon: "contact_page",
-          },
-          { label: "Mon GitHub", path: "/student/github", icon: "hub" },
-        ],
-      },
+        {
+          label: "Portfolio public",
+          path: "/student/portfolio",
+          icon: "contact_page",
+        },
+        { label: "Mon GitHub", path: "/student/github", icon: "hub" },
+      ],
+    },
 
     {
       section: "INTERACTIONS",
@@ -152,6 +156,7 @@ export const sidebarConfig = {
       section: "TABLEAU DE BORD",
       items: [
         { label: "Vue globale", path: "/professor", icon: "dashboard" },
+        { label: "Mon profil", path: "/professor/profile", icon: "person" },
         {
           label: "Validations",
           path: "/professor/validations",
