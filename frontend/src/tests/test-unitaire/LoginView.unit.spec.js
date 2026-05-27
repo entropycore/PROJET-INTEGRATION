@@ -76,14 +76,14 @@ describe('LoginPage.vue - Tests unitaires de la page de connexion', () => {
     await flushPromises()
   })
 
-  it("doit rediriger l'utilisateur vers la page de demande d'acces", async () => {
+  it("doit rediriger l'utilisateur vers la page de demande d'accès", async () => {
     const link = wrapper.find('.access-request-link')
     await link.trigger('click')
     await flushPromises()
     expect(mockRouter.push).toHaveBeenCalledWith('/request-access')
   })
 
-  it('doit afficher un message de succes apres une connexion reussie', async () => {
+  it('doit afficher un message de succès apres une connexion réussie', async () => {
     await wrapper.find('#email').setValue('test@ensa.ac.ma')
     await wrapper.find('#password').setValue('password123')
     await wrapper.find('form').trigger('submit.prevent')

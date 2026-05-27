@@ -86,8 +86,8 @@ const PORT = process.env.PORT || process.env.BACKEND_PORT || 5000;
 
 if (require.main === module && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
-    logger.info(`Serveur demarre sur le port ${PORT}`);
-    console.log(`Serveur demarre avec succes sur http://localhost:${PORT}`);
+    logger.info(`Serveur démarré sur le port ${PORT}`);
+    console.log(`Serveur démarré avec succès sur http://localhost:${PORT}`);
   });
 }
 
