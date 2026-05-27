@@ -281,6 +281,16 @@ const router = createRouter({
           component: ProfessorDashboard,
         },
         {
+          path: "profile",
+          name: "professor-profile",
+          component: () => import("../views/professor/Profile.vue"),
+        },
+        {
+          path: "validations",
+          name: "professor-validations",
+          component: () => import("../views/professor/Validations.vue"),
+        },
+        {
           path: "notifications",
           name: "professor-notifications",
           component: () => import("../views/Notifications.vue"),
