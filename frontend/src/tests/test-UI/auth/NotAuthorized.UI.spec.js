@@ -67,13 +67,13 @@ describe("NotAuthorized - Test UI", () => {
     expect(btnHome.text()).toBe("Aller à mon espace");
   });
 
-  it("devrait avoir une section de message avec une largeur maximale definie", () => {
+  it("devrait avoir une section de message avec une largeur maximale définie", () => {
     const message = wrapper.find(".forbidden-message");
     expect(message.exists()).toBe(true);
     expect(message.text()).toContain("Votre compte est bien reconnu");
   });
 
-  it("devrait verifier que le conteneur d'actions utilise le Flexbox (via classes)", () => {
+  it("devrait vérifier que le conteneur d'actions utilise le Flexbox (via classes)", () => {
     const actions = wrapper.find(".forbidden-actions");
     expect(actions.exists()).toBe(true);
     expect(actions.element).toBeTruthy();

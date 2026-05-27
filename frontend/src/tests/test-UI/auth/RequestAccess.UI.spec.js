@@ -16,12 +16,12 @@ const flushPromises = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
 
-describe("Tests Unitaires - Page Demande d'acces", () => {
+describe("Tests Unitaires - Page Demande d'accès", () => {
   let wrapper;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    requestAccessMock.mockResolvedValue({ message: "Demande envoyee." });
+    requestAccessMock.mockResolvedValue({ message: "Demande envoyée." });
 
     wrapper = mount(RequestAccessPage, {
       global: {
@@ -52,7 +52,7 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
     expect(error.text()).toBe("Les mots de passe ne correspondent pas.");
   });
 
-  it("doit basculer la visibilite du mot de passe", async () => {
+  it("doit basculer la visibilité du mot de passe", async () => {
     const passwordInput = wrapper.find("#password");
     const toggleIcon = wrapper.findAll(".toggle-icon")[0];
     expect(passwordInput.attributes("type")).toBe("password");
@@ -60,7 +60,7 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
     expect(passwordInput.attributes("type")).toBe("text");
   });
 
-  it("doit afficher un message de succes apres une soumission valide", async () => {
+  it("doit afficher un message de succès après une soumission valide", async () => {
     await wrapper.find("#lastName").setValue("Berrada");
     await wrapper.find("#firstName").setValue("Amina");
     await wrapper.find("#email").setValue("amina@email.ma");
@@ -73,6 +73,6 @@ describe("Tests Unitaires - Page Demande d'acces", () => {
 
     const success = wrapper.find(".success-message");
     expect(success.exists()).toBe(true);
-    expect(success.text()).toContain("Demande envoyee.");
+    expect(success.text()).toContain("Demande envoyée.");
   });
 });
