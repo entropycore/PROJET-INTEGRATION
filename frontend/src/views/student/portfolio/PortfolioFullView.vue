@@ -22,7 +22,7 @@ const isModalOpen = ref(false);
 const selectedTheme = ref("modern-academic");
 const githubData = ref(null);
 const includeGithubActivity = ref(true);
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const mediaDataUrls = ref({});
 const defaultCoverByType = {
   project: "/portfolio/project-1.jpg",
