@@ -28,7 +28,7 @@ const emit = defineEmits([
       <input
         :value="search"
         type="text"
-        placeholder="Rechercher par titre, etudiant ou email..."
+        placeholder="Rechercher par titre, étudiant ou email..."
         @input="emit('update:search', $event.target.value)"
       />
     </div>
@@ -48,9 +48,9 @@ const emit = defineEmits([
     >
       <option value="ALL">Tous les statuts</option>
       <option value="PENDING">En attente</option>
-      <option value="APPROVED">Approuve</option>
-      <option value="REJECTED">Refuse</option>
-      <option value="CHANGES_REQUESTED">Correction demandee</option>
+      <option value="APPROVED">Approuvé</option>
+      <option value="REJECTED">Refusé</option>
+      <option value="CHANGES_REQUESTED">Correction demandée</option>
     </select>
   </div>
 </template>

@@ -9,7 +9,6 @@ const {
   PutBucketPolicyCommand,
   S3Client,
 } = require('@aws-sdk/client-s3');
-const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const config = require('./storageConfig');
 
@@ -40,18 +39,17 @@ const getClient = () => {
 };
 
 const buildPublicUrl = (objectKey) => {
-  if (!config.publicBaseUrl) return null;
+  if (!config.publicBaseUrl || !config.bucketPublicRead) return null;
   return `${config.publicBaseUrl.replace(/\/$/, '')}/${objectKey}`;
-};
-
-const buildContentDisposition = (type, filename) => {
-  const fallback = String(filename || 'file').replace(/[^\x20-\x7E]/g, '_').replace(/["\\]/g, '_');
-  const encoded = encodeURIComponent(filename || 'file');
-  return `${type}; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 };
 
 const shouldIgnoreBucketError = (err) =>
   ['BucketAlreadyExists', 'BucketAlreadyOwnedByYou'].includes(err.name);
+
+const isObjectNotFoundError = (err) =>
+  err.name === 'NoSuchKey' ||
+  err.name === 'NotFound' ||
+  err.$metadata?.httpStatusCode === 404;
 
 const setPublicReadPolicy = async () => {
   if (!config.bucketPublicRead) return;
@@ -111,7 +109,7 @@ exports.uploadObject = async ({ objectKey, buffer, mimeType, metadata = {} }) =>
       Key: objectKey,
       Body: buffer,
       ContentType: mimeType,
-      Métadonnées: metadata,
+      Metadata: metadata,
     })
   );
 
@@ -133,21 +131,28 @@ exports.deleteObject = async (objectKey) => {
 
 exports.getDownloadTarget = async ({
   objectKey,
-  originalName,
-  mimeType,
   contentDisposition = 'attachment',
 }) => {
-  const dispositionType = contentDisposition === 'inline' ? 'inline' : 'attachment';
-  const command = new GetObjectCommand({
-    Bucket: config.bucket,
-    Key: objectKey,
-    ResponseContentType: mimeType,
-    ResponseContentDisposition: buildContentDisposition(dispositionType, originalName),
-  });
+  try {
+    const response = await getClient().send(
+      new GetObjectCommand({
+        Bucket: config.bucket,
+        Key: objectKey,
+      })
+    );
 
-  const url = await getSignedUrl(getClient(), command, {
-    expiresIn: config.signedUrlTtlSeconds,
-  });
+    return {
+      mode: 'stream',
+      contentDisposition,
+      stream: response.Body,
+    };
+  } catch (err) {
+    if (isObjectNotFoundError(err)) {
+      const notFound = new Error('STORAGE_OBJECT_NOT_FOUND');
+      notFound.status = 404;
+      throw notFound;
+    }
 
-  return { mode: 'redirect', url };
+    throw err;
+  }
 };

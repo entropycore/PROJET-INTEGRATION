@@ -12,6 +12,7 @@ const fileErrorMessages = {
   INVALID_FILE_ENTITY: 'Entité de fichier invalide.',
   FILE_ENTITY_NOT_FOUND: 'Entité liée au fichier introuvable.',
   UNSUPPORTED_FILE_TYPE: 'Type de fichier non autorisé.',
+  STORAGE_OBJECT_NOT_FOUND: 'Fichier introuvable dans le stockage.',
 };
 
 const buildContentDisposition = (type, filename) => {
@@ -105,6 +106,7 @@ exports.downloadFile = async (req, res, next) => {
       buildContentDisposition(target.contentDisposition || 'attachment', file.originalName)
     );
 
+    target.stream.on('error', next);
     return target.stream.pipe(res);
   } catch (err) {
     if (handleFileError(res, err)) return;
@@ -128,6 +130,7 @@ exports.downloadPublicFile = async (req, res, next) => {
       buildContentDisposition(target.contentDisposition || 'inline', file.originalName)
     );
 
+    target.stream.on('error', next);
     return target.stream.pipe(res);
   } catch (err) {
     if (handleFileError(res, err)) return;
