@@ -31,7 +31,7 @@ const ROLE_NOTIFICATION_UI = {
   },
   PROFESSIONAL: {
     label: "PROFESSIONNEL",
-    description: "Consultez vos acces, recommandations et interactions",
+    description: "Consultez vos accès, recommandations et interactions",
   },
 };
 

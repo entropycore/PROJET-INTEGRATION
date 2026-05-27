@@ -484,7 +484,7 @@ const saveNotifications = async () => {
   margin-bottom: 5px;
 }
 
-/* Input avec icone oeil */
+/* Input avec icône oeil */
 .input-eye {
   position: relative;
 }
