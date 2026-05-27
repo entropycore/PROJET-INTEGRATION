@@ -34,6 +34,16 @@ const canEditProject = computed(() => {
   );
 });
 
+const projectValidatorName = computed(() => {
+  return (
+    project.value?.validatorName || project.value?.validator?.fullName || ""
+  );
+});
+
+const projectValidationComment = computed(() => {
+  return project.value?.validationComment || project.value?.feedback || "";
+});
+
 const projectStatusMessage = computed(() => {
   const messages = {
     DRAFT: {
@@ -110,6 +120,10 @@ const getMediaUrl = (media, action = "download") => {
   if (!project.value?.id || !media?.id) return "";
 
   return `/api/projects/${project.value.id}/media/${media.id}/${action}`;
+};
+
+const getAttachmentUrl = (attachment) => {
+  return buildBackendUrl(attachment?.url || attachment?.downloadUrl || "");
 };
 
 const revokeScreenshotObjectUrls = () => {
@@ -214,11 +228,11 @@ onUnmounted(revokeScreenshotObjectUrls);
           </div>
           <p
             v-if="
-              project.validationStatus === 'APPROVED' && project.validatorName
+              project.validationStatus === 'APPROVED' && projectValidatorName
             "
             class="project-header-validator"
           >
-            Validé par <strong>{{ project.validatorName }}</strong>
+            Validé par <strong>{{ projectValidatorName }}</strong>
           </p>
 
           <p
@@ -233,14 +247,14 @@ onUnmounted(revokeScreenshotObjectUrls);
             class="project-header-validator pending"
           >
             Corrections demandées par
-            <strong>{{ project.validatorName || "le validateur" }}</strong>
+            <strong>{{ projectValidatorName || "le validateur" }}</strong>
           </p>
           <p
             v-else-if="project.validationStatus === 'REJECTED'"
             class="project-header-validator rejected"
           >
             Refusé par
-            <strong>{{ project.validatorName || "le validateur" }}</strong>
+            <strong>{{ projectValidatorName || "le validateur" }}</strong>
           </p>
 
           <p v-else class="project-header-validator muted">
@@ -365,7 +379,16 @@ onUnmounted(revokeScreenshotObjectUrls);
                   </div>
                 </div>
 
-                <button class="secondary-action">Télécharger</button>
+                <a
+                  v-if="getAttachmentUrl(attachment)"
+                  class="secondary-action"
+                  :href="getAttachmentUrl(attachment)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :download="attachment.name"
+                >
+                  Télécharger
+                </a>
               </div>
               <p
                 v-if="!project.attachments?.length"
@@ -436,19 +459,19 @@ onUnmounted(revokeScreenshotObjectUrls);
             </section>
             <div class="validator-card">
               <div class="validator-avatar">
-                {{ project.validatorName?.charAt(0) }}
+                {{ projectValidatorName?.charAt(0) }}
               </div>
 
               <div>
                 <strong>
-                  {{ project.validatorName || "Non assigné" }}
+                  {{ projectValidatorName || "Non assigné" }}
                 </strong>
                 <p>Validateur académique</p>
               </div>
             </div>
 
-            <div v-if="project.validationComment" class="validation-comment">
-              “{{ project.validationComment }}”
+            <div v-if="projectValidationComment" class="validation-comment">
+              “{{ projectValidationComment }}”
             </div>
           </section>
           <section class="details-card">
