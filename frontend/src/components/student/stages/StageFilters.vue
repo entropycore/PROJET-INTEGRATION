@@ -33,7 +33,7 @@ const emit = defineEmits([
       <option value="DRAFT">Brouillon</option>
       <option value="PENDING">En attente</option>
       <option value="APPROVED">Validé</option>
-      <option value="CORRECTION_REQUIRED">Correction demandée</option>
+      <option value="CHANGES_REQUESTED">Correction demandée</option>
       <option value="REJECTED">Refusé</option>
     </select>
 

@@ -128,6 +128,7 @@ const getStatusLabel = (status) => {
     PENDING: "En attente",
     DRAFT: "Brouillon",
     CORRECTION_REQUIRED: "Correction",
+    CHANGES_REQUESTED: "Correction",
     REJECTED: "Refusé",
   };
 

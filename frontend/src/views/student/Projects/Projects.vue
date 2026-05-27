@@ -17,11 +17,11 @@ const selectedType = ref("");
 const selectedStatus = ref("");
 
 const projectTypes = [
-  "Module",
-  "Intégration",
-  "Hackathon",
-  "Personnel",
-  "Stage",
+  { value: "Module", label: "Module" },
+  { value: "Integration", label: "Intégration" },
+  { value: "Hackathon", label: "Hackathon" },
+  { value: "Personnel", label: "Personnel" },
+  { value: "Stage", label: "Stage" },
 ];
 
 const projectStatuses = [
@@ -58,6 +58,26 @@ const fetchProjects = async () => {
 
 onMounted(fetchProjects);
 
+const normalizeProjectType = (type) => {
+  return String(type || "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+};
+
+const getProjectTypeLabel = (type) => {
+  const projectType = projectTypes.find((item) => {
+    return normalizeProjectType(item.value) === normalizeProjectType(type);
+  });
+
+  return projectType?.label || type;
+};
+
+const getProjectValidatorName = (project) => {
+  return project.validatorName || project.validator?.fullName || "";
+};
+
 const filteredProjects = computed(() => {
   return projects.value.filter((project) => {
     const query = searchQuery.value.toLowerCase().trim();
@@ -69,7 +89,9 @@ const filteredProjects = computed(() => {
       project.technologies.some((tech) => tech.toLowerCase().includes(query));
 
     const matchesType =
-      !selectedType.value || project.type === selectedType.value;
+      !selectedType.value ||
+      normalizeProjectType(project.type) ===
+        normalizeProjectType(selectedType.value);
 
     const matchesStatus =
       !selectedStatus.value ||
@@ -88,7 +110,7 @@ const canSubmitProject = (project) => {
     project.validationStatus === "DRAFT" &&
     project.title?.trim() &&
     project.description?.trim() &&
-    project.validatorName
+    getProjectValidatorName(project)
   );
 };
 
@@ -137,8 +159,12 @@ const submitProject = async (projectId) => {
         <select v-model="selectedType">
           <option value="">Tous les types</option>
 
-          <option v-for="type in projectTypes" :key="type" :value="type">
-            {{ type }}
+          <option
+            v-for="type in projectTypes"
+            :key="type.value"
+            :value="type.value"
+          >
+            {{ type.label }}
           </option>
         </select>
 
@@ -175,7 +201,7 @@ const submitProject = async (projectId) => {
         >
           <div class="project-card-top">
             <span class="project-type-pill">
-              {{ project.type }}
+              {{ getProjectTypeLabel(project.type) }}
             </span>
 
             <span
