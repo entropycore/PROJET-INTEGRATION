@@ -228,7 +228,7 @@ const handleProfilePictureChange = async (event) => {
   successMessage.value = "";
 
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-    errorMessage.value = "Format image non autorise. Utilisez JPG, PNG ou WebP.";
+    errorMessage.value = "Format image non autorisé. Utilisez JPG, PNG ou WebP.";
     event.target.value = "";
     return;
   }
@@ -250,7 +250,7 @@ const handleProfilePictureChange = async (event) => {
       profilePicture: data?.profilePicture || profile.value.profilePicture,
     };
 
-    successMessage.value = "Photo de profil mise a jour.";
+    successMessage.value = "Photo de profil mise à jour.";
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message || "Erreur upload photo de profil.";
