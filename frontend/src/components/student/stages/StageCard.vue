@@ -19,10 +19,15 @@ const formatDate = (value) => {
   return String(value).slice(0, 10);
 };
 
-const stageStatus = computed(() => {
-  return String(props.stage.validationStatus || "")
+const normalizeStageStatus = (status) => {
+  const value = String(status || "")
     .trim()
     .toUpperCase();
+  return value === "CORRECTION_REQUIRED" ? "CHANGES_REQUESTED" : value;
+};
+
+const stageStatus = computed(() => {
+  return normalizeStageStatus(props.stage.validationStatus);
 });
 
 const goToDetails = () => {
@@ -35,24 +40,22 @@ const goToEdit = () => {
 };
 
 const canEditStage = computed(() => {
-  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+  return ["DRAFT", "CHANGES_REQUESTED"].includes(stageStatus.value);
 });
 
 const canSubmitValidation = () => {
   return (
-    ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value) &&
+    ["DRAFT", "CHANGES_REQUESTED"].includes(stageStatus.value) &&
     isStageCompleteForSubmission.value
   );
 };
 
 const canDeleteStage = () => {
-  return ["DRAFT", "CORRECTION_REQUIRED", "REJECTED"].includes(
-    stageStatus.value,
-  );
+  return ["DRAFT", "CHANGES_REQUESTED", "REJECTED"].includes(stageStatus.value);
 };
 
 const submitButtonLabel = () => {
-  return stageStatus.value === "CORRECTION_REQUIRED"
+  return stageStatus.value === "CHANGES_REQUESTED"
     ? "Resoumettre"
     : "Soumettre";
 };
@@ -165,7 +168,7 @@ const deleteCurrentStage = () => {
         <span class="material-icons-round">delete</span>
       </button>
       <button
-        v-if="['DRAFT', 'CORRECTION_REQUIRED'].includes(stageStatus)"
+        v-if="['DRAFT', 'CHANGES_REQUESTED'].includes(stageStatus)"
         class="submit-btn"
         :disabled="!canSubmitValidation()"
         @click="submitValidation"
