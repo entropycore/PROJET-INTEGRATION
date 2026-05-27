@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 
+import ProfessorValidationActionModal from "@/components/professor/ProfessorValidationActionModal.vue";
 import ProfessorValidationDetailsModal from "@/components/professor/ProfessorValidationDetailsModal.vue";
 import ProfessorValidationStats from "@/components/professor/ProfessorValidationStats.vue";
 import ProfessorValidationToolbar from "@/components/professor/ProfessorValidationToolbar.vue";
@@ -31,6 +32,8 @@ const selectedType = ref("ALL");
 const selectedStatus = ref("PENDING");
 const selectedValidation = ref(null);
 const isDetailsOpen = ref(false);
+const actionModal = ref(null);
+const isSubmittingAction = ref(false);
 
 const fetchValidations = async () => {
   isLoading.value = true;
@@ -97,51 +100,90 @@ const closeDetails = () => {
 
 const refreshAfterAction = async () => {
   closeDetails();
+  actionModal.value = null;
   await fetchValidations();
 };
 
-const askComment = (message) => {
-  const comment = window.prompt(message);
+const openActionModal = (type, validation) => {
+  const actions = {
+    approve: {
+      type,
+      validation,
+      eyebrow: "Validation",
+      title: "Approuver la validation",
+      description: `Confirmer l'approbation de "${validation.title}" ?`,
+      label: "",
+      placeholder: "",
+      confirmLabel: "Approuver",
+      requiresComment: false,
+      tone: "success",
+    },
+    reject: {
+      type,
+      validation,
+      eyebrow: "Refus",
+      title: "Refuser la validation",
+      description:
+        "Expliquez clairement la raison du refus pour que l'étudiant comprenne la décision.",
+      label: "Motif du refus",
+      placeholder: "Exemple : le document joint ne correspond pas au projet.",
+      confirmLabel: "Refuser",
+      requiresComment: true,
+      tone: "danger",
+    },
+    requestChanges: {
+      type,
+      validation,
+      eyebrow: "Correction",
+      title: "Demander une correction",
+      description:
+        "Indiquez les éléments que l'étudiant doit corriger avant une nouvelle validation.",
+      label: "Correction demandée à l'étudiant",
+      placeholder:
+        "Exemple : ajoutez plus de détails sur les missions et joignez le rapport signé.",
+      confirmLabel: "Envoyer la demande",
+      requiresComment: true,
+      tone: "warning",
+    },
+  };
 
-  if (comment === null) return null;
-  return comment.trim();
+  actionModal.value = actions[type];
 };
 
 const handleApprove = async (validation) => {
-  if (!window.confirm("Approuver cette validation ?")) return;
-
-  try {
-    await approveProfessorValidation(validation);
-    await refreshAfterAction();
-  } catch (error) {
-    console.error("Erreur approbation professeur :", error);
-    alert("Impossible d'approuver cette validation.");
-  }
+  openActionModal("approve", validation);
 };
 
 const handleReject = async (validation) => {
-  const comment = askComment("Motif du refus :");
-  if (comment === null) return;
-
-  try {
-    await rejectProfessorValidation(validation, { comment });
-    await refreshAfterAction();
-  } catch (error) {
-    console.error("Erreur refus professeur :", error);
-    alert("Impossible de refuser cette validation.");
-  }
+  openActionModal("reject", validation);
 };
 
 const handleRequestChanges = async (validation) => {
-  const comment = askComment("Correction demandee a l'etudiant :");
-  if (comment === null) return;
+  openActionModal("requestChanges", validation);
+};
 
+const submitActionModal = async (comment) => {
+  const action = actionModal.value;
+  if (!action) return;
+
+  isSubmittingAction.value = true;
   try {
-    await requestProfessorValidationChanges(validation, { comment });
+    if (action.type === "approve") {
+      await approveProfessorValidation(action.validation);
+    } else if (action.type === "reject") {
+      await rejectProfessorValidation(action.validation, { comment });
+    } else {
+      await requestProfessorValidationChanges(action.validation, { comment });
+    }
+
     await refreshAfterAction();
   } catch (error) {
-    console.error("Erreur correction professeur :", error);
-    alert("Impossible d'envoyer la demande de correction.");
+    console.error("Erreur action validation professeur :", error);
+    errorMessage.value =
+      error?.response?.data?.message ||
+      "Impossible d'exécuter cette action de validation.";
+  } finally {
+    isSubmittingAction.value = false;
   }
 };
 </script>
@@ -190,6 +232,14 @@ const handleRequestChanges = async (validation) => {
       @approve="handleApprove"
       @reject="handleReject"
       @request-changes="handleRequestChanges"
+    />
+
+    <ProfessorValidationActionModal
+      v-if="actionModal"
+      :action="actionModal"
+      :is-submitting="isSubmittingAction"
+      @close="actionModal = null"
+      @submit="submitActionModal"
     />
   </section>
 </template>
