@@ -57,6 +57,8 @@ services:
       STORAGE_BUCKET_PUBLIC_READ: ${STORAGE_BUCKET_PUBLIC_READ:-false}
       SIGNED_URL_TTL_SECONDS: ${SIGNED_URL_TTL_SECONDS:-300}
 
+    command: sh -c "npx prisma migrate deploy && npm start"
+
     ports:
       - "${BACKEND_PORT:-3000}:3000"
 
