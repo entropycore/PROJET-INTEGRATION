@@ -163,7 +163,10 @@ const sendResetLink = async () => {
     setMsg(
       resetMsg,
       "error",
-      getErrorMessage(error, "Impossible d'envoyer le lien de réinitialisation."),
+      getErrorMessage(
+        error,
+        "Impossible d'envoyer le lien de réinitialisation.",
+      ),
     );
   } finally {
     loadingReset.value = false;
@@ -220,202 +223,235 @@ onMounted(loadSettings);
     <div v-if="isLoading" class="state-card">Chargement des paramètres...</div>
 
     <template v-else>
-      <section class="settings-panel">
-        <h2>Sécurité du compte</h2>
+      <div class="settings-grid">
+        <section class="settings-panel wide">
+          <h2>Sécurité du compte</h2>
 
-        <p
-          v-if="passwordMsg.text"
-          :class="passwordMsg.type === 'error' ? 'error-text' : 'success-text'"
-        >
-          {{ passwordMsg.text }}
-        </p>
+          <p
+            v-if="passwordMsg.text"
+            :class="
+              passwordMsg.type === 'error' ? 'error-text' : 'success-text'
+            "
+          >
+            {{ passwordMsg.text }}
+          </p>
 
-        <div class="form-grid">
-          <label>
-            <span>Mot de passe actuel</span>
-            <div class="password-field">
-              <input
-                v-model="passwordForm.currentPassword"
-                :type="showCurrent ? 'text' : 'password'"
-                autocomplete="current-password"
-              />
-              <button type="button" @click="showCurrent = !showCurrent">
-                <span class="material-icons-round">
-                  {{ showCurrent ? "visibility_off" : "visibility" }}
-                </span>
-              </button>
-            </div>
-          </label>
-          <label>
-            <span>Nouveau mot de passe</span>
-            <div class="password-field">
-              <input
-                v-model="passwordForm.newPassword"
-                :type="showNew ? 'text' : 'password'"
-                autocomplete="new-password"
-              />
-              <button type="button" @click="showNew = !showNew">
-                <span class="material-icons-round">
-                  {{ showNew ? "visibility_off" : "visibility" }}
-                </span>
-              </button>
-            </div>
-          </label>
-          <label>
-            <span>Confirmation</span>
-            <div class="password-field">
-              <input
-                v-model="passwordForm.confirmPassword"
-                :type="showConfirm ? 'text' : 'password'"
-                autocomplete="new-password"
-              />
-              <button type="button" @click="showConfirm = !showConfirm">
-                <span class="material-icons-round">
-                  {{ showConfirm ? "visibility_off" : "visibility" }}
-                </span>
-              </button>
-            </div>
-          </label>
-        </div>
+          <div class="form-grid">
+            <label>
+              <span>Mot de passe actuel</span>
+              <div class="password-field">
+                <input
+                  v-model="passwordForm.currentPassword"
+                  :type="showCurrent ? 'text' : 'password'"
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  :aria-label="
+                    showCurrent
+                      ? 'Masquer le mot de passe actuel'
+                      : 'Afficher le mot de passe actuel'
+                  "
+                  @click="showCurrent = !showCurrent"
+                >
+                  <span class="material-icons-round">
+                    {{ showCurrent ? "visibility_off" : "visibility" }}
+                  </span>
+                </button>
+              </div>
+            </label>
+            <label>
+              <span>Nouveau mot de passe</span>
+              <div class="password-field">
+                <input
+                  v-model="passwordForm.newPassword"
+                  :type="showNew ? 'text' : 'password'"
+                  autocomplete="new-password"
+                />
+                <button
+                  type="button"
+                  :aria-label="
+                    showNew
+                      ? 'Masquer le nouveau mot de passe'
+                      : 'Afficher le nouveau mot de passe'
+                  "
+                  @click="showNew = !showNew"
+                >
+                  <span class="material-icons-round">
+                    {{ showNew ? "visibility_off" : "visibility" }}
+                  </span>
+                </button>
+              </div>
+            </label>
+            <label>
+              <span>Confirmation</span>
+              <div class="password-field">
+                <input
+                  v-model="passwordForm.confirmPassword"
+                  :type="showConfirm ? 'text' : 'password'"
+                  autocomplete="new-password"
+                />
+                <button
+                  type="button"
+                  :aria-label="
+                    showConfirm
+                      ? 'Masquer la confirmation'
+                      : 'Afficher la confirmation'
+                  "
+                  @click="showConfirm = !showConfirm"
+                >
+                  <span class="material-icons-round">
+                    {{ showConfirm ? "visibility_off" : "visibility" }}
+                  </span>
+                </button>
+              </div>
+            </label>
+          </div>
 
-        <button
-          type="button"
-          class="primary-btn"
-          :disabled="loadingPassword"
-          @click="savePassword"
-        >
-          <span class="material-icons-round">lock_reset</span>
-          {{ loadingPassword ? "Mise à jour..." : "Changer le mot de passe" }}
-        </button>
-      </section>
-
-      <section class="settings-panel compact">
-        <div>
-          <h2>Réinitialisation par email</h2>
-          <p>{{ accountEmail || "Email du compte non disponible" }}</p>
-        </div>
-
-        <p
-          v-if="resetMsg.text"
-          :class="resetMsg.type === 'error' ? 'error-text' : 'success-text'"
-        >
-          {{ resetMsg.text }}
-        </p>
-
-        <button
-          type="button"
-          class="secondary-btn"
-          :disabled="loadingReset || !accountEmail"
-          @click="sendResetLink"
-        >
-          <span class="material-icons-round">mail</span>
-          {{ loadingReset ? "Envoi..." : "Envoyer un lien" }}
-        </button>
-      </section>
-
-      <section class="settings-panel">
-        <h2>Confidentialité</h2>
-
-        <p
-          v-if="privacyMsg.text"
-          :class="privacyMsg.type === 'error' ? 'error-text' : 'success-text'"
-        >
-          {{ privacyMsg.text }}
-        </p>
-
-        <div class="segmented-control">
           <button
             type="button"
-            :class="{ active: privacyForm.profileVisibility === 'PUBLIC' }"
-            @click="privacyForm.profileVisibility = 'PUBLIC'"
+            class="primary-btn"
+            :disabled="loadingPassword"
+            @click="savePassword"
           >
-            Public
+            <span class="material-icons-round">lock_reset</span>
+            {{ loadingPassword ? "Mise à jour..." : "Changer le mot de passe" }}
           </button>
+        </section>
+
+        <section class="settings-panel compact">
+          <div>
+            <h2>Réinitialisation par email</h2>
+            <p>{{ accountEmail || "Email du compte non disponible" }}</p>
+          </div>
+
+          <p
+            v-if="resetMsg.text"
+            :class="resetMsg.type === 'error' ? 'error-text' : 'success-text'"
+          >
+            {{ resetMsg.text }}
+          </p>
+
           <button
             type="button"
-            :class="{ active: privacyForm.profileVisibility === 'CONNECTIONS' }"
-            @click="privacyForm.profileVisibility = 'CONNECTIONS'"
+            class="secondary-btn"
+            :disabled="loadingReset || !accountEmail"
+            @click="sendResetLink"
           >
-            Connexions
+            <span class="material-icons-round">mail</span>
+            {{ loadingReset ? "Envoi..." : "Envoyer un lien" }}
           </button>
+        </section>
+
+        <section class="settings-panel">
+          <h2>Confidentialité</h2>
+
+          <p
+            v-if="privacyMsg.text"
+            :class="privacyMsg.type === 'error' ? 'error-text' : 'success-text'"
+          >
+            {{ privacyMsg.text }}
+          </p>
+
+          <div class="segmented-control">
+            <button
+              type="button"
+              :class="{ active: privacyForm.profileVisibility === 'PUBLIC' }"
+              @click="privacyForm.profileVisibility = 'PUBLIC'"
+            >
+              Public
+            </button>
+            <button
+              type="button"
+              :class="{
+                active: privacyForm.profileVisibility === 'CONNECTIONS',
+              }"
+              @click="privacyForm.profileVisibility = 'CONNECTIONS'"
+            >
+              Connexions
+            </button>
+            <button
+              type="button"
+              :class="{ active: privacyForm.profileVisibility === 'PRIVATE' }"
+              @click="privacyForm.profileVisibility = 'PRIVATE'"
+            >
+              Privé
+            </button>
+          </div>
+
+          <label class="toggle-row">
+            <span>Afficher l'email</span>
+            <input v-model="privacyForm.showEmail" type="checkbox" />
+          </label>
+
+          <label class="toggle-row">
+            <span>Afficher le téléphone</span>
+            <input v-model="privacyForm.showPhone" type="checkbox" />
+          </label>
+
           <button
             type="button"
-            :class="{ active: privacyForm.profileVisibility === 'PRIVATE' }"
-            @click="privacyForm.profileVisibility = 'PRIVATE'"
+            class="primary-btn"
+            :disabled="loadingPrivacy"
+            @click="savePrivacy"
           >
-            Privé
+            {{ loadingPrivacy ? "Enregistrement..." : "Enregistrer" }}
           </button>
-        </div>
+        </section>
 
-        <label class="toggle-row">
-          <span>Afficher l'email</span>
-          <input v-model="privacyForm.showEmail" type="checkbox" />
-        </label>
+        <section class="settings-panel">
+          <h2>Notifications</h2>
 
-        <label class="toggle-row">
-          <span>Afficher le téléphone</span>
-          <input v-model="privacyForm.showPhone" type="checkbox" />
-        </label>
+          <p
+            v-if="notificationMsg.text"
+            :class="
+              notificationMsg.type === 'error' ? 'error-text' : 'success-text'
+            "
+          >
+            {{ notificationMsg.text }}
+          </p>
 
-        <button
-          type="button"
-          class="primary-btn"
-          :disabled="loadingPrivacy"
-          @click="savePrivacy"
-        >
-          {{ loadingPrivacy ? "Enregistrement..." : "Enregistrer" }}
-        </button>
-      </section>
+          <label class="toggle-row">
+            <span>Notifications par email</span>
+            <input v-model="notificationForm.email" type="checkbox" />
+          </label>
 
-      <section class="settings-panel">
-        <h2>Notifications</h2>
+          <label class="toggle-row">
+            <span>Notifications navigateur</span>
+            <input v-model="notificationForm.push" type="checkbox" />
+          </label>
 
-        <p
-          v-if="notificationMsg.text"
-          :class="
-            notificationMsg.type === 'error' ? 'error-text' : 'success-text'
-          "
-        >
-          {{ notificationMsg.text }}
-        </p>
+          <label class="toggle-row">
+            <span>Nouvelles validations assignées</span>
+            <input
+              v-model="notificationForm.validationAssignments"
+              type="checkbox"
+            />
+          </label>
 
-        <label class="toggle-row">
-          <span>Notifications par email</span>
-          <input v-model="notificationForm.email" type="checkbox" />
-        </label>
+          <label class="toggle-row">
+            <span>Mises à jour de validation</span>
+            <input
+              v-model="notificationForm.validationUpdates"
+              type="checkbox"
+            />
+          </label>
 
-        <label class="toggle-row">
-          <span>Notifications navigateur</span>
-          <input v-model="notificationForm.push" type="checkbox" />
-        </label>
+          <label class="toggle-row">
+            <span>Résumé hebdomadaire</span>
+            <input v-model="notificationForm.weeklyDigest" type="checkbox" />
+          </label>
 
-        <label class="toggle-row">
-          <span>Nouvelles validations assignées</span>
-          <input
-            v-model="notificationForm.validationAssignments"
-            type="checkbox"
-          />
-        </label>
-
-        <label class="toggle-row">
-          <span>Mises à jour de validation</span>
-          <input v-model="notificationForm.validationUpdates" type="checkbox" />
-        </label>
-
-        <label class="toggle-row">
-          <span>Résumé hebdomadaire</span>
-          <input v-model="notificationForm.weeklyDigest" type="checkbox" />
-        </label>
-
-        <button
-          type="button"
-          class="primary-btn"
-          :disabled="loadingNotifications"
-          @click="saveNotifications"
-        >
-          {{ loadingNotifications ? "Enregistrement..." : "Enregistrer" }}
-        </button>
-      </section>
+          <button
+            type="button"
+            class="primary-btn"
+            :disabled="loadingNotifications"
+            @click="saveNotifications"
+          >
+            {{ loadingNotifications ? "Enregistrement..." : "Enregistrer" }}
+          </button>
+        </section>
+      </div>
     </template>
   </section>
 </template>
@@ -450,6 +486,12 @@ onMounted(loadSettings);
   color: var(--app-muted);
 }
 
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
 .settings-panel,
 .state-card {
   background: var(--app-surface);
@@ -457,6 +499,11 @@ onMounted(loadSettings);
   border-radius: var(--app-radius-panel);
   box-shadow: var(--app-shadow-card);
   padding: 1.15rem;
+}
+
+.settings-panel.wide,
+.settings-panel.compact {
+  grid-column: 1 / -1;
 }
 
 .settings-panel.compact {
@@ -563,9 +610,46 @@ onMounted(loadSettings);
 }
 
 .toggle-row input {
-  width: 1.15rem;
-  height: 1.15rem;
-  accent-color: var(--app-primary);
+  position: relative;
+  width: 2.45rem;
+  height: 1.35rem;
+  appearance: none;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-pill);
+  background: var(--app-surface-soft);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.toggle-row input::before {
+  content: "";
+  position: absolute;
+  top: 0.14rem;
+  left: 0.14rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 50%;
+  background: var(--app-muted);
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.toggle-row input:checked {
+  border-color: var(--app-primary);
+  background: var(--app-active-bg);
+}
+
+.toggle-row input:checked::before {
+  background: var(--app-primary);
+  transform: translateX(1.1rem);
+}
+
+.toggle-row input:focus-visible {
+  outline: 3px solid var(--app-active-bg);
+  outline-offset: 2px;
 }
 
 .primary-btn,
@@ -620,6 +704,10 @@ button:disabled {
 }
 
 @media (max-width: 860px) {
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
   }

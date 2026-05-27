@@ -15,9 +15,9 @@ const typeLabels = {
 
 const statusLabels = {
   PENDING: "En attente",
-  APPROVED: "Approuve",
-  REJECTED: "Refuse",
-  CHANGES_REQUESTED: "Correction demandee",
+  APPROVED: "Approuvé",
+  REJECTED: "Refusé",
+  CHANGES_REQUESTED: "Correction demandée",
 };
 
 const formatDate = (date) => {
@@ -37,7 +37,7 @@ const canAct = (validation) => validation.status === "PENDING";
   <div class="professor-validations-table">
     <div class="table-head">
       <span>Titre</span>
-      <span>Etudiant</span>
+      <span>Étudiant</span>
       <span>Type</span>
       <span>Statut</span>
       <span>Date</span>
@@ -56,7 +56,7 @@ const canAct = (validation) => validation.status === "PENDING";
 
       <div class="student-cell">
         <strong>{{ validation.student?.fullName }}</strong>
-        <p>{{ validation.student?.email || "Email non renseigne" }}</p>
+        <p>{{ validation.student?.email || "Email non renseigné" }}</p>
       </div>
 
       <span class="type-cell">
@@ -76,6 +76,7 @@ const canAct = (validation) => validation.status === "PENDING";
           type="button"
           class="icon-btn"
           title="Voir"
+          aria-label="Voir le détail"
           @click="emit('view', validation)"
         >
           <span class="material-icons-round">visibility</span>
@@ -86,6 +87,7 @@ const canAct = (validation) => validation.status === "PENDING";
           type="button"
           class="icon-btn approve"
           title="Approuver"
+          aria-label="Approuver"
           @click="emit('approve', validation)"
         >
           <span class="material-icons-round">check</span>
@@ -95,7 +97,8 @@ const canAct = (validation) => validation.status === "PENDING";
           v-if="canAct(validation)"
           type="button"
           class="icon-btn"
-          title="Demander correction"
+          title="Demander une correction"
+          aria-label="Demander une correction"
           @click="emit('request-changes', validation)"
         >
           <span class="material-icons-round">rate_review</span>
@@ -106,6 +109,7 @@ const canAct = (validation) => validation.status === "PENDING";
           type="button"
           class="icon-btn reject"
           title="Refuser"
+          aria-label="Refuser"
           @click="emit('reject', validation)"
         >
           <span class="material-icons-round">close</span>
@@ -114,7 +118,7 @@ const canAct = (validation) => validation.status === "PENDING";
     </div>
 
     <div v-if="!props.validations.length" class="empty-state">
-      Aucune validation trouvee.
+      Aucune validation trouvée.
     </div>
   </div>
 </template>
