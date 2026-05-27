@@ -13,10 +13,37 @@ router.use(checkRoles('PROFESSOR'));
 
 router.get('/dashboard', professorController.getDashboard);
 router.get('/profile', professorController.getProfile);
+router.get('/validations/stats', professorController.getValidationStats);
+router.get('/validations', professorController.listValidations);
+router.get(
+  '/validations/:itemType/:itemId',
+  professorController.getValidationDetail,
+);
+router.patch(
+  '/validations/:itemType/:itemId/approve',
+  professorController.approveValidation,
+);
+router.patch(
+  '/validations/:itemType/:itemId/reject',
+  professorController.rejectValidation,
+);
+router.patch(
+  '/validations/:itemType/:itemId/request-changes',
+  professorController.requestValidationChanges,
+);
 router.get('/notifications', notificationController.listNotifications);
-router.get('/notifications/unread-count', notificationController.getUnreadCount);
+router.get(
+  '/notifications/unread-count',
+  notificationController.getUnreadCount,
+);
 router.patch('/notifications/read-all', notificationController.markAllAsRead);
-router.patch('/notifications/:notificationId/read', notificationController.markAsRead);
-router.delete('/notifications/:notificationId', notificationController.deleteNotification);
+router.patch(
+  '/notifications/:notificationId/read',
+  notificationController.markAsRead,
+);
+router.delete(
+  '/notifications/:notificationId',
+  notificationController.deleteNotification,
+);
 
 module.exports = router;
