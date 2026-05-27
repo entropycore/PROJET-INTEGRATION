@@ -13,7 +13,7 @@ const handleProfessorError = (res, err) => {
   }
 
   if (err.message === 'PROFESSOR_VALIDATION_INVALID_STATE') {
-    return error(res, 409, 'Cette validation ne peut plus etre modifiee.');
+    return error(res, 409, 'Cette validation ne peut plus être modifiée.');
   }
 
   if (err.message === 'UNSUPPORTED_PROFESSOR_VALIDATION_TYPE') {
@@ -96,12 +96,12 @@ const buildEmptyDashboard = (user) => ({
   user,
   profileSnapshot: null,
   summaryCards: {
-    pendingProjects: { value: 0, label: 'Projets a valider' },
-    pendingInternships: { value: 0, label: 'Stages a valider' },
-    supervisedInternships: { value: 0, label: 'Stages supervises' },
+    pendingProjects: { value: 0, label: 'Projets à valider' },
+    pendingInternships: { value: 0, label: 'Stages à valider' },
+    supervisedInternships: { value: 0, label: 'Stages supervisés' },
     pendingSupervisedInternships: {
       value: 0,
-      label: 'Stages supervises en attente',
+      label: 'Stages supervisés en attente',
     },
     completedProjectReviews: { value: 0, label: 'Avis projet rendus' },
     completedInternshipReviews: { value: 0, label: 'Avis stage rendus' },
@@ -126,13 +126,13 @@ exports.getDashboard = async (req, res, next) => {
     const dashboard = await professorService.getProfessorDashboard(
       req.user.userId,
     );
-    return success(res, 200, 'Tableau de bord professeur charge.', dashboard);
+    return success(res, 200, 'Tableau de bord professeur chargé.', dashboard);
   } catch (err) {
     if (err.message === 'PROFESSOR_PROFILE_NOT_FOUND') {
       return success(
         res,
         200,
-        'Tableau de bord professeur charge.',
+        'Tableau de bord professeur chargé.',
         buildEmptyDashboard(req.user),
       );
     }
@@ -145,13 +145,13 @@ exports.getDashboard = async (req, res, next) => {
 exports.getProfile = async (req, res, next) => {
   try {
     const profile = await professorService.getProfessorProfile(req.user.userId);
-    return success(res, 200, 'Profil professeur charge.', profile);
+    return success(res, 200, 'Profil professeur chargé.', profile);
   } catch (err) {
     if (err.message === 'PROFESSOR_PROFILE_NOT_FOUND') {
       return success(
         res,
         200,
-        'Profil professeur charge.',
+        'Profil professeur chargé.',
         buildEmptyProfile(req.user),
       );
     }
@@ -260,7 +260,7 @@ exports.listValidations = async (req, res, next) => {
       },
     );
 
-    return success(res, 200, 'Validations professeur chargees.', validations);
+    return success(res, 200, 'Validations professeur chargées.', validations);
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);
@@ -275,7 +275,7 @@ exports.getValidationStats = async (req, res, next) => {
     return success(
       res,
       200,
-      'Statistiques des validations professeur chargees.',
+      'Statistiques des validations professeur chargées.',
       stats,
     );
   } catch (err) {
@@ -292,7 +292,7 @@ exports.getValidationDetail = async (req, res, next) => {
       req.params.itemId,
     );
 
-    return success(res, 200, 'Validation professeur chargee.', validation);
+    return success(res, 200, 'Validation professeur chargée.', validation);
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);
@@ -308,7 +308,7 @@ exports.approveValidation = async (req, res, next) => {
       req.body || {},
     );
 
-    return success(res, 200, 'Validation approuvee.', validation);
+    return success(res, 200, 'Validation approuvée.', validation);
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);
@@ -324,7 +324,7 @@ exports.rejectValidation = async (req, res, next) => {
       req.body || {},
     );
 
-    return success(res, 200, 'Validation refusee.', validation);
+    return success(res, 200, 'Validation refusée.', validation);
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);
@@ -340,7 +340,7 @@ exports.requestValidationChanges = async (req, res, next) => {
       req.body || {},
     );
 
-    return success(res, 200, 'Demande de correction envoyee.', validation);
+    return success(res, 200, 'Demande de correction envoyée.', validation);
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);

@@ -67,7 +67,7 @@ const handleMulterResult = (req, res, next, uploadHandler) => {
     }
 
     if (err.message === 'UNSUPPORTED_FILE_TYPE') {
-      return error(res, 415, 'Type de fichier non autorise.', {
+      return error(res, 415, 'Type de fichier non autorisé.', {
         allowedMimeTypes: err.allowedMimeTypes,
       });
     }
