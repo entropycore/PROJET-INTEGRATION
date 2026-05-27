@@ -299,6 +299,11 @@ const router = createRouter({
             role: "PROFESSOR",
           },
         },
+        {
+          path: "settings",
+          name: "professor-settings",
+          component: () => import("../views/professor/Settings.vue"),
+        },
       ],
     },
     {
