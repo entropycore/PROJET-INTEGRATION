@@ -124,19 +124,19 @@ const getProfessorDashboard = async (userId) => {
     summaryCards: {
       pendingProjects: {
         value: pendingProjectsCount,
-        label: 'Projets a valider',
+        label: 'Projets à valider',
       },
       pendingInternships: {
         value: pendingInternshipsCount,
-        label: 'Stages a valider',
+        label: 'Stages à valider',
       },
       supervisedInternships: {
         value: supervisedInternshipsCount,
-        label: 'Stages supervises',
+        label: 'Stages supervisés',
       },
       pendingSupervisedInternships: {
         value: pendingSupervisedInternshipsCount,
-        label: 'Stages supervises en attente',
+        label: 'Stages supervisés en attente',
       },
       completedProjectReviews: {
         value: completedProjectReviewsCount,

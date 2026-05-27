@@ -12,6 +12,15 @@ const notificationService = require('./notificationService');
 const PASSWORD_RESET_EXPIRES = '1h';
 const PASSWORD_RESET_SECRET = process.env.EMAIL_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET;
 const isStructureMissingError = (err) => err?.code === 'P2021' || err?.code === 'P2022';
+const normalizeEmail = (value) =>
+  typeof value === 'string' ? value.trim().toLowerCase() : value;
+
+const emailWhereInsensitive = (email) => ({
+  email: {
+    equals: normalizeEmail(email),
+    mode: 'insensitive',
+  },
+});
 
 // Fonction pour éviter de répéter le code du Role ID
 const getRoleId = (user) => {
@@ -26,9 +35,13 @@ const getRoleId = (user) => {
 
 //  Inscription Professionnel
 exports.registerProfessional = async (userData) => {
-  const { email, password, lastName, firstName, company, jobTitle } = userData;
+  const { password, lastName, firstName, company, jobTitle } = userData;
+  const email = normalizeEmail(userData.email);
 
-  const existingUser = await prisma.user.findUnique({ where: { email } });
+  const existingUser = await prisma.user.findFirst({
+    where: emailWhereInsensitive(email),
+    select: { id: true },
+  });
   if (existingUser) throw new Error("EMAIL_ALREADY_EXISTS");
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -63,7 +76,7 @@ exports.registerProfessional = async (userData) => {
     );
   } catch (err) {
     await prisma.user.delete({ where: { id: newUser.id } });
-    throw new Error("EMAIL_SEND_FAILED");
+    throw new Error("EMAIL_SEND_FAILED", { cause: err });
   }
 
   await notificationService.createAccessRequestNotification({
@@ -98,7 +111,7 @@ exports.verifyEmailToken = async (token) => {
   return true;
 };
 
-// Demande de reinitialisation de mot de passe
+// Demande de réinitialisation de mot de passe
 exports.requestPasswordReset = async (email) => {
   const user = await prisma.user.findUnique({
     where: { email },
@@ -132,24 +145,24 @@ exports.requestPasswordReset = async (email) => {
   try {
     await sendEmail(
       user.email,
-      'Reinitialisation du mot de passe',
-      `Bonjour ${user.firstName},\n\nVous avez demande une reinitialisation de mot de passe.\n\nCliquez ici pour definir un nouveau mot de passe :\n${resetUrl}\n\nSi vous n'etes pas a l'origine de cette demande, vous pouvez ignorer cet email.`
+      'Réinitialisation du mot de passe',
+      `Bonjour ${user.firstName},\n\nVous avez demandé une réinitialisation de mot de passe.\n\nCliquez ici pour définir un nouveau mot de passe :\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.`
     );
   } catch (err) {
-    throw new Error('EMAIL_SEND_FAILED');
+    throw new Error('EMAIL_SEND_FAILED', { cause: err });
   }
 
   return true;
 };
 
-// Reinitialisation de mot de passe
+// Réinitialisation de mot de passe
 exports.resetPassword = async (token, newPassword) => {
   let decoded;
 
   try {
     decoded = jwt.verify(token, PASSWORD_RESET_SECRET);
   } catch (err) {
-    throw new Error('INVALID_RESET_TOKEN');
+    throw new Error('INVALID_RESET_TOKEN', { cause: err });
   }
 
   if (decoded.purpose !== 'password-reset' || !decoded.userId || !decoded.email) {
@@ -188,8 +201,8 @@ exports.resetPassword = async (token, newPassword) => {
 
 // Login
 exports.loginUser = async (email, password, userAgent, ipAddress) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const user = await prisma.user.findFirst({
+    where: emailWhereInsensitive(email),
     include: { student: true, professor: true, administrator: true, professional: true }
   });
 
@@ -212,21 +225,15 @@ exports.loginUser = async (email, password, userAgent, ipAddress) => {
   
   // Stocker le refresh token en BDD 
   const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
-  await prisma.$transaction([
-    prisma.refreshTokenSession.create({
-      data: {
-        userId: user.id,
-        tokenHash: hashToken(refreshToken),
-        userAgent: userAgent || null,
-        ipAddress: ipAddress || null,
-        expiresAt: tokenExpiresAt,
-      },
-    }),
-    prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    }),
-  ]);
+  await prisma.refreshTokenSession.create({
+    data: {
+      userId: user.id,
+      tokenHash: hashToken(refreshToken),
+      userAgent: userAgent || null,
+      ipAddress: ipAddress || null,
+      expiresAt: tokenExpiresAt
+    }
+  });
 
   return { role: user.role, accessToken, refreshToken };
 };
@@ -244,6 +251,7 @@ exports.getUserById = async (userId) => {
       profilePicture: true,
       accountStatus: true,
       role: true,
+      preferences: true,
       createdAt: true,
       lastLoginAt: true,
     }
