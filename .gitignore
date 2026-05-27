@@ -1,3 +1,9 @@
 node_modules/
 .env
 dist/
+
+# Environments
+.env
+.env.*
+!.env.example
+!.env.*.example
