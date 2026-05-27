@@ -24,6 +24,70 @@ const handleProfessorError = (res, err) => {
     return error(res, 400, 'Statut de validation professeur invalide.');
   }
 
+  if (err.message === 'PROFESSOR_PROFILE_REQUIRED_FIELDS') {
+    return error(res, 400, 'Le prénom et le nom du professeur sont requis.');
+  }
+
+  if (err.message === 'PROFILE_PICTURE_UPLOAD_EMPTY') {
+    return error(res, 400, 'Photo de profil requise.');
+  }
+
+  if (err.message === 'PROFILE_PICTURE_FILE_NOT_FOUND') {
+    return error(res, 404, 'Photo de profil introuvable.');
+  }
+
+  if (err.message === 'CURRENT_PASSWORD_REQUIRED') {
+    return error(res, 400, 'Le mot de passe actuel est requis.');
+  }
+
+  if (err.message === 'NEW_PASSWORD_REQUIRED') {
+    return error(res, 400, 'Le nouveau mot de passe est requis.');
+  }
+
+  if (err.message === 'NEW_PASSWORD_TOO_SHORT') {
+    return error(
+      res,
+      400,
+      'Le nouveau mot de passe doit contenir au moins 8 caractères.',
+    );
+  }
+
+  if (err.message === 'PASSWORD_CONFIRMATION_MISMATCH') {
+    return error(res, 400, 'La confirmation du mot de passe ne correspond pas.');
+  }
+
+  if (err.message === 'CURRENT_PASSWORD_INVALID') {
+    return error(res, 400, 'Le mot de passe actuel est incorrect.');
+  }
+
+  if (err.message === 'NEW_PASSWORD_SAME_AS_CURRENT') {
+    return error(
+      res,
+      400,
+      'Le nouveau mot de passe doit être différent du mot de passe actuel.',
+    );
+  }
+
+  if (err.message === 'INVALID_PROFILE_VISIBILITY') {
+    return error(res, 400, 'La visibilité du profil est invalide.');
+  }
+
+  if (err.message === 'INVALID_PRIVACY_BOOLEAN_VALUE') {
+    return error(
+      res,
+      400,
+      'Les préférences de confidentialité doivent être booléennes.',
+    );
+  }
+
+  if (err.message === 'INVALID_NOTIFICATION_BOOLEAN_VALUE') {
+    return error(
+      res,
+      400,
+      'Les préférences de notification doivent être booléennes.',
+    );
+  }
+
   return null;
 };
 
@@ -92,6 +156,94 @@ exports.getProfile = async (req, res, next) => {
       );
     }
 
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const profile = await professorService.updateProfessorProfile(
+      req.user.userId,
+      req.body || {},
+    );
+    return success(res, 200, 'Profil professeur mis à jour.', profile);
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.uploadProfilePicture = async (req, res, next) => {
+  try {
+    const result = await professorService.updateProfessorProfilePicture(
+      req.user.userId,
+      req.file,
+    );
+    return success(res, 200, 'Photo de profil mise à jour.', result);
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.getSettings = async (req, res, next) => {
+  try {
+    const settings = await professorService.getProfessorSettings(
+      req.user.userId,
+    );
+    return success(res, 200, 'Paramètres professeur chargés.', settings);
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateSettingsPassword = async (req, res, next) => {
+  try {
+    const result = await professorService.updateProfessorSettingsPassword(
+      req.user.userId,
+      req.body || {},
+    );
+    return success(res, 200, 'Mot de passe professeur mis à jour.', result);
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateSettingsPrivacy = async (req, res, next) => {
+  try {
+    const privacy = await professorService.updateProfessorSettingsPrivacy(
+      req.user.userId,
+      req.body || {},
+    );
+    return success(
+      res,
+      200,
+      'Préférences de confidentialité mises à jour.',
+      privacy,
+    );
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.updateSettingsNotifications = async (req, res, next) => {
+  try {
+    const notifications =
+      await professorService.updateProfessorSettingsNotifications(
+        req.user.userId,
+        req.body || {},
+      );
+    return success(
+      res,
+      200,
+      'Préférences de notification mises à jour.',
+      notifications,
+    );
+  } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);
   }
