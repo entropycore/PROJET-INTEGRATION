@@ -1,18 +1,19 @@
-:global(html, body) {
+html,
+body {
   margin: 0;
   padding: 0;
   background: #f7f6f2;
 }
 
-:global(*),
-:global(*::before),
-:global(*::after) {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
-:global(button),
-:global(input),
-:global(textarea) {
+button,
+input,
+textarea {
   font: inherit;
 }
 

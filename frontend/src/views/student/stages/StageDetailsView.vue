@@ -98,14 +98,20 @@ const hydrateStageMedia = async (loadedStage) => {
   }
 };
 
+const normalizeStageStatus = (status) => {
+  const value = String(status || "PENDING")
+    .trim()
+    .toUpperCase();
+
+  return value === "CORRECTION_REQUIRED" ? "CHANGES_REQUESTED" : value;
+};
+
 const canEditStage = computed(() => {
-  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+  return ["DRAFT", "CHANGES_REQUESTED"].includes(stageStatus.value);
 });
 
 const stageStatus = computed(() => {
-  return String(stage.value?.validationStatus || "PENDING")
-    .trim()
-    .toUpperCase();
+  return normalizeStageStatus(stage.value?.validationStatus);
 });
 
 const statusText = computed(() => {
@@ -798,7 +804,8 @@ h3 .material-icons-round {
   color: #c62828;
 }
 
-.status-info.CORRECTION_REQUIRED {
+.status-info.CORRECTION_REQUIRED,
+.status-info.CHANGES_REQUESTED {
   color: #e65100;
 }
 
@@ -872,7 +879,8 @@ h3 .material-icons-round {
   color: #c62828;
 }
 
-.timeline-icon.CORRECTION_REQUIRED {
+.timeline-icon.CORRECTION_REQUIRED,
+.timeline-icon.CHANGES_REQUESTED {
   color: #e65100;
 }
 
