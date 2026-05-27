@@ -25,6 +25,7 @@ const studentsRoutes = require('./routes/studentsRoutes');
 const academicPathRoutes = require('./routes/academicPathRoutes');
 const skillRoutes = require('./routes/skillRoutes');
 const portfolioRoutes = require('./routes/portfolioRoutes');
+const profilePictureRoutes = require('./routes/profilePictureRoutes');
 
 const app = express();
 
@@ -84,6 +85,7 @@ app.use('/api/reports', reportRoutes);
 
 app.use('/api/files', fileRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/profile-pictures', profilePictureRoutes);
 
 
 
