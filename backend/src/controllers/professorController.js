@@ -161,19 +161,6 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
-exports.updateProfile = async (req, res, next) => {
-  try {
-    const profile = await professorService.updateProfessorProfile(
-      req.user.userId,
-      req.body || {},
-    );
-    return success(res, 200, 'Profil professeur mis à jour.', profile);
-  } catch (err) {
-    if (handleProfessorError(res, err)) return;
-    next(err);
-  }
-};
-
 exports.uploadProfilePicture = async (req, res, next) => {
   try {
     const result = await professorService.updateProfessorProfilePicture(
