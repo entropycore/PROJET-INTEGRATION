@@ -22,5 +22,5 @@ scrape_configs:
 
   - job_name: "keycloak"
     static_configs:
-      - targets: ["keycloak_sec:8080"]
+      - targets: ["keycloak_sec:9001"]
     metrics_path: /metrics
