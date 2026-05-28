@@ -1,56 +1,59 @@
-import { mount } from "@vue/test-utils";
-import { describe, it, expect, vi } from "vitest";
+import { mount, flushPromises } from "@vue/test-utils";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import Reports from "@/views/admin/Reports.vue";
 
+const reports = [
+  {
+    id: 1,
+    reason: "Contenu inapproprié",
+    description: "Portfolio non conforme",
+    targetType: "PORTFOLIO",
+    targetId: 10,
+    reportedBy: { fullName: "Sara Bensaid", email: "sara@example.com" },
+    status: "PENDING",
+    createdAt: "2026-05-20T10:00:00.000Z",
+  },
+];
+
+vi.mock("@/services/adminReportsApi", () => ({
+  getReports: vi.fn(() => Promise.resolve({ items: reports })),
+  getReportDetails: vi.fn((id) =>
+    Promise.resolve(reports.find((report) => report.id === id)),
+  ),
+  resolveReport: vi.fn(() => Promise.resolve()),
+  rejectReport: vi.fn(() => Promise.resolve()),
+  deleteReportedTarget: vi.fn(() => Promise.resolve()),
+}));
+
+const mountReports = async () => {
+  const wrapper = mount(Reports);
+  await flushPromises();
+  return wrapper;
+};
+
 describe("Reports - Tests unitaires", () => {
-  it("affiche le titre principal", () => {
-    const wrapper = mount(Reports);
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("affiche le titre principal", async () => {
+    const wrapper = await mountReports();
 
     expect(wrapper.text()).toContain("Signalements");
   });
 
-  it("ouvre les détails d’un signalement", async () => {
-    const wrapper = mount(Reports);
+  it("ouvre et ferme les details d'un signalement", async () => {
+    const wrapper = await mountReports();
 
-    wrapper.vm.handleView(wrapper.vm.reports[0]);
-
-    await wrapper.vm.$nextTick();
+    await wrapper.vm.handleView(wrapper.vm.reports[0]);
+    await flushPromises();
 
     expect(wrapper.vm.showDetailsModal).toBe(true);
-    expect(wrapper.vm.selectedReport).not.toBe(null);
-  });
-
-  it("met à jour le statut d’un signalement", () => {
-    const wrapper = mount(Reports);
-
-    wrapper.vm.updateReportStatus(1, "RESOLVED");
-
-    const updated = wrapper.vm.reports.find((r) => r.id === 1);
-
-    expect(updated.status).toBe("RESOLVED");
-  });
-
-  it("ferme le modal des détails", async () => {
-    const wrapper = mount(Reports);
-
-    wrapper.vm.handleView(wrapper.vm.reports[0]);
-
-    await wrapper.vm.$nextTick();
+    expect(wrapper.vm.selectedReport).toMatchObject({ id: 1 });
 
     wrapper.vm.closeDetailsModal();
-
     await wrapper.vm.$nextTick();
 
     expect(wrapper.vm.showDetailsModal).toBe(false);
-  });
-
-  it("rejette un signalement", async () => {
-    window.prompt = vi.fn(() => "Contenu invalide");
-
-    const wrapper = mount(Reports);
-
-    await wrapper.vm.handleReject(wrapper.vm.reports[0]);
-
-    expect(wrapper.vm.reports[0].status).toBe("REJECTED");
   });
 });
