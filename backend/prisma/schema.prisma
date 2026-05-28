@@ -46,6 +46,7 @@ enum Visibility {
 }
 
 enum ValidationStatus {
+  DRAFT
   PENDING
   APPROVED
   REJECTED
@@ -59,6 +60,9 @@ enum ActivityType {
   COMPETITION
   ASSOCIATIVE_ENGAGEMENT
   CONFERENCE
+  VOLUNTEERING
+  TRAINING
+  OTHER
 }
 
 enum RecommendationLetterType {
@@ -132,6 +136,7 @@ model User {
   recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
   reportsAuthored Report[] @relation("ReportAuthor")
+  uploadedFiles UploadedFile[] @relation("UploadedFilesOwner")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -158,6 +163,33 @@ model RefreshTokenSession {
   @@map("refresh_token_sessions")
 }
 
+model UploadedFile {
+  id              String    @id @default(uuid()) @map("id_uploaded_file")
+  ownerUserId     String?   @map("owner_user_id")
+  ownerUser       User?     @relation("UploadedFilesOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  storageProvider String    @default("local") @map("storage_provider") @db.VarChar(50)
+  bucket          String    @db.VarChar(120)
+  objectKey       String    @unique @map("object_key") @db.Text
+  originalName    String    @map("original_name") @db.VarChar(255)
+  mimeType        String    @map("mime_type") @db.VarChar(150)
+  sizeBytes       Int       @map("size_bytes")
+  checksumSha256  String?   @map("checksum_sha256") @db.VarChar(64)
+  access          String    @default("PRIVATE") @db.VarChar(30)
+  entityType      String?   @map("entity_type") @db.VarChar(80)
+  entityId        String?   @map("entity_id")
+  purpose         String?   @db.VarChar(80)
+  publicUrl       String?   @map("public_url") @db.Text
+  metadata        Json      @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  @@index([ownerUserId])
+  @@index([entityType, entityId])
+  @@index([purpose])
+  @@index([deletedAt])
+  @@map("uploaded_files")
+}
+
 model Student {
   id              String    @id @default(uuid()) @map("id_student")
   userId          String    @unique @map("user_id") // Doit être String pour correspondre à User.id
@@ -174,7 +206,10 @@ model Student {
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
   githubAccessToken String? @map("github_access_token") @db.Text
+  
   academicPaths   AcademicPath[]
+  academicTimelineEntries AcademicTimelineEntry[]
+
   studentSkills   StudentSkill[]
   projects        Project[]
   internships     Internship[]
@@ -196,6 +231,7 @@ model Professor {
   specialty       String?   @db.VarChar(150)
   department      String?   @db.VarChar(150)
   projectValidations ProjectValidation[]
+  projectsToValidate Project[] @relation("ProjectAssignedValidator")
   supervisedInternships Internship[]        @relation("InternshipSupervisor")
   internshipValidations InternshipValidation[]
 
@@ -268,13 +304,29 @@ model AcademicPath {
   @@map("academic_paths")
 }
 
+model SkillDomain {
+  id           String  @id @default(uuid()) @map("id_skill_domain")
+  name         String  @unique @db.VarChar(120)
+  slug         String  @unique @db.VarChar(120)
+  description  String? @db.Text
+  displayOrder Int     @default(0) @map("display_order")
+
+  skills Skill[]
+
+  @@index([displayOrder])
+  @@map("skill_domains")
+}
+
 model Skill {
   id          String       @id @default(uuid()) @map("id_skill")
   name        String       @unique @map("name") @db.VarChar(120)
   type        SkillType
   description String?      @db.Text
+  domainId    String?      @map("domain_id")
+  domain      SkillDomain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
   studentSkills StudentSkill[]
 
+  @@index([domainId])
   @@map("skills")
 }
 
@@ -314,13 +366,16 @@ model Project {
   description       String               @db.Text
   type              ProjectType
   teamRole          String?              @map("team_role") @db.VarChar(120)
+  teamSize          String?              @map("team_size") @db.VarChar(80)
+  validatorProfessorId String?           @map("validator_professor_id")
+  validatorProfessor Professor?          @relation("ProjectAssignedValidator", fields: [validatorProfessorId], references: [id], onDelete: SetNull)
   githubUrl         String?              @map("github_url") @db.Text
   youtubeUrl        String?              @map("youtube_url") @db.Text
   result            String?              @db.Text
   generalFeedback   String?              @map("general_feedback") @db.Text
   createdAt         DateTime             @default(now()) @map("created_at")
   submittedAt       DateTime?            @map("submitted_at")
-  validationStatus  ValidationStatus     @default(PENDING) @map("validation_status")
+  validationStatus  ValidationStatus     @default(DRAFT) @map("validation_status")
   visibility        Visibility           @default(PRIVATE)
   media             ProjectMedia[]
   technologies      ProjectTechnology[]
@@ -329,6 +384,7 @@ model Project {
   @@index([studentId])
   @@index([validationStatus])
   @@index([studentId, validationStatus])
+  @@index([validatorProfessorId])
   @@map("projects")
 }
 
@@ -339,6 +395,10 @@ model ProjectMedia {
   mediaType   String    @map("media_type") @db.VarChar(50)
   mediaUrl    String    @map("media_url") @db.Text
   description String?   @db.Text
+  fileName    String?   @map("file_name") @db.VarChar(255)
+  mimeType    String?   @map("mime_type") @db.VarChar(120)
+  fileSize    Int?      @map("file_size")
+  storagePath String?   @map("storage_path") @db.Text
 
   @@index([projectId])
   @@map("project_media")
@@ -385,8 +445,13 @@ model Internship {
   endDate             DateTime?             @map("end_date") @db.Date
   missions            String?               @db.Text
   reportUrl           String?               @map("report_url") @db.Text
+  reportFileName      String?               @map("report_file_name") @db.VarChar(255)
+  reportMimeType      String?               @map("report_mime_type") @db.VarChar(120)
+  reportFileSize      Int?                  @map("report_file_size")
+  reportStoragePath   String?               @map("report_storage_path") @db.Text
   validationStatus    ValidationStatus      @default(PENDING) @map("validation_status")
   visibility          Visibility            @default(PRIVATE)
+  media               InternshipMedia[]
   technologies        InternshipTechnology[]
   validations         InternshipValidation[]
 
@@ -395,6 +460,22 @@ model Internship {
   @@index([validationStatus])
   @@index([studentId, validationStatus])
   @@map("internships")
+}
+
+model InternshipMedia {
+  id           String     @id @default(uuid()) @map("id_internship_media")
+  internshipId String     @map("internship_id")
+  internship   Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  mediaType    String     @map("media_type") @db.VarChar(50)
+  mediaUrl     String     @map("media_url") @db.Text
+  description  String?    @db.Text
+  fileName     String?    @map("file_name") @db.VarChar(255)
+  mimeType     String?    @map("mime_type") @db.VarChar(120)
+  fileSize     Int?       @map("file_size")
+  storagePath  String?    @map("storage_path") @db.Text
+
+  @@index([internshipId])
+  @@map("internship_media")
 }
 
 model InternshipTechnology {
@@ -435,10 +516,14 @@ model ExtracurricularActivity {
   organization String?     @db.VarChar(150)
   startDate    DateTime?   @map("start_date") @db.Date
   endDate      DateTime?   @map("end_date") @db.Date
+  duration     String?     @db.VarChar(100)
+  location     String?     @db.VarChar(150)
+  validationStatus ValidationStatus @default(DRAFT) @map("validation_status")
   visibility   Visibility  @default(PRIVATE)
   certificates Certificate[]
 
   @@index([studentId])
+  @@index([validationStatus])
   @@map("extracurricular_activities")
 }
 
@@ -447,6 +532,10 @@ model Certificate {
   activityId       String                 @map("activity_id")
   activity         ExtracurricularActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
   documentUrl      String                 @map("document_url") @db.Text
+  fileName         String?                @map("file_name") @db.VarChar(255)
+  mimeType         String?                @map("mime_type") @db.VarChar(120)
+  fileSize         Int?                   @map("file_size")
+  storagePath      String?                @map("storage_path") @db.Text
   validationStatus ValidationStatus       @default(PENDING) @map("validation_status")
   submittedAt      DateTime               @default(now()) @map("submitted_at")
   validations      CertificateValidation[]
@@ -507,6 +596,9 @@ model Portfolio {
   visibility     Visibility       @default(PRIVATE)
   status         PortfolioStatus  @default(DRAFT)
   targetDomain   String?          @map("target_domain") @db.VarChar(120)
+  theme          String           @default("modern-academic") @db.VarChar(80)
+  includedSections Json           @default("[]") @map("included_sections")
+  includedItems  Json             @default("{}") @map("included_items")
   generatedAt    DateTime         @default(now()) @map("generated_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   comments       Comment[]
@@ -567,6 +659,21 @@ model Recommendation {
   @@index([status])
   @@map("recommendations")
 }
+model AcademicTimelineEntry {
+  id          Int       @id @default(autoincrement())
+  studentId   String    @map("student_id") 
+  title       String    @db.VarChar(255)
+  institution String    @db.VarChar(255)
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("academic_timeline")
+}
 
 model Report {
   id                          String          @id @default(uuid()) @map("id_report")
@@ -609,8 +716,22 @@ model Notification {
   @@index([isRead, createdAt])
   @@index([relatedType, relatedId])
   @@map("notifications")
-  }
-  
+}
+
+model Badge {
+  id          String   @id @default(uuid()) @map("id_badge")
+  name        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  rule        String   @db.Text
+  iconUrl     String?  @map("icon_url") @db.Text
+  tone        String   @default("blue") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([createdAt])
+  @@map("badges")
+}
+
 model SystemSettings {
   id                       String   @id @default(uuid()) @map("id_system_settings")
   
