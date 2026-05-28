@@ -38,7 +38,7 @@ describe("NotificationItem - Tests Unitaires (Logique)", () => {
     });
 
     const smallTag = wrapper.find("small");
-    // Le format local fr-FR transformera la date ISO. 
+    // Le format local fr-FR transformera la date ISO.
     // On vérifie au moins la présence des éléments clés de la date pour éviter les écarts de fuseaux horaires en CI
     expect(smallTag.text()).toContain("2026");
   });

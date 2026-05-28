@@ -1,9 +1,12 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
-import { getStudentProjectById } from "@/services/studentProjectsApis";
-import { mockProjects } from "@/mockData/projects";
+import {
+  getStudentProjectById,
+  deleteStudentProject,
+} from "@/services/studentProjectsApis";
+import api from "@/services/api";
 
 import "@/assets/styles/student-project-details.css";
 
@@ -12,6 +15,10 @@ const router = useRouter();
 
 const project = ref(null);
 const isLoading = ref(false);
+const screenshotObjectUrls = ref({});
+const brokenScreenshotIds = ref(new Set());
+
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
 
 const statusLabels = {
   DRAFT: "Brouillon",
@@ -64,27 +71,93 @@ const fetchProject = async () => {
 
   try {
     const response = await getStudentProjectById(route.params.id);
-    project.value = response.data;
+    project.value = response.data.data;
+    await loadScreenshotObjectUrls();
   } catch (error) {
     console.warn("API project detail indisponible.");
-
-    project.value = mockProjects.find(
-      (item) => String(item.id) === String(route.params.id),
-    );
   } finally {
     isLoading.value = false;
   }
 };
 
-const displayScreenshots = computed(() => {
-  const screenshots = project.value?.screenshots || [];
-  const placeholders = [
-    { id: "placeholder-1", title: "Capture 1", imageUrl: null },
-    { id: "placeholder-2", title: "Capture 2", imageUrl: null },
-    { id: "placeholder-3", title: "Capture 3", imageUrl: null },
-  ];
+const buildBackendUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("blob:") || path.startsWith("data:")) return path;
+  if (/^https?:\/\//i.test(path)) return path;
 
-  return [...screenshots, ...placeholders].slice(0, 3);
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const normalizedBase = apiBaseUrl.replace(/\/$/, "");
+
+  return normalizedBase ? `${normalizedBase}${normalizedPath}` : normalizedPath;
+};
+
+const buildApiRequestUrl = (path) => {
+  const fullUrl = buildBackendUrl(path);
+  const withoutBase =
+    apiBaseUrl && fullUrl.startsWith(apiBaseUrl)
+      ? fullUrl.slice(apiBaseUrl.length) || "/"
+      : fullUrl;
+
+  return withoutBase.startsWith("/api/")
+    ? withoutBase.replace(/^\/api/, "")
+    : withoutBase;
+};
+
+const getMediaUrl = (media, action = "download") => {
+  const existingUrl = media?.imageUrl || media?.mediaUrl || media?.url;
+
+  if (existingUrl) return existingUrl;
+  if (!project.value?.id || !media?.id) return "";
+
+  return `/api/projects/${project.value.id}/media/${media.id}/${action}`;
+};
+
+const revokeScreenshotObjectUrls = () => {
+  Object.values(screenshotObjectUrls.value).forEach((url) => {
+    URL.revokeObjectURL(url);
+  });
+
+  screenshotObjectUrls.value = {};
+};
+
+const handleScreenshotError = (id) => {
+  if (!id) return;
+
+  brokenScreenshotIds.value = new Set([...brokenScreenshotIds.value, id]);
+};
+
+const loadScreenshotObjectUrls = async () => {
+  revokeScreenshotObjectUrls();
+  brokenScreenshotIds.value = new Set();
+
+  const screenshots = project.value?.screenshots || [];
+  const entries = await Promise.all(
+    screenshots.map(async (screenshot) => {
+      const mediaUrl = getMediaUrl(screenshot, "content");
+
+      if (!screenshot.id || !mediaUrl) return null;
+
+      try {
+        const response = await api.get(buildApiRequestUrl(mediaUrl), {
+          responseType: "blob",
+        });
+
+        return [screenshot.id, URL.createObjectURL(response.data)];
+      } catch (error) {
+        handleScreenshotError(screenshot.id);
+        return null;
+      }
+    }),
+  );
+
+  screenshotObjectUrls.value = Object.fromEntries(entries.filter(Boolean));
+};
+
+const displayScreenshots = computed(() => {
+  return (project.value?.screenshots || []).map((screenshot) => ({
+    ...screenshot,
+    src: screenshotObjectUrls.value[screenshot.id] || "",
+  }));
 });
 
 const formatDate = (date) => {
@@ -101,17 +174,21 @@ const sortedValidationHistory = computed(() => {
     return new Date(b.createdAt) - new Date(a.createdAt);
   });
 });
-const handleDeleteProject = () => {
+const handleDeleteProject = async () => {
   const confirmed = confirm("Supprimer définitivement ce projet ?");
 
   if (!confirmed) return;
 
-  console.log("Projet supprimé");
-
-  router.push("/student/projects");
+  try {
+    await deleteStudentProject(route.params.id);
+    router.push("/student/projects");
+  } catch (error) {
+    console.error("Erreur suppression projet :", error);
+  }
 };
 
 onMounted(fetchProject);
+onUnmounted(revokeScreenshotObjectUrls);
 </script>
 
 <template>
@@ -385,9 +462,12 @@ onMounted(fetchProject);
                 class="screenshot-card"
               >
                 <img
-                  v-if="screenshot.imageUrl"
-                  :src="screenshot.imageUrl"
+                  v-if="
+                    screenshot.src && !brokenScreenshotIds.has(screenshot.id)
+                  "
+                  :src="screenshot.src"
                   :alt="screenshot.title"
+                  @error="handleScreenshotError(screenshot.id)"
                 />
 
                 <div

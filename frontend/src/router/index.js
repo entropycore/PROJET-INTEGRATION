@@ -94,7 +94,10 @@ const router = createRouter({
           path: "notifications",
           name: "admin-notifications",
           component: () => import("../views/Notifications.vue"),
-          meta: { baseApi: "/api/admin" },
+          meta: {
+            baseApi: "/api/admin",
+            role: "ADMINISTRATOR",
+          },
         },
         {
           path: "badges",
@@ -121,7 +124,11 @@ const router = createRouter({
     {
       path: "/student",
       component: DashboardLayout,
-      meta: { role: "STUDENT" },
+      meta: {
+        requiresAuth: true,
+        roles: ["STUDENT"],
+        role: "STUDENT",
+      },
       children: [
         {
           path: "",
@@ -181,6 +188,21 @@ const router = createRouter({
           component: () => import("@/views/student/Activities.vue"),
         },
         {
+          path: "activities/create",
+          name: "StudentActivityCreate",
+          component: () => import("@/views/student/ActivityCreate.vue"),
+        },
+        {
+          path: "activities/:id/edit",
+          name: "StudentActivityEdit",
+          component: () => import("@/views/student/ActivityEdit.vue"),
+        },
+        {
+          path: "activities/:id",
+          name: "StudentActivityDetails",
+          component: () => import("@/views/student/ActivityDetails.vue"),
+        },
+        {
           path: "competances",
           name: "Studentcompetances",
           component: () => import("@/views/student/competances.vue"),
@@ -191,9 +213,10 @@ const router = createRouter({
           component: () => import("@/views/student/Badges.vue"),
         },
         {
-          path: "portfolio",
-          name: "StudentPortfolio",
-          component: () => import("@/views/student/Portfolio.vue"),
+          path: "/student/portfolio",
+          name: "student-portfolio",
+          component: () =>
+            import("@/views/student/portfolio/PortfolioPreviewView.vue"),
         },
         {
           path: "github",
@@ -224,19 +247,74 @@ const router = createRouter({
           path: "notifications",
           name: "student-notifications",
           component: () => import("../views/Notifications.vue"),
-          meta: { baseApi: "/api/student" },
+          meta: {
+            baseApi: "/api/student",
+            role: "STUDENT",
+          },
         },
       ],
     },
     {
+      path: "/student/portfolio/full",
+      name: "student-portfolio-full",
+      component: () =>
+        import("@/views/student/portfolio/PortfolioFullView.vue"),
+    },
+    {
+      path: "/portfolio/:slug",
+      name: "public-portfolio",
+      component: () =>
+        import("@/views/student/portfolio/PortfolioFullView.vue"),
+    },
+    {
       path: "/professor",
-      component: ProfessorDashboard,
-      meta: { requiresAuth: true, roles: ["PROFESSOR"] },
+      component: DashboardLayout,
+      meta: {
+        requiresAuth: true,
+        roles: ["PROFESSOR"],
+        role: "PROFESSOR",
+      },
+      children: [
+        {
+          path: "",
+          name: "professor-dashboard",
+          component: ProfessorDashboard,
+        },
+        {
+          path: "notifications",
+          name: "professor-notifications",
+          component: () => import("../views/Notifications.vue"),
+          meta: {
+            baseApi: "/api/professor",
+            role: "PROFESSOR",
+          },
+        },
+      ],
     },
     {
       path: "/professional",
-      component: ProfessionalDashboard,
-      meta: { requiresAuth: true, roles: ["PROFESSIONAL"] },
+      component: DashboardLayout,
+      meta: {
+        requiresAuth: true,
+        roles: ["PROFESSIONAL"],
+        role: "PROFESSIONAL",
+      },
+      children: [
+        {
+          path: "",
+          name: "professional-dashboard",
+          component: ProfessionalDashboard,
+        },
+        {
+          path: "notifications",
+          name: "professional-notifications",
+          component: () => import("../views/Notifications.vue"),
+          meta: {
+            baseApi: "/api/professional",
+            role: "PROFESSIONAL",
+          },
+        },
+      ],
     },
     {
       path: "/403",

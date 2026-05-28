@@ -2,8 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
-import { getStudentProjects } from "@/services/studentProjectsApis";
-import { mockProjects } from "@/mockData/projects";
+import {
+  getStudentProjects,
+  submitStudentProject,
+} from "@/services/studentProjectsApis";
 
 import "@/assets/styles/student-project.css";
 
@@ -43,10 +45,12 @@ const fetchProjects = async () => {
 
   try {
     const response = await getStudentProjects();
-    projects.value = response.data;
+    projects.value = response.data.data;
   } catch (error) {
-    console.warn("API projects indisponible, utilisation des mock data.");
-    projects.value = mockProjects;
+    console.warn(
+      "API projects indisponible, utilisation des mock data.",
+      error,
+    );
   } finally {
     isLoading.value = false;
   }
@@ -79,8 +83,13 @@ const canEditProject = (status) => {
   return ["DRAFT", "CHANGES_REQUESTED"].includes(status);
 };
 
-const canSubmitProject = (status) => {
-  return status === "DRAFT";
+const canSubmitProject = (project) => {
+  return (
+    project.validationStatus === "DRAFT" &&
+    project.title?.trim() &&
+    project.description?.trim() &&
+    project.validatorName
+  );
 };
 
 const formatDate = (date) => {
@@ -91,8 +100,13 @@ const formatDate = (date) => {
   }).format(new Date(date));
 };
 
-const submitProject = (projectId) => {
-  console.log("Submit project:", projectId);
+const submitProject = async (projectId) => {
+  try {
+    await submitStudentProject(projectId);
+    await fetchProjects();
+  } catch (error) {
+    console.error("Erreur soumission projet :", error);
+  }
 };
 </script>
 
@@ -213,7 +227,7 @@ const submitProject = (projectId) => {
             </RouterLink>
 
             <button
-              v-if="canSubmitProject(project.validationStatus)"
+              v-if="canSubmitProject(project)"
               type="button"
               class="primary-action"
               @click="submitProject(project.id)"
