@@ -1,22 +1,25 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import {
+  createStudentProject,
+  getStudentProjectValidators,
+  submitStudentProject,
+  uploadStudentProjectMedia,
+} from "@/services/studentProjectsApis";
 import { RouterLink, useRouter } from "vue-router";
 
 import "@/assets/styles/student-project-edit.css";
 
 const router = useRouter();
-
+const isSaving = ref(false);
 const newTechnology = ref("");
 const newLinkLabel = ref("");
 const newLinkUrl = ref("");
-
-const validators = [
-  "Pr. Moussaoui",
-  "Pr. Benali",
-  "Mme Ghizlan",
-  "Pr. Haddad",
-  "Pr. El Amrani",
-];
+const errorMessage = ref("");
+const selectedScreenshots = ref([]);
+const selectedAttachments = ref([]);
+const validators = ref([]);
+const isValidatorSuggestionsOpen = ref(false);
 
 const projectTypes = [
   "Module",
@@ -46,16 +49,46 @@ const projectForm = ref({
   screenshots: [],
   attachments: [],
 
+  validatorId: "",
   validatorName: "",
 });
 
 const canSubmit = computed(() => {
-  return (
+  return Boolean(
     projectForm.value.title.trim() &&
     projectForm.value.description.trim() &&
-    projectForm.value.validatorName
+    projectForm.value.validatorId,
   );
 });
+
+const selectedValidator = computed(() => {
+  return validators.value.find(
+    (validator) => validator.id === projectForm.value.validatorId,
+  );
+});
+
+const filteredValidators = computed(() => {
+  const query = projectForm.value.validatorName.trim().toLowerCase();
+
+  if (!query) return validators.value.slice(0, 6);
+
+  return validators.value
+    .filter((validator) => {
+      return [validator.fullName, validator.email]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(query));
+    })
+    .slice(0, 6);
+});
+
+const buildProjectPayload = () => {
+  const payload = { ...projectForm.value };
+
+  delete payload.screenshots;
+  delete payload.attachments;
+
+  return payload;
+};
 
 const projectLinks = computed(() => {
   return [
@@ -122,10 +155,14 @@ const handleScreenshotsUpload = (event) => {
   const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
+    const id = Date.now() + Math.random();
+
+    selectedScreenshots.value.push({ id, file });
     projectForm.value.screenshots.push({
-      id: Date.now() + Math.random(),
+      id,
       title: file.name,
       imageUrl: URL.createObjectURL(file),
+      isLocal: true,
     });
   });
 
@@ -136,11 +173,15 @@ const handleAttachmentsUpload = (event) => {
   const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
+    const id = Date.now() + Math.random();
+
+    selectedAttachments.value.push({ id, file });
     projectForm.value.attachments.push({
-      id: Date.now() + Math.random(),
+      id,
       name: file.name,
       type: file.type || "FICHIER",
       url: "#",
+      isLocal: true,
     });
   });
 
@@ -151,27 +192,113 @@ const removeScreenshot = (id) => {
   projectForm.value.screenshots = projectForm.value.screenshots.filter(
     (screenshot) => screenshot.id !== id,
   );
+  selectedScreenshots.value = selectedScreenshots.value.filter(
+    (screenshot) => screenshot.id !== id,
+  );
 };
 
 const removeAttachment = (id) => {
   projectForm.value.attachments = projectForm.value.attachments.filter(
     (attachment) => attachment.id !== id,
   );
+  selectedAttachments.value = selectedAttachments.value.filter(
+    (attachment) => attachment.id !== id,
+  );
 };
 
-const createDraftProject = () => {
-  console.log("Projet brouillon créé :", projectForm.value);
-
-  router.push("/student/projects");
+const fetchValidators = async () => {
+  try {
+    const response = await getStudentProjectValidators();
+    validators.value = response.data?.data || response.data || [];
+  } catch (error) {
+    console.error("Erreur chargement validateurs projet :", error);
+    validators.value = [];
+  }
 };
 
-const createAndSubmitProject = () => {
+const openValidatorSuggestions = () => {
+  isValidatorSuggestionsOpen.value = true;
+};
+
+const closeValidatorSuggestions = () => {
+  window.setTimeout(() => {
+    isValidatorSuggestionsOpen.value = false;
+  }, 120);
+};
+
+const handleValidatorInput = () => {
+  if (
+    selectedValidator.value &&
+    projectForm.value.validatorName.trim() !== selectedValidator.value.fullName
+  ) {
+    projectForm.value.validatorId = "";
+  }
+
+  openValidatorSuggestions();
+};
+
+const selectValidator = (validator) => {
+  projectForm.value.validatorId = validator.id;
+  projectForm.value.validatorName = validator.fullName || "";
+  isValidatorSuggestionsOpen.value = false;
+};
+
+const uploadPendingMedia = async (projectId) => {
+  if (!selectedScreenshots.value.length && !selectedAttachments.value.length) {
+    return;
+  }
+
+  await uploadStudentProjectMedia(projectId, {
+    screenshots: selectedScreenshots.value.map((item) => item.file),
+    attachments: selectedAttachments.value.map((item) => item.file),
+  });
+};
+
+const createDraftProject = async () => {
+  isSaving.value = true;
+  errorMessage.value = "";
+
+  try {
+    const response = await createStudentProject(buildProjectPayload());
+    const createdProject = response.data?.data || response.data;
+
+    await uploadPendingMedia(createdProject.id);
+
+    router.push("/student/projects");
+  } catch (error) {
+    console.error("Erreur création projet :", error);
+    errorMessage.value =
+      error.response?.data?.message || "Impossible de créer le projet.";
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const createAndSubmitProject = async () => {
   if (!canSubmit.value) return;
 
-  console.log("Projet créé et soumis :", projectForm.value);
+  isSaving.value = true;
+  errorMessage.value = "";
 
-  router.push("/student/projects");
+  try {
+    const response = await createStudentProject(buildProjectPayload());
+    const createdProject = response.data?.data || response.data;
+
+    await uploadPendingMedia(createdProject.id);
+    await submitStudentProject(createdProject.id);
+
+    router.push("/student/projects");
+  } catch (error) {
+    console.error("Erreur création/soumission projet :", error);
+    errorMessage.value =
+      error.response?.data?.message ||
+      "Impossible de créer et soumettre le projet.";
+  } finally {
+    isSaving.value = false;
+  }
 };
+
+onMounted(fetchValidators);
 </script>
 
 <template>
@@ -193,6 +320,7 @@ const createAndSubmitProject = () => {
         <button
           type="button"
           class="secondary-action"
+          :disabled="isSaving"
           @click="createDraftProject"
         >
           Enregistrer
@@ -201,11 +329,14 @@ const createAndSubmitProject = () => {
         <button
           type="button"
           class="primary-action"
-          :disabled="!canSubmit"
+          :disabled="!canSubmit || isSaving"
           @click="createAndSubmitProject"
         >
           Créer et soumettre
         </button>
+        <p v-if="errorMessage" class="edit-error-message">
+          {{ errorMessage }}
+        </p>
       </div>
     </div>
 
@@ -238,17 +369,50 @@ const createAndSubmitProject = () => {
             <label class="form-field">
               <span>Validateur</span>
 
-              <select v-model="projectForm.validatorName">
-                <option value="">Choisir un validateur</option>
+              <div class="autocomplete-field">
+                <input
+                  v-model="projectForm.validatorName"
+                  type="text"
+                  autocomplete="off"
+                  placeholder="Tapez le nom du validateur"
+                  :disabled="!validators.length"
+                  @focus="openValidatorSuggestions"
+                  @blur="closeValidatorSuggestions"
+                  @input="handleValidatorInput"
+                />
 
-                <option
-                  v-for="validator in validators"
-                  :key="validator"
-                  :value="validator"
+                <div
+                  v-if="
+                    isValidatorSuggestionsOpen &&
+                    validators.length &&
+                    filteredValidators.length
+                  "
+                  class="suggestions-list"
                 >
-                  {{ validator }}
-                </option>
-              </select>
+                  <button
+                    v-for="validator in filteredValidators"
+                    :key="validator.id"
+                    type="button"
+                    class="suggestion-item"
+                    @mousedown.prevent="selectValidator(validator)"
+                  >
+                    <span class="suggestion-avatar">
+                      {{ validator.fullName?.charAt(0) || "V" }}
+                    </span>
+                    <span>
+                      <strong>{{ validator.fullName }}</strong>
+                      <small>
+                        {{
+                          validator.department || "Département non renseigné"
+                        }}
+                        <template v-if="validator.specialty">
+                          · {{ validator.specialty }}
+                        </template>
+                      </small>
+                    </span>
+                  </button>
+                </div>
+              </div>
             </label>
 
             <label class="form-field full">
@@ -432,8 +596,8 @@ const createAndSubmitProject = () => {
         </section>
 
         <section v-if="!canSubmit" class="edit-warning-card">
-          Complétez le titre, la description et choisissez un validateur avant
-          de soumettre le projet.
+          Complétez le titre, la description et le validateur avant de soumettre
+          le projet.
         </section>
       </aside>
     </div>

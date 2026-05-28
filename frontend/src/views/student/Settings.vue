@@ -1,24 +1,38 @@
 <script setup>
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
+import api from "../../services/api";
+import {
+  updatePassword,
+  updatePrivacy,
+  updateNotifications,
+} from "../../services/settingsService";
 
-const successMessage = ref("");
-const errorMessage = ref("");
+const loadingPassword = ref(false);
+const loadingPrivacy = ref(false);
+const loadingNotifs = ref(false);
 
-// Mot de passe
+// Messages par section
+const passwordMsg = ref({ type: "", text: "" });
+const privacyMsg = ref({ type: "", text: "" });
+const notifMsg = ref({ type: "", text: "" });
+
+// Afficher/masquer mot de passe
+const showCurrent = ref(false);
+const showNew = ref(false);
+const showConfirm = ref(false);
+
 const passwordForm = ref({
   currentPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
 
-// Confidentialité
 const privacyForm = ref({
   profileVisibility: "PUBLIC",
   showEmail: false,
   showPhone: false,
 });
 
-// Notifications
 const notifForm = ref({
   email: true,
   push: false,
@@ -26,45 +40,157 @@ const notifForm = ref({
   recommendations: true,
 });
 
-const savePassword = async () => {
-  errorMessage.value = "";
-  successMessage.value = "";
-  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-    errorMessage.value = "Les mots de passe ne correspondent pas.";
-    return;
-  }
+// Chargement des préférences sauvegardées au démarrage
+onMounted(async () => {
   try {
-    // await api.put('/settings/me/password', passwordForm.value)
-    successMessage.value = "Mot de passe mis à jour.";
+    const res = await api.get("/auth/me"); // route valide pour tous les rôles
+    const prefs = res.data?.data?.preferences;
+    if (prefs?.privacy) {
+      privacyForm.value = {
+        profileVisibility: prefs.privacy.profileVisibility ?? "PUBLIC",
+        showEmail: prefs.privacy.showEmail ?? false,
+        showPhone: prefs.privacy.showPhone ?? false,
+      };
+    }
+    if (prefs?.notifications) {
+      notifForm.value = {
+        email: prefs.notifications.email ?? true,
+        push: prefs.notifications.push ?? false,
+        validationUpdates: prefs.notifications.validationUpdates ?? true,
+        recommendations: prefs.notifications.recommendations ?? true,
+      };
+    }
+  } catch {
+    // garde les valeurs par défaut
+  }
+});
+
+const setMsg = (msgRef, type, text) => {
+  msgRef.value = { type, text };
+  setTimeout(() => (msgRef.value = { type: "", text: "" }), 4000);
+};
+
+const PASSWORD_ERRORS = {
+  CURRENT_PASSWORD_INVALID: "Le mot de passe actuel est incorrect.",
+  NEW_PASSWORD_TOO_SHORT:
+    "Le nouveau mot de passe est trop court (8 caractères min).",
+  NEW_PASSWORD_SAME_AS_CURRENT:
+    "Le nouveau mot de passe doit être différent de l'actuel.",
+  PASSWORD_CONFIRMATION_MISMATCH: "Les mots de passe ne correspondent pas.",
+};
+
+const PRIVACY_ERRORS = {
+  INVALID_PROFILE_VISIBILITY: "Valeur de visibilité invalide.",
+  INVALID_PRIVACY_BOOLEAN_VALUE: "Valeur booléenne invalide.",
+};
+
+const NOTIF_ERRORS = {
+  INVALID_NOTIFICATION_BOOLEAN_VALUE: "Valeur booléenne invalide.",
+};
+
+const getErrorMsg = (err, map, fallback) => {
+  const code = err?.response?.data?.error?.code;
+  return map[code] || fallback;
+};
+
+const savePassword = async () => {
+  if (!passwordForm.value.currentPassword)
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Veuillez entrer votre mot de passe actuel.",
+    );
+  if (!passwordForm.value.newPassword)
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Veuillez entrer un nouveau mot de passe.",
+    );
+  if (passwordForm.value.newPassword.length < 8)
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+    );
+  if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword)
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Les mots de passe ne correspondent pas.",
+    );
+
+  loadingPassword.value = true;
+  try {
+    await updatePassword(passwordForm.value);
     passwordForm.value = {
       currentPassword: "",
       newPassword: "",
       confirmPassword: "",
     };
-  } catch {
-    errorMessage.value = "Erreur lors de la mise à jour.";
+    showCurrent.value = false;
+    showNew.value = false;
+    showConfirm.value = false;
+    setMsg(
+      passwordMsg,
+      "success",
+      "✓ Mot de passe mis à jour. Vos autres sessions ont été déconnectées.",
+    );
+  } catch (err) {
+    setMsg(
+      passwordMsg,
+      "error",
+      getErrorMsg(
+        err,
+        PASSWORD_ERRORS,
+        "Erreur lors de la mise à jour du mot de passe.",
+      ),
+    );
+  } finally {
+    loadingPassword.value = false;
   }
 };
 
 const savePrivacy = async () => {
-  errorMessage.value = "";
-  successMessage.value = "";
+  loadingPrivacy.value = true;
   try {
-    // await api.put('/api/student/settings/privacy', privacyForm.value)
-    successMessage.value = "Préférences de confidentialité mises à jour.";
-  } catch {
-    errorMessage.value = "Erreur lors de la mise à jour.";
+    await updatePrivacy(privacyForm.value);
+    setMsg(
+      privacyMsg,
+      "success",
+      "✓ Préférences de confidentialité mises à jour.",
+    );
+  } catch (err) {
+    setMsg(
+      privacyMsg,
+      "error",
+      getErrorMsg(
+        err,
+        PRIVACY_ERRORS,
+        "Erreur lors de la mise à jour de la confidentialité.",
+      ),
+    );
+  } finally {
+    loadingPrivacy.value = false;
   }
 };
 
 const saveNotifications = async () => {
-  errorMessage.value = "";
-  successMessage.value = "";
+  loadingNotifs.value = true;
   try {
-    // await api.put('/api/student/settings/notifications', notifForm.value)
-    successMessage.value = "Préférences de notifications mises à jour.";
-  } catch {
-    errorMessage.value = "Erreur lors de la mise à jour.";
+    await updateNotifications(notifForm.value);
+    setMsg(notifMsg, "success", "✓ Préférences de notifications mises à jour.");
+  } catch (err) {
+    setMsg(
+      notifMsg,
+      "error",
+      getErrorMsg(
+        err,
+        NOTIF_ERRORS,
+        "Erreur lors de la mise à jour des notifications.",
+      ),
+    );
+  } finally {
+    loadingNotifs.value = false;
   }
 };
 </script>
@@ -78,47 +204,97 @@ const saveNotifications = async () => {
       </div>
     </div>
 
-    <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
-    <p v-if="successMessage" class="success-msg">{{ successMessage }}</p>
-
     <!-- Mot de passe -->
     <div class="content-card">
       <h3 class="card-title">Changer le mot de passe</h3>
+
+      <transition name="fade">
+        <p
+          v-if="passwordMsg.text"
+          :class="passwordMsg.type === 'error' ? 'error-msg' : 'success-msg'"
+        >
+          {{ passwordMsg.text }}
+        </p>
+      </transition>
+
       <div class="form-group">
         <label>Mot de passe actuel</label>
-        <input
-          v-model="passwordForm.currentPassword"
-          type="password"
-          placeholder="••••••••"
-        />
+        <div class="input-eye">
+          <input
+            v-model="passwordForm.currentPassword"
+            :type="showCurrent ? 'text' : 'password'"
+            placeholder="••••••••"
+            autocomplete="new-password"
+          />
+          <span
+            class="material-icons-round eye-icon"
+            @click="showCurrent = !showCurrent"
+          >
+            {{ showCurrent ? "visibility" : "visibility_off" }}
+          </span>
+        </div>
       </div>
+
       <div class="form-row">
         <div class="form-group">
           <label>Nouveau mot de passe</label>
-          <input
-            v-model="passwordForm.newPassword"
-            type="password"
-            placeholder="••••••••"
-          />
+          <div class="input-eye">
+            <input
+              v-model="passwordForm.newPassword"
+              :type="showNew ? 'text' : 'password'"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
+            <span
+              class="material-icons-round eye-icon"
+              @click="showNew = !showNew"
+            >
+              {{ showNew ? "visibility" : "visibility_off" }}
+            </span>
+          </div>
         </div>
         <div class="form-group">
           <label>Confirmer le mot de passe</label>
-          <input
-            v-model="passwordForm.confirmPassword"
-            type="password"
-            placeholder="••••••••"
-          />
+          <div class="input-eye">
+            <input
+              v-model="passwordForm.confirmPassword"
+              :type="showConfirm ? 'text' : 'password'"
+              placeholder="••••••••"
+              autocomplete="new-password"
+            />
+            <span
+              class="material-icons-round eye-icon"
+              @click="showConfirm = !showConfirm"
+            >
+              {{ showConfirm ? "visibility" : "visibility_off" }}
+            </span>
+          </div>
         </div>
       </div>
-      <button class="btn btn-primary btn-sm" @click="savePassword">
+
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        @click="savePassword"
+        :disabled="loadingPassword"
+      >
         <span class="material-icons-round">lock</span>
-        Mettre à jour
+        {{ loadingPassword ? "Mise à jour..." : "Mettre à jour" }}
       </button>
     </div>
 
     <!-- Confidentialité -->
     <div class="content-card">
       <h3 class="card-title">Confidentialité</h3>
+
+      <transition name="fade">
+        <p
+          v-if="privacyMsg.text"
+          :class="privacyMsg.type === 'error' ? 'error-msg' : 'success-msg'"
+        >
+          {{ privacyMsg.text }}
+        </p>
+      </transition>
 
       <div class="form-group">
         <label>Visibilité du profil</label>
@@ -170,15 +346,29 @@ const saveNotifications = async () => {
         </label>
       </div>
 
-      <button class="btn btn-primary btn-sm mt-16" @click="savePrivacy">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm mt-16"
+        @click="savePrivacy"
+        :disabled="loadingPrivacy"
+      >
         <span class="material-icons-round">shield</span>
-        Enregistrer
+        {{ loadingPrivacy ? "Enregistrement..." : "Enregistrer" }}
       </button>
     </div>
 
     <!-- Notifications -->
     <div class="content-card">
       <h3 class="card-title">Notifications</h3>
+
+      <transition name="fade">
+        <p
+          v-if="notifMsg.text"
+          :class="notifMsg.type === 'error' ? 'error-msg' : 'success-msg'"
+        >
+          {{ notifMsg.text }}
+        </p>
+      </transition>
 
       <div class="toggle-row">
         <div>
@@ -232,9 +422,14 @@ const saveNotifications = async () => {
         </label>
       </div>
 
-      <button class="btn btn-primary btn-sm mt-16" @click="saveNotifications">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm mt-16"
+        @click="saveNotifications"
+        :disabled="loadingNotifs"
+      >
         <span class="material-icons-round">notifications</span>
-        Enregistrer
+        {{ loadingNotifs ? "Enregistrement..." : "Enregistrer" }}
       </button>
     </div>
   </div>
@@ -245,7 +440,6 @@ const saveNotifications = async () => {
   font-family: "DM Sans", sans-serif;
   color: #28363d;
 }
-
 .page-header {
   display: flex;
   align-items: flex-start;
@@ -265,7 +459,6 @@ const saveNotifications = async () => {
   margin-top: 3px;
   font-style: italic;
 }
-
 .content-card {
   background: #fff;
   border: 1px solid #dee1dd;
@@ -280,7 +473,6 @@ const saveNotifications = async () => {
   font-weight: 400;
   margin-bottom: 16px;
 }
-
 .form-group {
   margin-bottom: 16px;
 }
@@ -291,9 +483,14 @@ const saveNotifications = async () => {
   color: #6d9197;
   margin-bottom: 5px;
 }
-.form-group input {
+
+/* Input avec icone oeil */
+.input-eye {
+  position: relative;
+}
+.input-eye input {
   width: 100%;
-  padding: 9px 12px;
+  padding: 9px 38px 9px 12px;
   border: 1px solid #c4cdc1;
   border-radius: 8px;
   background: #fff;
@@ -304,15 +501,29 @@ const saveNotifications = async () => {
   transition: border-color 0.2s;
   box-sizing: border-box;
 }
-.form-group input:focus {
+.input-eye input:focus {
   border-color: #2f575d;
 }
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #99aead;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+.eye-icon:hover {
+  color: #2f575d;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
-
 .chips-row {
   display: flex;
   flex-wrap: wrap;
@@ -335,7 +546,6 @@ const saveNotifications = async () => {
   color: #fff;
   border-color: #2f575d;
 }
-
 .toggle-row {
   display: flex;
   align-items: center;
@@ -356,7 +566,6 @@ const saveNotifications = async () => {
   color: #99aead;
   margin-top: 2px;
 }
-
 .toggle {
   position: relative;
   display: inline-block;
@@ -397,7 +606,6 @@ const saveNotifications = async () => {
 .toggle input:checked + .slider:before {
   transform: translateX(20px);
 }
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -416,8 +624,12 @@ const saveNotifications = async () => {
   color: #fff;
   border-color: #2f575d;
 }
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: #245055;
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .btn-sm {
   padding: 6px 12px;
@@ -426,18 +638,46 @@ const saveNotifications = async () => {
 .btn .material-icons-round {
   font-size: 16px;
 }
-
 .mt-16 {
   margin-top: 16px;
 }
+
+/* Messages */
 .error-msg {
   color: #c0392b;
+  background: #fdf2f2;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 10px 14px;
   font-size: 13px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 .success-msg {
-  color: #658b6f;
+  color: #2d6a4f;
+  background: #f0faf4;
+  border: 1px solid #b7dfc8;
+  border-radius: 8px;
+  padding: 10px 14px;
   font-size: 13px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+/* Animation */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Bloquer le fond jaune du password manager */
+.input-eye input:-webkit-autofill,
+.input-eye input:-webkit-autofill:hover,
+.input-eye input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px #fff inset;
+  box-shadow: 0 0 0px 1000px #fff inset;
+  -webkit-text-fill-color: #28363d;
 }
 </style>

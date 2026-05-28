@@ -1,9 +1,13 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 
-import { getStudentRecommendationsData } from "@/services/studentRecommendationsService";
+import {
+  getStudentRecommendationsData,
+  updateRecommendationStatus,
+} from "@/services/studentRecommendationsService";
 
 const loading = ref(false);
+const actionLoadingId = ref(null);
 
 const recommendationsData = ref({
   stats: {
@@ -21,15 +25,13 @@ const loadRecommendations = async () => {
   loading.value = true;
 
   try {
-    recommendationsData.value = await getStudentRecommendationsData();
+    recommendationsData.value = await getStudentRecommendationsData({
+      status: selectedFilter.value,
+    });
   } finally {
     loading.value = false;
   }
 };
-
-onMounted(() => {
-  loadRecommendations();
-});
 
 const filteredRecommendations = computed(() => {
   if (selectedFilter.value === "ALL") {
@@ -53,29 +55,28 @@ const viewAuthorProfile = (authorId) => {
   console.log("Voir profil auteur :", authorId);
 };
 
-const acceptRecommendation = (id) => {
-  recommendationsData.value.recommendations =
-    recommendationsData.value.recommendations.map((recommendation) =>
-      recommendation.id === id
-        ? { ...recommendation, status: "RECEIVED", visibility: "PUBLIC" }
-        : recommendation,
-    );
+const decideRecommendation = async (id, status) => {
+  actionLoadingId.value = id;
 
-  recommendationsData.value.stats.pending -= 1;
-  recommendationsData.value.stats.received += 1;
+  try {
+    await updateRecommendationStatus(id, status);
+    await loadRecommendations();
+  } finally {
+    actionLoadingId.value = null;
+  }
+};
+
+const acceptRecommendation = (id) => {
+  decideRecommendation(id, "APPROVED");
 };
 
 const rejectRecommendation = (id) => {
-  recommendationsData.value.recommendations =
-    recommendationsData.value.recommendations.map((recommendation) =>
-      recommendation.id === id
-        ? { ...recommendation, status: "REJECTED", visibility: "PRIVATE" }
-        : recommendation,
-    );
-
-  recommendationsData.value.stats.pending -= 1;
-  recommendationsData.value.stats.rejected += 1;
+  decideRecommendation(id, "REJECTED");
 };
+
+onMounted(() => {
+  loadRecommendations();
+});
 </script>
 
 <template>
@@ -203,6 +204,7 @@ const rejectRecommendation = (id) => {
             <button
               v-if="recommendation.status === 'PENDING'"
               class="primary-btn"
+              :disabled="actionLoadingId === recommendation.id"
               @click="acceptRecommendation(recommendation.id)"
             >
               Accepter
@@ -211,6 +213,7 @@ const rejectRecommendation = (id) => {
             <button
               v-if="recommendation.status === 'PENDING'"
               class="danger-btn"
+              :disabled="actionLoadingId === recommendation.id"
               @click="rejectRecommendation(recommendation.id)"
             >
               Refuser
