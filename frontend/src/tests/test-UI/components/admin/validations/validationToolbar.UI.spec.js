@@ -2,13 +2,8 @@ import { describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
 import ValidationToolbar from "@/components/admin/validations/ValidationToolbar.vue";
 
-<<<<<<< HEAD
-describe('ValidationToolbar - Tests UI', () => {
-  it('initialise les champs avec les proprietes', () => {
-=======
 describe("ValidationToolbar - Tests UI", () => {
-  it("initialise les champs avec les props", () => {
->>>>>>> 3dce0a3e27749bbf804690e5e1c08da883d1e98c
+  it("initialise les champs avec les proprietes", () => {
     const wrapper = mount(ValidationToolbar, {
       props: {
         search: "Projet",
