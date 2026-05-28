@@ -1,51 +1,103 @@
-import { mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import Validations from '@/views/admin/Validations.vue';
+import { mount, flushPromises } from "@vue/test-utils";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import Validations from "@/views/admin/Validations.vue";
+import {
+  approveValidation,
+  rejectValidation,
+  requestValidationChanges,
+} from "@/services/adminValidationsApi";
 
-describe('Validations.vue - Tests unitaires', () => {
-  let wrapper;
+const validations = [
+  {
+    id: 1,
+    title: "Projet web",
+    targetType: "PROJECT",
+    status: "PENDING",
+    student: { fullName: "Yassine K.", email: "yassine@example.com" },
+  },
+  {
+    id: 2,
+    title: "Stage",
+    targetType: "INTERNSHIP",
+    status: "PENDING",
+    student: { fullName: "Sara B.", email: "sara@example.com" },
+  },
+  {
+    id: 3,
+    title: "Certificat",
+    targetType: "CERTIFICATE",
+    status: "PENDING",
+    student: { fullName: "Imane T.", email: "imane@example.com" },
+  },
+];
 
+vi.mock("@/services/adminValidationsApi", () => ({
+  getPendingValidations: vi.fn(() => Promise.resolve({ items: validations })),
+  getPendingValidationsCount: vi.fn(() =>
+    Promise.resolve({ count: 3, projects: 1, internships: 1, certificates: 1, activities: 0 }),
+  ),
+  getValidationDetails: vi.fn((id) =>
+    Promise.resolve(validations.find((validation) => validation.id === id)),
+  ),
+  approveValidation: vi.fn(() => Promise.resolve()),
+  rejectValidation: vi.fn(() => Promise.resolve()),
+  requestValidationChanges: vi.fn(() => Promise.resolve()),
+}));
+
+const mountValidations = async () => {
+  const wrapper = mount(Validations, {
+    global: {
+      stubs: {
+        ValidationStats: true,
+        ValidationToolbar: true,
+        ValidationsTable: true,
+        ValidationDetailsModal: true,
+      },
+    },
+  });
+  await flushPromises();
+  return wrapper;
+};
+
+describe("Validations.vue - Tests unitaires", () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
-    wrapper = mount(Validations);
+    vi.clearAllMocks();
   });
 
-  it("updateValidationStatus() - devrait modifier correctement l'etat d'une validation", () => {
-    expect(wrapper.vm.validations[0].status).toBe('PENDING');
+  it("charge les validations depuis le service", async () => {
+    const wrapper = await mountValidations();
 
-    wrapper.vm.updateValidationStatus(1, 'APPROVED');
-
-    expect(wrapper.vm.validations[0].status).toBe('APPROVED');
+    expect(wrapper.vm.validations).toHaveLength(3);
   });
 
-  it("handleApprove() - devrait passer le statut a APPROVED si l'utilisateur confirme", async () => {
-    const spyConfirm = vi.spyOn(window, 'confirm').mockImplementation(() => true);
+  it("handleApprove() appelle le service si l'utilisateur confirme", async () => {
+    vi.spyOn(window, "confirm").mockImplementation(() => true);
+    const wrapper = await mountValidations();
 
     await wrapper.vm.handleApprove(wrapper.vm.validations[0]);
 
-    expect(spyConfirm).toHaveBeenCalled();
-    expect(wrapper.vm.validations[0].status).toBe('APPROVED');
+    expect(approveValidation).toHaveBeenCalledWith(1);
   });
 
-  it('handleReject() - devrait modifier le statut en REJECTED si un motif est saisi', async () => {
-    const spyPrompt = vi
-      .spyOn(window, 'prompt')
-      .mockImplementation(() => 'Document illisible ou incomplet.');
+  it("handleReject() appelle le service si un motif est saisi", async () => {
+    vi.spyOn(window, "prompt").mockImplementation(() => "Document incomplet.");
+    const wrapper = await mountValidations();
 
     await wrapper.vm.handleReject(wrapper.vm.validations[1]);
 
-    expect(spyPrompt).toHaveBeenCalled();
-    expect(wrapper.vm.validations[1].status).toBe('REJECTED');
+    expect(rejectValidation).toHaveBeenCalledWith(2, {
+      comment: "Document incomplet.",
+    });
   });
 
-  it('handleRequestChanges() - devrait demander des corrections si un motif est fourni', async () => {
-    const spyPrompt = vi
-      .spyOn(window, 'prompt')
-      .mockImplementation(() => 'Merci de joindre un justificatif au format officiel.');
+  it("handleRequestChanges() appelle le service si un motif est fourni", async () => {
+    vi.spyOn(window, "prompt").mockImplementation(() => "Merci de corriger.");
+    const wrapper = await mountValidations();
 
     await wrapper.vm.handleRequestChanges(wrapper.vm.validations[2]);
 
-    expect(spyPrompt).toHaveBeenCalled();
-    expect(wrapper.vm.validations[2].status).toBe('CHANGES_REQUESTED');
+    expect(requestValidationChanges).toHaveBeenCalledWith(3, {
+      comment: "Merci de corriger.",
+    });
   });
 });
