@@ -1,12 +1,16 @@
-FROM node:24
+FROM node:24-alpine
 
 WORKDIR /app
+ENV CYPRESS_INSTALL_BINARY=0
 
-COPY package*.json ./
+RUN chown node:node /app
+USER node
+
+COPY --chown=node:node package*.json ./
 
 RUN npm install
 
-COPY . .
+COPY --chown=node:node . .
 
 EXPOSE 5173
 

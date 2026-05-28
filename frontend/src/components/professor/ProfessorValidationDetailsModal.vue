@@ -44,29 +44,41 @@ const formatFileSize = (size) => {
 
 <template>
   <div class="modal-overlay">
-    <section class="professor-validation-modal">
+    <section
+      class="professor-validation-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="professor-validation-details-title"
+    >
       <header class="modal-header">
         <div>
           <span>{{
             validation.targetType === "PROJECT" ? "Projet" : "Stage"
           }}</span>
-          <h2>{{ validation.title }}</h2>
+          <h2 id="professor-validation-details-title">
+            {{ validation.title }}
+          </h2>
         </div>
 
-        <button type="button" class="close-btn" @click="emit('close')">
+        <button
+          type="button"
+          class="close-btn"
+          aria-label="Fermer le détail"
+          @click="emit('close')"
+        >
           <span class="material-icons-round">close</span>
         </button>
       </header>
 
       <div class="modal-layout">
         <aside class="student-panel">
-          <h3>Etudiant</h3>
+          <h3>Étudiant</h3>
 
           <div class="student-line">
             <img
               v-if="validation.student?.profilePicture"
               :src="buildBackendUrl(validation.student.profilePicture)"
-              alt="Photo etudiant"
+              alt="Photo étudiant"
             />
             <div v-else class="student-avatar">
               {{ getInitials(validation.student?.fullName) }}
@@ -74,13 +86,13 @@ const formatFileSize = (size) => {
 
             <div>
               <strong>{{ validation.student?.fullName }}</strong>
-              <p>{{ validation.student?.email || "Email non renseigne" }}</p>
+              <p>{{ validation.student?.email || "Email non renseigné" }}</p>
             </div>
           </div>
 
           <div class="info-list">
             <div>
-              <span>Filiere</span>
+              <span>Filière</span>
               <strong>{{ validation.student?.field || "-" }}</strong>
             </div>
             <div>
@@ -95,7 +107,7 @@ const formatFileSize = (size) => {
         </aside>
 
         <main class="details-panel">
-          <h3>Details</h3>
+          <h3>Détails</h3>
 
           <div class="detail-row">
             <span>Description</span>
@@ -112,11 +124,11 @@ const formatFileSize = (size) => {
               }}</strong>
             </div>
             <div class="detail-row">
-              <span>Role</span>
+              <span>Rôle</span>
               <strong>{{ validation.targetDetails?.teamRole || "-" }}</strong>
             </div>
             <div class="detail-row">
-              <span>Equipe</span>
+              <span>Équipe</span>
               <strong>{{ validation.targetDetails?.teamSize || "-" }}</strong>
             </div>
           </template>
@@ -127,14 +139,14 @@ const formatFileSize = (size) => {
               <strong>{{ validation.targetDetails?.company || "-" }}</strong>
             </div>
             <div class="detail-row">
-              <span>Periode</span>
+              <span>Période</span>
               <strong>
                 {{ formatDate(validation.targetDetails?.startDate) }} -
                 {{ formatDate(validation.targetDetails?.endDate) }}
               </strong>
             </div>
             <div class="detail-row">
-              <span>Duree</span>
+              <span>Durée</span>
               <strong>{{ validation.targetDetails?.duration || "-" }}</strong>
             </div>
           </template>
@@ -188,7 +200,7 @@ const formatFileSize = (size) => {
           class="secondary-btn"
           @click="emit('request-changes', validation)"
         >
-          Demander correction
+          Demander une correction
         </button>
         <button
           type="button"
@@ -226,6 +238,7 @@ const formatFileSize = (size) => {
   max-height: 92vh;
   overflow: auto;
   background: var(--app-surface);
+  border: 1px solid var(--app-border);
   border-radius: var(--app-radius-panel);
   padding: 1.4rem;
   box-shadow: var(--app-shadow-popover);
@@ -277,6 +290,7 @@ const formatFileSize = (size) => {
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-panel);
   padding: 1rem;
+  background: var(--app-surface);
 }
 
 h3 {
@@ -381,6 +395,11 @@ h3 {
   border-radius: var(--app-radius-md);
   color: var(--app-text);
   text-decoration: none;
+}
+
+.file-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .file-row .material-icons-round {
