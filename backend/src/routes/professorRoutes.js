@@ -29,6 +29,10 @@ router.put(
 router.get('/validations/stats', professorController.getValidationStats);
 router.get('/validations', professorController.listValidations);
 router.get(
+  '/validations/:itemType/:itemId/files/:fileId/:action',
+  professorController.downloadValidationFile,
+);
+router.get(
   '/validations/:itemType/:itemId',
   professorController.getValidationDetail,
 );
