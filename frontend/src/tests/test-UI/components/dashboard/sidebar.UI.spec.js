@@ -73,11 +73,7 @@ const mountSidebar = (props = {}, userOverride = {}) => {
   });
 };
 
-<<<<<<< HEAD
 describe("Sidebar - Tests UI", () => {
-=======
-describe('Sidebar - Tests UI', () => {
->>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
   beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -116,16 +112,11 @@ describe('Sidebar - Tests UI', () => {
     it("affiche les liens et le dropdown", () => {
       const wrapper = mountSidebar();
       expect(wrapper.find(".sidebar-section").text()).toBe("Principal");
-<<<<<<< HEAD
       expect(wrapper.text()).toContain("Tableau de bord");
       expect(wrapper.find(".sidebar-dropdown-trigger").text()).toContain(
         "Gestion utilisateurs",
       );
       expect(wrapper.find(".sidebar-submenu").exists()).toBe(false);
-    });
-
-    it("ouvre, affiche puis ferme le sous-menu", async () => {
-=======
     });
 
     it("rend les liens simples (sans enfants)", () => {
@@ -171,7 +162,6 @@ describe('Sidebar - Tests UI', () => {
     });
 
     it("change le chevron selon l'état ouvert/fermé", async () => {
->>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
       const wrapper = mountSidebar();
       const trigger = wrapper.find(".sidebar-dropdown-trigger");
       const chevronClosed = wrapper.find(".sidebar-chevron").text();
@@ -186,22 +176,10 @@ describe('Sidebar - Tests UI', () => {
     });
   });
 
-<<<<<<< HEAD
   describe("Propriete collapsed", () => {
     it("gere la classe collapsed et l'evenement toggle-sidebar", async () => {
       const collapsedWrapper = mountSidebar({ collapsed: true });
       expect(collapsedWrapper.find("aside").classes()).toContain(
-=======
-  describe("Prop collapsed", () => {
-    it("ajoute la classe 'sidebar-collapsed' quand collapsed=true", () => {
-      const wrapper = mountSidebar({ collapsed: true });
-      expect(wrapper.find("aside").classes()).toContain("sidebar-collapsed");
-    });
-
-    it("n'a pas la classe 'sidebar-collapsed' par défaut", () => {
-      const wrapper = mountSidebar();
-      expect(wrapper.find("aside").classes()).not.toContain(
->>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
         "sidebar-collapsed",
       );
 
@@ -236,13 +214,8 @@ describe('Sidebar - Tests UI', () => {
     });
   });
 
-<<<<<<< HEAD
   describe("Sections par role", () => {
     it("n'affiche aucune section si le role est inconnu", () => {
-=======
-  describe("Sections par rôle", () => {
-    it("n'affiche aucune section si le rôle est inconnu", () => {
->>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
       const wrapper = mountSidebar({}, { role: "unknown_role" });
       expect(wrapper.findAll(".sidebar-section")).toHaveLength(0);
     });
