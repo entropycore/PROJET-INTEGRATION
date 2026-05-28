@@ -22,10 +22,10 @@ const STUDENT_ERROR_RESPONSES = {
   NEW_PASSWORD_TOO_SHORT: [400, 'Le nouveau mot de passe doit contenir au moins 8 caracteres.'],
   PASSWORD_CONFIRMATION_MISMATCH: [400, 'La confirmation du mot de passe ne correspond pas.'],
   CURRENT_PASSWORD_INVALID: [400, 'Le mot de passe actuel est incorrect.'],
-  NEW_PASSWORD_SAME_AS_CURRENT: [400, 'Le nouveau mot de passe doit etre different du mot de passe actuel.'],
+  NEW_PASSWORD_SAME_AS_CURRENT: [400, 'Le nouveau mot de passe doit être different du mot de passe actuel.'],
   INVALID_PROFILE_VISIBILITY: [400, 'La visibilite du profil est invalide.'],
-  INVALID_PRIVACY_BOOLEAN_VALUE: [400, 'Les preferences de confidentialite doivent etre booleennes.'],
-  INVALID_NOTIFICATION_BOOLEAN_VALUE: [400, 'Les preferences de notification doivent etre booleennes.'],
+  INVALID_PRIVACY_BOOLEAN_VALUE: [400, 'Les preferences de confidentialite doivent être booleennes.'],
+  INVALID_NOTIFICATION_BOOLEAN_VALUE: [400, 'Les preferences de notification doivent être booleennes.'],
 };
 
 const handleStudentError = (res, err) => {

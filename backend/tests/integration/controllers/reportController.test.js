@@ -19,7 +19,7 @@ jest.mock('../../../src/middlewares/authMiddleware', () => (req, res, next) => {
 const validReport = {
     targetType: 'PORTFOLIO',
     targetId: '2944284-ce86-46ae-a42e-da0c7d64436f',
-    reason: 'Contenu inapproprie',
+    reason: 'Contenu inapproprié',
     description: 'L\'utilisateur utilise un langage offensant.'
 };
 
@@ -34,14 +34,14 @@ describe('REPORTS - POST /reports', () => {
     });
 
     // ── TC-REP-01 : Création réussie ─────────────────────────
-    test('TC-REP-01 : Creation reussie -> 201', async () => {
+    test('TC-REP-01 : Création réussie -> 201', async () => {
         // On simule ce que reportService.createReport retourne en cas de succès
         reportService.createReport.mockResolvedValue({
             id: 'report-uuid-789',
             reporterUserId: 'user-uuid-123',
             targetType: 'PORTFOLIO',
             targetId: '2944284-ce86-46ae-a42e-da0c7d64436f',
-            reason: 'Contenu inapproprie',
+            reason: 'Contenu inapproprié',
             description: 'L\'utilisateur utilise un langage offensant.',
             status: 'PENDING'
         });
@@ -64,7 +64,7 @@ describe('REPORTS - POST /reports', () => {
             reporterUserId: 'user-uuid-123', // vient du middleware mocké
             targetType: 'PORTFOLIO',
             targetId: '2944284-ce86-46ae-a42e-da0c7d64436f',
-            reason: 'Contenu inapproprie',
+            reason: 'Contenu inapproprié',
             description: 'L\'utilisateur utilise un langage offensant.',
         });
     });
@@ -133,6 +133,6 @@ describe('REPORTS - POST /reports', () => {
 
         expect(res.statusCode).toBe(409);
         expect(res.body.success).toBe(false);
-        expect(res.body.message).toMatch(/existe deja|attente/i);
+        expect(res.body.message).toMatch(/existe déjà|attente/i);
     });
 });
