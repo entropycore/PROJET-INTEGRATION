@@ -13,17 +13,17 @@ const summaryCards = computed(() => {
 
   return [
     {
-      label: "Projets a valider",
+      label: "Projets à valider",
       value: cards.pendingProjects?.value || 0,
       icon: "folder_open",
     },
     {
-      label: "Stages a valider",
+      label: "Stages à valider",
       value: cards.pendingInternships?.value || 0,
       icon: "business_center",
     },
     {
-      label: "Stages supervises",
+      label: "Stages supervisés",
       value: cards.supervisedInternships?.value || 0,
       icon: "school",
     },
@@ -49,10 +49,14 @@ const formatDate = (date) => {
 
 const statusLabels = {
   PENDING: "En attente",
-  APPROVED: "Approuve",
-  REJECTED: "Refuse",
-  CHANGES_REQUESTED: "Correction demandee",
+  APPROVED: "Approuvé",
+  REJECTED: "Refusé",
+  CHANGES_REQUESTED: "Correction demandée",
 };
+
+const getStatusLabel = (status) => statusLabels[status] || "Statut inconnu";
+
+const getStatusClass = (status) => String(status || "").toLowerCase();
 
 onMounted(async () => {
   isLoading.value = true;
@@ -83,14 +87,14 @@ onMounted(async () => {
           <span>ESPACE PROFESSEUR</span>
           <h1>Bonjour {{ dashboard.profileSnapshot?.fullName }}</h1>
           <p>
-            Suivez les validations qui vous sont assignees et vos stages
-            encadres.
+            Suivez les validations qui vous sont assignées et vos stages
+            encadrés.
           </p>
         </div>
 
         <RouterLink to="/professor/validations" class="primary-link">
           <span class="material-icons-round">fact_check</span>
-          Voir validations
+          Voir les validations
         </RouterLink>
       </header>
 
@@ -135,7 +139,7 @@ onMounted(async () => {
 
         <section class="dashboard-panel">
           <div class="panel-header">
-            <h2>Stages supervises</h2>
+            <h2>Stages supervisés</h2>
           </div>
 
           <div v-if="dashboard.supervisedInternships?.length" class="item-list">
@@ -147,21 +151,21 @@ onMounted(async () => {
               <div>
                 <strong>{{ internship.hostOrganization }}</strong>
                 <p>
-                  {{ internship.studentName || "Etudiant non renseigne" }}
+                  {{ internship.studentName || "Étudiant non renseigné" }}
                   - {{ formatDate(internship.startDate) }}
                 </p>
               </div>
 
               <span
                 class="status-pill"
-                :class="internship.validationStatus.toLowerCase()"
+                :class="getStatusClass(internship.validationStatus)"
               >
-                {{ statusLabels[internship.validationStatus] }}
+                {{ getStatusLabel(internship.validationStatus) }}
               </span>
             </article>
           </div>
 
-          <p v-else class="empty-text">Aucun stage supervise pour le moment.</p>
+          <p v-else class="empty-text">Aucun stage supervisé pour le moment.</p>
         </section>
 
         <section class="dashboard-panel wide">
@@ -188,14 +192,14 @@ onMounted(async () => {
 
               <div>
                 <strong>{{ activity.label }}</strong>
-                <p>{{ activity.studentName || "Etudiant non renseigne" }}</p>
+                <p>{{ activity.studentName || "Étudiant non renseigné" }}</p>
               </div>
 
               <small>{{ formatDate(activity.decisionDate) }}</small>
             </article>
           </div>
 
-          <p v-else class="empty-text">Aucun avis rendu recemment.</p>
+          <p v-else class="empty-text">Aucun avis rendu récemment.</p>
         </section>
       </div>
     </template>
@@ -275,6 +279,12 @@ onMounted(async () => {
 }
 
 .summary-card .material-icons-round {
+  width: 2.45rem;
+  height: 2.45rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--app-active-bg);
   color: var(--app-primary);
   font-size: 1.45rem;
 }
@@ -344,12 +354,18 @@ onMounted(async () => {
   padding: 0.75rem;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-md);
-  background: var(--app-surface);
+  background: var(--app-surface-soft);
+}
+
+.list-row > div,
+.activity-row > div {
+  min-width: 0;
 }
 
 .list-row strong,
 .activity-row strong {
   color: var(--app-heading);
+  overflow-wrap: anywhere;
 }
 
 .list-row p,
@@ -398,6 +414,13 @@ onMounted(async () => {
 .state-card {
   margin: 0;
   color: var(--app-muted);
+}
+
+.empty-text {
+  padding: 1rem;
+  border: 1px dashed var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface-soft);
 }
 
 .state-card {
