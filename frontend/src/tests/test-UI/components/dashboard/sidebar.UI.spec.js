@@ -73,7 +73,11 @@ const mountSidebar = (props = {}, userOverride = {}) => {
   });
 };
 
+<<<<<<< HEAD
 describe("Sidebar - Tests UI", () => {
+=======
+describe('Sidebar - Tests UI', () => {
+>>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
   beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -112,6 +116,7 @@ describe("Sidebar - Tests UI", () => {
     it("affiche les liens et le dropdown", () => {
       const wrapper = mountSidebar();
       expect(wrapper.find(".sidebar-section").text()).toBe("Principal");
+<<<<<<< HEAD
       expect(wrapper.text()).toContain("Tableau de bord");
       expect(wrapper.find(".sidebar-dropdown-trigger").text()).toContain(
         "Gestion utilisateurs",
@@ -120,6 +125,53 @@ describe("Sidebar - Tests UI", () => {
     });
 
     it("ouvre, affiche puis ferme le sous-menu", async () => {
+=======
+    });
+
+    it("rend les liens simples (sans enfants)", () => {
+      const wrapper = mountSidebar();
+      const links = wrapper.findAll("a");
+      const labels = links.map((l) => l.text());
+      expect(labels.some((t) => t.includes("Tableau de bord"))).toBe(true);
+    });
+
+    it("rend le bouton dropdown pour les items avec enfants", () => {
+      const wrapper = mountSidebar();
+      const triggers = wrapper.findAll(".sidebar-dropdown-trigger");
+      expect(triggers.length).toBeGreaterThan(0);
+      expect(triggers[0].text()).toContain("Gestion utilisateurs");
+    });
+
+    it("n'affiche pas le sous-menu avant d'ouvrir le dropdown", () => {
+      const wrapper = mountSidebar();
+      expect(wrapper.find(".sidebar-submenu").exists()).toBe(false);
+    });
+  });
+
+  describe("Dropdown", () => {
+    it("ouvre le sous-menu au clic sur le trigger", async () => {
+      const wrapper = mountSidebar();
+      await wrapper.find(".sidebar-dropdown-trigger").trigger("click");
+      expect(wrapper.find(".sidebar-submenu").exists()).toBe(true);
+    });
+
+    it("affiche les liens enfants une fois le sous-menu ouvert", async () => {
+      const wrapper = mountSidebar();
+      await wrapper.find(".sidebar-dropdown-trigger").trigger("click");
+      const subLinks = wrapper.findAll(".sidebar-sublink");
+      expect(subLinks.length).toBe(2);
+    });
+
+    it("ferme le sous-menu au second clic (toggle)", async () => {
+      const wrapper = mountSidebar();
+      const trigger = wrapper.find(".sidebar-dropdown-trigger");
+      await trigger.trigger("click");
+      await trigger.trigger("click");
+      expect(wrapper.find(".sidebar-submenu").exists()).toBe(false);
+    });
+
+    it("change le chevron selon l'état ouvert/fermé", async () => {
+>>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
       const wrapper = mountSidebar();
       const trigger = wrapper.find(".sidebar-dropdown-trigger");
       const chevronClosed = wrapper.find(".sidebar-chevron").text();
@@ -134,10 +186,22 @@ describe("Sidebar - Tests UI", () => {
     });
   });
 
+<<<<<<< HEAD
   describe("Propriete collapsed", () => {
     it("gere la classe collapsed et l'evenement toggle-sidebar", async () => {
       const collapsedWrapper = mountSidebar({ collapsed: true });
       expect(collapsedWrapper.find("aside").classes()).toContain(
+=======
+  describe("Prop collapsed", () => {
+    it("ajoute la classe 'sidebar-collapsed' quand collapsed=true", () => {
+      const wrapper = mountSidebar({ collapsed: true });
+      expect(wrapper.find("aside").classes()).toContain("sidebar-collapsed");
+    });
+
+    it("n'a pas la classe 'sidebar-collapsed' par défaut", () => {
+      const wrapper = mountSidebar();
+      expect(wrapper.find("aside").classes()).not.toContain(
+>>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
         "sidebar-collapsed",
       );
 
@@ -172,8 +236,13 @@ describe("Sidebar - Tests UI", () => {
     });
   });
 
+<<<<<<< HEAD
   describe("Sections par role", () => {
     it("n'affiche aucune section si le role est inconnu", () => {
+=======
+  describe("Sections par rôle", () => {
+    it("n'affiche aucune section si le rôle est inconnu", () => {
+>>>>>>> f631fb1e6bf4e352d9d8ebef2ec35dbe0244a48b
       const wrapper = mountSidebar({}, { role: "unknown_role" });
       expect(wrapper.findAll(".sidebar-section")).toHaveLength(0);
     });
