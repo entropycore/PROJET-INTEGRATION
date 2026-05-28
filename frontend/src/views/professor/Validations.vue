@@ -194,7 +194,7 @@ const submitActionModal = async (comment) => {
       <div>
         <span>ESPACE PROFESSEUR</span>
         <h1>Validations</h1>
-        <p>Validez les projets et stages qui vous sont assignes.</p>
+        <p>Validez les projets et stages qui vous sont assignés.</p>
       </div>
     </header>
 
