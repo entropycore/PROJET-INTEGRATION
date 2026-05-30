@@ -20,7 +20,8 @@ const skillRouter = require('../../../../src/routes/student/skillRoutes');
 const authMiddleware = require('../../../../src/middlewares/authMiddleware');
 const checkRoles = require('../../../../src/middlewares/checkRoles');
 
-const app = WebAppInstance = express();
+const app = express();
+const WebAppInstance = app;
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/student', authMiddleware, checkRoles('STUDENT'), skillRouter);
