@@ -4,6 +4,12 @@ const request = require('supertest');
 const app = require('../../../src/server');
 const prisma = require('../../../src/config/prisma');
 
+// Mock the email service to avoid sending real emails during integration tests
+jest.mock('../../../src/utils/sendEmail', () => jest.fn().mockResolvedValue(true));
+
+// Increase the default Jest timeout for slow database responses (Supabase integration)
+jest.setTimeout(20000);
+
 // ─── HELPERS ───────────────────────────────────────────────
 const saveCookies = (res) => (res.headers['set-cookie'] || []).join('; ');
 
@@ -280,16 +286,6 @@ describe('AUTH - POST /forgot-password', () => {
 // *************************
 describe('AUTH - POST /reset-password', () => {
   const MOCK_RESET_TOKEN = `token_${timestamp}`;
-
-  beforeAll(async () => {
-    await prisma.user.update({
-      where: { email: TEST_EMAIL },
-      data: {
-        resetPasswordToken: MOCK_RESET_TOKEN,
-        resetPasswordExpires: new Date(Date.now() + 3600000) // +1 heure
-      }
-    });
-  });
 
   
   
