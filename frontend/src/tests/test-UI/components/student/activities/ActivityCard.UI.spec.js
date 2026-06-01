@@ -47,9 +47,7 @@ describe('ActivityCard.vue - Tests Intégration UI', () => {
     }
   })
 
-  // ==========================================
-  // AFFICHAGE DES DONNÉES ET DES LABELS
-  // ==========================================
+
   it('doit afficher correctement les détails de l\'activité avec les labels mappés', () => {
     const wrapper = mount(ActivityCard, {
       props: { activity: activityData },
@@ -64,9 +62,6 @@ describe('ActivityCard.vue - Tests Intégration UI', () => {
     expect(wrapper.find('.type-label').text()).toBe('Compétition')
   })
 
-  // ==========================================
-  // VÉRIFICATION DYNAMIQUE DU STYLE CSS
-  // ==========================================
   it('doit appliquer dynamiquement les classes CSS appropriées selon le statut de validation', async () => {
     const statusScenarios = [
       { code: 'DRAFT', label: 'Brouillon', expectedClass: 'draft' },
@@ -90,9 +85,7 @@ describe('ActivityCard.vue - Tests Intégration UI', () => {
     }
   })
 
-  // ==========================================
-  // AFFICHAGE CONDITIONNEL DES BOUTONS (v-if)
-  // ==========================================
+
   it('doit afficher ou masquer les boutons d\'action selon les permissions CSS/v-if', async () => {
     // Cas 1 : Autorisations accordées
     mockCanEditActivity.mockReturnValue(true)
@@ -120,9 +113,6 @@ describe('ActivityCard.vue - Tests Intégration UI', () => {
     expect(wrapper.find('.action-btn.icon-only').exists()).toBe(false)
   })
 
-  // ==========================================
-  // INTERACTIONS ETÉMISSION D'ÉVÉNEMENTS
-  // ==========================================
   it('doit émettre l\'événement delete-activity lors du clic sur supprimer', async () => {
     mockCanDeleteActivity.mockReturnValue(true)
     const wrapper = mount(ActivityCard, {
@@ -136,9 +126,7 @@ describe('ActivityCard.vue - Tests Intégration UI', () => {
     expect(wrapper.emitted('delete-activity')[0]).toEqual([activityData.id])
   })
 
-  // ==========================================
-  // MODAL ET VISUALISATION (TELEPORT / STRUCTURE)
-  // ==========================================
+ 
   it('doit basculer l\'affichage de la modal et afficher l\'iframe ou l\'image selon le fichier', async () => {
     const wrapper = mount(ActivityCard, {
       props: { activity: activityData },

@@ -19,9 +19,6 @@ describe('ActivityCard.vue - Tests Unitaires isolés', () => {
     }
   })
 
-  // ==========================================
-  // LOGIQUE DES PROPRIÉTÉS COMPUTED
-  // ==========================================
   describe('Propriété calculée - certificateExtension', () => {
     
     it('doit renvoyer "pdf" si le type contient du PDF', () => {
@@ -67,9 +64,6 @@ describe('ActivityCard.vue - Tests Unitaires isolés', () => {
     })
   })
 
-  // ==========================================
-  // ÉTAT INTERNE DU COMPOSANT (REFS)
-  // ==========================================
   describe('Gestion des états et fonctions internes', () => {
     it('doit initialiser la prévisualisation à false et se fermer correctement', async () => {
       const wrapper = mount(ActivityCard, { 
