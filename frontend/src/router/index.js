@@ -291,6 +291,11 @@ const router = createRouter({
           component: () => import("../views/professor/Validations.vue"),
         },
         {
+          path: "history",
+          name: "professor-history",
+          component: () => import("../views/professor/History.vue"),
+        },
+        {
           path: "notifications",
           name: "professor-notifications",
           component: () => import("../views/Notifications.vue"),

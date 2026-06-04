@@ -53,6 +53,11 @@ export const getProfessorValidationStats = async () => {
   return response.data.data;
 };
 
+export const getProfessorValidationHistory = async (params = {}) => {
+  const response = await api.get("/professor/validations/history", { params });
+  return response.data.data;
+};
+
 export const getProfessorValidationDetails = async (validation) => {
   const response = await api.get(
     `/professor/validations/${validation.targetType}/${validation.targetId}`,

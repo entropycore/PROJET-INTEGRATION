@@ -276,6 +276,30 @@ exports.getValidationStats = async (req, res, next) => {
   }
 };
 
+exports.listValidationHistory = async (req, res, next) => {
+  try {
+    const history = await professorService.listProfessorValidationHistory(
+      req.user.userId,
+      {
+        type: req.query.type,
+        status: req.query.status,
+        search: req.query.search,
+        limit: req.query.limit,
+      },
+    );
+
+    return success(
+      res,
+      200,
+      'Historique des validations professeur chargÃ©.',
+      history,
+    );
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.getValidationDetail = async (req, res, next) => {
   try {
     const validation = await professorService.getProfessorValidationDetail(

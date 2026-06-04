@@ -171,6 +171,7 @@ onMounted(async () => {
         <section class="dashboard-panel wide">
           <div class="panel-header">
             <h2>Derniers avis</h2>
+            <RouterLink to="/professor/history">Historique</RouterLink>
           </div>
 
           <div
