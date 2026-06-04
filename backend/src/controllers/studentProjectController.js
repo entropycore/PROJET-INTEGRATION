@@ -121,8 +121,9 @@ exports.getProjectMediaContent = async (req, res, next) => {
       req.user,
       req.params.projectId,
       req.params.mediaId,
-      'inline',
     );
+    media.contentDisposition = 'inline';
+    if (media.target) media.target.contentDisposition = 'inline';
 
     return sendStoredFile(res, media, next);
   } catch (err) {

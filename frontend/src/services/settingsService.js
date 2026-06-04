@@ -1,5 +1,7 @@
 import api from "./api";
 
+export const getSettings = () => api.get("/student/settings");
+
 export const updatePassword = (payload) =>
   api.put("/student/settings/password", payload);
 

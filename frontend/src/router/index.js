@@ -321,6 +321,16 @@ const router = createRouter({
           component: ProfessionalDashboard,
         },
         {
+          path: "profile",
+          name: "professional-profile",
+          component: () => import("../views/professional/Profile.vue"),
+        },
+        {
+          path: "profiles",
+          name: "professional-profiles",
+          component: () => import("../views/profiles.vue"),
+        },
+        {
           path: "notifications",
           name: "professional-notifications",
           component: () => import("../views/Notifications.vue"),

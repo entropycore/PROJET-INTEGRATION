@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import api from "../../services/api";
 import {
+  getSettings,
   updatePassword,
   updatePrivacy,
   updateNotifications,
@@ -43,21 +43,21 @@ const notifForm = ref({
 // Chargement des préférences sauvegardées au démarrage
 onMounted(async () => {
   try {
-    const res = await api.get("/auth/me"); // route valide pour tous les rôles
-    const prefs = res.data?.data?.preferences;
-    if (prefs?.privacy) {
+    const res = await getSettings();
+    const settings = res.data?.data;
+    if (settings?.privacy) {
       privacyForm.value = {
-        profileVisibility: prefs.privacy.profileVisibility ?? "PUBLIC",
-        showEmail: prefs.privacy.showEmail ?? false,
-        showPhone: prefs.privacy.showPhone ?? false,
+        profileVisibility: settings.privacy.profileVisibility ?? "PUBLIC",
+        showEmail: settings.privacy.showEmail ?? false,
+        showPhone: settings.privacy.showPhone ?? false,
       };
     }
-    if (prefs?.notifications) {
+    if (settings?.notifications) {
       notifForm.value = {
-        email: prefs.notifications.email ?? true,
-        push: prefs.notifications.push ?? false,
-        validationUpdates: prefs.notifications.validationUpdates ?? true,
-        recommendations: prefs.notifications.recommendations ?? true,
+        email: settings.notifications.email ?? true,
+        push: settings.notifications.push ?? false,
+        validationUpdates: settings.notifications.validationUpdates ?? true,
+        recommendations: settings.notifications.recommendations ?? true,
       };
     }
   } catch {
