@@ -2,6 +2,7 @@
 
 const professorService = require('../services/professorService');
 const { success, error } = require('../utils/apiResponse');
+const sendStoredFile = require('../utils/sendStoredFile');
 
 const handleProfessorError = (res, err) => {
   if (err.message === 'PROFESSOR_PROFILE_NOT_FOUND') {
@@ -10,6 +11,10 @@ const handleProfessorError = (res, err) => {
 
   if (err.message === 'PROFESSOR_VALIDATION_NOT_FOUND') {
     return error(res, 404, 'Validation professeur introuvable.');
+  }
+
+  if (err.message === 'PROFESSOR_VALIDATION_FILE_NOT_FOUND') {
+    return error(res, 404, 'Fichier de validation introuvable.');
   }
 
   if (err.message === 'PROFESSOR_VALIDATION_INVALID_STATE') {
@@ -161,19 +166,6 @@ exports.getProfile = async (req, res, next) => {
   }
 };
 
-exports.updateProfile = async (req, res, next) => {
-  try {
-    const profile = await professorService.updateProfessorProfile(
-      req.user.userId,
-      req.body || {},
-    );
-    return success(res, 200, 'Profil professeur mis à jour.', profile);
-  } catch (err) {
-    if (handleProfessorError(res, err)) return;
-    next(err);
-  }
-};
-
 exports.uploadProfilePicture = async (req, res, next) => {
   try {
     const result = await professorService.updateProfessorProfilePicture(
@@ -293,6 +285,23 @@ exports.getValidationDetail = async (req, res, next) => {
     );
 
     return success(res, 200, 'Validation professeur chargée.', validation);
+  } catch (err) {
+    if (handleProfessorError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.downloadValidationFile = async (req, res, next) => {
+  try {
+    const file = await professorService.getProfessorValidationFile(
+      req.user.userId,
+      req.params.itemType,
+      req.params.itemId,
+      req.params.fileId,
+      req.params.action,
+    );
+
+    return sendStoredFile(res, file, next);
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);
