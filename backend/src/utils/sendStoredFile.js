@@ -8,14 +8,17 @@ const buildContentDisposition = (type, filename) => {
 
 const sendStoredFile = (res, file, next) => {
   const target = file.target;
+  const resourcePolicy = file.crossOriginResourcePolicy || 'cross-origin';
 
   if (target.mode === 'redirect') {
+    res.setHeader('Cross-Origin-Resource-Policy', resourcePolicy);
     return res.redirect(target.url);
   }
 
   const disposition = target.contentDisposition || 'attachment';
   res.setHeader('Content-Type', file.mimeType || 'application/octet-stream');
   res.setHeader('Content-Disposition', buildContentDisposition(disposition, file.downloadName));
+  res.setHeader('Cross-Origin-Resource-Policy', resourcePolicy);
 
   target.stream.on('error', next);
   return target.stream.pipe(res);
