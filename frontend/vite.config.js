@@ -23,6 +23,10 @@ export default defineConfig({
     globals: true,
     // Simulation du DOM du navigateur via jsdom (nécessaire pour les tests UI et Smoke)
     environment: "jsdom",
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+    ],
   },
   resolve: {
     alias: {

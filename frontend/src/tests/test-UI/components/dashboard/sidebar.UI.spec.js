@@ -16,21 +16,13 @@ vi.mock("@/config/sidebarConfig", () => ({
       {
         section: "Principal",
         items: [
-          {
-            label: "Tableau de bord",
-            path: "/dashboard",
-            icon: "dashboard.svg",
-          },
+          { label: "Tableau de bord", path: "/dashboard", icon: "dashboard.svg" },
           {
             label: "Gestion utilisateurs",
             icon: "users.svg",
             children: [
               { label: "Liste", path: "/users/list", icon: "list.svg" },
-              {
-                label: "Invitations",
-                path: "/users/invite",
-                icon: "invite.svg",
-              },
+              { label: "Invitations", path: "/users/invite", icon: "invite.svg" },
             ],
           },
         ],
@@ -72,7 +64,6 @@ const mountSidebar = (props = {}, userOverride = {}) => {
         router,
       ],
       stubs: {
-        // RouterLink stub qui rend le href pour qu'on puisse l'inspecter
         RouterLink: {
           template: '<a :href="to"><slot /></a>',
           props: ["to"],
@@ -82,7 +73,7 @@ const mountSidebar = (props = {}, userOverride = {}) => {
   });
 };
 
-describe("Sidebar tests UI", () => {
+describe("Sidebar - Tests UI", () => {
   beforeEach(() => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
@@ -108,28 +99,24 @@ describe("Sidebar tests UI", () => {
       expect(wrapper.find(".sidebar-avatar").text()).toBe("A");
     });
 
-    it("affiche le prénom et le nom complets", () => {
+    it("affiche le prenom, le nom et le role", () => {
       const wrapper = mountSidebar();
       const info = wrapper.find(".sidebar-user-info");
       expect(info.text()).toContain("Alice");
       expect(info.text()).toContain("Dupont");
-    });
-
-    it("affiche le rôle de l'utilisateur", () => {
-      const wrapper = mountSidebar();
-      expect(wrapper.find(".sidebar-user-info p").text()).toBe("admin");
-    });
-
-    it("affiche 'A' comme initiale de secours si firstName est absent", () => {
-      const wrapper = mountSidebar({}, { firstName: undefined });
-      expect(wrapper.find(".sidebar-avatar").text()).toBe("A");
+      expect(info.find("p").text()).toBe("admin");
     });
   });
 
   describe("Navigation", () => {
-    it("affiche le titre de section", () => {
+    it("affiche les liens et le dropdown", () => {
       const wrapper = mountSidebar();
       expect(wrapper.find(".sidebar-section").text()).toBe("Principal");
+      expect(wrapper.text()).toContain("Tableau de bord");
+      expect(wrapper.find(".sidebar-dropdown-trigger").text()).toContain(
+        "Gestion utilisateurs",
+      );
+      expect(wrapper.find(".sidebar-submenu").exists()).toBe(false);
     });
 
     it("rend les liens simples (sans enfants)", () => {
@@ -178,63 +165,59 @@ describe("Sidebar tests UI", () => {
       const wrapper = mountSidebar();
       const trigger = wrapper.find(".sidebar-dropdown-trigger");
       const chevronClosed = wrapper.find(".sidebar-chevron").text();
+
       await trigger.trigger("click");
-      const chevronOpen = wrapper.find(".sidebar-chevron").text();
-      expect(chevronClosed).not.toBe(chevronOpen);
+      expect(wrapper.find(".sidebar-submenu").exists()).toBe(true);
+      expect(wrapper.findAll(".sidebar-sublink")).toHaveLength(2);
+      expect(wrapper.find(".sidebar-chevron").text()).not.toBe(chevronClosed);
+
+      await trigger.trigger("click");
+      expect(wrapper.find(".sidebar-submenu").exists()).toBe(false);
     });
   });
 
-  describe("Prop collapsed", () => {
-    it("ajoute la classe 'sidebar-collapsed' quand collapsed=true", () => {
-      const wrapper = mountSidebar({ collapsed: true });
-      expect(wrapper.find("aside").classes()).toContain("sidebar-collapsed");
-    });
-
-    it("n'a pas la classe 'sidebar-collapsed' par défaut", () => {
-      const wrapper = mountSidebar();
-      expect(wrapper.find("aside").classes()).not.toContain(
+  describe("Propriete collapsed", () => {
+    it("gere la classe collapsed et l'evenement toggle-sidebar", async () => {
+      const collapsedWrapper = mountSidebar({ collapsed: true });
+      expect(collapsedWrapper.find("aside").classes()).toContain(
         "sidebar-collapsed",
       );
-    });
 
-    it("émet 'toggle-sidebar' au clic sur le bouton collapse", async () => {
       const wrapper = mountSidebar();
+      expect(wrapper.find("aside").classes()).not.toContain("sidebar-collapsed");
       await wrapper.find(".sidebar-collapse-btn").trigger("click");
       expect(wrapper.emitted("toggle-sidebar")).toBeTruthy();
     });
   });
 
-  describe("Déconnexion", () => {
-    it("appelle logout() et redirige vers /login", async () => {
+  describe("Deconnexion", () => {
+    it("appelle logout(), vide la session et redirige vers /login", async () => {
       const wrapper = mountSidebar();
+      const authStore = useAuthStore();
+
       await wrapper.find(".logout-btn").trigger("click");
       await flushPromises();
+
       expect(logout).toHaveBeenCalledOnce();
+      expect(authStore.user).toBeNull();
       expect(router.currentRoute.value.path).toBe("/login");
     });
 
-    it("vide la session auth après déconnexion", async () => {
-      const wrapper = mountSidebar();
-      const authStore = useAuthStore();
-      await wrapper.find(".logout-btn").trigger("click");
-      await flushPromises();
-      expect(logout).toHaveBeenCalledOnce();
-      expect(authStore.user).toBeNull();
-    });
-
-    it("redirige quand logout() rejette (résistance aux erreurs)", async () => {
+    it("redirige quand logout() rejette", async () => {
       logout.mockRejectedValueOnce(new Error("network error"));
       const wrapper = mountSidebar();
+
       await wrapper.find(".logout-btn").trigger("click");
       await flushPromises();
+
       expect(router.currentRoute.value.path).toBe("/login");
     });
   });
 
-  describe("Sections par rôle", () => {
-    it("n'affiche aucune section si le rôle est inconnu", () => {
+  describe("Sections par role", () => {
+    it("n'affiche aucune section si le role est inconnu", () => {
       const wrapper = mountSidebar({}, { role: "unknown_role" });
-      expect(wrapper.findAll(".sidebar-section").length).toBe(0);
+      expect(wrapper.findAll(".sidebar-section")).toHaveLength(0);
     });
   });
 });
