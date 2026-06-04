@@ -10,6 +10,14 @@ export const updateStudentProfile = async (data) => {
   return response.data;
 };
 
+export const uploadStudentProfilePicture = async (file) => {
+  const formData = new FormData();
+  formData.append("profilePicture", file);
+
+  const response = await api.post("/student/profile-picture", formData);
+  return response.data;
+};
+
 export const getAcademicPaths = async () => {
   const response = await api.get("/academic-paths/me");
   return response.data;

@@ -1,9 +1,11 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { buildBackendUrl } from "../../services/backendUrl";
 import {
   getAdminUsers,
   deleteUser,
+  importAdminUsersCsv,
   approveProfessionalRequest,
   rejectProfessionalRequest,
 } from "../../services/adminService";
@@ -16,6 +18,9 @@ const router = useRouter();
 const users = ref([]);
 const loading = ref(false);
 const error = ref(null);
+const csvInput = ref(null);
+const importingCsv = ref(false);
+const importMessage = ref("");
 
 const search = ref("");
 const selectedRole = computed(() => route.query.role || "");
@@ -232,6 +237,38 @@ const handleDeleteUser = async (user) => {
   }
 };
 
+const openCsvPicker = () => {
+  csvInput.value?.click();
+};
+
+const handleImportCsv = async (event) => {
+  const file = event.target.files?.[0];
+
+  if (!file) return;
+
+  error.value = null;
+  importMessage.value = "";
+  importingCsv.value = true;
+
+  try {
+    const res = await importAdminUsersCsv(file);
+    const data = res.data.data;
+
+    importMessage.value = `${data.createdCount} utilisateur(s) importe(s), ${data.failedCount} erreur(s).`;
+    await fetchUsers();
+  } catch (err) {
+    console.error("Erreur import CSV users:", {
+      status: err.response?.status,
+      data: err.response?.data,
+      err,
+    });
+    error.value = getApiErrorMessage(err);
+  } finally {
+    importingCsv.value = false;
+    event.target.value = "";
+  }
+};
+
 const handleExport = () => {
   //en attente que sont api est pret
   console.log("Export users");
@@ -306,9 +343,30 @@ const dynamicColumns = computed(() => {
           + New User
         </button>
 
+        <input
+          ref="csvInput"
+          class="visually-hidden"
+          type="file"
+          accept=".csv,text/csv"
+          @change="handleImportCsv"
+        />
+
+        <button
+          class="secondary-action"
+          type="button"
+          :disabled="importingCsv"
+          @click="openCsvPicker"
+        >
+          {{ importingCsv ? "Import..." : "Import CSV" }}
+        </button>
+
         <button class="secondary-action" type="button" @click="handleExport">
           Export
         </button>
+      </div>
+
+      <div v-if="importMessage" class="users-import-result">
+        {{ importMessage }}
       </div>
 
       <div v-if="loading" class="users-state">
@@ -335,7 +393,7 @@ const dynamicColumns = computed(() => {
                 <div class="user-cell">
                   <img
                     v-if="user.profilePicture"
-                    :src="user.profilePicture"
+                    :src="buildBackendUrl(user.profilePicture)"
                     class="user-avatar-img"
                     alt=""
                   />

@@ -1,4 +1,6 @@
 <script setup>
+import { buildBackendUrl } from "@/services/backendUrl";
+
 const props = defineProps({
   validation: {
     type: Object,
@@ -81,7 +83,7 @@ const content = props.validation.content || props.validation;
           <div class="student-header">
             <img
               v-if="student.profilePicture"
-              :src="student.profilePicture"
+              :src="buildBackendUrl(student.profilePicture)"
               alt="Photo étudiant"
               class="student-avatar"
             />
