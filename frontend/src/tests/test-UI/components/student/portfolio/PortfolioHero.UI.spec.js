@@ -1,13 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import StudentHero from '@/components/student/portfolio/PortfolioHero.vue' // Ajuste le path si besoin
+import StudentHero from '@/components/student/portfolio/PortfolioHero.vue'
 
 describe('StudentHero.vue - Tests Intégration UI', () => {
   let studentData
   let scoreData
 
   beforeEach(() => {
-    // Activation des faux timers pour contrôler le setTimeout de l'animation
     vi.useFakeTimers()
 
     studentData = {
@@ -82,7 +81,7 @@ describe('StudentHero.vue - Tests Intégration UI', () => {
       props: { student: studentData, credibilityScore: { score: 50, label: 'Bon' } }
     })
 
-    // Avancer le temps de 300ms pour déclencher le setTimeout(..., 250)
+
     await vi.advanceTimersByTimeAsync(300)
 
     const circle = wrapper.find('.score-circle')
