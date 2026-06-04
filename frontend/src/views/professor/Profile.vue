@@ -113,6 +113,7 @@ const loadProfile = async () => {
   try {
     profile.value = await getProfessorProfile();
     profilePictureFailed.value = false;
+    syncAuthUser(profile.value.user);
   } catch (error) {
     console.error("Erreur profil professeur :", error);
     errorMessage.value = "Impossible de charger le profil professeur.";
