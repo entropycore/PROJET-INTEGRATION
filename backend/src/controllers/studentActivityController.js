@@ -2,6 +2,7 @@
 
 const studentActivityService = require('../services/studentActivityService');
 const { success, error } = require('../utils/apiResponse');
+const sendStoredFile = require('../utils/sendStoredFile');
 
 const handleActivityError = (res, err) => {
   if (err.message === 'STUDENT_PROFILE_NOT_FOUND') {
@@ -159,9 +160,7 @@ exports.downloadActivityCertificate = async (req, res, next) => {
       req.params.activityId,
     );
 
-    return res.download(certificate.absolutePath, certificate.downloadName, (err) => {
-      if (err) next(err);
-    });
+    return sendStoredFile(res, certificate, next);
   } catch (err) {
     if (handleActivityError(res, err)) return;
     next(err);
