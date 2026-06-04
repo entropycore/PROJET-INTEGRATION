@@ -1,9 +1,11 @@
 node_modules/
 .env
 dist/
+dist/reports/
 dist/backend/reports/
 backend/scripts/reports/
 reports/
+cookies.txt
 
 # Environments
 .env.*
