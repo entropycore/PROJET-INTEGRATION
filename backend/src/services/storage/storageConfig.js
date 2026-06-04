@@ -1,20 +1,18 @@
 'use strict';
 
-const path = require('path');
-
 const parseBoolean = (value, defaultValue = false) => {
   if (value === undefined || value === null || value === '') return defaultValue;
   return ['1', 'true', 'yes', 'on'].includes(String(value).toLowerCase());
 };
 
-const parseInteger = (value, defaultValue) => {
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : defaultValue;
-};
-
 const normalizeDriver = (value) => {
-  const driver = String(value || 'local').toLowerCase();
-  return driver === 'local' ? 'local' : 's3';
+  const driver = String(value || 's3').toLowerCase();
+
+  if (driver !== 's3') {
+    throw new Error('STORAGE_DRIVER_UNSUPPORTED');
+  }
+
+  return 's3';
 };
 
 const driver = normalizeDriver(process.env.STORAGE_DRIVER);
@@ -42,9 +40,4 @@ module.exports = {
   publicBaseUrl: process.env.S3_PUBLIC_BASE_URL || minioPublicBaseUrl,
   autoCreateBucket: parseBoolean(process.env.STORAGE_AUTO_CREATE_BUCKET, false),
   bucketPublicRead: parseBoolean(process.env.STORAGE_BUCKET_PUBLIC_READ, false),
-  signedUrlTtlSeconds: parseInteger(process.env.SIGNED_URL_TTL_SECONDS, 300),
-  localUploadDir: path.resolve(
-    process.cwd(),
-    process.env.LOCAL_UPLOAD_DIR || 'uploads'
-  ),
 };

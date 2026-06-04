@@ -235,6 +235,7 @@ const professorInternshipValidationSelect = {
   reportFileName: true,
   reportMimeType: true,
   reportFileSize: true,
+  reportStoragePath: true,
   validationStatus: true,
   visibility: true,
   student: {

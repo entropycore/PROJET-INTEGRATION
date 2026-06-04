@@ -3,6 +3,7 @@
 const studentStageService = require('../services/studentStageService');
 const studentStageMediaService = require('../services/studentStageMediaService');
 const { success, error } = require('../utils/apiResponse');
+const sendStoredFile = require('../utils/sendStoredFile');
 
 const handleStageError = (res, err) => {
   if (err.message === 'STUDENT_PROFILE_NOT_FOUND') {
@@ -143,9 +144,7 @@ exports.downloadStageReport = async (req, res, next) => {
       req.params.stageId,
     );
 
-    return res.download(report.absolutePath, report.downloadName, (err) => {
-      if (err) next(err);
-    });
+    return sendStoredFile(res, report, next);
   } catch (err) {
     if (handleStageError(res, err)) return;
     next(err);
@@ -175,10 +174,7 @@ exports.getStageImageContent = async (req, res, next) => {
       req.params.mediaId,
     );
 
-    res.type(media.mimeType);
-    return res.sendFile(media.absolutePath, (err) => {
-      if (err) next(err);
-    });
+    return sendStoredFile(res, media, next);
   } catch (err) {
     if (handleStageError(res, err)) return;
     next(err);
