@@ -58,7 +58,7 @@
       "**/tests/**/*.test.js"
     ],
     "setupFiles": [
-      "dotenv/config"
+      "<rootDir>/src/config/loadEnv.js"
     ],
     "coverageThreshold": {
       "global": {
@@ -67,8 +67,5 @@
         "branches": 70
       }
     }
-  },
-  "prisma": {
-    "seed": "node prisma/seed.js"
   }
 }

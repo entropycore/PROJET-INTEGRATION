@@ -26,7 +26,6 @@ const sendEmail = async (to, subject, text) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log(`Email envoyé avec succès à : ${to}`);
   } catch (error) {
     console.error(`Erreur lors de l'envoi de l'email à ${to}:`, error.message);
     throw new Error("Échec de l'envoi de l'email de vérification.", { cause: error });

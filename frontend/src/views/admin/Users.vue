@@ -280,8 +280,29 @@ const handleDeleteUser = async (user) => {
 };
 
 const handleExport = () => {
-  //en attente que sont api est pret
-  console.log("Export users");
+  const rows = [
+    ["Nom", "Email", "Telephone", "Role", "Statut"],
+    ...users.value.map((user) => [
+      fullName(user),
+      user.email,
+      user.phone || "",
+      user.role,
+      user.accountStatus,
+    ]),
+  ];
+
+  const csv = rows
+    .map((row) =>
+      row.map((cell) => `"${String(cell || "").replaceAll('"', '""')}"`).join(","),
+    )
+    .join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "users.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
 };
 
 const pageTitle = computed(() => {

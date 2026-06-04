@@ -5,6 +5,7 @@ const publicPortfolioController = require('../controllers/publicPortfolioControl
 
 const router = express.Router();
 
+router.get('/', publicPortfolioController.listPublicPortfolios);
 router.get('/:slug', publicPortfolioController.getPublicPortfolio);
 
 module.exports = router;
