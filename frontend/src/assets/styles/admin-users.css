@@ -155,14 +155,41 @@
   border: 0;
 }
 
-.users-import-result {
-  padding: 0.75rem 1.1rem;
-  border-bottom: 1px solid var(--app-border);
-  color: var(--app-success);
-  background: var(--app-success-bg);
+.users-import-summary,
+.users-import-errors {
+  margin: 0 1.1rem 1rem;
+  border-radius: var(--app-radius-md);
+  padding: 0.8rem 0.9rem;
   font-family: var(--app-font-body);
   font-size: var(--app-text-sm);
+}
+
+.users-import-summary {
+  border: 1px solid var(--app-success-border, #c8ded5);
+  background: var(--app-success-bg, #f1f8f5);
+  color: var(--app-success, #285759);
   font-weight: 600;
+}
+
+.users-import-errors {
+  border: 1px solid var(--app-error-border, #edd1d1);
+  background: var(--app-error-bg, #fff7f7);
+  color: var(--app-error, #8f3f3f);
+}
+
+.users-import-errors strong {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--app-error-strong, #6f3030);
+}
+
+.users-import-errors ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.users-import-errors p {
+  margin: 0.45rem 0 0;
 }
 
 /* STATES */
