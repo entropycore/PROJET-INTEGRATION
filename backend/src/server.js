@@ -26,10 +26,7 @@ const recommendationRoutes = require('./routes/recommendationRoutes');
 const portfolioRoutes = require('./routes/portfolioRoutes');
 const profilePictureRoutes = require('./routes/profilePictureRoutes');
 const fileRoutes = require('./routes/fileRoutes');
-
-
 const settingsRoutes = require('./routes/settingsRoutes');
-app.use('/api/settings', settingsRoutes);
 
 const app = express();
 
@@ -82,6 +79,7 @@ app.use('/api/profile-pictures', profilePictureRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.use(notFound);
 app.use(handleErrors);
