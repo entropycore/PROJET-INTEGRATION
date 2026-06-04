@@ -27,6 +27,10 @@ const portfolioRoutes = require('./routes/portfolioRoutes');
 const profilePictureRoutes = require('./routes/profilePictureRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 
+
+const settingsRoutes = require('./routes/settingsRoutes');
+app.use('/api/settings', settingsRoutes);
+
 const app = express();
 
 if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
