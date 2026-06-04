@@ -18,9 +18,13 @@ export const createAdminUser = (data) => {
   return api.post("/admin/users", data);
 };
 
-export const importAdminUsersCsv = (file) => {
-  const formData = new FormData();
-  formData.append("file", file);
+export const importAdminUsersCsv = (fileOrFormData) => {
+  const formData =
+    fileOrFormData instanceof FormData ? fileOrFormData : new FormData();
+
+  if (!(fileOrFormData instanceof FormData)) {
+    formData.append("file", fileOrFormData);
+  }
 
   return api.post("/admin/users/import-csv", formData);
 };

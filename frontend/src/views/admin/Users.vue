@@ -17,10 +17,11 @@ const router = useRouter();
 
 const users = ref([]);
 const loading = ref(false);
-const error = ref(null);
-const csvInput = ref(null);
 const importingCsv = ref(false);
+const error = ref(null);
 const importMessage = ref("");
+const importErrors = ref([]);
+const csvInput = ref(null);
 
 const search = ref("");
 const selectedRole = computed(() => route.query.role || "");
@@ -170,6 +171,47 @@ const handleNewUser = () => {
   });
 };
 
+const openCsvPicker = () => {
+  importMessage.value = "";
+  importErrors.value = [];
+  csvInput.value?.click();
+};
+
+const handleCsvImport = async (event) => {
+  const file = event.target.files?.[0];
+  event.target.value = "";
+
+  if (!file) return;
+
+  importingCsv.value = true;
+  error.value = null;
+  importMessage.value = "";
+  importErrors.value = [];
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await importAdminUsersCsv(formData);
+    const result = response.data.data;
+
+    importMessage.value = `${result.createdCount} utilisateur(s) cree(s), ${result.failedCount} ligne(s) en erreur.`;
+    importErrors.value = result.errors || [];
+
+    await fetchUsers();
+  } catch (err) {
+    console.error("Erreur import CSV users:", {
+      status: err.response?.status,
+      data: err.response?.data,
+      err,
+    });
+
+    error.value = getApiErrorMessage(err);
+  } finally {
+    importingCsv.value = false;
+  }
+};
+
 const openMenuId = ref(null);
 
 const toggleActionsMenu = (userId) => {
@@ -234,38 +276,6 @@ const handleDeleteUser = async (user) => {
     });
   } finally {
     openMenuId.value = null;
-  }
-};
-
-const openCsvPicker = () => {
-  csvInput.value?.click();
-};
-
-const handleImportCsv = async (event) => {
-  const file = event.target.files?.[0];
-
-  if (!file) return;
-
-  error.value = null;
-  importMessage.value = "";
-  importingCsv.value = true;
-
-  try {
-    const res = await importAdminUsersCsv(file);
-    const data = res.data.data;
-
-    importMessage.value = `${data.createdCount} utilisateur(s) importe(s), ${data.failedCount} erreur(s).`;
-    await fetchUsers();
-  } catch (err) {
-    console.error("Erreur import CSV users:", {
-      status: err.response?.status,
-      data: err.response?.data,
-      err,
-    });
-    error.value = getApiErrorMessage(err);
-  } finally {
-    importingCsv.value = false;
-    event.target.value = "";
   }
 };
 
@@ -348,7 +358,7 @@ const dynamicColumns = computed(() => {
           class="visually-hidden"
           type="file"
           accept=".csv,text/csv"
-          @change="handleImportCsv"
+          @change="handleCsvImport"
         />
 
         <button
@@ -365,8 +375,23 @@ const dynamicColumns = computed(() => {
         </button>
       </div>
 
-      <div v-if="importMessage" class="users-import-result">
+      <div v-if="importMessage" class="users-import-summary">
         {{ importMessage }}
+      </div>
+
+      <div v-if="importErrors.length" class="users-import-errors">
+        <strong>Lignes non importees</strong>
+
+        <ul>
+          <li v-for="item in importErrors.slice(0, 5)" :key="item.line">
+            Ligne {{ item.line }}<span v-if="item.email"> - {{ item.email }}</span> :
+            {{ item.message }}
+          </li>
+        </ul>
+
+        <p v-if="importErrors.length > 5">
+          + {{ importErrors.length - 5 }} autre(s) erreur(s).
+        </p>
       </div>
 
       <div v-if="loading" class="users-state">
