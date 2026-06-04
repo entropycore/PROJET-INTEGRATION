@@ -133,7 +133,7 @@ const router = createRouter({
         {
           path: "",
           name: "Studentdashboard",
-          component: () => import("@/views/student/Dashboard.vue"),
+          component: StudentDashboard,
         },
         {
           path: "profile",

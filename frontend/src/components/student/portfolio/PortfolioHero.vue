@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 const props = defineProps({
   student: {
@@ -84,7 +85,7 @@ onMounted(animateScore);
       <div class="avatar-frame">
         <img
           v-if="student.profilePicture"
-          :src="student.profilePicture"
+          :src="buildBackendUrl(student.profilePicture)"
           :alt="student.fullName"
         />
         <span v-else>{{ initials }}</span>

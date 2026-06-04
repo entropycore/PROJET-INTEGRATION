@@ -1,9 +1,6 @@
 import api from "./api";
 
-// BACKEND PLUS TARD :
-// Le contrat actuel utilise /api/v1/internships...
-// Mais côté frontend on garde temporairement /student/stages
-// pour rester cohérent avec les routes admin déjà utilisées.
+// Routes utilisées par l'espace étudiant pour gérer les stages.
 
 // get stages
 export const getStudentStages = (params = {}) => {
