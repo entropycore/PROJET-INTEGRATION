@@ -231,7 +231,8 @@
   color: #6f7f82;
 }
 
-.status-chip.CORRECTION_REQUIRED {
+.status-chip.CORRECTION_REQUIRED,
+.status-chip.CHANGES_REQUESTED {
   background: #fff1e6;
   color: #e65100;
 }

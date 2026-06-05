@@ -16,23 +16,18 @@ const route = useRoute();
 const baseApi = route.meta.baseApi;
 const role = computed(() => route.meta.role || "STUDENT");
 
-// Plus tard, quand professor est prêt const MOCK_API_ROLES = ["PROFESSIONAL"];
-// Quand tout est prêt const MOCK_API_ROLES = [];
-
-const MOCK_API_ROLES = ["PROFESSOR", "PROFESSIONAL"];
-
 const ROLE_NOTIFICATION_UI = {
   ADMINISTRATOR: {
     label: "ADMINISTRATION",
-    description: "Surveillez et gérez les alertes de votre plateforme",
+    description: "Surveillez et gerez les alertes de votre plateforme",
   },
   STUDENT: {
-    label: "ÉTUDIANT",
-    description: "Consultez les alertes liées à votre espace étudiant",
+    label: "ETUDIANT",
+    description: "Consultez les alertes liees a votre espace etudiant",
   },
   PROFESSOR: {
     label: "PROFESSEUR",
-    description: "Consultez vos validations et interactions académiques",
+    description: "Consultez vos validations et interactions academiques",
   },
   PROFESSIONAL: {
     label: "PROFESSIONNEL",
@@ -44,69 +39,17 @@ const notificationUi = computed(
   () => ROLE_NOTIFICATION_UI[role.value] || ROLE_NOTIFICATION_UI.STUDENT,
 );
 
-const useMockNotifications = computed(() =>
-  MOCK_API_ROLES.includes(role.value),
-);
-
 const notifications = ref([]);
 const unreadCount = ref(0);
 const loading = ref(false);
 const error = ref(null);
 const selectedType = ref("ALL");
 
-const mockNotificationsByRole = {
-  PROFESSOR: [
-    {
-      id: "prof-1",
-      type: "RECOMMENDATION_REQUEST",
-      title: "Nouvelle demande de recommandation",
-      message: "Un étudiant vous a envoyé une demande de recommandation.",
-      read: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "prof-2",
-      type: "ACADEMIC_INTERACTION",
-      title: "Interaction académique",
-      message: "Une interaction académique nécessite votre attention.",
-      read: true,
-      createdAt: new Date().toISOString(),
-    },
-  ],
-
-  PROFESSIONAL: [
-    {
-      id: "pro-1",
-      type: "ACCESS_REQUEST_APPROVED",
-      title: "Accès professionnel validé",
-      message: "Votre accès professionnel à la plateforme a été validé.",
-      read: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "pro-2",
-      type: "PORTFOLIO_INTERACTION",
-      title: "Interaction portfolio",
-      message: "Un étudiant a partagé son portfolio avec vous.",
-      read: true,
-      createdAt: new Date().toISOString(),
-    },
-  ],
-};
-
 const fetchData = async () => {
   loading.value = true;
   error.value = null;
 
   try {
-    if (useMockNotifications.value) {
-      const mockNotifications = mockNotificationsByRole[role.value] || [];
-
-      notifications.value = mockNotifications;
-      unreadCount.value = mockNotifications.filter((n) => !n.read).length;
-      return;
-    }
-
     const data = await getNotifications(baseApi);
     notifications.value = data?.items || [];
 
@@ -124,23 +67,18 @@ const handleRead = async (notif) => {
   if (notif.read) return;
 
   try {
-    if (!useMockNotifications.value) {
-      await markAsRead(baseApi, notif.id);
-    }
-
+    await markAsRead(baseApi, notif.id);
     notif.read = true;
     unreadCount.value = Math.max(0, unreadCount.value - 1);
   } catch (e) {
     console.error(e);
-    error.value = "Erreur lors de la mise à jour de la notification";
+    error.value = "Erreur lors de la mise a jour de la notification";
   }
 };
 
 const handleReadAll = async () => {
   try {
-    if (!useMockNotifications.value) {
-      await markAllAsRead(baseApi);
-    }
+    await markAllAsRead(baseApi);
 
     notifications.value = notifications.value.map((n) => ({
       ...n,
@@ -150,18 +88,15 @@ const handleReadAll = async () => {
     unreadCount.value = 0;
   } catch (e) {
     console.error(e);
-    error.value = "Erreur lors de la mise à jour des notifications";
+    error.value = "Erreur lors de la mise a jour des notifications";
   }
 };
 
 const handleDelete = async (id) => {
   try {
-    if (!useMockNotifications.value) {
-      await deleteNotif(baseApi, id);
-    }
+    await deleteNotif(baseApi, id);
 
     const deletedNotification = notifications.value.find((n) => n.id === id);
-
     notifications.value = notifications.value.filter((n) => n.id !== id);
 
     if (deletedNotification && !deletedNotification.read) {

@@ -43,14 +43,14 @@ describe("Tests UI et logique - Page de connexion", () => {
     });
   });
 
-  it("doit respecter la conformite visuelle et structurelle", () => {
+  it("doit respecter la conformité visuelle et structurelle", () => {
     expect(wrapper.find(".auth-page").exists()).toBe(true);
     expect(wrapper.find(".auth-card").exists()).toBe(true);
     expect(wrapper.find("h1").text()).toContain("Votre identité");
     expect(wrapper.find(".submit-btn").text()).toBe("Se connecter");
   });
 
-  it("doit basculer la visibilite du mot de passe", async () => {
+  it("doit basculer la visibilité du mot de passe", async () => {
     const passwordInput = wrapper.find("#password");
     const toggleIcon = wrapper.find(".toggle-icon");
     expect(passwordInput.attributes("type")).toBe("password");
@@ -67,7 +67,7 @@ describe("Tests UI et logique - Page de connexion", () => {
     expect(errorLabel.text()).toBe("Veuillez remplir tous les champs.");
   });
 
-  it("doit desactiver le bouton et changer le texte lors de clics rapides", async () => {
+  it("doit désactiver le bouton et changer le texte lors de clics rapides", async () => {
     let resolveLogin;
     loginMock.mockImplementation(
       () =>
@@ -89,7 +89,7 @@ describe("Tests UI et logique - Page de connexion", () => {
     await flushPromises();
   });
 
-  it("doit naviguer vers la demande d'acces via le lien dedie", async () => {
+  it("doit naviguer vers la demande d'accès via le lien dédié", async () => {
     await wrapper.find(".access-request-link").trigger("click");
     expect(mockRouter.push).toHaveBeenCalledWith("/request-access");
   });

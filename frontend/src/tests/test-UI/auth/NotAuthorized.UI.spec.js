@@ -67,13 +67,17 @@ describe("NotAuthorized - Test UI", () => {
     expect(btnHome.text()).toBe("Aller à mon espace");
   });
 
-  it("devrait avoir une section de message avec une largeur maximale definie", () => {
+  it("devrait avoir une section de message avec une largeur maximale définie", () => {
     const message = wrapper.find(".forbidden-message");
     expect(message.exists()).toBe(true);
     expect(message.text()).toContain("Votre compte est bien reconnu");
   });
 
+<<<<<<< HEAD
   it("devrait verifier que le conteneur d'actions utilise une mise en page flexible", () => {
+=======
+  it("devrait vérifier que le conteneur d'actions utilise le Flexbox (via classes)", () => {
+>>>>>>> a27b7c1733c9f806d0a845539c26662b6cba4f7c
     const actions = wrapper.find(".forbidden-actions");
     expect(actions.exists()).toBe(true);
     expect(actions.element).toBeTruthy();

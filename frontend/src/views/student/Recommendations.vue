@@ -5,6 +5,7 @@ import {
   getStudentRecommendationsData,
   updateRecommendationStatus,
 } from "@/services/studentRecommendationsService";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 const loading = ref(false);
 const actionLoadingId = ref(null);
@@ -150,7 +151,7 @@ onMounted(() => {
               class="author-avatar"
             >
               <img
-                :src="recommendation.author.profilePicture"
+                :src="buildBackendUrl(recommendation.author.profilePicture)"
                 :alt="recommendation.author.name"
               />
             </div>

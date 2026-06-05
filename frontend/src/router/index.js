@@ -133,7 +133,7 @@ const router = createRouter({
         {
           path: "",
           name: "Studentdashboard",
-          component: () => import("@/views/student/Dashboard.vue"),
+          component: StudentDashboard,
         },
         {
           path: "profile",
@@ -281,6 +281,16 @@ const router = createRouter({
           component: ProfessorDashboard,
         },
         {
+          path: "profile",
+          name: "professor-profile",
+          component: () => import("../views/professor/Profile.vue"),
+        },
+        {
+          path: "validations",
+          name: "professor-validations",
+          component: () => import("../views/professor/Validations.vue"),
+        },
+        {
           path: "notifications",
           name: "professor-notifications",
           component: () => import("../views/Notifications.vue"),
@@ -288,6 +298,11 @@ const router = createRouter({
             baseApi: "/api/professor",
             role: "PROFESSOR",
           },
+        },
+        {
+          path: "settings",
+          name: "professor-settings",
+          component: () => import("../views/professor/Settings.vue"),
         },
       ],
     },
