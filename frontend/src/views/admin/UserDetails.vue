@@ -3,6 +3,10 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { buildBackendUrl } from "../../services/backendUrl";
 import {
+  professorDepartments,
+  studentMajors,
+} from "../../config/studentOptions";
+import {
   getAdminUserById,
   updateAdminUser,
   updateUserStatus,
@@ -30,7 +34,6 @@ const form = ref({
   lastName: "",
   email: "",
   phone: "",
-  profilePicture: "",
   accountStatus: "",
   role: "",
 
@@ -94,7 +97,6 @@ const fillForm = (data) => {
     lastName: data.lastName || "",
     email: data.email || "",
     phone: data.phone || "",
-    profilePicture: data.profilePicture || "",
     accountStatus: data.accountStatus || "",
     role: data.role || "",
 
@@ -297,14 +299,6 @@ const handleDelete = async () => {
               Téléphone
               <input v-model="form.phone" :disabled="!isEditMode" />
             </label>
-            <label class="full-width">
-              Photo de profil URL
-              <input
-                v-model="form.profilePicture"
-                :disabled="!isEditMode"
-                placeholder="https://..."
-              />
-            </label>
             <label>
               Rôle
               <input :value="roleTitle" disabled />
@@ -329,9 +323,19 @@ const handleDelete = async () => {
           </h2>
 
           <div v-if="user.role === 'STUDENT'" class="form-grid">
-            <label
-              >Filière <input v-model="form.major" :disabled="!isEditMode"
-            /></label>
+            <label>
+              Filière
+              <select v-model="form.major" :disabled="!isEditMode">
+                <option value="">Sélectionner une filière</option>
+                <option
+                  v-for="major in studentMajors"
+                  :key="major"
+                  :value="major"
+                >
+                  {{ major }}
+                </option>
+              </select>
+            </label>
             <label
               >Niveau <input v-model="form.level" :disabled="!isEditMode"
             /></label>
@@ -358,10 +362,19 @@ const handleDelete = async () => {
             <label
               >Grade <input v-model="form.grade" :disabled="!isEditMode"
             /></label>
-            <label
-              >Département
-              <input v-model="form.department" :disabled="!isEditMode"
-            /></label>
+            <label>
+              Département
+              <select v-model="form.department" :disabled="!isEditMode">
+                <option value="">Sélectionner un département</option>
+                <option
+                  v-for="department in professorDepartments"
+                  :key="department"
+                  :value="department"
+                >
+                  {{ department }}
+                </option>
+              </select>
+            </label>
             <label
               >Spécialité
               <input v-model="form.specialty" :disabled="!isEditMode"
