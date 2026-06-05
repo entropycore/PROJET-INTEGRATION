@@ -22,8 +22,6 @@ const RouterLinkStub = {
   }
 }
 
-import ActivityCard from '@/components/student/activities/ActivityCard.vue'
-
 describe('ActivityCard.vue - Tests Intégration UI', () => {
   let activityData
 
