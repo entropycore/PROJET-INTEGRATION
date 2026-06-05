@@ -7,6 +7,10 @@ import {
   requestValidationChanges,
 } from "@/services/adminValidationsApi";
 
+vi.mock("vue-router", () => ({
+  useRoute: () => ({ query: {} }),
+}));
+
 const validations = [
   {
     id: 1,

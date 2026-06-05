@@ -2,6 +2,10 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import Reports from "@/views/admin/Reports.vue";
 
+vi.mock("vue-router", () => ({
+  useRoute: () => ({ query: {} }),
+}));
+
 const reports = [
   {
     id: 1,

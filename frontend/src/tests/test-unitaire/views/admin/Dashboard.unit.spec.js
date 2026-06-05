@@ -76,8 +76,15 @@ describe("Dashboard - Tests unitaires", () => {
   it("redirige au clic sur une demande recente", async () => {
     const wrapper = await mountDashboard();
 
-    await wrapper.find(".btn-light").trigger("click");
+    await wrapper.find(".request-item.clickable").trigger("click");
 
-    expect(push).toHaveBeenCalledWith("/admin/users?role=PROFESSIONAL&status=PENDING");
+    expect(push).toHaveBeenCalledWith({
+      path: "/admin/users",
+      query: {
+        role: "PROFESSIONAL",
+        status: "PENDING",
+        itemId: 1,
+      },
+    });
   });
 });

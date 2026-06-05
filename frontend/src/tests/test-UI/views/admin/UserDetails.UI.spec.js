@@ -20,7 +20,7 @@ vi.mock("@/services/adminService", () => ({
           lastLoginAt: "2025-02-01",
           roleDetails: {
             student: {
-              major: "Informatique",
+              major: "Génie Informatique",
               level: "Master",
               apogeeCode: "12345",
               cne: "CNE123",
@@ -127,11 +127,11 @@ it("affiche les details du role etudiant", async () => {
 
   await flushPromises();
 
-  const inputs = wrapper.findAll("input");
+  const inputs = wrapper.findAll("input, select, textarea");
 
   const values = inputs.map((i) => i.element.value);
 
-  expect(values).toContain("Informatique");
+  expect(values).toContain("Génie Informatique");
   expect(values).toContain("Master");
   expect(values).toContain("Fès");
 });
