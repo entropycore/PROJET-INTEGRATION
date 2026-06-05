@@ -3,8 +3,8 @@ import { shallowMount } from "@vue/test-utils";
 import NotificationList from "@/components/notifications/NotificationsList.vue";
 import NotificationItem from "@/components/notifications/NotificationItem.vue";
 
-describe("NotificationList - Test unitaire", () => {
-  it("affiche un NotificationItem pour chaque notification", () => {
+describe("NotificationList - Unit Test", () => {
+  it("renders NotificationItem for each notification", () => {
     const notifications = [
       { id: 1, title: "Notif 1" },
       { id: 2, title: "Notif 2" },
@@ -19,7 +19,7 @@ describe("NotificationList - Test unitaire", () => {
     expect(items.length).toBe(2);
   });
 
-  it("affiche le message vide quand la liste des notifications est vide", () => {
+  it("shows empty message when notifications array is empty", () => {
     const wrapper = shallowMount(NotificationList, {
       props: {
         notifications: [],

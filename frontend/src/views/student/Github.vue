@@ -59,7 +59,7 @@ const handleImportRepository = async (repo) => {
   errorMessage.value = "";
 
   try {
-    await importGithubRepository({
+    const response = await importGithubRepository({
       repoName: repo.name,
       repoDescription: repo.description,
       repoUrl: repo.url,
@@ -68,6 +68,11 @@ const handleImportRepository = async (repo) => {
 
     importedRepos.value.push(repo.name);
 
+    const projectId = response.data?.data?.project?.id;
+
+    if (projectId) {
+      console.log("Projet créé depuis GitHub :", projectId);
+    }
   } catch (error) {
     console.error("Erreur import repo:", error);
     errorMessage.value = "Impossible d'importer ce dépôt.";

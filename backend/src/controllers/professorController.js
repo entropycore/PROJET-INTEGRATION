@@ -291,7 +291,7 @@ exports.listValidationHistory = async (req, res, next) => {
     return success(
       res,
       200,
-      'Historique des validations professeur chargÃ©.',
+      'Historique des validations professeur charge.',
       history,
     );
   } catch (err) {

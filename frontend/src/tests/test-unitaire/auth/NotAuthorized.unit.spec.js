@@ -22,7 +22,7 @@ describe("NotAuthorized - Tests Unitaires", () => {
     expect(wrapper.vm.homePath).toBe("/admin");
   });
 
-  it("devrait retourner a la connexion si l'utilisateur n'est pas authentifie", () => {
+  it("devrait retourner au login si l'utilisateur n'est pas authentifie", () => {
     const wrapper = mount(NotAuthorized, {
       global: {
         plugins: [

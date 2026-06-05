@@ -1,4 +1,4 @@
-require('./config/loadEnv');
+require('dotenv').config();
 
 const express = require('express');
 const cookieParser = require('cookie-parser');
@@ -8,7 +8,6 @@ const securityHeaders = require('./middlewares/securityHeaders');
 const redirectHttps = require('./middlewares/redirectHttps');
 const { handleErrors, notFound } = require('./middlewares/handleErrors');
 const { globalLimiter } = require('./middlewares/rateLimiter');
-const { doubleCsrfProtection } = require('./middlewares/csrfProtection');
 const { sanitizeInputs } = require('./middlewares/sanitize');
 const logger = require('./logs/logger');
 
@@ -27,7 +26,6 @@ const recommendationRoutes = require('./routes/recommendationRoutes');
 const portfolioRoutes = require('./routes/portfolioRoutes');
 const profilePictureRoutes = require('./routes/profilePictureRoutes');
 const fileRoutes = require('./routes/fileRoutes');
-const settingsRoutes = require('./routes/settingsRoutes');
 
 const app = express();
 
@@ -43,7 +41,6 @@ app.use(globalLimiter);
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(cookieParser());
-app.use(doubleCsrfProtection);
 app.use(sanitizeInputs);
 
 app.get('/', (_req, res) => {
@@ -81,7 +78,6 @@ app.use('/api/profile-pictures', profilePictureRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/files', fileRoutes);
-app.use('/api/settings', settingsRoutes);
 
 app.use(notFound);
 app.use(handleErrors);

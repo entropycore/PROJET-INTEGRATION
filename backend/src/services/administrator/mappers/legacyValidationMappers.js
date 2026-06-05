@@ -10,12 +10,15 @@ const extractFileNameFromUrl = (url, fallbackName) => {
   try {
     const pathname = new URL(url).pathname;
     const fileName = pathname.split('/').filter(Boolean).pop();
-    return fileName || fallbackName;
+    return !fileName || ['content', 'download'].includes(fileName) ? fallbackName : fileName;
   } catch {
     const fileName = String(url).split('/').filter(Boolean).pop();
-    return fileName || fallbackName;
+    return !fileName || ['content', 'download'].includes(fileName) ? fallbackName : fileName;
   }
 };
+
+const buildAdminValidationFileUrl = (itemType, itemId, fileId, action = 'download') =>
+  `/api/admin/validations/${itemType}/${itemId}/files/${fileId}/${action}`;
 
 const buildLegacyValidationStudent = (student, user, fallbackName, fallbackEmail = null) => ({
   id: student?.id || null,
@@ -27,30 +30,42 @@ const buildLegacyValidationStudent = (student, user, fallbackName, fallbackEmail
   city: student?.city || null,
 });
 
-const buildLegacyValidationFiles = (url, fallbackName) =>
+const buildLegacyValidationFiles = (url, fallbackName, safeUrl = null, size = null) =>
   url
     ? [
         {
           id: url,
           name: extractFileNameFromUrl(url, fallbackName),
-          size: null,
-          url,
+          size,
+          url: safeUrl || url,
         },
       ]
     : [];
 
-const buildLegacyValidationMediaFiles = (media = []) =>
+const buildLegacyValidationMediaFiles = (validationId, media = []) =>
   Array.isArray(media)
     ? media
         .filter((item) => item?.mediaUrl)
         .map((item, index) => ({
           id: item.id || item.mediaUrl || `project-media-${index + 1}`,
-          name: extractFileNameFromUrl(
-            item.mediaUrl,
-            item.mediaType ? `${String(item.mediaType).toLowerCase()}-${index + 1}` : `media-${index + 1}`,
-          ),
-          size: null,
-          url: item.mediaUrl,
+          name:
+            item.fileName ||
+            item.description ||
+            extractFileNameFromUrl(
+              item.mediaUrl,
+              item.mediaType ? `${String(item.mediaType).toLowerCase()}-${index + 1}` : `media-${index + 1}`,
+            ),
+          size: item.fileSize || null,
+          url: item.id
+            ? buildAdminValidationFileUrl(
+                'PROJECT',
+                validationId,
+                item.id,
+                ['IMAGE', 'SCREENSHOT'].includes(String(item.mediaType || '').toUpperCase())
+                  ? 'content'
+                  : 'download',
+              )
+            : item.mediaUrl,
         }))
     : [];
 
@@ -75,7 +90,7 @@ const mapProjectLegacyValidation = (item) => {
     content: {
       title,
       description: item.raw?.description || null,
-      files: buildLegacyValidationMediaFiles(item.raw?.media),
+      files: buildLegacyValidationMediaFiles(item.id, item.raw?.media),
     },
     targetDetails: {
       technologies: (item.raw?.technologies || [])
@@ -106,7 +121,12 @@ const mapInternshipLegacyValidation = (item) => {
     content: {
       title,
       description: item.raw?.missions || item.raw?.description || null,
-      files: buildLegacyValidationFiles(item.raw?.reportUrl, 'rapport-stage'),
+      files: buildLegacyValidationFiles(
+        item.raw?.reportUrl,
+        item.raw?.reportFileName || 'rapport-stage',
+        buildAdminValidationFileUrl('INTERNSHIP', item.id, 'report', 'download'),
+        item.raw?.reportFileSize || null,
+      ),
     },
     targetDetails: {
       company: item.raw?.hostOrganization || item.organization || null,
@@ -122,6 +142,9 @@ const mapCertificateLegacyValidation = (item) => {
   const studentUser = student?.user || null;
   const activity = item.raw?.activity || null;
   const certificateId = item.raw?.certificateId || item.id;
+  const certificateUrl = item.raw?.documentUrl
+    ? buildAdminValidationFileUrl('CERTIFICATE_VALIDATION', certificateId, 'certificate', 'download')
+    : null;
 
   return {
     id: item.id,
@@ -136,13 +159,18 @@ const mapCertificateLegacyValidation = (item) => {
     content: {
       title: activity?.title || 'Certificat',
       description: activity?.description || null,
-      files: buildLegacyValidationFiles(item.raw?.documentUrl, 'certificat'),
+      files: buildLegacyValidationFiles(
+        item.raw?.documentUrl,
+        item.raw?.fileName || 'certificat',
+        certificateUrl,
+        item.raw?.fileSize || null,
+      ),
     },
     targetDetails: {
       issuer: activity?.organization || null,
       issueDate: activity?.startDate || null,
       expirationDate: activity?.endDate || null,
-      credentialUrl: item.raw?.documentUrl || null,
+      credentialUrl: certificateUrl || item.raw?.documentUrl || null,
     },
     raw: item.raw,
   };

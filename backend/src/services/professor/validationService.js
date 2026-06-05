@@ -200,6 +200,90 @@ const getProfessorValidationStats = async (userId) => {
   };
 };
 
+const getProjectForProfessorOrThrow = async (professorId, projectId) => {
+  const project = await prisma.project.findFirst({
+    where: {
+      id: projectId,
+      validatorProfessorId: professorId,
+    },
+    select: professorProjectValidationSelect,
+  });
+
+  if (!project) {
+    throw new Error('PROFESSOR_VALIDATION_NOT_FOUND');
+  }
+
+  return project;
+};
+
+const getInternshipForProfessorOrThrow = async (professorId, internshipId) => {
+  const internship = await prisma.internship.findFirst({
+    where: {
+      id: internshipId,
+      supervisorProfessorId: professorId,
+    },
+    select: professorInternshipValidationSelect,
+  });
+
+  if (!internship) {
+    throw new Error('PROFESSOR_VALIDATION_NOT_FOUND');
+  }
+
+  return internship;
+};
+
+const getProfessorValidationDetail = async (userId, itemType, itemId) => {
+  const professor = await getProfessorByUserId(userId);
+  const type = normalizeValidationType(itemType);
+
+  if (type === 'PROJECT') {
+    return mapProjectValidationItem(
+      await getProjectForProfessorOrThrow(professor.id, itemId),
+    );
+  }
+
+  return mapInternshipValidationItem(
+    await getInternshipForProfessorOrThrow(professor.id, itemId),
+  );
+};
+
+const getProjectValidationFile = async (professorId, projectId, fileId, action) => {
+  await getProjectForProfessorOrThrow(professorId, projectId);
+
+  const media = await prisma.projectMedia.findFirst({
+    where: {
+      id: fileId,
+      projectId,
+    },
+    select: {
+      id: true,
+      mediaType: true,
+      description: true,
+      fileName: true,
+      mimeType: true,
+      storagePath: true,
+    },
+  });
+
+  if (!media?.storagePath) {
+    throw new Error('PROFESSOR_VALIDATION_FILE_NOT_FOUND');
+  }
+
+  const inlineTypes = new Set(['IMAGE', 'SCREENSHOT']);
+  const contentDisposition =
+    action === 'content' && inlineTypes.has(media.mediaType) ? 'inline' : 'attachment';
+
+  return {
+    target: await getProjectFileTarget(media.storagePath, {
+      originalName: media.fileName || media.description || 'fichier-projet',
+      mimeType: media.mimeType || 'application/octet-stream',
+      contentDisposition,
+    }),
+    downloadName: media.fileName || media.description || 'fichier-projet',
+    mimeType: media.mimeType || 'application/octet-stream',
+  };
+};
+
 const mapProjectHistoryItem = (validation) => ({
   id: validation.id,
   itemType: 'PROJECT',
@@ -331,90 +415,6 @@ const listProfessorValidationHistory = async (userId, filters = {}) => {
     },
     count: items.length,
     items,
-  };
-};
-
-const getProjectForProfessorOrThrow = async (professorId, projectId) => {
-  const project = await prisma.project.findFirst({
-    where: {
-      id: projectId,
-      validatorProfessorId: professorId,
-    },
-    select: professorProjectValidationSelect,
-  });
-
-  if (!project) {
-    throw new Error('PROFESSOR_VALIDATION_NOT_FOUND');
-  }
-
-  return project;
-};
-
-const getInternshipForProfessorOrThrow = async (professorId, internshipId) => {
-  const internship = await prisma.internship.findFirst({
-    where: {
-      id: internshipId,
-      supervisorProfessorId: professorId,
-    },
-    select: professorInternshipValidationSelect,
-  });
-
-  if (!internship) {
-    throw new Error('PROFESSOR_VALIDATION_NOT_FOUND');
-  }
-
-  return internship;
-};
-
-const getProfessorValidationDetail = async (userId, itemType, itemId) => {
-  const professor = await getProfessorByUserId(userId);
-  const type = normalizeValidationType(itemType);
-
-  if (type === 'PROJECT') {
-    return mapProjectValidationItem(
-      await getProjectForProfessorOrThrow(professor.id, itemId),
-    );
-  }
-
-  return mapInternshipValidationItem(
-    await getInternshipForProfessorOrThrow(professor.id, itemId),
-  );
-};
-
-const getProjectValidationFile = async (professorId, projectId, fileId, action) => {
-  await getProjectForProfessorOrThrow(professorId, projectId);
-
-  const media = await prisma.projectMedia.findFirst({
-    where: {
-      id: fileId,
-      projectId,
-    },
-    select: {
-      id: true,
-      mediaType: true,
-      description: true,
-      fileName: true,
-      mimeType: true,
-      storagePath: true,
-    },
-  });
-
-  if (!media?.storagePath) {
-    throw new Error('PROFESSOR_VALIDATION_FILE_NOT_FOUND');
-  }
-
-  const inlineTypes = new Set(['IMAGE', 'SCREENSHOT']);
-  const contentDisposition =
-    action === 'content' && inlineTypes.has(media.mediaType) ? 'inline' : 'attachment';
-
-  return {
-    target: await getProjectFileTarget(media.storagePath, {
-      originalName: media.fileName || media.description || 'fichier-projet',
-      mimeType: media.mimeType || 'application/octet-stream',
-      contentDisposition,
-    }),
-    downloadName: media.fileName || media.description || 'fichier-projet',
-    mimeType: media.mimeType || 'application/octet-stream',
   };
 };
 

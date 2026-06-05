@@ -6,7 +6,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 
 require('dotenv').config();
-jest.mock('../../../src/services/student/dashboardService', () => ({
+jest.mock('../../../src/services/studentService', () => ({
   getStudentDashboard: jest.fn().mockResolvedValue({
     area: 'student',
     user: { id: 7, firstName: 'Najim', lastName: 'QA' },
@@ -16,10 +16,7 @@ jest.mock('../../../src/services/student/dashboardService', () => ({
       languages: ['JavaScript', 'HTML']
     },
     projects: []
-  })
-}));
-
-jest.mock('../../../src/services/student/profileService', () => ({
+  }),
   getStudentProfile: jest.fn().mockResolvedValue({
     user: { id: 7, firstName: 'Najim', email: 'student@ensa.ac.ma' },
     profile: { major: 'Informatique', level: '5th Year' },

@@ -25,7 +25,7 @@ const flushPromises = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
 
-describe("Tests UI et logique - Page de connexion", () => {
+describe("Tests UI & Logique - Page de Connexion", () => {
   let wrapper;
 
   beforeEach(() => {

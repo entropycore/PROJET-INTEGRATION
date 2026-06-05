@@ -52,7 +52,7 @@ services:
       PORT: 3000
       STORAGE_DRIVER: s3
       UPLOAD_MAX_MB: ${UPLOAD_MAX_MB:-10}
-      UPLOAD_ALLOWED_MIME_TYPES: ${UPLOAD_ALLOWED_MIME_TYPES:-application/msword,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/gif,image/jpeg,image/png,image/webp,text/plain}
+      UPLOAD_ALLOWED_MIME_TYPES: ${UPLOAD_ALLOWED_MIME_TYPES:-application/msword,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/x-zip-compressed,application/zip,image/gif,image/jpeg,image/png,image/webp,text/plain}
       S3_BUCKET: ${MINIO_BUCKET:-student-uploads}
       S3_REGION: ${S3_REGION:-us-east-1}
       S3_ENDPOINT: http://minio:9000
@@ -64,10 +64,13 @@ services:
       STORAGE_BUCKET_PUBLIC_READ: ${MINIO_PUBLIC_READ:-false}
       SIGNED_URL_TTL_SECONDS: ${SIGNED_URL_TTL_SECONDS:-300}
 
-    command: sh -c "npx prisma migrate deploy && npm run dev"
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run dev"
 
     ports:
       - "${BACKEND_PORT:-3000}:3000"
+
+    volumes:
+      - backend_node_modules:/app/node_modules
 
     networks:
       - credencia_net
@@ -166,6 +169,7 @@ services:
 
 volumes:
   postgres_data:
+  backend_node_modules:
   minio_data:
 
 networks:

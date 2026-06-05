@@ -3,7 +3,7 @@ import { it, expect } from "vitest";
 import NotAuthorized from "@/views/NotAuthorized.vue";
 import { createTestingPinia } from "@pinia/testing";
 
-describe("NotAuthorized - Test de fumee", () => {
+describe("NotAuthorized - Smoke Test", () => {
   it("devrait monter le composant sans planter", () => {
     const wrapper = mount(NotAuthorized, {
       global: {

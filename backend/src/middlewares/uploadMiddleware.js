@@ -8,6 +8,8 @@ const DEFAULT_ALLOWED_MIME_TYPES = [
   'application/msword',
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/x-zip-compressed',
+  'application/zip',
   'image/gif',
   'image/jpeg',
   'image/png',

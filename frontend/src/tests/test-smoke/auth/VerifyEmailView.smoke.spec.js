@@ -29,7 +29,7 @@ const flushPromises = async () => {
   await new Promise((resolve) => setTimeout(resolve, 0));
 };
 
-describe("VerifyEmail - Tests de fumee", () => {
+describe("VerifyEmail - Tests Smoke", () => {
   let wrapper;
 
   beforeEach(async () => {

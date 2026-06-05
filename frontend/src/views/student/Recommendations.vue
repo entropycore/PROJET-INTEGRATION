@@ -51,6 +51,11 @@ const formatDate = (date) => {
     year: "numeric",
   });
 };
+const viewAuthorProfile = (authorId) => {
+  // Plus tard : router.push(`/student/users/${authorId}`)
+  console.log("Voir profil auteur :", authorId);
+};
+
 const decideRecommendation = async (id, status) => {
   actionLoadingId.value = id;
 
@@ -190,6 +195,13 @@ onMounted(() => {
           </span>
 
           <div class="recommendation-actions">
+            <button
+              class="secondary-btn"
+              @click="viewAuthorProfile(recommendation.author.id)"
+            >
+              Voir profil
+            </button>
+
             <button
               v-if="recommendation.status === 'PENDING'"
               class="primary-btn"

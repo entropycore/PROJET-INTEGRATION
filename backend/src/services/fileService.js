@@ -112,6 +112,8 @@ const validateFileSignature = (file) => {
       buffer.subarray(8, 12).toString('ascii') === 'WEBP') ||
     (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' &&
       hasAsciiHeader(buffer, 'PK')) ||
+    ((mimeType === 'application/zip' || mimeType === 'application/x-zip-compressed') &&
+      hasAsciiHeader(buffer, 'PK')) ||
     (mimeType === 'application/msword' &&
       startsWithBytes(buffer, [0xd0, 0xcf, 0x11, 0xe0])) ||
     mimeType === 'text/plain';

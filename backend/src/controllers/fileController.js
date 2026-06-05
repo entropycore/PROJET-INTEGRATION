@@ -2,6 +2,7 @@
 
 const fileService = require('../services/fileService');
 const { success, error } = require('../utils/apiResponse');
+const sendStoredFile = require('../utils/sendStoredFile');
 
 const fileErrorMessages = {
   FILE_REQUIRED: 'Aucun fichier reçu.',
@@ -13,12 +14,6 @@ const fileErrorMessages = {
   FILE_ENTITY_NOT_FOUND: 'Entité liée au fichier introuvable.',
   UNSUPPORTED_FILE_TYPE: 'Type de fichier non autorisé.',
   STORAGE_OBJECT_NOT_FOUND: 'Fichier introuvable dans le stockage.',
-};
-
-const buildContentDisposition = (type, filename) => {
-  const fallback = String(filename || 'file').replace(/[^\x20-\x7E]/g, '_').replace(/["\\]/g, '_');
-  const encoded = encodeURIComponent(filename || 'file');
-  return `${type}; filename="${fallback}"; filename*=UTF-8''${encoded}`;
 };
 
 const handleFileError = (res, err) => {
@@ -96,18 +91,15 @@ exports.downloadFile = async (req, res, next) => {
       fileId: req.params.fileId,
     });
 
-    if (target.mode === 'redirect') {
-      return res.redirect(target.url);
-    }
-
-    res.setHeader('Content-Type', file.mimeType);
-    res.setHeader(
-      'Content-Disposition',
-      buildContentDisposition(target.contentDisposition || 'attachment', file.originalName)
+    return sendStoredFile(
+      res,
+      {
+        target,
+        downloadName: file.originalName,
+        mimeType: file.mimeType,
+      },
+      next,
     );
-
-    target.stream.on('error', next);
-    return target.stream.pipe(res);
   } catch (err) {
     if (handleFileError(res, err)) return;
     next(err);
@@ -120,18 +112,15 @@ exports.downloadPublicFile = async (req, res, next) => {
       fileId: req.params.fileId,
     });
 
-    if (target.mode === 'redirect') {
-      return res.redirect(target.url);
-    }
-
-    res.setHeader('Content-Type', file.mimeType);
-    res.setHeader(
-      'Content-Disposition',
-      buildContentDisposition(target.contentDisposition || 'inline', file.originalName)
+    return sendStoredFile(
+      res,
+      {
+        target,
+        downloadName: file.originalName,
+        mimeType: file.mimeType,
+      },
+      next,
     );
-
-    target.stream.on('error', next);
-    return target.stream.pipe(res);
   } catch (err) {
     if (handleFileError(res, err)) return;
     next(err);

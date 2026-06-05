@@ -248,60 +248,8 @@ const getPublicPortfolioBySlug = async (slug) => {
   return applyConfig(payload);
 };
 
-const listPublicPortfolios = async () => {
-  const portfolios = await prisma.portfolio.findMany({
-    where: {
-      status: 'ACTIVE',
-      visibility: 'PUBLIC',
-    },
-    orderBy: {
-      updatedAt: 'desc',
-    },
-    take: 50,
-    select: {
-      id: true,
-      title: true,
-      publicSlug: true,
-      description: true,
-      targetDomain: true,
-      updatedAt: true,
-      student: {
-        select: {
-          major: true,
-          level: true,
-          bio: true,
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profilePicture: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  return portfolios.map((portfolio) => ({
-    id: portfolio.id,
-    title: portfolio.title,
-    publicSlug: portfolio.publicSlug,
-    description: portfolio.description,
-    targetDomain: portfolio.targetDomain,
-    updatedAt: portfolio.updatedAt,
-    student: {
-      fullName: formatFullName(portfolio.student.user),
-      major: portfolio.student.major,
-      level: portfolio.student.level,
-      bio: portfolio.student.bio,
-      profilePicture: portfolio.student.user.profilePicture,
-    },
-  }));
-};
-
 module.exports = {
   generateStudentPortfolio,
-  listPublicPortfolios,
   getPublicPortfolioBySlug,
   getStudentPortfolioPreview,
 };

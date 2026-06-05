@@ -333,7 +333,7 @@ const router = createRouter({
         {
           path: "profiles",
           name: "professional-profiles",
-          component: () => import("../views/profiles.vue"),
+          component: () => import("../views/professional/Profiles.vue"),
         },
         {
           path: "notifications",

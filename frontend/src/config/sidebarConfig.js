@@ -191,8 +191,9 @@ export const sidebarConfig = {
       section: "TABLEAU DE BORD",
       items: [
         { label: "Vue globale", path: "/professional", icon: "dashboard" },
+        { label: "Mon profil", path: "/professional/profile", icon: "person" },
         {
-          label: "Explore Profiles",
+          label: "Explorer profils",
           path: "/professional/profiles",
           icon: "manage_search",
         },

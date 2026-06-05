@@ -4,6 +4,8 @@ import { createRouter, createMemoryHistory } from "vue-router";
 import { createPinia, setActivePinia } from "pinia";
 import { defineComponent } from "vue";
 
+// ─── Mocks ────────────────────────────────────────────────────────────────────
+
 vi.mock("../../assets/styles/topbar.css", () => ({}));
 vi.mock("../../assets/icons/notification.svg", () => ({
   default: "/mock-notification.svg",
@@ -20,6 +22,8 @@ vi.mock("@/stores/auth", () => ({
 
 import { useAuthStore } from "@/stores/auth";
 import Topbar from "@/components/dashboard/Topbar.vue";
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const router = createRouter({
   history: createMemoryHistory(),
@@ -41,10 +45,12 @@ function mountTopBar(user = null) {
   });
 }
 
-describe("TopBar - Tests de fumee", () => {
+// ─── Smoke Tests ──────────────────────────────────────────────────────────────
+
+describe("TopBar — Smoke Tests", () => {
   beforeEach(() => setActivePinia(createPinia()));
 
-  it("se monte sans erreur avec un utilisateur null", () => {
+  it("se monte sans erreur avec user null", () => {
     expect(() => mountTopBar(null)).not.toThrow();
   });
 
@@ -72,13 +78,13 @@ describe("TopBar - Tests de fumee", () => {
     ).not.toThrow();
   });
 
-  it("se monte sans erreur avec un role inconnu", () => {
+  it("se monte sans erreur avec un rôle inconnu", () => {
     expect(() =>
       mountTopBar({ role: "UNKNOWN", firstName: "Test" }),
     ).not.toThrow();
   });
 
-  it('rend un element <header class="topbar">', () => {
+  it('rend un élément <header class="topbar">', () => {
     const wrapper = mountTopBar({ role: "STUDENT", firstName: "Alice" });
     expect(wrapper.find("header.topbar").exists()).toBe(true);
   });

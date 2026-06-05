@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import { buildBackendUrl } from "../../services/backendUrl";
 import {
@@ -30,6 +30,8 @@ const showAddSkill = ref(false);
 const newSkillName = ref("");
 const pictureInput = ref(null);
 const isUploadingPicture = ref(false);
+const profilePictureFailed = ref(false);
+const profilePictureVersion = ref(Date.now());
 
 const careerGoals = [
   { value: "WEB_DEVELOPER", label: "Développeur Web" },
@@ -56,6 +58,31 @@ const newPath = ref({
 });
 
 const unwrapData = (response) => response?.data ?? response ?? null;
+
+const hasProfilePicture = computed(
+  () => Boolean(profile.value?.profilePicture) && !profilePictureFailed.value,
+);
+
+const profilePictureUrl = computed(() => {
+  if (!hasProfilePicture.value) return "";
+
+  const url = buildBackendUrl(profile.value.profilePicture);
+  const separator = url.includes("?") ? "&" : "?";
+
+  return `${url}${separator}v=${profilePictureVersion.value}`;
+});
+
+const syncAuthUser = (studentProfile) => {
+  if (!authStore.user || !studentProfile) return;
+
+  authStore.setAuthSession({
+    ...authStore.user,
+    firstName: studentProfile.firstName,
+    lastName: studentProfile.lastName,
+    phone: studentProfile.phone,
+    profilePicture: studentProfile.profilePicture,
+  });
+};
 
 const normalizeSoftSkills = (payload) => {
   const items = Array.isArray(payload)
@@ -108,6 +135,8 @@ const loadAll = async () => {
       getCareerGoal(),
     ]);
     profile.value = unwrapData(profileRes);
+    profilePictureFailed.value = false;
+    syncAuthUser(profile.value);
     academicPaths.value = unwrapData(pathsRes) || [];
     softSkills.value = normalizeSoftSkills(unwrapData(skillsRes));
     careerGoal.value = unwrapData(goalRes)?.careerGoal || "";
@@ -123,6 +152,7 @@ const loadAll = async () => {
       city: "",
       bio: "",
       linkedinUrl: "",
+      profilePicture: user.profilePicture || "",
     };
     academicPaths.value = [];
     softSkills.value = [];
@@ -250,6 +280,9 @@ const handleProfilePictureChange = async (event) => {
       profilePicture: data?.profilePicture || profile.value.profilePicture,
     };
 
+    profilePictureFailed.value = false;
+    profilePictureVersion.value = Date.now();
+    syncAuthUser(profile.value);
     successMessage.value = "Photo de profil mise à jour.";
   } catch (error) {
     errorMessage.value =
@@ -294,9 +327,11 @@ onMounted(loadAll);
           <div class="avatar-row">
             <div class="profile-avatar">
               <img
-                v-if="profile.profilePicture"
-                :src="buildBackendUrl(profile.profilePicture)"
+                v-if="hasProfilePicture"
+                :key="`${profile.profilePicture}-${profilePictureVersion}`"
+                :src="profilePictureUrl"
                 alt=""
+                @error="profilePictureFailed = true"
               />
               <span v-else>
                 {{ getInitials(profile.firstName, profile.lastName) }}

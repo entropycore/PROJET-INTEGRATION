@@ -10,7 +10,7 @@ import {
 
 const isLoading = ref(false);
 const errorMessage = ref("");
-const historyItems = ref([]);
+const items = ref([]);
 const search = ref("");
 const selectedType = ref("ALL");
 const selectedStatus = ref("ALL");
@@ -28,7 +28,7 @@ const typeLabels = {
   INTERNSHIP: "Stage",
 };
 
-const fetchHistory = async () => {
+const loadHistory = async () => {
   isLoading.value = true;
   errorMessage.value = "";
 
@@ -39,25 +39,24 @@ const fetchHistory = async () => {
       search: search.value,
     });
 
-    historyItems.value = data.items || [];
+    items.value = data.items || [];
   } catch (error) {
     console.error("Erreur historique professeur :", error);
-    historyItems.value = [];
+    items.value = [];
     errorMessage.value = "Impossible de charger l'historique.";
   } finally {
     isLoading.value = false;
   }
 };
 
-onMounted(fetchHistory);
-
-watch([selectedType, selectedStatus], fetchHistory);
+onMounted(loadHistory);
+watch([selectedType, selectedStatus], loadHistory);
 
 const filteredItems = computed(() => {
   const keyword = search.value.trim().toLowerCase();
-  if (!keyword) return historyItems.value;
+  if (!keyword) return items.value;
 
-  return historyItems.value.filter((item) =>
+  return items.value.filter((item) =>
     [
       item.title,
       item.description,
@@ -72,15 +71,15 @@ const filteredItems = computed(() => {
 });
 
 const summary = computed(() =>
-  historyItems.value.reduce(
-    (acc, item) => {
-      if (item.decision === "APPROVED") acc.approved += 1;
-      if (item.decision === "REJECTED") acc.rejected += 1;
-      if (item.decision === "CHANGES_REQUESTED") acc.changesRequested += 1;
-      acc.total += 1;
-      return acc;
+  items.value.reduce(
+    (total, item) => {
+      total.actions += 1;
+      if (item.decision === "APPROVED") total.approved += 1;
+      if (item.decision === "REJECTED") total.rejected += 1;
+      if (item.decision === "CHANGES_REQUESTED") total.changes += 1;
+      return total;
     },
-    { total: 0, approved: 0, rejected: 0, changesRequested: 0 },
+    { actions: 0, approved: 0, rejected: 0, changes: 0 },
   ),
 );
 
@@ -94,13 +93,12 @@ const formatDate = (date) => {
   });
 };
 
-const getStatusClass = (status) => String(status || "").toLowerCase();
+const statusClass = (status) => String(status || "").toLowerCase();
 
 const openDetails = async (item) => {
   try {
     selectedValidation.value = await getProfessorValidationDetails(item);
-  } catch (error) {
-    console.error("Erreur detail historique professeur :", error);
+  } catch {
     selectedValidation.value = item;
   }
 
@@ -119,50 +117,54 @@ const closeDetails = () => {
       <div>
         <span>ESPACE PROFESSEUR</span>
         <h1>Historique des actions</h1>
-        <p>Consultez les validations deja traitees et les commentaires envoyes.</p>
+        <p>Consultez les validations deja traitees.</p>
       </div>
 
       <RouterLink to="/professor/validations" class="primary-link">
         <span class="material-icons-round">fact_check</span>
-        Validations en attente
+        Validations
       </RouterLink>
     </header>
 
     <div class="summary-grid">
       <article class="summary-card">
         <span class="material-icons-round">history</span>
-        <strong>{{ summary.total }}</strong>
-        <p>Actions</p>
+        <div>
+          <strong>{{ summary.actions }}</strong>
+          <p>Actions</p>
+        </div>
       </article>
 
       <article class="summary-card">
         <span class="material-icons-round">check_circle</span>
-        <strong>{{ summary.approved }}</strong>
-        <p>Approuvees</p>
+        <div>
+          <strong>{{ summary.approved }}</strong>
+          <p>Approuvees</p>
+        </div>
       </article>
 
       <article class="summary-card">
         <span class="material-icons-round">cancel</span>
-        <strong>{{ summary.rejected }}</strong>
-        <p>Refusees</p>
+        <div>
+          <strong>{{ summary.rejected }}</strong>
+          <p>Refusees</p>
+        </div>
       </article>
 
       <article class="summary-card">
         <span class="material-icons-round">rate_review</span>
-        <strong>{{ summary.changesRequested }}</strong>
-        <p>Corrections</p>
+        <div>
+          <strong>{{ summary.changes }}</strong>
+          <p>Corrections</p>
+        </div>
       </article>
     </div>
 
     <section class="history-card">
-      <div class="history-toolbar">
+      <div class="toolbar">
         <div class="search-box">
           <span class="material-icons-round">search</span>
-          <input
-            v-model="search"
-            type="text"
-            placeholder="Rechercher une action..."
-          />
+          <input v-model="search" type="text" placeholder="Rechercher..." />
         </div>
 
         <select v-model="selectedType">
@@ -178,12 +180,14 @@ const closeDetails = () => {
           <option value="CHANGES_REQUESTED">Correction demandee</option>
         </select>
 
-        <button type="button" class="refresh-btn" @click="fetchHistory">
+        <button type="button" class="refresh-btn" @click="loadHistory">
           <span class="material-icons-round">refresh</span>
         </button>
       </div>
 
-      <div v-if="isLoading" class="state-box">Chargement de l'historique...</div>
+      <div v-if="isLoading" class="state-box">
+        Chargement de l'historique...
+      </div>
 
       <div v-else-if="errorMessage" class="state-box error">
         {{ errorMessage }}
@@ -204,30 +208,28 @@ const closeDetails = () => {
           :key="`${item.itemType}-${item.id}`"
           class="table-row"
         >
-          <div class="main-cell">
+          <div>
             <strong>{{ item.title }}</strong>
             <p>{{ item.comment || item.actionLabel }}</p>
           </div>
 
-          <div class="student-cell">
+          <div>
             <strong>{{ item.student?.fullName }}</strong>
             <p>{{ item.student?.email || "Email non renseigne" }}</p>
           </div>
 
-          <span class="type-cell">
-            {{ typeLabels[item.itemType] || item.itemType }}
-          </span>
+          <span>{{ typeLabels[item.itemType] || item.itemType }}</span>
 
-          <span class="status-pill" :class="getStatusClass(item.decision)">
+          <span class="status-pill" :class="statusClass(item.decision)">
             {{ statusLabels[item.decision] || item.decision }}
           </span>
 
-          <span class="date-cell">{{ formatDate(item.decisionDate) }}</span>
+          <span>{{ formatDate(item.decisionDate) }}</span>
 
           <button
             type="button"
             class="icon-btn"
-            title="Voir le detail"
+            title="Voir"
             aria-label="Voir le detail"
             @click="openDetails(item)"
           >
@@ -259,22 +261,19 @@ const closeDetails = () => {
 
 .page-header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
 
 .page-header span {
-  display: block;
   color: var(--app-subtle);
   font-size: var(--app-text-xs);
   font-weight: 800;
   letter-spacing: 0.06em;
-  margin-bottom: 0.35rem;
 }
 
 .page-header h1 {
-  margin: 0;
+  margin: 0.35rem 0 0;
   color: var(--app-heading);
   font-family: var(--app-font-display);
   font-size: clamp(1.8rem, 2.4vw, 2.3rem);
@@ -286,23 +285,16 @@ const closeDetails = () => {
   color: var(--app-muted);
 }
 
-.primary-link,
-.refresh-btn,
-.icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--app-radius-md);
-  font-weight: 800;
-  cursor: pointer;
-}
-
 .primary-link {
   min-height: 2.7rem;
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
   padding: 0 1rem;
+  border-radius: var(--app-radius-md);
   background: var(--app-primary);
   color: #ffffff;
+  font-weight: 800;
   text-decoration: none;
 }
 
@@ -325,11 +317,11 @@ const closeDetails = () => {
 }
 
 .summary-card {
-  min-height: 6.75rem;
+  min-height: 6.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.1rem;
+  padding: 1rem;
 }
 
 .summary-card .material-icons-round {
@@ -360,7 +352,7 @@ const closeDetails = () => {
   overflow: hidden;
 }
 
-.history-toolbar {
+.toolbar {
   display: grid;
   grid-template-columns: 1fr 13rem 13rem 2.6rem;
   gap: 0.8rem;
@@ -379,11 +371,6 @@ const closeDetails = () => {
   border-radius: var(--app-radius-md);
 }
 
-.search-box span {
-  color: var(--app-muted);
-  font-size: 1rem;
-}
-
 input,
 select {
   width: 100%;
@@ -392,7 +379,6 @@ select {
   border-radius: var(--app-radius-md);
   background: var(--app-surface);
   color: var(--app-text);
-  font-family: var(--app-font-body);
   font-size: var(--app-text-sm);
   outline: none;
 }
@@ -409,9 +395,13 @@ select {
 
 .refresh-btn,
 .icon-btn {
+  display: grid;
+  place-items: center;
   border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
   background: var(--app-surface);
   color: var(--app-primary);
+  cursor: pointer;
 }
 
 .refresh-btn {
@@ -443,7 +433,6 @@ select {
   color: var(--app-muted);
   font-size: var(--app-text-xs);
   font-weight: 800;
-  letter-spacing: 0.04em;
   text-transform: uppercase;
   background: var(--app-surface-soft);
   border-bottom: 1px solid var(--app-border);
@@ -453,30 +442,16 @@ select {
   border-bottom: 1px solid var(--app-border);
 }
 
-.table-row:hover {
-  background: var(--app-surface-soft);
-}
-
-.main-cell strong,
-.student-cell strong {
+.table-row strong {
   color: var(--app-heading);
   font-size: var(--app-text-sm);
 }
 
-.main-cell p,
-.student-cell p,
-.date-cell,
-.type-cell {
+.table-row p,
+.table-row span {
   margin: 0.2rem 0 0;
   color: var(--app-muted);
   font-size: var(--app-text-xs);
-}
-
-.main-cell p {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
 }
 
 .status-pill {
@@ -489,7 +464,6 @@ select {
   border-radius: var(--app-radius-pill);
   background: var(--app-warning-bg);
   color: var(--app-warning);
-  font-size: var(--app-text-xs);
   font-weight: 800;
   white-space: nowrap;
 }
@@ -510,10 +484,6 @@ select {
   justify-self: end;
 }
 
-.icon-btn .material-icons-round {
-  font-size: 1.1rem;
-}
-
 .state-box,
 .empty-text {
   padding: 2rem;
@@ -527,7 +497,7 @@ select {
 
 @media (max-width: 1000px) {
   .summary-grid,
-  .history-toolbar {
+  .toolbar {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -537,7 +507,6 @@ select {
 
   .table-row {
     grid-template-columns: 1fr;
-    gap: 0.6rem;
   }
 
   .icon-btn {
@@ -551,7 +520,7 @@ select {
   }
 
   .summary-grid,
-  .history-toolbar {
+  .toolbar {
     grid-template-columns: 1fr;
   }
 }

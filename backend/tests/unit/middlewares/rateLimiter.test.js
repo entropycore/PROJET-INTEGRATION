@@ -68,8 +68,8 @@ describe('MIDDLEWARE - rateLimiter', () => {
     const { authLimiter } = require('../../../src/middlewares/rateLimiter');
 
     // Simuler req, res, next
-    const req = {};
-    const res = {};
+    const req  = {};
+    const res  = {};
     const next = jest.fn(); // ← fonction simulée
 
     authLimiter(req, res, next);
@@ -84,8 +84,8 @@ describe('MIDDLEWARE - rateLimiter', () => {
     jest.resetModules();
     const { globalLimiter } = require('../../../src/middlewares/rateLimiter');
 
-    const req = { original: true };
-    const res = {};
+    const req  = { original: true };
+    const res  = {};
     const next = jest.fn();
 
     globalLimiter(req, res, next);

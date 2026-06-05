@@ -3,7 +3,7 @@ import { mount } from "@vue/test-utils";
 import ValidationToolbar from "@/components/admin/validations/ValidationToolbar.vue";
 
 describe("ValidationToolbar - Tests UI", () => {
-  it("initialise les champs avec les proprietes", () => {
+  it("initialise les champs avec les props", () => {
     const wrapper = mount(ValidationToolbar, {
       props: {
         search: "Projet",

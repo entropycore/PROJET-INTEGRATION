@@ -43,6 +43,7 @@ const ADMIN_ERROR_RESPONSES = {
   ADMIN_PROFILE_NOT_FOUND: [404, 'Profil administrateur introuvable.'],
   DASHBOARD_ITEM_NOT_FOUND: [404, 'Élément du dashboard introuvable.'],
   VALIDATION_ITEM_NOT_FOUND: [404, 'Élément de validation introuvable.'],
+  ADMIN_VALIDATION_FILE_NOT_FOUND: [404, 'Fichier de validation introuvable.'],
   REPORT_NOT_FOUND: [404, 'Signalement introuvable.'],
   REPORT_TARGET_NOT_FOUND: [404, 'Cible du signalement introuvable.'],
   NOTIFICATION_NOT_FOUND: [404, 'Notification introuvable.'],
