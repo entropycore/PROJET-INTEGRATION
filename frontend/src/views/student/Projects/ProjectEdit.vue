@@ -30,12 +30,22 @@ const validators = ref([]);
 const isValidatorSuggestionsOpen = ref(false);
 
 const projectTypes = [
-  { label: "Module", value: "MODULE" },
-  { label: "Intégration", value: "INTEGRATION" },
-  { label: "Hackathon", value: "HACKATHON" },
-  { label: "Personnel", value: "PERSONAL" },
-  { label: "Stage", value: "INTERNSHIP" },
+  { value: "Module", label: "Module" },
+  { value: "Integration", label: "Intégration" },
+  { value: "Hackathon", label: "Hackathon" },
+  { value: "Personnel", label: "Personnel" },
+  { value: "Stage", label: "Stage" },
 ];
+
+const normalizeProjectType = (type) => {
+  const value = String(type || "Module").trim();
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  return normalized === "integration" ? "Integration" : value;
+};
 
 const canSubmit = computed(() => {
   return Boolean(projectForm.value?.validatorId);
@@ -64,8 +74,11 @@ const filteredValidators = computed(() => {
 const buildProjectPayload = () => {
   const payload = { ...projectForm.value };
 
+  payload.type = normalizeProjectType(payload.type);
+
   delete payload.screenshots;
   delete payload.attachments;
+  delete payload.validator;
   delete payload.validationHistory;
   delete payload.createdAt;
   delete payload.updatedAt;
@@ -78,7 +91,17 @@ const fetchProject = async () => {
 
   try {
     const response = await getStudentProjectById(route.params.id);
-    projectForm.value = structuredClone(response.data.data);
+    const loadedProject = structuredClone(response.data.data);
+
+    projectForm.value = {
+      ...loadedProject,
+      type: normalizeProjectType(loadedProject.type),
+      validatorId:
+        loadedProject.validatorId || loadedProject.validator?.id || "",
+      validatorName:
+        loadedProject.validatorName || loadedProject.validator?.fullName || "",
+    };
+
     syncValidatorSelectionFromProject();
   } catch (error) {
     console.warn("API project detail indisponible.");
@@ -217,11 +240,13 @@ const handleScreenshotsUpload = (event) => {
   }
 
   files.forEach((file) => {
-    const id = `local-${Date.now()}-${Math.random()}`;
+    const id = Date.now() + Math.random();
 
+    selectedScreenshots.value.push({ id, file });
     projectForm.value.screenshots.push({
       id,
       title: file.name,
+      imageUrl: URL.createObjectURL(file),
       isLocal: true,
     });
 
@@ -240,12 +265,14 @@ const handleAttachmentsUpload = (event) => {
   }
 
   files.forEach((file) => {
-    const id = `local-${Date.now()}-${Math.random()}`;
+    const id = Date.now() + Math.random();
 
+    selectedAttachments.value.push({ id, file });
     projectForm.value.attachments.push({
       id,
       name: file.name,
       type: file.type || "FICHIER",
+      url: "#",
       isLocal: true,
     });
 
@@ -277,7 +304,7 @@ const removeScreenshot = async (id) => {
     (screenshot) => screenshot.id !== id,
   );
   selectedScreenshots.value = selectedScreenshots.value.filter(
-    (file) => file.localMediaId !== id,
+    (screenshot) => screenshot.id !== id,
   );
 };
 
@@ -302,7 +329,7 @@ const removeAttachment = async (id) => {
     (attachment) => attachment.id !== id,
   );
   selectedAttachments.value = selectedAttachments.value.filter(
-    (file) => file.localMediaId !== id,
+    (attachment) => attachment.id !== id,
   );
 };
 
@@ -312,8 +339,8 @@ const uploadPendingMedia = async () => {
   }
 
   await uploadStudentProjectMedia(route.params.id, {
-    screenshots: selectedScreenshots.value,
-    attachments: selectedAttachments.value,
+    screenshots: selectedScreenshots.value.map((item) => item.file),
+    attachments: selectedAttachments.value.map((item) => item.file),
   });
 };
 
@@ -324,7 +351,6 @@ const saveProject = async () => {
   try {
     await updateStudentProject(route.params.id, buildProjectPayload());
     await uploadPendingMedia();
-
     router.push(`/student/projects/${route.params.id}`);
   } catch (error) {
     console.error("Erreur mise à jour projet :", error);
@@ -462,7 +488,9 @@ onMounted(async () => {
                       <span>
                         <strong>{{ validator.fullName }}</strong>
                         <small>
-                          {{ validator.department || "Département non renseigné" }}
+                          {{
+                            validator.department || "Département non renseigné"
+                          }}
                           <template v-if="validator.specialty">
                             · {{ validator.specialty }}
                           </template>

@@ -14,6 +14,7 @@ import {
   getStudentActivityById,
   submitStudentActivityValidation,
 } from "@/services/studentActivitiesService";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 const route = useRoute();
 const router = useRouter();
@@ -28,11 +29,11 @@ const certificatePreviewError = ref("");
 const submitMessage = ref("");
 
 const statusLabels = {
-  DRAFT: 'Brouillon',
-  PENDING: 'En attente',
-  APPROVED: 'Validée',
-  REJECTED: 'Refusée',
-  CORRECTION_REQUIRED: 'Correction demandée',
+  DRAFT: "Brouillon",
+  PENDING: "En attente",
+  APPROVED: "Validée",
+  REJECTED: "Refusée",
+  CORRECTION_REQUIRED: "Correction demandée",
 };
 
 const extractData = (response) => response.data?.data || response.data;
@@ -56,174 +57,179 @@ const fetchActivity = async () => {
 onMounted(fetchActivity);
 
 const typeLabels = {
-  CLUB: 'Club',
-  EVENT: 'Événement',
-  VOLUNTEERING: 'Bénévolat',
-  COMPETITION: 'Compétition',
-  TRAINING: 'Formation',
-  OTHER: 'Autre',
-}
+  CLUB: "Club",
+  EVENT: "Événement",
+  VOLUNTEERING: "Bénévolat",
+  COMPETITION: "Compétition",
+  TRAINING: "Formation",
+  OTHER: "Autre",
+};
 
-const canEditActivity = computed(() =>
-  canEditActivityRule(activity.value),
-)
+const canEditActivity = computed(() => canEditActivityRule(activity.value));
 const canDeleteCurrentActivity = computed(() =>
   canDeleteActivityRule(activity.value),
-)
+);
 const canSubmitCurrentActivity = computed(() =>
   canSubmitActivity(activity.value),
-)
+);
 
 const hasCurrentCertificate = computed(() =>
   hasActivityCertificate(activity.value),
-)
+);
 
 const displayedValidationStatus = computed(() => {
-  return activity.value?.validationStatus || 'DRAFT'
-})
+  return activity.value?.validationStatus || "DRAFT";
+});
 
 const activityStatusClass = computed(() => {
   const statusClasses = {
-    DRAFT: 'draft',
-    PENDING: 'pending',
-    APPROVED: 'approved',
-    CORRECTION_REQUIRED: 'changes-requested',
-    REJECTED: 'rejected',
-  }
+    DRAFT: "draft",
+    PENDING: "pending",
+    APPROVED: "approved",
+    CORRECTION_REQUIRED: "changes-requested",
+    REJECTED: "rejected",
+  };
 
-  return statusClasses[displayedValidationStatus.value] || 'draft'
-})
+  return statusClasses[displayedValidationStatus.value] || "draft";
+});
 
 const activityStatusMessage = computed(() => {
   const messages = {
     DRAFT: {
-      title: 'Activité en brouillon',
-      text: 'Vous pouvez encore modifier cette activité avant de la soumettre à validation.',
-      icon: 'edit_note',
+      title: "Activité en brouillon",
+      text: "Vous pouvez encore modifier cette activité avant de la soumettre à validation.",
+      icon: "edit_note",
     },
     PENDING: {
-      title: 'Validation en cours',
-      text: 'Cette activité a été soumise et attend la réponse de l’administration.',
-      icon: 'schedule',
+      title: "Validation en cours",
+      text: "Cette activité a été soumise et attend la réponse de l’administration.",
+      icon: "schedule",
     },
     APPROVED: {
-      title: 'Activité validée',
-      text: 'Cette activité est validée et peut enrichir votre parcours.',
-      icon: 'verified',
+      title: "Activité validée",
+      text: "Cette activité est validée et peut enrichir votre parcours.",
+      icon: "verified",
     },
     REJECTED: {
-      title: 'Activité refusée',
-      text: 'Cette activité a été refusée par le validateur.',
-      icon: 'cancel',
+      title: "Activité refusée",
+      text: "Cette activité a été refusée par le validateur.",
+      icon: "cancel",
     },
     CORRECTION_REQUIRED: {
-      title: 'Correction demandée',
-      text: 'Des modifications sont attendues avant une nouvelle soumission.',
-      icon: 'rate_review',
+      title: "Correction demandée",
+      text: "Des modifications sont attendues avant une nouvelle soumission.",
+      icon: "rate_review",
     },
-  }
+  };
 
-  return messages[displayedValidationStatus.value] || messages.DRAFT
-})
+  return messages[displayedValidationStatus.value] || messages.DRAFT;
+});
 
-const certificateDownloadUrl = computed(() =>
-  certificatePreviewUrl.value || activity.value?.certificateUrl || '',
-)
-const certificatePreviewSource = computed(() => certificatePreviewUrl.value)
-const activityMedia = computed(() => activity.value?.screenshots || activity.value?.media || [])
+const certificateDownloadUrl = computed(
+  () =>
+    certificatePreviewUrl.value ||
+    buildBackendUrl(activity.value?.certificateUrl || ""),
+);
+const certificatePreviewSource = computed(() => certificatePreviewUrl.value);
+const activityMedia = computed(
+  () => activity.value?.screenshots || activity.value?.media || [],
+);
 
 const validationHistory = computed(() => {
-  const history = activity.value?.validationHistory
+  const history = activity.value?.validationHistory;
 
   if (history?.length) {
-    return [...history].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    return [...history].sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+    );
   }
 
   const items = [
     {
-      id: 'created',
-      title: 'Brouillon créé',
-      comment: 'L’activité a été ajoutée à votre espace étudiant.',
+      id: "created",
+      title: "Brouillon créé",
+      comment: "L’activité a été ajoutée à votre espace étudiant.",
       createdAt: activity.value?.createdAt,
-      actorName: 'Vous',
-      tone: 'draft',
+      actorName: "Vous",
+      tone: "draft",
     },
-  ]
+  ];
 
-  if (displayedValidationStatus.value === 'PENDING') {
+  if (displayedValidationStatus.value === "PENDING") {
     items.unshift({
-      id: 'submitted',
-      title: 'Soumis à validation',
-      comment: 'L’activité est en attente de vérification.',
+      id: "submitted",
+      title: "Soumis à validation",
+      comment: "L’activité est en attente de vérification.",
       createdAt: activity.value?.submittedAt || activity.value?.updatedAt,
-      actorName: 'Vous',
-      tone: 'pending',
-    })
+      actorName: "Vous",
+      tone: "pending",
+    });
   }
 
-  if (displayedValidationStatus.value === 'APPROVED') {
+  if (displayedValidationStatus.value === "APPROVED") {
     items.unshift({
-      id: 'approved',
-      title: 'Activité validée',
-      comment: 'L’activité a été validée.',
+      id: "approved",
+      title: "Activité validée",
+      comment: "L’activité a été validée.",
       createdAt: activity.value?.validatedAt || activity.value?.updatedAt,
-      actorName: 'Administration',
-      tone: 'approved',
-    })
+      actorName: "Administration",
+      tone: "approved",
+    });
   }
 
-  if (displayedValidationStatus.value === 'REJECTED') {
+  if (displayedValidationStatus.value === "REJECTED") {
     items.unshift({
-      id: 'rejected',
-      title: 'Activité refusée',
-      comment: activity.value?.validationComment || 'L’activité a été refusée.',
+      id: "rejected",
+      title: "Activité refusée",
+      comment: activity.value?.validationComment || "L’activité a été refusée.",
       createdAt: activity.value?.updatedAt,
-      actorName: 'Administration',
-      tone: 'rejected',
-    })
+      actorName: "Administration",
+      tone: "rejected",
+    });
   }
 
-  if (displayedValidationStatus.value === 'CORRECTION_REQUIRED') {
+  if (displayedValidationStatus.value === "CORRECTION_REQUIRED") {
     items.unshift({
-      id: 'correction',
-      title: 'Correction demandée',
-      comment: activity.value?.validationComment || 'Des corrections sont demandées.',
+      id: "correction",
+      title: "Correction demandée",
+      comment:
+        activity.value?.validationComment || "Des corrections sont demandées.",
       createdAt: activity.value?.updatedAt,
-      actorName: 'Administration',
-      tone: 'changes-requested',
-    })
+      actorName: "Administration",
+      tone: "changes-requested",
+    });
   }
 
-  return items
-})
+  return items;
+});
 
 const certificateExtension = computed(() => {
   const value = (
     activity.value?.certificateType ||
     activity.value?.certificateName ||
     certificateDownloadUrl.value
-  ).toLowerCase()
+  ).toLowerCase();
 
-  if (value.includes('pdf')) return 'pdf'
-  if (value.includes('png')) return 'image'
-  if (value.includes('jpg') || value.includes('jpeg')) return 'image'
+  if (value.includes("pdf")) return "pdf";
+  if (value.includes("png")) return "image";
+  if (value.includes("jpg") || value.includes("jpeg")) return "image";
 
-  return ''
-})
+  return "";
+});
 
-const isPdfCertificate = computed(() => certificateExtension.value === 'pdf')
+const isPdfCertificate = computed(() => certificateExtension.value === "pdf");
 const isImageCertificate = computed(
-  () => certificateExtension.value === 'image',
-)
+  () => certificateExtension.value === "image",
+);
 
 const goBack = () => {
-  router.push('/student/activities')
-}
+  router.push("/student/activities");
+};
 
 const goToEdit = () => {
-  if (!activity.value) return
-  router.push(`/student/activities/${activity.value.id}/edit`)
-}
+  if (!activity.value) return;
+  router.push(`/student/activities/${activity.value.id}/edit`);
+};
 
 const deleteCurrentActivity = async () => {
   if (!activity.value || !canDeleteCurrentActivity.value) return;
@@ -260,7 +266,8 @@ const submitCurrentActivity = async () => {
   } catch (error) {
     console.error("Erreur soumission activité :", error);
     submitMessage.value =
-      error?.response?.data?.message || "Impossible de soumettre cette activité.";
+      error?.response?.data?.message ||
+      "Impossible de soumettre cette activité.";
   }
 };
 
@@ -278,10 +285,16 @@ const loadCertificatePreview = async () => {
   certificatePreviewError.value = "";
 
   try {
-    const response = await downloadStudentActivityCertificate(activity.value.id);
-    const contentType = response.data?.type || response.headers?.["content-type"] || "";
+    const response = await downloadStudentActivityCertificate(
+      activity.value.id,
+    );
+    const contentType =
+      response.data?.type || response.headers?.["content-type"] || "";
 
-    if (contentType.includes("text/html") || contentType.includes("application/json")) {
+    if (
+      contentType.includes("text/html") ||
+      contentType.includes("application/json")
+    ) {
       throw new Error("INVALID_CERTIFICATE_RESPONSE");
     }
 
@@ -296,25 +309,25 @@ const loadCertificatePreview = async () => {
 };
 
 const openCertificatePreview = async () => {
-  isCertificatePreviewOpen.value = true
-  await loadCertificatePreview()
-}
+  isCertificatePreviewOpen.value = true;
+  await loadCertificatePreview();
+};
 
 const closeCertificatePreview = () => {
-  isCertificatePreviewOpen.value = false
-}
+  isCertificatePreviewOpen.value = false;
+};
 
-onUnmounted(revokeCertificatePreviewUrl)
+onUnmounted(revokeCertificatePreviewUrl);
 
 const formatDate = (date) => {
-  if (!date) return 'Non précisé'
+  if (!date) return "Non précisé";
 
-  return new Intl.DateTimeFormat('fr-FR', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(date))
-}
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+};
 </script>
 
 <template>
@@ -352,16 +365,28 @@ const formatDate = (date) => {
             </span>
           </div>
 
-          <p v-if="displayedValidationStatus === 'APPROVED'" class="project-header-validator">
+          <p
+            v-if="displayedValidationStatus === 'APPROVED'"
+            class="project-header-validator"
+          >
             Validée par <strong>l’administration</strong>
           </p>
-          <p v-else-if="displayedValidationStatus === 'PENDING'" class="project-header-validator pending">
+          <p
+            v-else-if="displayedValidationStatus === 'PENDING'"
+            class="project-header-validator pending"
+          >
             En attente de validation
           </p>
-          <p v-else-if="displayedValidationStatus === 'CORRECTION_REQUIRED'" class="project-header-validator changes-requested">
+          <p
+            v-else-if="displayedValidationStatus === 'CORRECTION_REQUIRED'"
+            class="project-header-validator changes-requested"
+          >
             Corrections demandées par <strong>l’administration</strong>
           </p>
-          <p v-else-if="displayedValidationStatus === 'REJECTED'" class="project-header-validator rejected">
+          <p
+            v-else-if="displayedValidationStatus === 'REJECTED'"
+            class="project-header-validator rejected"
+          >
             Refusée par <strong>l’administration</strong>
           </p>
           <p v-else class="project-header-validator muted">
@@ -394,17 +419,17 @@ const formatDate = (date) => {
             <div class="project-about-meta">
               <div>
                 <span>Organisme / Club</span>
-                <strong>{{ activity.organization || 'Non précisé' }}</strong>
+                <strong>{{ activity.organization || "Non précisé" }}</strong>
               </div>
 
               <div>
                 <span>Durée</span>
-                <strong>{{ activity.duration || 'Non précisée' }}</strong>
+                <strong>{{ activity.duration || "Non précisée" }}</strong>
               </div>
 
               <div>
                 <span>Lieu</span>
-                <strong>{{ activity.location || 'Non précisé' }}</strong>
+                <strong>{{ activity.location || "Non précisé" }}</strong>
               </div>
             </div>
           </section>
@@ -417,12 +442,22 @@ const formatDate = (date) => {
                 <span class="material-icons-round">description</span>
                 <div>
                   <strong>{{ activity.certificateName }}</strong>
-                  <p>{{ certificateExtension === 'pdf' ? 'Document PDF' : 'Fichier image ou document' }}</p>
+                  <p>
+                    {{
+                      certificateExtension === "pdf"
+                        ? "Document PDF"
+                        : "Fichier image ou document"
+                    }}
+                  </p>
                 </div>
               </div>
 
               <div class="certificate-actions">
-                <button type="button" class="outline-action" @click="openCertificatePreview">
+                <button
+                  type="button"
+                  class="outline-action"
+                  @click="openCertificatePreview"
+                >
                   <span class="material-icons-round">visibility</span>
                   Prévisualiser
                 </button>
@@ -456,8 +491,10 @@ const formatDate = (date) => {
                 class="screenshot-card"
               >
                 <img
-                  v-if="media.imageUrl || media.url || typeof media === 'string'"
-                  :src="media.imageUrl || media.url || media"
+                  v-if="
+                    media.imageUrl || media.url || typeof media === 'string'
+                  "
+                  :src="buildBackendUrl(media.imageUrl || media.url || media)"
                   :alt="media.title || 'Média de l’activité'"
                 />
               </button>
@@ -465,7 +502,9 @@ const formatDate = (date) => {
 
             <div v-else class="empty-section">
               <span class="material-icons-round">photo_library</span>
-              <p>Les photos ou captures de l’événement pourront apparaître ici.</p>
+              <p>
+                Les photos ou captures de l’événement pourront apparaître ici.
+              </p>
             </div>
           </section>
 
@@ -482,7 +521,9 @@ const formatDate = (date) => {
                 <div class="timeline-content">
                   <div class="timeline-header">
                     <strong>{{ item.title }}</strong>
-                    <span class="timeline-date">{{ formatDate(item.createdAt) }}</span>
+                    <span class="timeline-date">{{
+                      formatDate(item.createdAt)
+                    }}</span>
                   </div>
                   <p>{{ item.comment }}</p>
                   <small>{{ item.actorName }}</small>
@@ -541,7 +582,9 @@ const formatDate = (date) => {
             <div class="details-info-list">
               <div class="details-info-row">
                 <span>Type</span>
-                <strong>{{ typeLabels[activity.type] || activity.type }}</strong>
+                <strong>{{
+                  typeLabels[activity.type] || activity.type
+                }}</strong>
               </div>
 
               <div class="details-info-row">
@@ -551,7 +594,10 @@ const formatDate = (date) => {
 
               <div class="details-info-row">
                 <span>Statut</span>
-                <strong>{{ statusLabels[displayedValidationStatus] || displayedValidationStatus }}</strong>
+                <strong>{{
+                  statusLabels[displayedValidationStatus] ||
+                  displayedValidationStatus
+                }}</strong>
               </div>
 
               <div class="details-info-row">
@@ -961,7 +1007,7 @@ const formatDate = (date) => {
 }
 
 .project-details-page .material-icons-round {
-  font-family: 'Material Icons Round';
+  font-family: "Material Icons Round";
   font-weight: normal;
   font-style: normal;
   line-height: 1;
@@ -972,9 +1018,9 @@ const formatDate = (date) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  -webkit-font-feature-settings: 'liga';
+  -webkit-font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
-  font-feature-settings: 'liga';
+  font-feature-settings: "liga";
 }
 
 .project-details-header {
@@ -1480,7 +1526,7 @@ const formatDate = (date) => {
 }
 
 .timeline-list::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0.55rem;
   top: 1rem;

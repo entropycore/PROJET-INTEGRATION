@@ -22,11 +22,11 @@ const validators = ref([]);
 const isValidatorSuggestionsOpen = ref(false);
 
 const projectTypes = [
-  { label: "Module", value: "MODULE" },
-  { label: "Intégration", value: "INTEGRATION" },
-  { label: "Hackathon", value: "HACKATHON" },
-  { label: "Personnel", value: "PERSONAL" },
-  { label: "Stage", value: "INTERNSHIP" },
+  { value: "Module", label: "Module" },
+  { value: "Integration", label: "Intégration" },
+  { value: "Hackathon", label: "Hackathon" },
+  { value: "Personnel", label: "Personnel" },
+  { value: "Stage", label: "Stage" },
 ];
 
 const projectForm = ref({
@@ -56,8 +56,8 @@ const projectForm = ref({
 const canSubmit = computed(() => {
   return Boolean(
     projectForm.value.title.trim() &&
-      projectForm.value.description.trim() &&
-      projectForm.value.validatorId,
+    projectForm.value.description.trim() &&
+    projectForm.value.validatorId,
   );
 });
 
@@ -155,9 +155,14 @@ const handleScreenshotsUpload = (event) => {
   const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
-    selectedScreenshots.value.push(file);
+    const id = Date.now() + Math.random();
+
+    selectedScreenshots.value.push({ id, file });
     projectForm.value.screenshots.push({
+      id,
       title: file.name,
+      imageUrl: URL.createObjectURL(file),
+      isLocal: true,
     });
   });
 
@@ -168,24 +173,37 @@ const handleAttachmentsUpload = (event) => {
   const files = Array.from(event.target.files || []);
 
   files.forEach((file) => {
-    selectedAttachments.value.push(file);
+    const id = Date.now() + Math.random();
+
+    selectedAttachments.value.push({ id, file });
     projectForm.value.attachments.push({
+      id,
       name: file.name,
       type: file.type || "FICHIER",
+      url: "#",
+      isLocal: true,
     });
   });
 
   event.target.value = "";
 };
 
-const removeScreenshot = (index) => {
-  projectForm.value.screenshots.splice(index, 1);
-  selectedScreenshots.value.splice(index, 1);
+const removeScreenshot = (id) => {
+  projectForm.value.screenshots = projectForm.value.screenshots.filter(
+    (screenshot) => screenshot.id !== id,
+  );
+  selectedScreenshots.value = selectedScreenshots.value.filter(
+    (screenshot) => screenshot.id !== id,
+  );
 };
 
-const removeAttachment = (index) => {
-  projectForm.value.attachments.splice(index, 1);
-  selectedAttachments.value.splice(index, 1);
+const removeAttachment = (id) => {
+  projectForm.value.attachments = projectForm.value.attachments.filter(
+    (attachment) => attachment.id !== id,
+  );
+  selectedAttachments.value = selectedAttachments.value.filter(
+    (attachment) => attachment.id !== id,
+  );
 };
 
 const fetchValidators = async () => {
@@ -226,16 +244,13 @@ const selectValidator = (validator) => {
 };
 
 const uploadPendingMedia = async (projectId) => {
-  if (
-    !selectedScreenshots.value.length &&
-    !selectedAttachments.value.length
-  ) {
+  if (!selectedScreenshots.value.length && !selectedAttachments.value.length) {
     return;
   }
 
   await uploadStudentProjectMedia(projectId, {
-    screenshots: selectedScreenshots.value,
-    attachments: selectedAttachments.value,
+    screenshots: selectedScreenshots.value.map((item) => item.file),
+    attachments: selectedAttachments.value.map((item) => item.file),
   });
 };
 
@@ -245,11 +260,11 @@ const createDraftProject = async () => {
 
   try {
     const response = await createStudentProject(buildProjectPayload());
-    const createdProject = response.data.data;
+    const createdProject = response.data?.data || response.data;
 
     await uploadPendingMedia(createdProject.id);
 
-    router.push(`/student/projects/${createdProject.id}`);
+    router.push("/student/projects");
   } catch (error) {
     console.error("Erreur création projet :", error);
     errorMessage.value =
@@ -267,7 +282,7 @@ const createAndSubmitProject = async () => {
 
   try {
     const response = await createStudentProject(buildProjectPayload());
-    const createdProject = response.data.data;
+    const createdProject = response.data?.data || response.data;
 
     await uploadPendingMedia(createdProject.id);
     await submitStudentProject(createdProject.id);
@@ -389,7 +404,9 @@ onMounted(fetchValidators);
                     <span>
                       <strong>{{ validator.fullName }}</strong>
                       <small>
-                        {{ validator.department || "Département non renseigné" }}
+                        {{
+                          validator.department || "Département non renseigné"
+                        }}
                         <template v-if="validator.specialty">
                           · {{ validator.specialty }}
                         </template>
@@ -581,7 +598,8 @@ onMounted(fetchValidators);
         </section>
 
         <section v-if="!canSubmit" class="edit-warning-card">
-          Complétez le titre, la description et le validateur avant de soumettre le projet.
+          Complétez le titre, la description et le validateur avant de soumettre
+          le projet.
         </section>
       </aside>
     </div>

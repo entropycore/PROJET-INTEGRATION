@@ -16,23 +16,18 @@ const route = useRoute();
 const baseApi = route.meta.baseApi;
 const role = computed(() => route.meta.role || "STUDENT");
 
-// Plus tard, quand professor est prêt const MOCK_API_ROLES = ["PROFESSIONAL"];
-// Quand tout est prêt const MOCK_API_ROLES = [];
-
-const MOCK_API_ROLES = ["PROFESSOR", "PROFESSIONAL"];
-
 const ROLE_NOTIFICATION_UI = {
   ADMINISTRATOR: {
     label: "ADMINISTRATION",
-    description: "Surveillez et gérez les alertes de votre plateforme",
+    description: "Surveillez et gerez les alertes de votre plateforme",
   },
   STUDENT: {
-    label: "ÉTUDIANT",
-    description: "Consultez les alertes liées à votre espace étudiant",
+    label: "ETUDIANT",
+    description: "Consultez les alertes liees a votre espace etudiant",
   },
   PROFESSOR: {
     label: "PROFESSEUR",
-    description: "Consultez vos validations et interactions académiques",
+    description: "Consultez vos validations et interactions academiques",
   },
   PROFESSIONAL: {
     label: "PROFESSIONNEL",
@@ -44,53 +39,11 @@ const notificationUi = computed(
   () => ROLE_NOTIFICATION_UI[role.value] || ROLE_NOTIFICATION_UI.STUDENT,
 );
 
-const useMockNotifications = computed(() => MOCK_API_ROLES.includes(role.value));
-
 const notifications = ref([]);
 const unreadCount = ref(0);
 const loading = ref(false);
 const error = ref(null);
 const selectedType = ref("ALL");
-
-const mockNotificationsByRole = {
-  PROFESSOR: [
-    {
-      id: "prof-1",
-      type: "RECOMMENDATION_REQUEST",
-      title: "Nouvelle demande de recommandation",
-      message: "Un étudiant vous a envoyé une demande de recommandation.",
-      read: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "prof-2",
-      type: "ACADEMIC_INTERACTION",
-      title: "Interaction académique",
-      message: "Une interaction académique nécessite votre attention.",
-      read: true,
-      createdAt: new Date().toISOString(),
-    },
-  ],
-
-  PROFESSIONAL: [
-    {
-      id: "pro-1",
-      type: "ACCESS_REQUEST_APPROVED",
-      title: "Accès professionnel validé",
-      message: "Votre accès professionnel à la plateforme a été validé.",
-      read: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "pro-2",
-      type: "PORTFOLIO_INTERACTION",
-      title: "Interaction portfolio",
-      message: "Un étudiant a partagé son portfolio avec vous.",
-      read: true,
-      createdAt: new Date().toISOString(),
-    },
-  ],
-};
 
 const fetchData = async () => {
   loading.value = true;
@@ -122,23 +75,18 @@ const handleRead = async (notif) => {
   if (notif.read) return;
 
   try {
-    if (!useMockNotifications.value) {
-      await markAsRead(baseApi, notif.id);
-    }
-
+    await markAsRead(baseApi, notif.id);
     notif.read = true;
     unreadCount.value = Math.max(0, unreadCount.value - 1);
   } catch (e) {
     console.error(e);
-    error.value = "Erreur lors de la mise à jour de la notification";
+    error.value = "Erreur lors de la mise a jour de la notification";
   }
 };
 
 const handleReadAll = async () => {
   try {
-    if (!useMockNotifications.value) {
-      await markAllAsRead(baseApi);
-    }
+    await markAllAsRead(baseApi);
 
     notifications.value = notifications.value.map((n) => ({
       ...n,
@@ -148,18 +96,15 @@ const handleReadAll = async () => {
     unreadCount.value = 0;
   } catch (e) {
     console.error(e);
-    error.value = "Erreur lors de la mise à jour des notifications";
+    error.value = "Erreur lors de la mise a jour des notifications";
   }
 };
 
 const handleDelete = async (id) => {
   try {
-    if (!useMockNotifications.value) {
-      await deleteNotif(baseApi, id);
-    }
+    await deleteNotif(baseApi, id);
 
     const deletedNotification = notifications.value.find((n) => n.id === id);
-
     notifications.value = notifications.value.filter((n) => n.id !== id);
 
     if (deletedNotification && !deletedNotification.read) {
@@ -215,43 +160,53 @@ onMounted(fetchData);
 
 <style scoped>
 .notifications-page {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: clamp(1rem, 1.6vw, 1.4rem);
+  color: var(--app-text);
+  font-family: var(--app-font-body);
 }
 
 .page-header span {
   display: block;
-  margin-bottom: 6px;
-  color: #8b8f8c;
+  margin-bottom: 0.4rem;
+  color: var(--app-subtle);
   font-size: 0.8rem;
   font-style: italic;
-  letter-spacing: 0.04em;
 }
 
 .page-header h1 {
   margin: 0;
-  color: #0f2f3a;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
   font-size: clamp(1.6rem, 2.2vw, 2.1rem);
-  font-weight: 800;
-  line-height: 1.1;
+  font-weight: 300;
+  line-height: var(--app-leading-tight);
 }
 
 .page-header p {
-  margin-top: 8px;
-  color: #5f6f70;
-  font-size: 1rem;
+  margin: 0.5rem 0 0;
+  color: var(--app-muted);
+  font-size: clamp(0.85rem, 1vw, 1rem);
 }
 
 .state-box {
-  padding: 20px;
-  border-radius: 18px;
-  background: #fbfaf7;
-  border: 1px solid #e5e0d8;
-  color: #6b7280;
+  padding: 2rem;
+  border-radius: var(--app-radius-panel);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow-card);
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-md);
+  text-align: center;
 }
 
 .error {
-  color: #dc2626;
+  color: var(--app-error);
 }
 </style>

@@ -1,6 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { buildBackendUrl } from "../../services/backendUrl";
+import {
+  professorDepartments,
+  studentMajors,
+} from "../../config/studentOptions";
 import {
   getAdminUserById,
   updateAdminUser,
@@ -29,7 +34,6 @@ const form = ref({
   lastName: "",
   email: "",
   phone: "",
-  profilePicture: "",
   accountStatus: "",
   role: "",
 
@@ -93,7 +97,6 @@ const fillForm = (data) => {
     lastName: data.lastName || "",
     email: data.email || "",
     phone: data.phone || "",
-    profilePicture: data.profilePicture || "",
     accountStatus: data.accountStatus || "",
     role: data.role || "",
 
@@ -217,7 +220,7 @@ const handleDelete = async () => {
 </script>
 
 <template>
-  <section class="admin-user-details-page">
+  <section class="admin-user-details-page admin-user-view-page">
     <button class="back-btn" type="button" @click="goBack">← Retour</button>
 
     <div v-if="loading" class="details-state">Chargement...</div>
@@ -230,14 +233,18 @@ const handleDelete = async () => {
       <div class="details-header">
         <div class="details-user">
           <div class="details-avatar">
-            <img v-if="user.profilePicture" :src="user.profilePicture" alt="" />
+            <img
+              v-if="user.profilePicture"
+              :src="buildBackendUrl(user.profilePicture)"
+              alt=""
+            />
             <span v-else>{{ initials }}</span>
           </div>
 
           <div>
-            <p class="admin-kicker">{{ roleTitle }}</p>
             <h1>{{ fullName }}</h1>
             <p class="details-email">{{ user.email }}</p>
+            <p class="details-role">{{ roleTitle }}</p>
           </div>
         </div>
 
@@ -267,7 +274,10 @@ const handleDelete = async () => {
 
       <div class="details-grid">
         <section class="details-card">
-          <h2>Informations générales</h2>
+          <h2>
+            <span class="material-icons-round">person</span>
+            Informations générales
+          </h2>
 
           <div class="form-grid">
             <label>
@@ -289,17 +299,9 @@ const handleDelete = async () => {
               Téléphone
               <input v-model="form.phone" :disabled="!isEditMode" />
             </label>
-            <label class="full-width">
-              Photo de profil URL
-              <input
-                v-model="form.profilePicture"
-                :disabled="!isEditMode"
-                placeholder="https://..."
-              />
-            </label>
             <label>
               Rôle
-              <input v-model="form.role" disabled />
+              <input :value="roleTitle" disabled />
             </label>
 
             <label>
@@ -315,12 +317,25 @@ const handleDelete = async () => {
         </section>
 
         <section class="details-card">
-          <h2>Détails du rôle</h2>
+          <h2>
+            <span class="material-icons-round">badge</span>
+            Détails du rôle
+          </h2>
 
           <div v-if="user.role === 'STUDENT'" class="form-grid">
-            <label
-              >Filière <input v-model="form.major" :disabled="!isEditMode"
-            /></label>
+            <label>
+              Filière
+              <select v-model="form.major" :disabled="!isEditMode">
+                <option value="">Sélectionner une filière</option>
+                <option
+                  v-for="major in studentMajors"
+                  :key="major"
+                  :value="major"
+                >
+                  {{ major }}
+                </option>
+              </select>
+            </label>
             <label
               >Niveau <input v-model="form.level" :disabled="!isEditMode"
             /></label>
@@ -347,10 +362,19 @@ const handleDelete = async () => {
             <label
               >Grade <input v-model="form.grade" :disabled="!isEditMode"
             /></label>
-            <label
-              >Département
-              <input v-model="form.department" :disabled="!isEditMode"
-            /></label>
+            <label>
+              Département
+              <select v-model="form.department" :disabled="!isEditMode">
+                <option value="">Sélectionner un département</option>
+                <option
+                  v-for="department in professorDepartments"
+                  :key="department"
+                  :value="department"
+                >
+                  {{ department }}
+                </option>
+              </select>
+            </label>
             <label
               >Spécialité
               <input v-model="form.specialty" :disabled="!isEditMode"
@@ -390,7 +414,10 @@ const handleDelete = async () => {
 
         <div class="details-two-columns">
           <section class="details-card security-card">
-            <h2>Mot de passe</h2>
+            <h2>
+              <span class="material-icons-round">lock</span>
+              Mot de passe
+            </h2>
 
             <p class="security-text">
               Générer un nouveau mot de passe temporaire pour cet utilisateur.
@@ -406,7 +433,10 @@ const handleDelete = async () => {
           </section>
 
           <section class="details-card meta-card">
-            <h2>Métadonnées</h2>
+            <h2>
+              <span class="material-icons-round">info</span>
+              Métadonnées
+            </h2>
 
             <div class="meta-row">
               <span>Date de création</span>

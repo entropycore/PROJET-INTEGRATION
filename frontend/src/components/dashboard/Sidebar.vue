@@ -1,9 +1,10 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import { useRouter, useRoute } from "vue-router";
 import { logout } from "../../services/authService";
 import { sidebarConfig } from "../../config/sidebarConfig";
+import { buildBackendUrl } from "../../services/backendUrl";
 
 import "../../assets/styles/sidebar.css";
 
@@ -25,6 +26,7 @@ const isChildActive = (child) => {
 };
 
 const user = computed(() => authStore.user);
+const avatarFailed = ref(false);
 
 const sections = computed(() => {
   return sidebarConfig[user.value?.role] || [];
@@ -49,12 +51,20 @@ const userDisplayName = computed(() => {
   return fullName || user.value?.email || "Utilisateur";
 });
 
-const getIcon = (icon) => {
-  return new URL(`../../assets/icons/${icon}`, import.meta.url).href;
-};
-
 const userInitial = computed(() => {
   return user.value?.firstName?.charAt(0).toUpperCase() || "A";
+});
+
+const userProfilePicture = computed(() => user.value?.profilePicture || "");
+
+const userProfilePictureUrl = computed(() => {
+  if (!userProfilePicture.value || avatarFailed.value) return "";
+
+  return buildBackendUrl(userProfilePicture.value);
+});
+
+watch(userProfilePicture, () => {
+  avatarFailed.value = false;
 });
 
 const handleLogout = async () => {
@@ -80,7 +90,14 @@ const toggleDropdown = (label) => {
       <!-- USER -->
       <div class="sidebar-user">
         <RouterLink :to="profilePath" class="sidebar-user-profile">
-          <div class="sidebar-avatar">{{ userInitial }}</div>
+          <img
+            v-if="userProfilePictureUrl"
+            :src="userProfilePictureUrl"
+            alt="Photo de profil"
+            class="sidebar-avatar-img"
+            @error="avatarFailed = true"
+          />
+          <div v-else class="sidebar-avatar">{{ userInitial }}</div>
 
           <div class="sidebar-user-info">
             <h3>{{ userDisplayName }}</h3>
@@ -93,7 +110,9 @@ const toggleDropdown = (label) => {
           type="button"
           @click="emit('toggle-sidebar')"
         >
-          <img :src="getIcon('curtain.svg')" alt="Collapse sidebar" />
+          <span class="material-icons-round sidebar-control-icon">
+            {{ collapsed ? "menu_open" : "menu" }}
+          </span>
         </button>
       </div>
 
@@ -110,12 +129,14 @@ const toggleDropdown = (label) => {
               @click="toggleDropdown(item.label)"
             >
               <span class="sidebar-link-left">
-                <img :src="getIcon(item.icon)" class="sidebar-icon" />
+                <span class="sidebar-icon material-icons-round">
+                  {{ item.icon }}
+                </span>
                 <span class="sidebar-label">{{ item.label }}</span>
               </span>
 
-              <span class="sidebar-chevron">
-                {{ openDropdown === item.label ? "⌃" : "⌄" }}
+              <span class="sidebar-chevron material-icons-round">
+                {{ openDropdown === item.label ? "expand_less" : "expand_more" }}
               </span>
             </button>
 
@@ -130,7 +151,9 @@ const toggleDropdown = (label) => {
                 class="sidebar-sublink"
                 :class="{ 'sidebar-sublink-active': isChildActive(child) }"
               >
-                <img :src="getIcon(child.icon)" class="sidebar-icon" />
+                <span class="sidebar-icon material-icons-round">
+                  {{ child.icon }}
+                </span>
                 <span class="sidebar-label">{{ child.label }}</span>
               </RouterLink>
             </div>
@@ -142,7 +165,9 @@ const toggleDropdown = (label) => {
               active-class="sidebar-link-active"
               exact-active-class="sidebar-link-exact-active"
             >
-              <img :src="getIcon(item.icon)" class="sidebar-icon" />
+              <span class="sidebar-icon material-icons-round">
+                {{ item.icon }}
+              </span>
               <span class="sidebar-label">{{ item.label }}</span>
             </RouterLink>
           </div>
@@ -152,7 +177,7 @@ const toggleDropdown = (label) => {
 
     <!-- LOGOUT -->
     <button class="logout-btn" @click="handleLogout">
-      <img :src="getIcon('logout.svg')" />
+      <span class="sidebar-icon material-icons-round">logout</span>
       <span class="sidebar-label">Déconnexion</span>
     </button>
   </aside>

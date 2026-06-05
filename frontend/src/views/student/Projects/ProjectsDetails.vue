@@ -15,16 +15,10 @@ const router = useRouter();
 
 const project = ref(null);
 const isLoading = ref(false);
-const brokenScreenshotIds = ref(new Set());
 const screenshotObjectUrls = ref({});
-const handleScreenshotError = (id) => {
-  brokenScreenshotIds.value = new Set([...brokenScreenshotIds.value, id]);
-};
+const brokenScreenshotIds = ref(new Set());
 
-const getAttachmentDownloadUrl = (attachment) => {
-  return getMediaUrl(attachment, "download");
-};
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 const statusLabels = {
   DRAFT: "Brouillon",
@@ -38,6 +32,16 @@ const canEditProject = computed(() => {
   return ["DRAFT", "CHANGES_REQUESTED"].includes(
     project.value?.validationStatus,
   );
+});
+
+const projectValidatorName = computed(() => {
+  return (
+    project.value?.validatorName || project.value?.validator?.fullName || ""
+  );
+});
+
+const projectValidationComment = computed(() => {
+  return project.value?.validationComment || project.value?.feedback || "";
 });
 
 const projectStatusMessage = computed(() => {
@@ -123,19 +127,54 @@ const getMediaUrl = (media, action) => {
   );
 };
 
-const displayScreenshots = computed(() => {
-  return (project.value?.screenshots || []).map((screenshot) => ({
-    ...screenshot,
-    src: screenshotObjectUrls.value[screenshot.id] || null,
-  }));
-});
+const buildBackendUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("blob:") || path.startsWith("data:")) return path;
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  const normalizedBase = apiBaseUrl.replace(/\/$/, "");
+
+  return normalizedBase ? `${normalizedBase}${normalizedPath}` : normalizedPath;
+};
+
+const buildApiRequestUrl = (path) => {
+  const fullUrl = buildBackendUrl(path);
+  const withoutBase =
+    apiBaseUrl && fullUrl.startsWith(apiBaseUrl)
+      ? fullUrl.slice(apiBaseUrl.length) || "/"
+      : fullUrl;
+
+  return withoutBase.startsWith("/api/")
+    ? withoutBase.replace(/^\/api/, "")
+    : withoutBase;
+};
+
+const getMediaUrl = (media, action = "download") => {
+  const existingUrl = media?.imageUrl || media?.mediaUrl || media?.url;
+
+  if (existingUrl) return existingUrl;
+  if (!project.value?.id || !media?.id) return "";
+
+  return `/api/projects/${project.value.id}/media/${media.id}/${action}`;
+};
+
+const getAttachmentUrl = (attachment) => {
+  return buildBackendUrl(attachment?.url || attachment?.downloadUrl || "");
+};
 
 const revokeScreenshotObjectUrls = () => {
-  Object.values(screenshotObjectUrls.value).forEach((objectUrl) => {
-    URL.revokeObjectURL(objectUrl);
+  Object.values(screenshotObjectUrls.value).forEach((url) => {
+    URL.revokeObjectURL(url);
   });
 
   screenshotObjectUrls.value = {};
+};
+
+const handleScreenshotError = (id) => {
+  if (!id) return;
+
+  brokenScreenshotIds.value = new Set([...brokenScreenshotIds.value, id]);
 };
 
 const loadScreenshotObjectUrls = async () => {
@@ -145,12 +184,12 @@ const loadScreenshotObjectUrls = async () => {
   const screenshots = project.value?.screenshots || [];
   const entries = await Promise.all(
     screenshots.map(async (screenshot) => {
-      if (!screenshot.id || !screenshot.imageUrl) {
-        return null;
-      }
+      const mediaUrl = getMediaUrl(screenshot, "content");
+
+      if (!screenshot.id || !mediaUrl) return null;
 
       try {
-        const response = await api.get(buildApiRequestUrl(screenshot.imageUrl), {
+        const response = await api.get(buildApiRequestUrl(mediaUrl), {
           responseType: "blob",
         });
 
@@ -164,6 +203,13 @@ const loadScreenshotObjectUrls = async () => {
 
   screenshotObjectUrls.value = Object.fromEntries(entries.filter(Boolean));
 };
+
+const displayScreenshots = computed(() => {
+  return (project.value?.screenshots || []).map((screenshot) => ({
+    ...screenshot,
+    src: screenshotObjectUrls.value[screenshot.id] || "",
+  }));
+});
 
 const formatDate = (date) => {
   if (!date) return "—";
@@ -219,11 +265,11 @@ onUnmounted(revokeScreenshotObjectUrls);
           </div>
           <p
             v-if="
-              project.validationStatus === 'APPROVED' && project.validatorName
+              project.validationStatus === 'APPROVED' && projectValidatorName
             "
             class="project-header-validator"
           >
-            Validé par <strong>{{ project.validatorName }}</strong>
+            Validé par <strong>{{ projectValidatorName }}</strong>
           </p>
 
           <p
@@ -238,14 +284,14 @@ onUnmounted(revokeScreenshotObjectUrls);
             class="project-header-validator pending"
           >
             Corrections demandées par
-            <strong>{{ project.validatorName || "le validateur" }}</strong>
+            <strong>{{ projectValidatorName || "le validateur" }}</strong>
           </p>
           <p
             v-else-if="project.validationStatus === 'REJECTED'"
             class="project-header-validator rejected"
           >
             Refusé par
-            <strong>{{ project.validatorName || "le validateur" }}</strong>
+            <strong>{{ projectValidatorName || "le validateur" }}</strong>
           </p>
 
           <p v-else class="project-header-validator muted">
@@ -371,10 +417,12 @@ onUnmounted(revokeScreenshotObjectUrls);
                 </div>
 
                 <a
-                  v-if="getAttachmentDownloadUrl(attachment)"
+                  v-if="getAttachmentUrl(attachment)"
                   class="secondary-action"
-                  :href="getAttachmentDownloadUrl(attachment)"
-                  download
+                  :href="getAttachmentUrl(attachment)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  :download="attachment.name"
                 >
                   Télécharger
                 </a>
@@ -448,19 +496,19 @@ onUnmounted(revokeScreenshotObjectUrls);
             </section>
             <div class="validator-card">
               <div class="validator-avatar">
-                {{ project.validatorName?.charAt(0) }}
+                {{ projectValidatorName?.charAt(0) }}
               </div>
 
               <div>
                 <strong>
-                  {{ project.validatorName || "Non assigné" }}
+                  {{ projectValidatorName || "Non assigné" }}
                 </strong>
                 <p>Validateur académique</p>
               </div>
             </div>
 
-            <div v-if="project.validationComment" class="validation-comment">
-              “{{ project.validationComment }}”
+            <div v-if="projectValidationComment" class="validation-comment">
+              “{{ projectValidationComment }}”
             </div>
           </section>
           <section class="details-card">

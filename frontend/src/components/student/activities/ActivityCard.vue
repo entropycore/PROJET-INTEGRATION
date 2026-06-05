@@ -1,12 +1,13 @@
 <script setup>
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 import {
   canDeleteActivity,
   canEditActivity,
   canSubmitActivity,
-} from '@/components/student/activities/activityRules'
+} from "@/components/student/activities/activityRules";
 
 const props = defineProps({
   activity: {
@@ -46,7 +47,9 @@ const deleteCurrentActivity = () => {
 
 const isCertificatePreviewOpen = ref(false);
 
-const certificateUrl = computed(() => props.activity.certificateUrl || "");
+const certificateUrl = computed(() =>
+  buildBackendUrl(props.activity.certificateUrl || ""),
+);
 
 const certificateExtension = computed(() => {
   const value = (
@@ -140,10 +143,7 @@ const closeCertificatePreview = () => {
     </div>
 
     <div class="actions">
-      <RouterLink
-        class="action-btn"
-        :to="`/student/activities/${activity.id}`"
-      >
+      <RouterLink class="action-btn" :to="`/student/activities/${activity.id}`">
         <span class="material-icons-round">visibility</span>
         Voir détails
       </RouterLink>

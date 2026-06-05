@@ -31,12 +31,29 @@ const statusConfig = {
     label: "Correction demandée",
     class: "correction",
   },
+
+  CHANGES_REQUESTED: {
+    label: "Correction demandée",
+    class: "correction",
+  },
+};
+
+const normalizeStatus = (status) => {
+  const value = String(status || "PENDING")
+    .trim()
+    .toUpperCase();
+
+  return value === "CORRECTION_REQUIRED" ? "CHANGES_REQUESTED" : value;
+};
+
+const getStatusConfig = (status) => {
+  return statusConfig[normalizeStatus(status)] || statusConfig.PENDING;
 };
 </script>
 
 <template>
-  <span class="validation-badge" :class="statusConfig[status]?.class">
-    {{ statusConfig[status]?.label }}
+  <span class="validation-badge" :class="getStatusConfig(status).class">
+    {{ getStatusConfig(status).label }}
   </span>
 </template>
 
