@@ -9,6 +9,7 @@ import {
   getStudentStageById,
   getStudentStageImageContent,
 } from "@/services/studentstageService";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 const route = useRoute();
 const router = useRouter();
@@ -97,14 +98,20 @@ const hydrateStageMedia = async (loadedStage) => {
   }
 };
 
+const normalizeStageStatus = (status) => {
+  const value = String(status || "PENDING")
+    .trim()
+    .toUpperCase();
+
+  return value === "CORRECTION_REQUIRED" ? "CHANGES_REQUESTED" : value;
+};
+
 const canEditStage = computed(() => {
-  return ["DRAFT", "CORRECTION_REQUIRED"].includes(stageStatus.value);
+  return ["DRAFT", "CHANGES_REQUESTED"].includes(stageStatus.value);
 });
 
 const stageStatus = computed(() => {
-  return String(stage.value?.validationStatus || "PENDING")
-    .trim()
-    .toUpperCase();
+  return normalizeStageStatus(stage.value?.validationStatus);
 });
 
 const statusText = computed(() => {
@@ -173,7 +180,9 @@ const showImagesModal = ref(false);
 const normalizedImages = computed(() => {
   return (stage.value?.images || []).map((image) => ({
     ...image,
-    url: imagePreviewUrls.value[image.id] || image.url || image.imageUrl || "",
+    url:
+      imagePreviewUrls.value[image.id] ||
+      buildBackendUrl(image.url || image.imageUrl || ""),
   }));
 });
 
@@ -392,7 +401,6 @@ const goToEdit = () => {
                 {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
               </strong>
             </div>
-
           </div>
 
           <div class="side-card">
@@ -426,7 +434,9 @@ const goToEdit = () => {
               :class="{ disabled: !reportPreviewUrl }"
             >
               <span class="material-icons-round"> open_in_new </span>
-              {{ isReportLoading ? "Chargement du rapport..." : "Voir le rapport" }}
+              {{
+                isReportLoading ? "Chargement du rapport..." : "Voir le rapport"
+              }}
             </a>
 
             <p v-else class="muted">Aucun rapport ajouté.</p>
@@ -794,7 +804,8 @@ h3 .material-icons-round {
   color: #c62828;
 }
 
-.status-info.CORRECTION_REQUIRED {
+.status-info.CORRECTION_REQUIRED,
+.status-info.CHANGES_REQUESTED {
   color: #e65100;
 }
 
@@ -868,7 +879,8 @@ h3 .material-icons-round {
   color: #c62828;
 }
 
-.timeline-icon.CORRECTION_REQUIRED {
+.timeline-icon.CORRECTION_REQUIRED,
+.timeline-icon.CHANGES_REQUESTED {
   color: #e65100;
 }
 

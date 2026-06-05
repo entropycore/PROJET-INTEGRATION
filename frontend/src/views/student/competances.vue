@@ -304,7 +304,9 @@ onMounted(loadAll);
                 </span>
                 <span>
                   <strong>{{ item.name }}</strong>
-                  <small>{{ item.domain?.name || "Domaine non renseigné" }}</small>
+                  <small>{{
+                    item.domain?.name || "Domaine non renseigné"
+                  }}</small>
                 </span>
               </button>
             </div>
@@ -368,7 +370,10 @@ onMounted(loadAll);
                 :style="{ width: `${getSkillScore(skill) || 0}%` }"
               ></div>
             </div>
-            <div v-if="getSkillScore(skill) === null" class="skill-progress-note">
+            <div
+              v-if="getSkillScore(skill) === null"
+              class="skill-progress-note"
+            >
               Score non renseigné
             </div>
           </div>
@@ -447,10 +452,7 @@ onMounted(loadAll);
 
           <div class="radar-wrap">
             <svg class="radar-chart" viewBox="0 0 100 100" aria-hidden="true">
-              <polygon
-                :points="radarGridOuterPoints"
-                class="radar-grid-line"
-              />
+              <polygon :points="radarGridOuterPoints" class="radar-grid-line" />
               <polygon
                 :points="radarGridInnerPoints"
                 class="radar-grid-line radar-grid-line-inner"

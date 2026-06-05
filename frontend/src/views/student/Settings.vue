@@ -13,12 +13,12 @@ const loadingNotifs = ref(false);
 
 // Messages par section
 const passwordMsg = ref({ type: "", text: "" });
-const privacyMsg  = ref({ type: "", text: "" });
-const notifMsg    = ref({ type: "", text: "" });
+const privacyMsg = ref({ type: "", text: "" });
+const notifMsg = ref({ type: "", text: "" });
 
 // Afficher/masquer mot de passe
 const showCurrent = ref(false);
-const showNew     = ref(false);
+const showNew = ref(false);
 const showConfirm = ref(false);
 
 const passwordForm = ref({
@@ -72,8 +72,10 @@ const setMsg = (msgRef, type, text) => {
 
 const PASSWORD_ERRORS = {
   CURRENT_PASSWORD_INVALID: "Le mot de passe actuel est incorrect.",
-  NEW_PASSWORD_TOO_SHORT: "Le nouveau mot de passe est trop court (8 caractères min).",
-  NEW_PASSWORD_SAME_AS_CURRENT: "Le nouveau mot de passe doit être différent de l'actuel.",
+  NEW_PASSWORD_TOO_SHORT:
+    "Le nouveau mot de passe est trop court (8 caractères min).",
+  NEW_PASSWORD_SAME_AS_CURRENT:
+    "Le nouveau mot de passe doit être différent de l'actuel.",
   PASSWORD_CONFIRMATION_MISMATCH: "Les mots de passe ne correspondent pas.",
 };
 
@@ -93,24 +95,56 @@ const getErrorMsg = (err, map, fallback) => {
 
 const savePassword = async () => {
   if (!passwordForm.value.currentPassword)
-    return setMsg(passwordMsg, "error", "Veuillez entrer votre mot de passe actuel.");
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Veuillez entrer votre mot de passe actuel.",
+    );
   if (!passwordForm.value.newPassword)
-    return setMsg(passwordMsg, "error", "Veuillez entrer un nouveau mot de passe.");
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Veuillez entrer un nouveau mot de passe.",
+    );
   if (passwordForm.value.newPassword.length < 8)
-    return setMsg(passwordMsg, "error", "Le nouveau mot de passe doit contenir au moins 8 caractères.");
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+    );
   if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword)
-    return setMsg(passwordMsg, "error", "Les mots de passe ne correspondent pas.");
+    return setMsg(
+      passwordMsg,
+      "error",
+      "Les mots de passe ne correspondent pas.",
+    );
 
   loadingPassword.value = true;
   try {
     await updatePassword(passwordForm.value);
-    passwordForm.value = { currentPassword: "", newPassword: "", confirmPassword: "" };
+    passwordForm.value = {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    };
     showCurrent.value = false;
     showNew.value = false;
     showConfirm.value = false;
-    setMsg(passwordMsg, "success", "✓ Mot de passe mis à jour. Vos autres sessions ont été déconnectées.");
+    setMsg(
+      passwordMsg,
+      "success",
+      "✓ Mot de passe mis à jour. Vos autres sessions ont été déconnectées.",
+    );
   } catch (err) {
-    setMsg(passwordMsg, "error", getErrorMsg(err, PASSWORD_ERRORS, "Erreur lors de la mise à jour du mot de passe."));
+    setMsg(
+      passwordMsg,
+      "error",
+      getErrorMsg(
+        err,
+        PASSWORD_ERRORS,
+        "Erreur lors de la mise à jour du mot de passe.",
+      ),
+    );
   } finally {
     loadingPassword.value = false;
   }
@@ -120,9 +154,21 @@ const savePrivacy = async () => {
   loadingPrivacy.value = true;
   try {
     await updatePrivacy(privacyForm.value);
-    setMsg(privacyMsg, "success", "✓ Préférences de confidentialité mises à jour.");
+    setMsg(
+      privacyMsg,
+      "success",
+      "✓ Préférences de confidentialité mises à jour.",
+    );
   } catch (err) {
-    setMsg(privacyMsg, "error", getErrorMsg(err, PRIVACY_ERRORS, "Erreur lors de la mise à jour de la confidentialité."));
+    setMsg(
+      privacyMsg,
+      "error",
+      getErrorMsg(
+        err,
+        PRIVACY_ERRORS,
+        "Erreur lors de la mise à jour de la confidentialité.",
+      ),
+    );
   } finally {
     loadingPrivacy.value = false;
   }
@@ -134,7 +180,15 @@ const saveNotifications = async () => {
     await updateNotifications(notifForm.value);
     setMsg(notifMsg, "success", "✓ Préférences de notifications mises à jour.");
   } catch (err) {
-    setMsg(notifMsg, "error", getErrorMsg(err, NOTIF_ERRORS, "Erreur lors de la mise à jour des notifications."));
+    setMsg(
+      notifMsg,
+      "error",
+      getErrorMsg(
+        err,
+        NOTIF_ERRORS,
+        "Erreur lors de la mise à jour des notifications.",
+      ),
+    );
   } finally {
     loadingNotifs.value = false;
   }
@@ -155,7 +209,10 @@ const saveNotifications = async () => {
       <h3 class="card-title">Changer le mot de passe</h3>
 
       <transition name="fade">
-        <p v-if="passwordMsg.text" :class="passwordMsg.type === 'error' ? 'error-msg' : 'success-msg'">
+        <p
+          v-if="passwordMsg.text"
+          :class="passwordMsg.type === 'error' ? 'error-msg' : 'success-msg'"
+        >
           {{ passwordMsg.text }}
         </p>
       </transition>
@@ -169,8 +226,11 @@ const saveNotifications = async () => {
             placeholder="••••••••"
             autocomplete="new-password"
           />
-          <span class="material-icons-round eye-icon" @click="showCurrent = !showCurrent">
-            {{ showCurrent ? 'visibility' : 'visibility_off' }}
+          <span
+            class="material-icons-round eye-icon"
+            @click="showCurrent = !showCurrent"
+          >
+            {{ showCurrent ? "visibility" : "visibility_off" }}
           </span>
         </div>
       </div>
@@ -185,8 +245,11 @@ const saveNotifications = async () => {
               placeholder="••••••••"
               autocomplete="new-password"
             />
-            <span class="material-icons-round eye-icon" @click="showNew = !showNew">
-              {{ showNew ? 'visibility' : 'visibility_off' }}
+            <span
+              class="material-icons-round eye-icon"
+              @click="showNew = !showNew"
+            >
+              {{ showNew ? "visibility" : "visibility_off" }}
             </span>
           </div>
         </div>
@@ -199,14 +262,22 @@ const saveNotifications = async () => {
               placeholder="••••••••"
               autocomplete="new-password"
             />
-            <span class="material-icons-round eye-icon" @click="showConfirm = !showConfirm">
-              {{ showConfirm ? 'visibility' : 'visibility_off' }}
+            <span
+              class="material-icons-round eye-icon"
+              @click="showConfirm = !showConfirm"
+            >
+              {{ showConfirm ? "visibility" : "visibility_off" }}
             </span>
           </div>
         </div>
       </div>
 
-      <button type="button" class="btn btn-primary btn-sm" @click="savePassword" :disabled="loadingPassword">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm"
+        @click="savePassword"
+        :disabled="loadingPassword"
+      >
         <span class="material-icons-round">lock</span>
         {{ loadingPassword ? "Mise à jour..." : "Mettre à jour" }}
       </button>
@@ -217,7 +288,10 @@ const saveNotifications = async () => {
       <h3 class="card-title">Confidentialité</h3>
 
       <transition name="fade">
-        <p v-if="privacyMsg.text" :class="privacyMsg.type === 'error' ? 'error-msg' : 'success-msg'">
+        <p
+          v-if="privacyMsg.text"
+          :class="privacyMsg.type === 'error' ? 'error-msg' : 'success-msg'"
+        >
           {{ privacyMsg.text }}
         </p>
       </transition>
@@ -253,7 +327,12 @@ const saveNotifications = async () => {
         </label>
       </div>
 
-      <button type="button" class="btn btn-primary btn-sm mt-16" @click="savePrivacy" :disabled="loadingPrivacy">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm mt-16"
+        @click="savePrivacy"
+        :disabled="loadingPrivacy"
+      >
         <span class="material-icons-round">shield</span>
         {{ loadingPrivacy ? "Enregistrement..." : "Enregistrer" }}
       </button>
@@ -264,7 +343,10 @@ const saveNotifications = async () => {
       <h3 class="card-title">Notifications</h3>
 
       <transition name="fade">
-        <p v-if="notifMsg.text" :class="notifMsg.type === 'error' ? 'error-msg' : 'success-msg'">
+        <p
+          v-if="notifMsg.text"
+          :class="notifMsg.type === 'error' ? 'error-msg' : 'success-msg'"
+        >
           {{ notifMsg.text }}
         </p>
       </transition>
@@ -313,7 +395,12 @@ const saveNotifications = async () => {
         </label>
       </div>
 
-      <button type="button" class="btn btn-primary btn-sm mt-16" @click="saveNotifications" :disabled="loadingNotifs">
+      <button
+        type="button"
+        class="btn btn-primary btn-sm mt-16"
+        @click="saveNotifications"
+        :disabled="loadingNotifs"
+      >
         <span class="material-icons-round">notifications</span>
         {{ loadingNotifs ? "Enregistrement..." : "Enregistrer" }}
       </button>
@@ -322,52 +409,241 @@ const saveNotifications = async () => {
 </template>
 
 <style scoped>
-.settings-page { font-family: "DM Sans", sans-serif; color: #28363d; }
-.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
-.page-header h1 { font-family: "DM Serif Display", serif; font-size: 26px; font-weight: 400; color: #28363d; line-height: 1.2; }
-.sub { font-size: 13px; color: #99aead; margin-top: 3px; font-style: italic; }
-.content-card { background: #fff; border: 1px solid #dee1dd; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-.card-title { font-size: 15px; color: #28363d; font-family: "DM Serif Display", serif; font-weight: 400; margin-bottom: 16px; }
-.form-group { margin-bottom: 16px; }
-.form-group label { display: block; font-size: 12.5px; font-weight: 500; color: #6d9197; margin-bottom: 5px; }
+.settings-page {
+  font-family: "DM Sans", sans-serif;
+  color: #28363d;
+}
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-header h1 {
+  font-family: "DM Serif Display", serif;
+  font-size: 26px;
+  font-weight: 400;
+  color: #28363d;
+  line-height: 1.2;
+}
+.sub {
+  font-size: 13px;
+  color: #99aead;
+  margin-top: 3px;
+  font-style: italic;
+}
+.content-card {
+  background: #fff;
+  border: 1px solid #dee1dd;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 15px;
+  color: #28363d;
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
+  margin-bottom: 16px;
+}
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #6d9197;
+  margin-bottom: 5px;
+}
 
-/* Input avec icone oeil */
-.input-eye { position: relative; }
-.input-eye input { width: 100%; padding: 9px 38px 9px 12px; border: 1px solid #c4cdc1; border-radius: 8px; background: #fff; font-family: "DM Sans", sans-serif; font-size: 13.5px; color: #28363d; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
-.input-eye input:focus { border-color: #2f575d; }
-.eye-icon { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #99aead; cursor: pointer; user-select: none; transition: color 0.15s; }
-.eye-icon:hover { color: #2f575d; }
+/* Input avec icône oeil */
+.input-eye {
+  position: relative;
+}
+.input-eye input {
+  width: 100%;
+  padding: 9px 38px 9px 12px;
+  border: 1px solid #c4cdc1;
+  border-radius: 8px;
+  background: #fff;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13.5px;
+  color: #28363d;
+  outline: none;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.input-eye input:focus {
+  border-color: #2f575d;
+}
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #99aead;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+.eye-icon:hover {
+  color: #2f575d;
+}
 
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.chips-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.filter-chip { padding: 6px 14px; border-radius: 20px; border: 1px solid #c4cdc1; font-size: 12.5px; cursor: pointer; color: #6d9197; transition: all 0.15s; }
-.filter-chip:hover { border-color: #6d9197; }
-.filter-chip.active { background: #2f575d; color: #fff; border-color: #2f575d; }
-.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #dee1dd; }
-.toggle-row:last-of-type { border-bottom: none; }
-.toggle-label { font-size: 13.5px; font-weight: 500; color: #28363d; }
-.toggle-desc { font-size: 12px; color: #99aead; margin-top: 2px; }
-.toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #c4cdc1; border-radius: 24px; transition: 0.3s; }
-.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
-.toggle input:checked + .slider { background: #2f575d; }
-.toggle input:checked + .slider:before { transform: translateX(20px); }
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 8px; font-family: "DM Sans", sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
-.btn-primary { background: #2f575d; color: #fff; border-color: #2f575d; }
-.btn-primary:hover:not(:disabled) { background: #245055; }
-.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.btn-sm { padding: 6px 12px; font-size: 12.5px; }
-.btn .material-icons-round { font-size: 16px; }
-.mt-16 { margin-top: 16px; }
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #c4cdc1;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: #6d9197;
+  transition: all 0.15s;
+}
+.filter-chip:hover {
+  border-color: #6d9197;
+}
+.filter-chip.active {
+  background: #2f575d;
+  color: #fff;
+  border-color: #2f575d;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid #dee1dd;
+}
+.toggle-row:last-of-type {
+  border-bottom: none;
+}
+.toggle-label {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #28363d;
+}
+.toggle-desc {
+  font-size: 12px;
+  color: #99aead;
+  margin-top: 2px;
+}
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #c4cdc1;
+  border-radius: 24px;
+  transition: 0.3s;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+.toggle input:checked + .slider {
+  background: #2f575d;
+}
+.toggle input:checked + .slider:before {
+  transform: translateX(20px);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: #2f575d;
+  color: #fff;
+  border-color: #2f575d;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #245055;
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+.btn .material-icons-round {
+  font-size: 16px;
+}
+.mt-16 {
+  margin-top: 16px;
+}
 
 /* Messages */
-.error-msg { color: #c0392b; background: #fdf2f2; border: 1px solid #f5c6cb; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; }
-.success-msg { color: #2d6a4f; background: #f0faf4; border: 1px solid #b7dfc8; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 14px; }
+.error-msg {
+  color: #c0392b;
+  background: #fdf2f2;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.success-msg {
+  color: #2d6a4f;
+  background: #f0faf4;
+  border: 1px solid #b7dfc8;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
 
 /* Animation */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 
 /* Bloquer le fond jaune du password manager */
 .input-eye input:-webkit-autofill,

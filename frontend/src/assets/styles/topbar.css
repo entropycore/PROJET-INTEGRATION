@@ -2,8 +2,8 @@
   width: 100%;
   height: 58px;
   flex-shrink: 0;
-  border-bottom: 1px solid #e2e5df;
-  background: #ffffff;
+  border-bottom: 1px solid var(--app-border);
+  background: var(--app-surface);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -32,11 +32,11 @@
 .role {
   font-size: 13px;
   line-height: 1;
-  background: #f3f5f2;
-  color: #0f2f3a;
+  background: var(--app-surface-soft);
+  color: var(--app-heading);
   padding: 9px 13px;
-  border-radius: 10px;
-  border: 1px solid #dfe3dd;
+  border-radius: var(--app-radius-md);
+  border: 1px solid var(--app-border);
   white-space: nowrap;
   font-weight: 700;
 }
@@ -57,13 +57,13 @@
 .notification-link {
   width: 40px;
   height: 40px;
-  border: 1px solid #dfe3dd;
-  border-radius: 12px;
-  background: #ffffff;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface);
 }
 
 .notification-link:hover {
-  background: #f7f8f6;
+  background: var(--app-surface-soft);
 }
 
 .topbar-right img {
@@ -74,7 +74,7 @@
 .topbar .avatar {
   width: 40px;
   height: 40px;
-  background: #2f5d62;
+  background: var(--app-primary);
   color: white;
   border-radius: 50%;
   display: grid;
@@ -83,13 +83,22 @@
   font-weight: 800;
   text-decoration: none;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.topbar .avatar-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .logo-text {
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.03em;
-  color: #0f2f3a;
+  color: var(--app-heading);
   line-height: 1;
   display: flex;
   align-items: center;
@@ -98,6 +107,6 @@
 /* partie "encia" */
 
 .logo-text span {
-  color: #2f5d62;
+  color: var(--app-primary);
   font-weight: 500;
 }

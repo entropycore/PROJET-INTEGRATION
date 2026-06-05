@@ -1,4 +1,6 @@
 <script setup>
+import { buildBackendUrl } from "@/services/backendUrl";
+
 const props = defineProps({
   validation: {
     type: Object,
@@ -7,20 +9,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["close", "approve", "reject", "request-changes"]);
-
-const typeLabels = {
-  PROJECT: "Projet",
-  INTERNSHIP: "Stage",
-  CERTIFICATE: "Certificat",
-  ACTIVITY: "Activité",
-};
-
-const typeClasses = {
-  PROJECT: "project",
-  INTERNSHIP: "internship",
-  CERTIFICATE: "certificate",
-  ACTIVITY: "activity",
-};
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -41,7 +29,6 @@ const formatDate = (date) => {
     timeStyle: "short",
   });
 };
-
 /*
   =====================================================
   BACKEND NOTE
@@ -78,25 +65,25 @@ const content = props.validation.content || props.validation;
     <div class="modal">
       <div class="modal-header">
         <div>
-          <h2>Détail de la validation</h2>
-
-          <span class="type-badge" :class="typeClasses[validation.targetType]">
-            {{ typeLabels[validation.targetType] }}
-          </span>
+          <h2>
+            Détail de la validation
+          </h2>
         </div>
 
         <button class="close-btn" @click="emit('close')">×</button>
       </div>
 
       <div class="modal-body">
-        <!-- COLONNE GAUCHE : ÉTUDIANT -->
         <aside class="student-panel">
-          <h3>Informations étudiant</h3>
+          <h3>
+            <span class="material-icons-round section-icon">person</span>
+            Informations étudiant
+          </h3>
 
           <div class="student-header">
             <img
               v-if="student.profilePicture"
-              :src="student.profilePicture"
+              :src="buildBackendUrl(student.profilePicture)"
               alt="Photo étudiant"
               class="student-avatar"
             />
@@ -129,9 +116,20 @@ const content = props.validation.content || props.validation;
           </div>
         </aside>
 
-        <!-- COLONNE DROITE : CONTENU VALIDÉ -->
         <main class="details-panel">
           <h3>
+            <span class="material-icons-round section-icon">
+              {{
+                validation.targetType === "PROJECT"
+                  ? "folder_open"
+                  : validation.targetType === "INTERNSHIP"
+                    ? "business_center"
+                    : validation.targetType === "CERTIFICATE"
+                      ? "workspace_premium"
+                      : "stars"
+              }}
+            </span>
+
             Détails
             {{
               validation.targetType === "PROJECT"
@@ -154,7 +152,6 @@ const content = props.validation.content || props.validation;
             <p>{{ content.description || validation.description }}</p>
           </div>
 
-          <!-- PROJECT -->
           <template v-if="validation.targetType === 'PROJECT'">
             <div class="detail-row" v-if="targetDetails.technologies?.length">
               <span>Technologies</span>
@@ -172,9 +169,7 @@ const content = props.validation.content || props.validation;
 
             <div class="detail-row">
               <span>Visibilité</span>
-              <strong>{{
-                targetDetails.visibility || "Non renseignée"
-              }}</strong>
+              <strong>{{ targetDetails.visibility || "Non renseignée" }}</strong>
             </div>
 
             <div class="detail-row">
@@ -183,7 +178,6 @@ const content = props.validation.content || props.validation;
             </div>
           </template>
 
-          <!-- INTERNSHIP -->
           <template v-if="validation.targetType === 'INTERNSHIP'">
             <div class="detail-row">
               <span>Entreprise</span>
@@ -199,7 +193,6 @@ const content = props.validation.content || props.validation;
             </div>
           </template>
 
-          <!-- CERTIFICATE -->
           <template v-if="validation.targetType === 'CERTIFICATE'">
             <div class="detail-row">
               <span>Émetteur</span>
@@ -224,13 +217,10 @@ const content = props.validation.content || props.validation;
             </div>
           </template>
 
-          <!-- ACTIVITY -->
           <template v-if="validation.targetType === 'ACTIVITY'">
             <div class="detail-row">
               <span>Organisation</span>
-              <strong>{{
-                targetDetails.organization || "Non renseignée"
-              }}</strong>
+              <strong>{{ targetDetails.organization || "Non renseignée" }}</strong>
             </div>
 
             <div class="detail-row">
@@ -241,9 +231,11 @@ const content = props.validation.content || props.validation;
         </main>
       </div>
 
-      <!-- FICHIERS -->
       <section class="files-section">
-        <h3>Fichiers joints</h3>
+        <h3>
+          <span class="material-icons-round section-icon">attach_file</span>
+          Fichiers joints
+        </h3>
 
         <div v-if="files.length" class="files-list">
           <a
@@ -261,12 +253,8 @@ const content = props.validation.content || props.validation;
         <p v-else class="no-files">Aucun fichier joint.</p>
       </section>
 
-      <!-- ACTIONS -->
       <div class="modal-actions">
-        <button
-          class="changes-btn"
-          @click="emit('request-changes', validation)"
-        >
+        <button class="changes-btn" @click="emit('request-changes', validation)">
           Demander correction
         </button>
 
@@ -294,88 +282,73 @@ const content = props.validation.content || props.validation;
 }
 
 .modal {
-  width: min(880px, 94vw);
+  width: min(55rem, 94vw);
   max-height: 92vh;
   overflow-y: auto;
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 26px;
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+  background: var(--app-surface, #ffffff);
+  border-radius: 1.5rem;
+  padding: 1.625rem;
+  box-shadow: var(--app-shadow-popover, 0 1.5rem 3.75rem rgba(15, 23, 42, 0.25));
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 22px;
+  gap: 1.125rem;
+  margin-bottom: 1.375rem;
 }
 
 .modal-header h2 {
-  margin: 0 0 8px;
-  color: #0f2f3a;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  color: var(--app-heading, #102a33);
   font-size: 1.55rem;
   font-weight: 800;
 }
 
+.title-icon,
+.section-icon {
+  color: var(--app-primary);
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
 .close-btn {
-  width: 44px;
-  height: 44px;
-  border: 1px solid #cfd8cc;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #6b8a91;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface);
+  color: var(--app-muted);
   font-size: 1.8rem;
   cursor: pointer;
 }
 
-.type-badge {
-  width: fit-content;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 800;
-}
-
-.type-badge.project {
-  background: #e8f5f1;
-  color: #2f5d62;
-}
-
-.type-badge.internship {
-  background: #e8f5f1;
-  color: #2f5d62;
-}
-
-.type-badge.certificate {
-  background: #fff4e6;
-  color: #ea580c;
-}
-
-.type-badge.activity {
-  background: #fff4e6;
-  color: #ea580c;
-}
-
 .modal-body {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 18px;
+  grid-template-columns: 17.5rem 1fr;
+  gap: 1.125rem;
 }
 
 .student-panel,
 .details-panel,
 .files-section {
-  background: #ffffff;
-  border: 1px solid #dfe3dd;
-  border-radius: 18px;
-  padding: 18px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 1.125rem;
+  padding: 1.125rem;
 }
 
 .student-panel h3,
 .details-panel h3,
 .files-section h3 {
-  margin: 0 0 16px;
-  color: #0f2f3a;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 1.15rem;
+  color: var(--app-heading);
   font-size: 1rem;
   font-weight: 800;
 }
@@ -383,13 +356,13 @@ const content = props.validation.content || props.validation;
 .student-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: 0.9rem;
+  margin-bottom: 1.35rem;
 }
 
 .student-avatar {
-  width: 48px;
-  height: 48px;
+  width: 3rem;
+  height: 3rem;
   border-radius: 50%;
   object-fit: cover;
 }
@@ -397,55 +370,55 @@ const content = props.validation.content || props.validation;
 .initials {
   display: grid;
   place-items: center;
-  background: #2f5d62;
+  background: var(--app-primary);
   color: white;
   font-weight: 800;
 }
 
 .student-header strong {
-  color: #0f2f3a;
+  color: var(--app-heading);
 }
 
 .student-header p {
-  margin: 3px 0 0;
-  color: #7f9699;
+  margin: 0.2rem 0 0;
+  color: var(--app-muted);
   font-size: 0.85rem;
 }
 
 .info-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 1rem;
 }
 
 .info-list div,
 .detail-row {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 12px;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 1rem;
   align-items: start;
 }
 
 .info-list span,
 .detail-row span {
-  color: #8aa0a3;
+  color: var(--app-subtle);
   font-size: 0.83rem;
   font-weight: 700;
 }
 
 .info-list strong,
 .detail-row strong {
-  color: #0f2f3a;
+  color: var(--app-heading);
   font-size: 0.9rem;
 }
 
 .detail-row {
-  margin-bottom: 14px;
+  margin-bottom: 1rem;
 }
 
 .description p {
   margin: 0;
-  color: #5f6f70;
+  color: var(--app-muted);
   line-height: 1.5;
   font-size: 0.9rem;
 }
@@ -453,90 +426,97 @@ const content = props.validation.content || props.validation;
 .chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 0.4rem;
 }
 
 .chip {
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #e8efed;
-  color: #2f5d62;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--app-radius-pill);
+  background: var(--app-active-bg, #e6f1ee);
+  color: var(--app-primary);
   font-weight: 700;
   font-size: 0.78rem;
 }
 
 .detail-row a {
-  color: #2563eb;
+  color: var(--app-primary);
   font-weight: 700;
   text-decoration: none;
 }
 
 .files-section {
-  margin-top: 18px;
+  margin-top: 1.125rem;
 }
 
 .files-list {
   display: grid;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .file-item {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
-  padding: 11px 12px;
-  border-radius: 12px;
-  background: #f7f8f6;
-  color: #0f2f3a;
+  gap: 0.75rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface-soft);
+  color: var(--app-heading);
   text-decoration: none;
   font-weight: 700;
 }
 
 .file-item small {
-  color: #7f9699;
+  color: var(--app-muted);
 }
 
 .no-files {
   margin: 0;
-  color: #8aa0a3;
+  color: var(--app-subtle);
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  padding-top: 20px;
-  margin-top: 22px;
-  border-top: 1px solid #dfe3dd;
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  margin-top: 1.375rem;
+  border-top: 1px solid var(--app-border);
 }
 
 .changes-btn,
 .reject-btn,
 .approve-btn {
-  border: none;
-  border-radius: 12px;
-  padding: 11px 18px;
+  border-radius: var(--app-radius-md);
+  padding: 0.7rem 1.1rem;
   font-weight: 800;
   cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .changes-btn {
-  background: #ffffff;
-  color: #2f5d62;
-  border: 1px solid #cfd8cc;
+  background: var(--app-surface);
+  color: var(--app-primary);
+  border-color: var(--app-border-strong);
 }
 
 .reject-btn {
-  background: #fef2f2;
-  color: #dc2626;
+  background: var(--app-error-bg);
+  color: var(--app-error);
 }
 
 .approve-btn {
-  background: #ecfdf5;
-  color: #059669;
+  background: var(--app-primary);
+  color: white;
+  border-color: var(--app-primary);
 }
 
-@media (max-width: 850px) {
+.approve-btn:hover {
+  background: var(--app-primary-hover);
+  border-color: var(--app-primary-hover);
+}
+
+@media (max-width: 53.125rem) {
   .modal-body {
     grid-template-columns: 1fr;
   }
@@ -548,7 +528,7 @@ const content = props.validation.content || props.validation;
   .info-list div,
   .detail-row {
     grid-template-columns: 1fr;
-    gap: 4px;
+    gap: 0.25rem;
   }
 }
 </style>

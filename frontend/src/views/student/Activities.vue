@@ -106,7 +106,8 @@ const handleSubmitValidation = async (activityId) => {
   } catch (error) {
     console.error("Erreur soumission activité :", error);
     submitMessage.value =
-      error?.response?.data?.message || "Impossible de soumettre cette activité.";
+      error?.response?.data?.message ||
+      "Impossible de soumettre cette activité.";
   }
 };
 </script>
@@ -122,7 +123,7 @@ const handleSubmitValidation = async (activityId) => {
 
       <button class="add-btn" @click="goToCreate">
         <span class="material-icons-round">add</span>
-           Ajouter une activité
+        Ajouter une activité
       </button>
     </div>
 
