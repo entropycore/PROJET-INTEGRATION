@@ -1,7 +1,15 @@
 const { PrismaClient } = require('../src/generated/prisma');
 const bcrypt = require('bcrypt');
+const storageService = require('../src/services/storage/storageService');
 
 const prisma = new PrismaClient();
+const SEED_CERTIFICATE_FILE_NAME = 'hackathon-ensa-2026.pdf';
+const SEED_CERTIFICATE_OBJECT_KEY = `seed/certificates/${SEED_CERTIFICATE_FILE_NAME}`;
+const SEED_CERTIFICATE_BUFFER = Buffer.from(
+  '%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n' +
+    '2 0 obj\n<< /Type /Pages /Count 0 >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n',
+  'utf8',
+);
 
 const SKILL_DOMAINS = [
   {
@@ -333,7 +341,30 @@ const ensureActivity = async (studentId) => {
   });
 };
 
+const buildCertificateUrl = (activityId) =>
+  `/api/student/activities/${activityId}/certificate/download`;
+
+const storeSeedCertificateFile = async () => {
+  const storedFile = await storageService.uploadObject({
+    objectKey: SEED_CERTIFICATE_OBJECT_KEY,
+    buffer: SEED_CERTIFICATE_BUFFER,
+    mimeType: 'application/pdf',
+    metadata: {
+      source: 'seed',
+      name: SEED_CERTIFICATE_FILE_NAME,
+    },
+  });
+
+  return {
+    fileName: SEED_CERTIFICATE_FILE_NAME,
+    mimeType: 'application/pdf',
+    fileSize: SEED_CERTIFICATE_BUFFER.length,
+    storagePath: storedFile.objectKey,
+  };
+};
+
 const ensureCertificate = async (activityId) => {
+  const storedFile = await storeSeedCertificateFile();
   const existingCertificate = await prisma.certificate.findFirst({
     where: { activityId },
   });
@@ -342,7 +373,11 @@ const ensureCertificate = async (activityId) => {
     return prisma.certificate.update({
       where: { id: existingCertificate.id },
       data: {
-        documentUrl: 'https://example.com/certificates/hackathon-ensa-2026.pdf',
+        documentUrl: buildCertificateUrl(activityId),
+        fileName: storedFile.fileName,
+        mimeType: storedFile.mimeType,
+        fileSize: storedFile.fileSize,
+        storagePath: storedFile.storagePath,
         validationStatus: 'PENDING',
       },
     });
@@ -351,7 +386,11 @@ const ensureCertificate = async (activityId) => {
   return prisma.certificate.create({
     data: {
       activityId,
-      documentUrl: 'https://example.com/certificates/hackathon-ensa-2026.pdf',
+      documentUrl: buildCertificateUrl(activityId),
+      fileName: storedFile.fileName,
+      mimeType: storedFile.mimeType,
+      fileSize: storedFile.fileSize,
+      storagePath: storedFile.storagePath,
       validationStatus: 'PENDING',
     },
   });
