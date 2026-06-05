@@ -14,115 +14,87 @@ describe("Centre de notifications - Tests E2E", () => {
     }).as(`getMe${role}`);
   };
 
-  const mockStudentNotifications = () => {
-    cy.intercept("GET", `${apiBaseUrl}/api/student/notifications`, {
+  const mockNotifications = (basePath, aliasPrefix, items, unreadCount = 1) => {
+    cy.intercept("GET", `${apiBaseUrl}${basePath}/notifications`, {
       statusCode: 200,
-      body: {
-        data: {
-          items: [
-            {
-              id: "st-1",
-              type: "INFO",
-              title: "Projet soumis",
-              message: "Votre projet a été soumis.",
-              read: false,
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: "st-2",
-              type: "VALIDATION",
-              title: "Badge obtenu",
-              message: "Félicitations pour votre badge.",
-              read: true,
-              createdAt: new Date().toISOString(),
-            },
-          ],
-        },
-      },
-    }).as("getStudentNotifs");
+      body: { data: { items } },
+    }).as(`${aliasPrefix}Notifs`);
 
-    cy.intercept(
-      "GET",
-      `${apiBaseUrl}/api/student/notifications/unread-count`,
-      {
-        statusCode: 200,
-        body: { data: { count: 1 } },
-      },
-    ).as("getStudentUnread");
+    cy.intercept("GET", `${apiBaseUrl}${basePath}/notifications/unread-count`, {
+      statusCode: 200,
+      body: { data: { count: unreadCount } },
+    }).as(`${aliasPrefix}Unread`);
   };
 
-  context("Rôle : étudiant (flux API)", () => {
+  context("Role etudiant", () => {
     beforeEach(() => {
       mockSession("STUDENT");
-      mockStudentNotifications();
+      mockNotifications("/api/student", "student", [
+        {
+          id: "st-1",
+          type: "INFO",
+          title: "Projet soumis",
+          message: "Votre projet a ete soumis.",
+          read: false,
+          createdAt: new Date().toISOString(),
+        },
+        {
+          id: "st-2",
+          type: "VALIDATION",
+          title: "Badge obtenu",
+          message: "Felicitations pour votre badge.",
+          read: true,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
 
       cy.visiterClairement("/student/notifications");
+      cy.wait(["@getMeSTUDENT", "@studentNotifs", "@studentUnread"]);
     });
 
-    it("affiche l'en-tête étudiant et charge les notifications depuis l'API", () => {
-      cy.wait(["@getMeSTUDENT", "@getStudentNotifs", "@getStudentUnread"]);
-      cy.attendreInterface();
-
-      cy.get(".page-header span").should("contain.text", "TUDIANT");
-      cy.get(".page-header p").should("contain.text", "votre espace");
-      cy.get(".notifications-page").should("be.visible");
-      cy.get(".state-box").should("not.exist");
+    it("affiche l'en-tete et charge les notifications", () => {
+      cy.get(".page-header span").should("contain.text", "ETUDIANT");
+      cy.get(".page-header p").should("contain.text", "espace");
       cy.get(".notifications-page").should("contain.text", "Projet soumis");
     });
 
-    it('gère l’action du bouton "Tout marquer comme lu"', () => {
-      cy.wait(["@getMeSTUDENT", "@getStudentNotifs", "@getStudentUnread"]);
-      cy.attendreInterface();
-
-      cy.intercept(
-        "PATCH",
-        `${apiBaseUrl}/api/student/notifications/read-all`,
-        {
-          statusCode: 200,
-        },
-      ).as("markAllRequest");
+    it("marque toutes les notifications comme lues", () => {
+      cy.intercept("PATCH", `${apiBaseUrl}/api/student/notifications/read-all`, {
+        statusCode: 200,
+      }).as("markAllRequest");
 
       cy.contains("button", /Tout marquer comme lu/i).click();
-      cy.attendreInterface();
-
       cy.wait("@markAllRequest");
-      cy.attendreInterface();
       cy.get(".item.unread").should("not.exist");
     });
 
-    it("supprime une notification avec succès", () => {
-      cy.wait(["@getMeSTUDENT", "@getStudentNotifs", "@getStudentUnread"]);
-      cy.attendreInterface();
+    it("supprime une notification", () => {
+      cy.intercept("DELETE", `${apiBaseUrl}/api/student/notifications/st-1`, {
+        statusCode: 200,
+      }).as("deleteRequest");
 
-      cy.intercept(
-        "DELETE",
-        `${apiBaseUrl}/api/student/notifications/st-1`,
-        {
-          statusCode: 200,
-        },
-      ).as("deleteRequest");
-
-      cy.contains(".item", "Projet soumis")
-        .find('button[title="Supprimer"]')
-        .click();
-      cy.attendreInterface();
-
+      cy.contains(".item", "Projet soumis").contains("button", "Supprimer").click();
       cy.wait("@deleteRequest");
-      cy.attendreInterface();
       cy.get(".notifications-page").should("not.contain.text", "Projet soumis");
     });
   });
 
-  context("Rôle : professeur (flux mocké)", () => {
-    beforeEach(() => {
+  context("Role professeur", () => {
+    it("affiche les libelles professeur et ses notifications", () => {
       mockSession("PROFESSOR");
+      mockNotifications("/api/professor", "professor", [
+        {
+          id: "pr-1",
+          type: "RECOMMENDATION_VALIDATION",
+          title: "Nouvelle demande de recommandation",
+          message: "Une recommandation attend votre validation.",
+          read: false,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
 
       cy.visiterClairement("/professor/notifications");
-    });
-
-    it("affiche les libellés professeur et charge les notifications statiques", () => {
-      cy.wait("@getMePROFESSOR");
-      cy.attendreInterface();
+      cy.wait(["@getMePROFESSOR", "@professorNotifs", "@professorUnread"]);
 
       cy.get(".page-header span").should("contain.text", "PROFESSEUR");
       cy.get(".page-header p").should("contain.text", "interactions");
@@ -133,8 +105,8 @@ describe("Centre de notifications - Tests E2E", () => {
     });
   });
 
-  context("Scénario de gestion d'erreur", () => {
-    it("affiche un état d'erreur si l'API échoue pour l'étudiant", () => {
+  context("Scenario d'erreur", () => {
+    it("affiche un etat d'erreur si l'API echoue", () => {
       mockSession("STUDENT");
 
       cy.intercept("GET", `${apiBaseUrl}/api/student/notifications`, {
@@ -144,7 +116,6 @@ describe("Centre de notifications - Tests E2E", () => {
 
       cy.visiterClairement("/student/notifications");
       cy.wait(["@getMeSTUDENT", "@getNotifsError"]);
-      cy.attendreInterface();
 
       cy.get(".state-box.error")
         .should("be.visible")

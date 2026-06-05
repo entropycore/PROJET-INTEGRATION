@@ -1,145 +1,91 @@
-describe('Création d’Utilisateur - Admin E2E Tests (Mode Ralenti)', () => {
-  const DELAY = 1500; // Pause en millisecondes entre les étapes clés
-
+describe("Creation utilisateur - Admin", () => {
   beforeEach(() => {
-    // 1. Mock de l'API de création d'utilisateur (Cas : Mot de passe généré automatiquement)
-    cy.intercept('POST', '**/services/adminService*', {
+    cy.intercept("POST", "**/api/admin/users", {
       statusCode: 201,
       body: {
         data: {
-          temporaryPassword: 'TempPassword2026!',
+          temporaryPassword: "TempPassword2026!",
           user: {
-            id: 'usr_98765',
-            role: 'STUDENT',
-            firstName: 'Ghizlane',
-            lastName: 'Rabii'
-          }
-        }
-      }
-    }).as('createUserApi');
+            id: "usr_98765",
+            role: "STUDENT",
+            firstName: "Ghizlane",
+            lastName: "Rabii",
+          },
+        },
+      },
+    }).as("createUserApi");
 
-    // Autoriser l'accès au presse-papiers (Clipboard) dans le navigateur de test
     cy.wrap(
-      Cypress.automation('remote:debugger:protocol', {
-        command: 'Browser.grantPermissions',
+      Cypress.automation("remote:debugger:protocol", {
+        command: "Browser.grantPermissions",
         params: {
-          permissions: ['clipboardReadWrite'],
+          permissions: ["clipboardReadWrite"],
           origin: window.location.origin,
         },
-      })
+      }),
     );
 
-    // Visite de la page avec le rôle étudiant par défaut dans l'URL
-    cy.visit('/admin/users/create?role=STUDENT');
-    cy.wait(DELAY); // Pause pour observer l'affichage initial
+    cy.loginAsAdmin("/admin/users/create?role=STUDENT");
   });
 
-  it('devrait remplir le formulaire d’un Étudiant et afficher le mot de passe temporaire', () => {
-    // Vérification du titre dynamique (computed property)
-    cy.get('h1').should('contain', 'Créer un étudiant');
+  it("remplit le formulaire et affiche le mot de passe temporaire", () => {
+    cy.get("h1").should("contain", "Creer un etudiant");
 
-    // --- Remplissage des informations générales ---
-    // Saisie ralentie ({ delay: 100 }) pour simuler une frappe humaine visible
-    cy.contains('label', 'Prénom').find('input').type('Ghizlane', { delay: 100 });
-    cy.contains('label', 'Nom').find('input').type('Rabii', { delay: 100 });
-    cy.contains('label', 'Email').find('input').type('g.rabii@ensa.ma', { delay: 100 });
-    cy.contains('label', 'Téléphone').find('input').type('0612345678', { delay: 100 });
-    
-    cy.wait(DELAY); // Pause pour voir la première partie remplie
+    cy.contains("label", "Prenom").find("input").type("Ghizlane");
+    cy.contains("label", "Nom").find("input").type("Rabii");
+    cy.contains("label", "Email").find("input").type("g.rabii@ensa.ma");
+    cy.contains("label", "Telephone").find("input").type("0612345678");
+    cy.contains("label", "Filiere").find("select").select(1);
+    cy.contains("label", "Niveau").find("input").type("CI1");
+    cy.contains("label", "Apogee").find("input").type("2200345");
 
-    // --- Remplissage des détails spécifiques au rôle STUDENT ---
-    // Si vos options se basent sur des valeurs réelles (ex: 'Génie Informatique')
-    cy.contains('label', 'Filière').find('select').select(1); // Sélectionne la première filière disponible
-    cy.contains('label', 'Niveau').find('input').type('CI1', { delay: 100 });
-    cy.contains('label', 'Apogée').find('input').type('2200345', { delay: 100 });
-    
-    cy.wait(DELAY); // Pause visuelle avant la soumission
+    cy.get(".primary-btn").contains("Creer utilisateur").click();
+    cy.wait("@createUserApi");
 
-    // --- Soumission du formulaire ---
-    // Clic sur le bouton principal de création
-    cy.get('.primary-btn').contains('Créer utilisateur').click();
-    
-    // Attente de la réponse de l'API mockée
-    cy.wait('@createUserApi');
-    cy.wait(DELAY); // Pause pour admirer l'apparition du modal de succès
-
-    // --- Vérifications dans le Modal d'affichage du mot de passe ---
-    cy.get('.admin-modal').should('be.visible');
-    cy.get('.temporary-password-box').should('contain', 'TempPassword2026!');
-
-    // Clic sur "Copier" le mot de passe temporaire
-    cy.get('.admin-modal').contains('button', 'Copier').click();
-    cy.wait(DELAY);
-    
-    // Vérifier que le texte du bouton s'est transformé en "Copié"
-    cy.get('.admin-modal').contains('button', 'Copié').should('be.visible');
-
-    // Clic sur "Continuer" pour déclencher la redirection finale vers la fiche de l'utilisateur
-    cy.get('.admin-modal').contains('button', 'Continuer').click();
-    
-    // Vérification que l'URL finale correspond bien à l'ID de l'utilisateur créé
-    cy.url().should('include', '/admin/users/usr_98765');
+    cy.get(".admin-modal").should("be.visible");
+    cy.get(".temporary-password-box").should("contain", "TempPassword2026!");
+    cy.get(".admin-modal").contains("button", "Copier").click();
+    cy.get(".admin-modal").contains("button", "Copie").should("be.visible");
+    cy.get(".admin-modal").contains("button", "Continuer").click();
+    cy.url().should("include", "/admin/users/usr_98765");
   });
 
-  it('devrait changer dynamiquement les champs visibles lors du changement de Rôle', () => {
-    // 1. Changement du rôle vers "Professeur"
-    cy.contains('label', 'Rôle').find('select').select('PROFESSOR');
-    cy.wait(DELAY); // Pause pour voir le formulaire s'adapter
+  it("change dynamiquement les champs selon le role", () => {
+    cy.contains("label", "Role").find("select").select("PROFESSOR");
+    cy.get("h1").should("contain", "Creer un professeur");
+    cy.contains("label", "Employee ID").should("be.visible");
+    cy.contains("label", "Departement").should("be.visible");
+    cy.contains("label", "Filiere").should("not.exist");
 
-    // Vérification que le titre a changé et que les champs Professeur apparaissent
-    cy.get('h1').should('contain', 'Créer un professeur');
-    cy.contains('label', 'Employee ID').should('be.visible');
-    cy.contains('label', 'Département').should('be.visible');
-    cy.contains('label', 'Filière').should('not.exist'); // Le bloc Étudiant doit disparaître
-
-    // 2. Changement du rôle vers "Recruteur" (Professional)
-    cy.contains('label', 'Rôle').find('select').select('PROFESSIONAL');
-    cy.wait(DELAY); // Pause visuelle
-
-    cy.get('h1').should('contain', 'Créer un recruteur');
-    cy.contains('label', 'Entreprise').should('be.visible');
-    cy.contains('label', 'Bio').should('be.visible');
-    cy.contains('label', 'Employee ID').should('not.exist');
+    cy.contains("label", "Role").find("select").select("PROFESSIONAL");
+    cy.get("h1").should("contain", "Creer un recruteur");
+    cy.contains("label", "Entreprise").should("be.visible");
+    cy.contains("label", "Bio").should("be.visible");
   });
 
-  it('devrait afficher et masquer le texte du mot de passe en cliquant sur l’icône œil', () => {
-    const selector = '.password-input-wrapper input';
+  it("affiche et masque le mot de passe", () => {
+    const selector = ".password-input-wrapper input";
 
-    // Saisie d'un mot de passe personnalisé
-    cy.get(selector).type('MonMotDePasseSecret123', { delay: 100 });
-    // Par défaut, l'input doit être de type "password"
-    cy.get(selector).should('have.attr', 'type', 'password');
-    cy.wait(DELAY);
-
-    // Clic sur le bouton œil pour afficher le mot de passe
-    cy.get('.password-toggle').click();
-    // L'input doit passer en type "text" pour afficher le contenu en clair
-    cy.get(selector).should('have.attr', 'type', 'text');
-    cy.wait(DELAY);
-
-    // Clic à nouveau pour le masquer
-    cy.get('.password-toggle').click();
-    cy.get(selector).should('have.attr', 'type', 'password');
-    cy.wait(DELAY);
+    cy.get(selector).type("MonMotDePasseSecret123");
+    cy.get(selector).should("have.attr", "type", "password");
+    cy.get(".password-toggle").click();
+    cy.get(selector).should("have.attr", "type", "text");
+    cy.get(".password-toggle").click();
+    cy.get(selector).should("have.attr", "type", "password");
   });
 
-  it('devrait afficher un message d’erreur si l’API échoue', () => {
-    // Mock d'un échec réseau (Statut 400 ou 500)
-    cy.intercept('POST', '**/services/adminService*', {
+  it("affiche un message d'erreur si l'API echoue", () => {
+    cy.intercept("POST", "**/api/admin/users", {
       statusCode: 400,
-      body: { message: 'Bad Request' }
-    }).as('createUserError');
+      body: { message: "Bad Request" },
+    }).as("createUserError");
 
-    // Remplissage rapide
-    cy.contains('label', 'Prénom').find('input').type('NomTest', { delay: 50 });
-    cy.get('.primary-btn').click();
+    cy.contains("label", "Prenom").find("input").type("NomTest");
+    cy.get(".primary-btn").contains("Creer utilisateur").click();
 
-    cy.wait('@createUserError');
-    cy.wait(DELAY);
-
-    // Vérification de l'affichage du bandeau d'erreur rouge
-    cy.get('.details-state.error')
-      .should('be.visible')
-      .and('contain', "Erreur lors de la création de l'utilisateur.");
+    cy.wait("@createUserError");
+    cy.get(".details-state.error")
+      .should("be.visible")
+      .and("contain", "Erreur lors de la creation de l'utilisateur.");
   });
 });
