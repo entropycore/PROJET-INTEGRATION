@@ -85,6 +85,6 @@ describe("Dashboard - Tests UI", () => {
   it("affiche le bouton consulter", async () => {
     const wrapper = await mountDashboard();
 
-    expect(wrapper.findAll(".btn-light").length).toBeGreaterThan(0);
+    expect(wrapper.findAll(".urgent-link").length).toBeGreaterThan(0);
   });
 });

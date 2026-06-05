@@ -22,7 +22,7 @@ vi.mock("@/services/adminService", () => ({
 
           roleDetails: {
             student: {
-              major: "Informatique",
+              major: "Génie Informatique",
               level: "Master",
               city: "Fès",
             },
@@ -93,11 +93,11 @@ describe("Tests unitaires UserDetails", () => {
 
     await flushPromises();
 
-    const inputs = wrapper.findAll("input");
+    const inputs = wrapper.findAll("input, select, textarea");
 
     const valeurs = inputs.map((i) => i.element.value);
 
-    expect(valeurs).toContain("Informatique");
+    expect(valeurs).toContain("Génie Informatique");
     expect(valeurs).toContain("Master");
     expect(valeurs).toContain("Fès");
   });
