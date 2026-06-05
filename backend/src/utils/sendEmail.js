@@ -13,7 +13,7 @@ const sendEmail = async (to, subject, text) => {
     });
 
     const mailOptions = {
-      from: `"Credencia Support" <${process.env.EMAIL_USER}>`,
+      from: `"ValiDia Support" <${process.env.EMAIL_USER}>`,
       to: to,
       subject: subject,
       text: text,
@@ -23,7 +23,7 @@ const sendEmail = async (to, subject, text) => {
     console.log(`Email envoyé avec succès à : ${to}`);
   } catch (error) {
     console.error(`Erreur lors de l'envoi de l'email à ${to}:`, error.message);
-    throw new Error("Échec de l'envoi de l'email de vérification.", { cause: error });
+    throw new Error("Échec de l'envoi de l'email de vérification.");
   }
 };
 
