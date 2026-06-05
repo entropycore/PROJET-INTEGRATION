@@ -5,6 +5,11 @@ module.exports = defineConfig({
 
   e2e: {
     baseUrl: "http://localhost:5173",
+    specPattern: "qa/cypress/e2e/**/*.cy.{js,jsx,ts,tsx}",
+    supportFile: "qa/cypress/support/e2e.js",
+    fixturesFolder: "qa/cypress/fixtures",
+    screenshotsFolder: "qa/cypress/screenshots",
+    videosFolder: "qa/cypress/videos",
     defaultCommandTimeout: 8000,
     pageLoadTimeout: 30000,
     viewportWidth: 1280,
