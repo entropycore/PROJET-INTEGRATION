@@ -73,11 +73,7 @@ describe("NotAuthorized - Test UI", () => {
     expect(message.text()).toContain("Votre compte est bien reconnu");
   });
 
-<<<<<<< HEAD
-  it("devrait verifier que le conteneur d'actions utilise une mise en page flexible", () => {
-=======
-  it("devrait vérifier que le conteneur d'actions utilise le Flexbox (via classes)", () => {
->>>>>>> a27b7c1733c9f806d0a845539c26662b6cba4f7c
+  it("devrait vérifier que le conteneur d'actions utilise une mise en page flexible", () => {
     const actions = wrapper.find(".forbidden-actions");
     expect(actions.exists()).toBe(true);
     expect(actions.element).toBeTruthy();
