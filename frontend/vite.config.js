@@ -13,7 +13,7 @@ export default defineConfig({
       "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
       "Cross-Origin-Opener-Policy": "same-origin",
       "Content-Security-Policy":
-        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://ghchart.rshah.org https://github.com https://avatars.githubusercontent.com; frame-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000; form-action 'self'; frame-ancestors 'none'; base-uri 'self'",
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: http://localhost:3000 http://localhost:5000 http://127.0.0.1:3000 http://127.0.0.1:5000 https://ghchart.rshah.org https://github.com https://avatars.githubusercontent.com; frame-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000 http://localhost:5000 http://127.0.0.1:3000 http://127.0.0.1:5000; form-action 'self'; frame-ancestors 'none'; base-uri 'self'",
       "Cross-Origin-Resource-Policy": "same-origin",
     },
   },

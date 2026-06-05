@@ -51,7 +51,7 @@ describe("LoginPage.vue - Tests unitaires de la page de connexion", () => {
     expect(error.text()).toBe("Veuillez remplir tous les champs.");
   });
 
-  it("doit changer le type de l'input mot de passe lors du clic sur l'icone", async () => {
+  it("doit changer le type de l'input mot de passe lors du clic sur l'icône", async () => {
     const passwordInput = wrapper.find("#password");
     const toggleIcon = wrapper.find(".toggle-icon");
     expect(passwordInput.attributes("type")).toBe("password");
@@ -59,7 +59,7 @@ describe("LoginPage.vue - Tests unitaires de la page de connexion", () => {
     expect(passwordInput.attributes("type")).toBe("text");
   });
 
-  it('doit desactiver le bouton et afficher "Connexion..." pendant le chargement', async () => {
+  it('doit désactiver le bouton et afficher "Connexion..." pendant le chargement', async () => {
     let resolveLogin;
     loginMock.mockImplementation(
       () =>
@@ -81,14 +81,14 @@ describe("LoginPage.vue - Tests unitaires de la page de connexion", () => {
     await flushPromises();
   });
 
-  it("doit rediriger l'utilisateur vers la page de demande d'acces", async () => {
+  it("doit rediriger l'utilisateur vers la page de demande d'accès", async () => {
     const link = wrapper.find(".access-request-link");
     await link.trigger("click");
     await flushPromises();
     expect(mockRouter.push).toHaveBeenCalledWith("/request-access");
   });
 
-  it("doit afficher un message de succes apres une connexion reussie", async () => {
+  it("doit afficher un message de succès après une connexion réussie", async () => {
     await wrapper.find("#email").setValue("test@ensa.ac.ma");
     await wrapper.find("#password").setValue("password123");
     await wrapper.find("form").trigger("submit.prevent");

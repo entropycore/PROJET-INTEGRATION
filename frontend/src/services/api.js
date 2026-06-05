@@ -1,13 +1,12 @@
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
-const apiBaseUrl = `${import.meta.env.VITE_API_BASE_URL}/api`;
+
+const backendBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const apiBaseUrl = `${backendBaseUrl.replace(/\/$/, "")}/api`;
 
 const api = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 api.interceptors.response.use(
