@@ -31,7 +31,7 @@ const projectTypes = [
 
 const projectForm = ref({
   title: "",
-  type: "MODULE",
+  type: "Module",
   description: "",
   role: "",
   teamSize: "",
@@ -287,7 +287,7 @@ const createAndSubmitProject = async () => {
     await uploadPendingMedia(createdProject.id);
     await submitStudentProject(createdProject.id);
 
-    router.push(`/student/projects/${createdProject.id}`);
+    router.push("/student/projects");
   } catch (error) {
     console.error("Erreur création/soumission projet :", error);
     errorMessage.value =
@@ -315,9 +315,7 @@ onMounted(fetchValidators);
 
         <p>Ajoutez un nouveau projet à votre portfolio académique.</p>
       </div>
-      <p v-if="errorMessage" class="edit-error-message">
-  {{ errorMessage }}
-</p>
+
       <div class="edit-header-actions">
         <button
           type="button"
@@ -336,8 +334,12 @@ onMounted(fetchValidators);
         >
           Créer et soumettre
         </button>
+        <p v-if="errorMessage" class="edit-error-message">
+          {{ errorMessage }}
+        </p>
       </div>
     </div>
+
     <div class="edit-layout">
       <div class="edit-main-column">
         <section class="edit-card">
@@ -547,22 +549,22 @@ onMounted(fetchValidators);
             <small> PNG, JPG ou WEBP </small>
 
             <input
-  type="file"
-  accept="image/*"
-  multiple
-  @change="handleScreenshotsUpload"
-/>
+              type="file"
+              accept="image/*"
+              multiple
+              @change="handleScreenshotsUpload"
+            />
           </label>
 
           <div v-if="projectForm.screenshots.length" class="uploaded-list">
             <div
-              v-for="(screenshot, index) in projectForm.screenshots"
-              :key="`${screenshot.title}-${index}`"
+              v-for="screenshot in projectForm.screenshots"
+              :key="screenshot.id"
               class="uploaded-item"
             >
               <span>{{ screenshot.title }}</span>
 
-              <button type="button" @click="removeScreenshot(index)">
+              <button type="button" @click="removeScreenshot(screenshot.id)">
                 Supprimer
               </button>
             </div>
@@ -577,20 +579,20 @@ onMounted(fetchValidators);
 
             <strong> Ajouter des fichiers </strong>
 
-            <small> PDF, ZIP, DOC, DOCX ou TXT </small>
+            <small> PDF, image ou document </small>
 
             <input type="file" multiple @change="handleAttachmentsUpload" />
           </label>
 
           <div v-if="projectForm.attachments.length" class="uploaded-list">
             <div
-              v-for="(attachment, index) in projectForm.attachments"
-              :key="`${attachment.name}-${index}`"
+              v-for="attachment in projectForm.attachments"
+              :key="attachment.id"
               class="uploaded-item"
             >
               <span>{{ attachment.name }}</span>
 
-              <button type="button" @click="removeAttachment(index)">
+              <button type="button" @click="removeAttachment(attachment.id)">
                 Supprimer
               </button>
             </div>

@@ -179,17 +179,6 @@ export const sidebarConfig = {
         },
       ],
     },
-    {
-      section: "SYSTÈME",
-      items: [
-        {
-          label: "Notifications",
-          path: "/professor/notifications",
-          icon: "notification.svg",
-        },
-        
-      ],
-    },
   ],
 
   PROFESSIONAL: [
@@ -208,17 +197,6 @@ export const sidebarConfig = {
           path: "/professional/notifications",
           icon: "notifications",
         },
-      ],
-    },
-    {
-      section: "SYSTÈME",
-      items: [
-        {
-          label: "Notifications",
-          path: "/professional/notifications",
-          icon: "notification.svg",
-        },
-        
       ],
     },
   ],

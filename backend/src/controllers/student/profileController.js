@@ -37,6 +37,19 @@ exports.updateProfileCompat = async (req, res, next) => {
   }
 };
 
+exports.uploadProfilePicture = async (req, res, next) => {
+  try {
+    const result = await studentProfileService.updateStudentProfilePicture(
+      req.user.userId,
+      req.file,
+    );
+    return success(res, 200, 'Photo de profil mise à jour.', result);
+  } catch (err) {
+    if (handleStudentError(res, err)) return;
+    next(err);
+  }
+};
+
 exports.getCareerGoal = async (req, res, next) => {
   try {
     const careerGoal = await studentProfileService.getStudentCareerGoal(req.user.userId);

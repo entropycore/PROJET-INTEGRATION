@@ -50,14 +50,6 @@ const fetchData = async () => {
   error.value = null;
 
   try {
-    if (useMockNotifications.value) {
-      const mockNotifications = mockNotificationsByRole[role.value] || [];
-
-      notifications.value = mockNotifications;
-      unreadCount.value = mockNotifications.filter((n) => !n.read).length;
-      return;
-    }
-
     const data = await getNotifications(baseApi);
     notifications.value = data?.items || [];
 

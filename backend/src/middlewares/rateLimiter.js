@@ -18,7 +18,7 @@ const globalLimiter = isTest ? bypass : rateLimit({
   max: resolveLimit('GLOBAL_RATE_LIMIT_MAX', 100),
   message: {
     success: false,
-    message: 'Trop de requetes, reessayez dans 15 minutes',
+    message: 'Trop de requêtes, réessayez dans 15 minutes',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -31,7 +31,7 @@ const authLimiter = isTest ? bypass : rateLimit({
   skipSuccessfulRequests: true,
   message: {
     success: false,
-    message: 'Trop de tentatives de connexion, reessayez dans 15 minutes',
+    message: 'Trop de tentatives de connexion, réessayez dans 15 minutes',
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -43,7 +43,7 @@ const forgotPasswordLimiter = isTest ? bypass : rateLimit({
   max: resolveLimit('FORGOT_PASSWORD_RATE_LIMIT_MAX', 3),
   message: {
     success: false,
-    message: 'Trop de demandes de reinitialisation, reessayez dans 1 heure',
+    message: 'Trop de demandes de réinitialisation, réessayez dans 1 heure',
   },
   standardHeaders: true,
   legacyHeaders: false,

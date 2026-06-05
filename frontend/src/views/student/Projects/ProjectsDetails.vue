@@ -90,43 +90,6 @@ const fetchProject = async () => {
   }
 };
 
-const buildBackendUrl = (url) => {
-  if (!url) return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  return `${apiBaseUrl}${url.startsWith("/") ? url : `/${url}`}`;
-};
-
-const buildApiRequestUrl = (url) => {
-  if (!url) return "";
-
-  const normalizedBaseUrl = apiBaseUrl.replace(/\/$/, "");
-  const apiPrefix = `${normalizedBaseUrl}/api`;
-
-  if (normalizedBaseUrl && url.startsWith(`${apiPrefix}/`)) {
-    return url.slice(apiPrefix.length);
-  }
-
-  if (url.startsWith("/api/")) {
-    return url.slice(4);
-  }
-
-  return url;
-};
-
-const getMediaUrl = (media, action) => {
-  const existingUrl = media?.mediaUrl || media?.imageUrl || media?.url;
-
-  if (existingUrl) {
-    return buildBackendUrl(existingUrl);
-  }
-
-  if (!project.value?.id || !media?.id) return "";
-
-  return buildBackendUrl(
-    `/api/projects/${project.value.id}/media/${media.id}/${action}`,
-  );
-};
-
 const buildBackendUrl = (path) => {
   if (!path) return "";
   if (path.startsWith("blob:") || path.startsWith("data:")) return path;
@@ -514,7 +477,7 @@ onUnmounted(revokeScreenshotObjectUrls);
           <section class="details-card">
             <div class="section-title">Captures d'écran</div>
 
-            <div v-if="displayScreenshots.length" class="screenshots-grid">
+            <div class="screenshots-grid">
               <button
                 v-for="(screenshot, index) in displayScreenshots"
                 :key="screenshot.id"
@@ -531,18 +494,14 @@ onUnmounted(revokeScreenshotObjectUrls);
                 />
 
                 <div
-  v-else
-  class="screenshot-placeholder"
-  :class="`variant-${(index % 3) + 1}`"
->
-  {{ screenshot.title || `Capture ${index + 1}` }}
-</div>
+                  v-else
+                  class="screenshot-placeholder"
+                  :class="`variant-${(index % 3) + 1}`"
+                >
+                  {{ screenshot.title }}
+                </div>
               </button>
             </div>
-
-            <p v-else class="empty-section-message">
-              Aucune capture d’écran ajoutée.
-            </p>
           </section>
 
           <section class="details-card">

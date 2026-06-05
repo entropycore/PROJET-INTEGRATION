@@ -299,16 +299,33 @@ const saveNotifications = async () => {
       <div class="form-group">
         <label>Visibilité du profil</label>
         <div class="chips-row">
-          <span class="filter-chip" :class="{ active: privacyForm.profileVisibility === 'PUBLIC' }" @click="privacyForm.profileVisibility = 'PUBLIC'">Public</span>
-          <span class="filter-chip" :class="{ active: privacyForm.profileVisibility === 'PRIVATE' }" @click="privacyForm.profileVisibility = 'PRIVATE'">Privé</span>
-          <span class="filter-chip" :class="{ active: privacyForm.profileVisibility === 'CONNECTIONS' }" @click="privacyForm.profileVisibility = 'CONNECTIONS'">Connexions uniquement</span>
+          <span
+            class="filter-chip"
+            :class="{ active: privacyForm.profileVisibility === 'PUBLIC' }"
+            @click="privacyForm.profileVisibility = 'PUBLIC'"
+            >Public</span
+          >
+          <span
+            class="filter-chip"
+            :class="{ active: privacyForm.profileVisibility === 'PRIVATE' }"
+            @click="privacyForm.profileVisibility = 'PRIVATE'"
+            >Privé</span
+          >
+          <span
+            class="filter-chip"
+            :class="{ active: privacyForm.profileVisibility === 'CONNECTIONS' }"
+            @click="privacyForm.profileVisibility = 'CONNECTIONS'"
+            >Connexions uniquement</span
+          >
         </div>
       </div>
 
       <div class="toggle-row">
         <div>
           <div class="toggle-label">Afficher l'email</div>
-          <div class="toggle-desc">Votre email sera visible sur votre profil public</div>
+          <div class="toggle-desc">
+            Votre email sera visible sur votre profil public
+          </div>
         </div>
         <label class="toggle">
           <input type="checkbox" v-model="privacyForm.showEmail" />
@@ -319,7 +336,9 @@ const saveNotifications = async () => {
       <div class="toggle-row">
         <div>
           <div class="toggle-label">Afficher le téléphone</div>
-          <div class="toggle-desc">Votre numéro sera visible sur votre profil public</div>
+          <div class="toggle-desc">
+            Votre numéro sera visible sur votre profil public
+          </div>
         </div>
         <label class="toggle">
           <input type="checkbox" v-model="privacyForm.showPhone" />
@@ -354,7 +373,9 @@ const saveNotifications = async () => {
       <div class="toggle-row">
         <div>
           <div class="toggle-label">Notifications par email</div>
-          <div class="toggle-desc">Recevoir des emails pour les mises à jour importantes</div>
+          <div class="toggle-desc">
+            Recevoir des emails pour les mises à jour importantes
+          </div>
         </div>
         <label class="toggle">
           <input type="checkbox" v-model="notifForm.email" />
@@ -365,7 +386,9 @@ const saveNotifications = async () => {
       <div class="toggle-row">
         <div>
           <div class="toggle-label">Notifications push</div>
-          <div class="toggle-desc">Recevoir des notifications dans le navigateur</div>
+          <div class="toggle-desc">
+            Recevoir des notifications dans le navigateur
+          </div>
         </div>
         <label class="toggle">
           <input type="checkbox" v-model="notifForm.push" />
@@ -376,7 +399,9 @@ const saveNotifications = async () => {
       <div class="toggle-row">
         <div>
           <div class="toggle-label">Mises à jour de validation</div>
-          <div class="toggle-desc">Être notifié quand un projet ou stage est validé</div>
+          <div class="toggle-desc">
+            Être notifié quand un projet ou stage est validé
+          </div>
         </div>
         <label class="toggle">
           <input type="checkbox" v-model="notifForm.validationUpdates" />
@@ -387,7 +412,9 @@ const saveNotifications = async () => {
       <div class="toggle-row">
         <div>
           <div class="toggle-label">Recommandations</div>
-          <div class="toggle-desc">Être notifié des nouvelles recommandations reçues</div>
+          <div class="toggle-desc">
+            Être notifié des nouvelles recommandations reçues
+          </div>
         </div>
         <label class="toggle">
           <input type="checkbox" v-model="notifForm.recommendations" />

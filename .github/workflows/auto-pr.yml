@@ -38,7 +38,6 @@ jobs:
             --state open \
             --json number \
             --jq '.[0].number // empty')
-
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Créer la PR
@@ -49,9 +48,8 @@ jobs:
           gh pr create \
             --base "${{ steps.target.outputs.branch }}" \
             --head "${GITHUB_REF_NAME}" \
-            --title "Auto PR: ${GITHUB_REF_NAME} → ${{ steps.target.outputs.branch }}" \
-            --body "PR automatique suite à un push sur ${GITHUB_REF_NAME}"
-
+            --title "Auto PR: ${GITHUB_REF_NAME} -> ${{ steps.target.outputs.branch }}" \
+            --body "PR automatique suite a un push sur ${GITHUB_REF_NAME}"
       - name: PR already exists
         if: steps.existing.outputs.number != ''
         run: |
