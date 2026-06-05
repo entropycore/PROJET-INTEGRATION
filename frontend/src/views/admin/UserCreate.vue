@@ -2,6 +2,10 @@
 import { ref, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { createAdminUser } from "../../services/adminService";
+import {
+  professorDepartments,
+  studentMajors,
+} from "../../config/studentOptions";
 import eyeIcon from "../../assets/icon.png";
 import eyeOffIcon from "../../assets/Button.png";
 
@@ -24,7 +28,6 @@ const form = ref({
   lastName: "",
   email: "",
   phone: "",
-  profilePicture: "",
   role: defaultRole,
   accountStatus: "ACTIVE",
   password: "",
@@ -197,11 +200,6 @@ const submitCreate = async () => {
               <option value="INACTIVE">Inactive</option>
             </select>
           </label>
-
-          <label class="full-width">
-            Photo de profil URL
-            <input v-model="form.profilePicture" placeholder="https://..." />
-          </label>
         </div>
       </section>
 
@@ -212,7 +210,19 @@ const submitCreate = async () => {
         </h2>
 
         <div v-if="form.role === 'STUDENT'" class="form-grid">
-          <label>Filière <input v-model="form.major" /></label>
+          <label>
+            Filière
+            <select v-model="form.major">
+              <option value="">Sélectionner une filière</option>
+              <option
+                v-for="major in studentMajors"
+                :key="major"
+                :value="major"
+              >
+                {{ major }}
+              </option>
+            </select>
+          </label>
           <label>Niveau <input v-model="form.level" /></label>
           <label>Apogée <input v-model="form.apogeeCode" /></label>
           <label>CNE <input v-model="form.cne" /></label>
@@ -223,7 +233,19 @@ const submitCreate = async () => {
         <div v-else-if="form.role === 'PROFESSOR'" class="form-grid">
           <label>Employee ID <input v-model="form.employeeId" /></label>
           <label>Grade <input v-model="form.grade" /></label>
-          <label>Département <input v-model="form.department" /></label>
+          <label>
+            Département
+            <select v-model="form.department">
+              <option value="">Sélectionner un département</option>
+              <option
+                v-for="department in professorDepartments"
+                :key="department"
+                :value="department"
+              >
+                {{ department }}
+              </option>
+            </select>
+          </label>
           <label>Spécialité <input v-model="form.specialty" /></label>
         </div>
 

@@ -195,6 +195,7 @@ onMounted(fetchPortfolio);
   <section class="portfolio-generator">
     <div class="page-header">
       <div>
+        <span class="page-label">PORTFOLIO</span>
         <h1>Génération du portfolio</h1>
         <p>
           Choisissez les éléments validés à afficher dans votre portfolio
@@ -516,21 +517,33 @@ onMounted(fetchPortfolio);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 1.25rem;
+  margin-bottom: 1.125rem;
+}
+
+.page-label {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  color: #a8aca8;
+  font-family: serif;
+  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+  font-style: italic;
 }
 
 .page-header h1 {
-  margin: 0;
+  font-family: serif;
   color: #28363d;
-  font-size: 1.75rem;
-  font-weight: 900;
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
 }
 
 .page-header p {
-  margin: 0.35rem 0 0;
-  color: #8b9f9e;
-  font-size: 0.9rem;
+  margin: 0;
+  color: #6d9197;
+  font-family: serif;
+  font-size: 0.875rem;
   font-style: italic;
 }
 

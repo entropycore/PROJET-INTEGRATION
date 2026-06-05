@@ -259,8 +259,9 @@ onMounted(loadAll);
   <div class="skills-page">
     <div class="page-header">
       <div>
-        <h1>Compétences</h1>
-        <div class="sub">Compétences techniques et comportementales</div>
+        <span class="page-label">COMPÉTENCES</span>
+        <h1>Mes compétences</h1>
+        <p>Suivez vos compétences techniques et comportementales.</p>
       </div>
       <button class="btn btn-primary" @click="openAddSkill">
         <span class="material-icons-round">add</span>
