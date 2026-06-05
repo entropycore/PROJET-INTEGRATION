@@ -3,3 +3,5 @@ node_modules/
 dist/backend/reports/
 backend/scripts/reports/
 reports/
+.env.*
+
