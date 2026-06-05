@@ -59,7 +59,7 @@ describe('Page de gestion des badges - Tests E2E', () => {
 
     // Intercepter l'alerte du navigateur
     cy.on('window:alert', (str) => {
-      expect(str).to.equal('Veuillez remplir au moins le nom et la règle d’attribution.')
+      expect(str).to.equal('Veuillez remplir au moins le nom et la règle d\'attribution.')
     })
 
     // La modale doit rester ouverte car le formulaire est invalide

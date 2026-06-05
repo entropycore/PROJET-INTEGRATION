@@ -13,7 +13,16 @@ describe('Admin Dashboard - Tests E2E', () => {
         pendingValidations: 4,
         reports: 3
       },
-      recentRequests: []
+      recentRequests: [
+        {
+          id: 'request-1',
+          type: 'ACCESS_REQUEST',
+          requesterName: 'Sara Bensaid',
+          organization: 'Accenture Maroc',
+          email: 'sara.bensaid@example.com',
+          createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString()
+        }
+      ]
     }
   };
 
@@ -59,14 +68,18 @@ describe('Admin Dashboard - Tests E2E', () => {
       cy.get('.avatar').should('have.text', 'S');
       cy.get('.request-name').should('have.text', 'Sara Bensaid');
       cy.get('.request-org').should('have.text', 'Accenture Maroc');
-      cy.get('.request-type').should('have.text', "Demande d'accès");
+      cy.get('.request-type').should('contain.text', 'Accès');
       cy.get('.request-type').should('have.class', 'orange');
+      cy.get('.request-time').should('contain.text', 'il y a');
     });
   });
 
-  it('Click sur "Voir" ouvre la modal (changement de state)', () => {
-    cy.get('.request-item').first().find('.btn-light').click();
-    // À compléter si le template affiche bien la modale.
+  it('Click sur une activité récente redirige vers la page cible', () => {
+    cy.get('.request-item').first().click();
+    cy.url().should('include', '/admin/users');
+    cy.url().should('include', 'role=PROFESSIONAL');
+    cy.url().should('include', 'status=PENDING');
+    cy.url().should('include', 'itemId=request-1');
   });
 
   it('Click sur "Accepter" déclenche l\'alerte de confirmation', () => {
@@ -82,7 +95,7 @@ describe('Admin Dashboard - Tests E2E', () => {
   it('Redirection correcte des actions urgentes', () => {
     cy.get('.urgent-item.orange').within(() => {
       cy.get('.title').should('have.text', '5 demandes en attente');
-      cy.get('a.btn-light').should('have.attr', 'href', '/admin/users?role=PROFESSIONAL');
+      cy.get('a.urgent-link').should('have.attr', 'href', '/admin/users?role=PROFESSIONAL&status=PENDING');
     });
   });
 
