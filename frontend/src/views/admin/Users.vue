@@ -24,7 +24,7 @@ const importMessage = ref("");
 
 const search = ref("");
 const selectedRole = computed(() => route.query.role || "");
-const selectedStatus = ref("");
+const selectedStatus = ref(route.query.status || "");
 
 const currentPage = ref(1);
 const limit = ref(10);
@@ -77,8 +77,9 @@ const fetchUsers = async () => {
 onMounted(fetchUsers);
 
 watch(
-  () => route.query.role,
-  () => {
+  () => [route.query.role, route.query.status],
+  ([, status]) => {
+    selectedStatus.value = status || "";
     currentPage.value = 1;
     fetchUsers();
   },

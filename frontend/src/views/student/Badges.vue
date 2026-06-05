@@ -287,28 +287,32 @@ const progressPercent = (badge) => {
 }
 
 .page-header {
-  margin-bottom: 1.4rem;
+  margin-bottom: 1.125rem;
 }
 
 .page-label {
   display: inline-block;
-  color: #8f9f9c;
-  font-size: 0.82rem;
+  margin-bottom: 0.4rem;
+  color: #a8aca8;
+  font-family: serif;
+  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
   font-style: italic;
-  font-weight: 600;
-  margin-bottom: 0.35rem;
 }
 
 .page-header h1 {
+  font-family: serif;
   color: #28363d;
   font-size: 2rem;
-  font-weight: 800;
-  margin: 0 0 0.35rem;
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
 }
 
 .page-header p {
+  font-family: serif;
   color: #6d9197;
-  font-size: 1rem;
+  font-size: 0.875rem;
+  font-style: italic;
   margin: 0;
 }
 
