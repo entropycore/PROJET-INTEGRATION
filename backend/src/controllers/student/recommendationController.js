@@ -84,17 +84,3 @@ exports.updateRecommendationStatus = async (req, res, next) => {
     next(err);
   }
 };
-
-exports.updateRecommendationStatus = async (req, res, next) => {
-  try {
-    const recommendation = await studentRecommendationService.updateRecommendationStatus(
-      req.user.userId,
-      req.params.recommendationId,
-      req.body.status,
-    );
-    return success(res, 200, 'Statut de la recommandation mis a jour.', recommendation);
-  } catch (err) {
-    if (handleStudentError(res, err)) return;
-    next(err);
-  }
-};

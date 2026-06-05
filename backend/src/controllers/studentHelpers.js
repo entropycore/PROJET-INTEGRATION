@@ -9,6 +9,8 @@ const STUDENT_ERROR_RESPONSES = {
   SKILL_NOT_FOUND: [404, 'Compétence introuvable.'],
   STUDENT_SKILL_NOT_FOUND: [404, 'Compétence étudiante introuvable.'],
   STUDENT_NOTIFICATION_NOT_FOUND: [404, 'Notification étudiante introuvable.'],
+  PROFILE_PICTURE_UPLOAD_EMPTY: [400, 'Photo de profil requise.'],
+  PROFILE_PICTURE_FILE_NOT_FOUND: [404, 'Photo de profil introuvable.'],
   STAGE_VALIDATOR_NOT_FOUND: [400, 'Aucun validateur professeur disponible pour ce stage.'],
   GITHUB_NOT_CONFIGURED: [503, 'Intégration GitHub non configurée.'],
   GITHUB_TOKEN_EXCHANGE_FAILED: [502, 'Connexion GitHub impossible.'],
@@ -20,10 +22,10 @@ const STUDENT_ERROR_RESPONSES = {
   NEW_PASSWORD_TOO_SHORT: [400, 'Le nouveau mot de passe doit contenir au moins 8 caracteres.'],
   PASSWORD_CONFIRMATION_MISMATCH: [400, 'La confirmation du mot de passe ne correspond pas.'],
   CURRENT_PASSWORD_INVALID: [400, 'Le mot de passe actuel est incorrect.'],
-  NEW_PASSWORD_SAME_AS_CURRENT: [400, 'Le nouveau mot de passe doit etre different du mot de passe actuel.'],
+  NEW_PASSWORD_SAME_AS_CURRENT: [400, 'Le nouveau mot de passe doit être different du mot de passe actuel.'],
   INVALID_PROFILE_VISIBILITY: [400, 'La visibilite du profil est invalide.'],
-  INVALID_PRIVACY_BOOLEAN_VALUE: [400, 'Les preferences de confidentialite doivent etre booleennes.'],
-  INVALID_NOTIFICATION_BOOLEAN_VALUE: [400, 'Les preferences de notification doivent etre booleennes.'],
+  INVALID_PRIVACY_BOOLEAN_VALUE: [400, 'Les preferences de confidentialite doivent être booleennes.'],
+  INVALID_NOTIFICATION_BOOLEAN_VALUE: [400, 'Les preferences de notification doivent être booleennes.'],
 };
 
 const handleStudentError = (res, err) => {

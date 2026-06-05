@@ -136,6 +136,7 @@ model User {
   recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
   reportsAuthored Report[] @relation("ReportAuthor")
+  uploadedFiles UploadedFile[] @relation("UploadedFilesOwner")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -160,6 +161,33 @@ model RefreshTokenSession {
   @@index([tokenHash])
   @@index([expiresAt])
   @@map("refresh_token_sessions")
+}
+
+model UploadedFile {
+  id              String    @id @default(uuid()) @map("id_uploaded_file")
+  ownerUserId     String?   @map("owner_user_id")
+  ownerUser       User?     @relation("UploadedFilesOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  storageProvider String    @default("s3") @map("storage_provider") @db.VarChar(50)
+  bucket          String    @db.VarChar(120)
+  objectKey       String    @unique @map("object_key") @db.Text
+  originalName    String    @map("original_name") @db.VarChar(255)
+  mimeType        String    @map("mime_type") @db.VarChar(150)
+  sizeBytes       Int       @map("size_bytes")
+  checksumSha256  String?   @map("checksum_sha256") @db.VarChar(64)
+  access          String    @default("PRIVATE") @db.VarChar(30)
+  entityType      String?   @map("entity_type") @db.VarChar(80)
+  entityId        String?   @map("entity_id")
+  purpose         String?   @db.VarChar(80)
+  publicUrl       String?   @map("public_url") @db.Text
+  metadata        Json      @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  @@index([ownerUserId])
+  @@index([entityType, entityId])
+  @@index([purpose])
+  @@index([deletedAt])
+  @@map("uploaded_files")
 }
 
 model Student {

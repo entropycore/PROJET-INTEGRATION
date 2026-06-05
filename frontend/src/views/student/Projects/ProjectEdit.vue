@@ -249,9 +249,6 @@ const handleScreenshotsUpload = (event) => {
       imageUrl: URL.createObjectURL(file),
       isLocal: true,
     });
-
-    file.localMediaId = id;
-    selectedScreenshots.value.push(file);
   });
 
   event.target.value = "";
@@ -275,9 +272,6 @@ const handleAttachmentsUpload = (event) => {
       url: "#",
       isLocal: true,
     });
-
-    file.localMediaId = id;
-    selectedAttachments.value.push(file);
   });
 
   event.target.value = "";
@@ -371,6 +365,7 @@ const submitProject = async () => {
     await updateStudentProject(route.params.id, buildProjectPayload());
     await uploadPendingMedia();
     await submitStudentProject(route.params.id);
+
     router.push(`/student/projects/${route.params.id}`);
   } catch (error) {
     console.error("Erreur soumission projet :", error);

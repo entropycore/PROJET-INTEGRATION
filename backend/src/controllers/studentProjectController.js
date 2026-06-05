@@ -3,6 +3,7 @@
 const studentProjectService = require('../services/studentProjectService');
 const studentProjectMediaService = require('../services/studentProjectMediaService');
 const { success, error } = require('../utils/apiResponse');
+const sendStoredFile = require('../utils/sendStoredFile');
 
 const handleProjectError = (res, err) => {
   if (err.message === 'STUDENT_PROFILE_NOT_FOUND') {
@@ -120,12 +121,10 @@ exports.getProjectMediaContent = async (req, res, next) => {
       req.user,
       req.params.projectId,
       req.params.mediaId,
+      'inline',
     );
 
-    res.type(media.mimeType);
-    return res.sendFile(media.absolutePath, (err) => {
-      if (err) next(err);
-    });
+    return sendStoredFile(res, media, next);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);
@@ -140,9 +139,7 @@ exports.downloadProjectMedia = async (req, res, next) => {
       req.params.mediaId,
     );
 
-    return res.download(media.absolutePath, media.downloadName, (err) => {
-      if (err) next(err);
-    });
+    return sendStoredFile(res, media, next);
   } catch (err) {
     if (handleProjectError(res, err)) return;
     next(err);

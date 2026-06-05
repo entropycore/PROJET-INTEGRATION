@@ -95,16 +95,6 @@ const getStudentRecommendationOrThrow = async (userId, recommendationId) => {
 const countByStatus = (recommendations, status) =>
   recommendations.filter((recommendation) => recommendation.status === status).length;
 
-const normalizeStudentDecisionStatus = (status) => {
-  const normalizedStatus = String(status || '').trim().toUpperCase();
-
-  if (!['APPROVED', 'REJECTED'].includes(normalizedStatus)) {
-    throw new Error('INVALID_RECOMMENDATION_STATUS');
-  }
-
-  return normalizedStatus;
-};
-
 exports.listStudentRecommendations = async (userId, filters = {}) => {
   const studentId = await getStudentIdOrThrow(userId);
   const recommendations = await prisma.recommendation.findMany({
