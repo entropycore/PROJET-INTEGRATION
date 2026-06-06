@@ -134,11 +134,11 @@ const submitProject = async (projectId) => {
 
 <template>
   <section class="student-projects-page">
-    <div class="projects-page-header">
+    <div class="page-header">
       <div>
-        <p class="admin-kicker">PROJECTS</p>
+        <span class="page-label">PROJETS</span>
         <h1>Mes projets</h1>
-        <p class="admin-subtitle">
+        <p>
           Gérez vos projets académiques, personnels et professionnels.
         </p>
       </div>
