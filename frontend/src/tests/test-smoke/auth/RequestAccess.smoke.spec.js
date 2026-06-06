@@ -13,7 +13,7 @@ vi.mock("@/services/requestAccessService", () => ({
   ),
 }));
 
-describe("Smoke Tests - Demande d'accès", () => {
+describe("Tests de fumee - Demande d'acces", () => {
   let wrapper;
 
   beforeEach(() => {
