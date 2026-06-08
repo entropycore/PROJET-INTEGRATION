@@ -11,7 +11,6 @@ docker:build-push:
     BACKEND_IMAGE_LATEST: $DOCKERHUB_USERNAME/credencia-backend:$CI_COMMIT_REF_SLUG-latest
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "main")'
-      when: on_success
     - when: never
   script:
     - docker version
@@ -42,7 +41,7 @@ deploy:staging:
     - test -n "$STAGING_PATH"
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - printf '%s\n' "$STAGING_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519id_ed25519
+    - printf '%s\n' "$STAGING_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
     - ssh-keyscan -H "$STAGING_HOST" >> ~/.ssh/known_hosts
   script:
@@ -80,7 +79,7 @@ deploy:sec-prod:
     - chmod 700 ~/.ssh
     - printf '%s\n' "$SEC_SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
     - chmod 600 ~/.ssh/id_ed25519
-    - ssh-keyscan -H "$SEC_HOST" >> ~/.ssh/known_hosts
+    - ssh-keyscan -H "$SEC_HOST" >> ~/.ssh/known_hosts #la signature publique
   script:
     - test -n "$DOCKERHUB_USERNAME"
     - test -n "$DOCKERHUB_TOKEN"
