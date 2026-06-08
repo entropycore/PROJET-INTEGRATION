@@ -200,9 +200,7 @@ const submitProject = async (projectId) => {
           class="project-card"
         >
           <div class="project-card-top">
-            <span class="project-type-pill">
-              {{ getProjectTypeLabel(project.type) }}
-            </span>
+            <h2>{{ project.title }}</h2>
 
             <span
               class="project-status-pill"
@@ -212,12 +210,63 @@ const submitProject = async (projectId) => {
             </span>
           </div>
 
-          <div class="project-card-content">
-            <h2>{{ project.title }}</h2>
+          <div class="project-kind">
+            <span class="material-icons-round">category</span>
+            <strong>{{ getProjectTypeLabel(project.type) }}</strong>
+          </div>
 
+          <div class="project-card-content">
             <p class="project-description">
               {{ project.description }}
             </p>
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="project-info-grid">
+            <div class="project-info-item">
+              <span>Date de création</span>
+              <strong>
+                <span class="material-icons-round small-icon">
+                  calendar_month
+                </span>
+                {{ formatDate(project.createdAt) }}
+              </strong>
+            </div>
+
+            <div class="project-info-item">
+              <span>Type</span>
+              <strong>
+                <span class="material-icons-round small-icon">inventory_2</span>
+                {{ getProjectTypeLabel(project.type) }}
+              </strong>
+            </div>
+
+            <div class="project-info-item">
+              <span>Validateur</span>
+              <strong>
+                <span class="material-icons-round small-icon">person</span>
+                {{ getProjectValidatorName(project) || "Non assigné" }}
+              </strong>
+            </div>
+
+            <div class="project-info-item">
+              <span>Rôle</span>
+              <strong>
+                <span class="material-icons-round small-icon">badge</span>
+                {{ project.role || "Non renseigné" }}
+              </strong>
+            </div>
+          </div>
+
+          <div
+            v-if="project.technologies?.length"
+            class="project-technologies-box"
+          >
+            <div class="project-tech-title">
+              <span class="material-icons-round">code</span>
+              Technologies
+            </div>
 
             <div class="project-tech-list">
               <span
@@ -230,14 +279,10 @@ const submitProject = async (projectId) => {
             </div>
           </div>
 
-          <div class="project-meta">
-            {{ formatDate(project.createdAt) }}
-          </div>
-
           <div class="project-actions">
             <RouterLink
               :to="`/student/projects/${project.id}`"
-              class="secondary-action"
+              class="project-action-btn"
             >
               <span class="material-icons-round">visibility</span>
               Voir détails
@@ -246,7 +291,7 @@ const submitProject = async (projectId) => {
             <RouterLink
               v-if="canEditProject(project.validationStatus)"
               :to="`/student/projects/${project.id}/edit`"
-              class="secondary-action"
+              class="project-action-btn"
             >
               <span class="material-icons-round">edit</span>
               Modifier
@@ -255,7 +300,7 @@ const submitProject = async (projectId) => {
             <button
               v-if="canSubmitProject(project)"
               type="button"
-              class="primary-action"
+              class="project-submit-btn"
               @click="submitProject(project.id)"
             >
               <span class="material-icons-round">send</span>
