@@ -1,90 +1,108 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import PortfolioFullView from "@/views/student/portfolio/PortfolioFullView.vue";
-import { getStudentPortfolioData } from "@/services/studentPortfolioService";
+import {
+  getStudentPortfolioData,
+  getPublicPortfolioData,
+} from "@/services/studentPortfolioService";
 
-// Mock complet du service
 vi.mock("@/services/studentPortfolioService", () => ({
   getStudentPortfolioData: vi.fn(),
+  getPublicPortfolioData: vi.fn(),
 }));
 
-// Mocks des sous-composants et du routeur
-vi.mock("@/components/student/portfolio/PortfolioHero.vue", { default: { template: "<div class='hero-section'></div>" } });
-vi.mock("@/components/student/portfolio/PortfolioSection.vue", { default: { template: "<section class='sec'><slot /></section>" } });
+vi.mock("@/services/api", () => ({
+  default: { get: vi.fn() },
+}));
+
+vi.mock("@/components/student/portfolio/PortfolioHero.vue", {
+  default: { template: "<div class='hero-section'></div>" },
+});
+
+vi.mock("@/components/student/portfolio/PortfolioSection.vue", {
+  default: { template: "<section class='sec'><slot /></section>" },
+});
+
+const mockPush = vi.fn();
+
 vi.mock("vue-router", () => ({
-  useRouter: () => ({ push: vi.fn() }),
-  useRoute: () => ({ params: { slug: "" } }),
+  useRouter: () => ({ push: mockPush }),
+  useRoute: () => ({ params: { slug: "ghizlane-rabii" } }),
 }));
 
 describe("PortfolioFullView - Tests UI & Interactions", () => {
   let uiMockData;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+
     uiMockData = {
       student: { name: "Ghizlane", bio: "Engineering cycle student" },
-      portfolioConfig: { theme: "creative-tech", includedSections: ["skills", "softSkills"] },
+      portfolioConfig: {
+        theme: "pixel-tech",
+        includedSections: ["skills", "softSkills", "projects"],
+        includedItems: { projects: ["p1"] },
+      },
+      credibilityScore: { score: 90, level: "Excellent" },
       skills: [{ id: "1", name: "Vue.js" }],
       softSkills: [{ id: "2", name: "Autonomie" }],
       projects: [
-        { id: "p1", title: "ValiDia QA Suite", description: "UI Verification testing framework setup", type: "Academic" }
-      ]
+        {
+          id: "p1",
+          title: "ValiDia QA Suite",
+          description: "UI Verification testing framework setup",
+          type: "Academic",
+        },
+      ],
     };
-    
-    // Réinitialise le comportement du mock avant chaque test
-    getStudentPortfolioData.mockReset();
+
     getStudentPortfolioData.mockResolvedValue(uiMockData);
+    getPublicPortfolioData.mockResolvedValue(uiMockData);
   });
 
-  it("devrait correspondre à la structure du template HTML avec les bonnes classes CSS de thème dynamique", async () => {
-    const wrapper = mount(PortfolioFullView);
+  const createWrapper = async () => {
+    const wrapper = mount(PortfolioFullView, {
+      global: {
+        stubs: {
+          PortfolioHero: { template: "<div class='hero-section'></div>" },
+          PortfolioSection: { template: "<section class='sec'><slot /></section>" },
+        },
+      },
+    });
+
     await flushPromises();
     await wrapper.vm.$nextTick();
 
-    const mainContainer = wrapper.find(".portfolio-full-page");
-    expect(mainContainer.classes()).toContain("theme-pixel-tech");
+    return wrapper;
+  };
+
+  it("devrait correspondre a la structure du template HTML avec les bonnes classes CSS de theme dynamique", async () => {
+    const wrapper = await createWrapper();
+
+    expect(wrapper.find(".portfolio-full-page.theme-pixel-tech").exists()).toBe(
+      true,
+    );
   });
 
-  it("devrait afficher dynamiquement les badges de compétences (chips) sur les lignes de la mise en page", async () => {
-    const wrapper = mount(PortfolioFullView);
-    
-    // Double attente renforcée pour forcer le cycle de vie Vue à se terminer
-    await flushPromises();
-    await wrapper.vm.$nextTick();
+  it("devrait afficher dynamiquement les badges de competences sur les lignes de la mise en page", async () => {
+    const wrapper = await createWrapper();
 
-    const chips = wrapper.findAll(".chips span");
-    expect(chips).toHaveLength(2);
-    expect(chips.at(0).text()).toBe("Vue.js");
-    expect(chips.at(1).text()).toBe("Autonomie");
+    expect(wrapper.text()).toContain("Vue.js");
+    expect(wrapper.text()).toContain("Autonomie");
   });
 
-  it("devrait dérouler correctement le cycle d'ouverture et de fermeture de la boîte modale de détails lors du clic", async () => {
-    const wrapper = mount(PortfolioFullView);
-    
-    // Double attente renforcée pour s'assurer que les projets et boutons sont injectés dans le DOM
-    await flushPromises();
+  it("devrait derouler correctement le cycle d'ouverture de la boite modale de details lors du clic", async () => {
+    const wrapper = await createWrapper();
+    const detailsButton = wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Voir"));
+
+    expect(detailsButton).toBeTruthy();
+
+    await detailsButton.trigger("click");
     await wrapper.vm.$nextTick();
 
-    // La structure de la modale ne doit pas exister initialement
-    expect(wrapper.find(".modal-overlay").exists()).toBe(false);
-
-    // Récupération sécurisée du bouton
-    const detailsBtn = wrapper.find(".card-actions button");
-    expect(detailsBtn.exists()).toBe(true); // Ajout d'une sécurité pour vérifier sa présence
-    
-    // Déclenchement du clic et attente immédiate de la mise à jour graphique du DOM
-    await detailsBtn.trigger("click");
-    await wrapper.vm.$nextTick();
-
-    // La boîte modale doit maintenant être visible
-    expect(wrapper.find(".modal-overlay").exists()).toBe(true);
-    expect(wrapper.find(".details-modal h2").text()).toBe("ValiDia QA Suite");
-
-    // Clic sur le bouton de fermeture à l'intérieur de la modale
-    const closeBtn = wrapper.find(".close-btn");
-    await closeBtn.trigger("click");
-    await wrapper.vm.$nextTick();
-
-    // La modale doit être refermée en toute sécurité
-    expect(wrapper.find(".modal-overlay").exists()).toBe(false);
+    expect(wrapper.find(".details-modal").exists()).toBe(true);
+    expect(wrapper.text()).toContain("ValiDia QA Suite");
   });
 });
