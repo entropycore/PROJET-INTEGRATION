@@ -61,7 +61,10 @@ const extractFileName = (url, fallbackName) => {
   }
 };
 
-const mapMediaFile = (media, fallbackName) => ({
+const buildProfessorValidationFileUrl = (itemType, itemId, fileId, action = 'download') =>
+  `/api/professor/validations/${itemType}/${itemId}/files/${fileId}/${action}`;
+
+const mapMediaFile = (media, fallbackName, itemType, itemId) => ({
   id: media.id,
   name:
     media.fileName ||
@@ -70,16 +73,27 @@ const mapMediaFile = (media, fallbackName) => ({
   type: media.mediaType,
   mimeType: media.mimeType || '',
   size: media.fileSize || null,
-  url: media.mediaUrl,
+  url: buildProfessorValidationFileUrl(
+    itemType,
+    itemId,
+    media.id,
+    media.mediaType === 'IMAGE' || media.mediaType === 'SCREENSHOT' ? 'content' : 'download',
+  ),
 });
 
-const mapProjectFiles = (media = []) =>
-  media
+const mapProjectFiles = (project) =>
+  (project.media || [])
     .filter((item) => item?.mediaUrl)
-    .map((item, index) => mapMediaFile(item, `project-file-${index + 1}`));
+    .map((item, index) => mapMediaFile(item, `project-file-${index + 1}`, 'PROJECT', project.id));
 
 const mapInternshipFiles = (internship) => {
-  const report = internship.reportUrl
+  const reportUrl = buildProfessorValidationFileUrl(
+    'INTERNSHIP',
+    internship.id,
+    'report',
+    'download',
+  );
+  const report = internship.reportStoragePath
     ? [
         {
           id: `${internship.id}-report`,
@@ -89,14 +103,14 @@ const mapInternshipFiles = (internship) => {
           type: 'REPORT',
           mimeType: internship.reportMimeType || 'application/pdf',
           size: internship.reportFileSize || null,
-          url: internship.reportUrl,
+          url: reportUrl,
         },
       ]
     : [];
 
   const images = (internship.media || [])
     .filter((item) => item?.mediaUrl)
-    .map((item, index) => mapMediaFile(item, `stage-media-${index + 1}`));
+    .map((item, index) => mapMediaFile(item, `stage-media-${index + 1}`, 'INTERNSHIP', internship.id));
 
   return [...report, ...images];
 };
@@ -120,7 +134,7 @@ const mapProjectValidationItem = (project) => {
     content: {
       title: project.title,
       description: project.description,
-      files: mapProjectFiles(project.media),
+      files: mapProjectFiles(project),
     },
     targetDetails: {
       projectType: project.type,
