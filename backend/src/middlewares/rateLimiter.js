@@ -49,4 +49,15 @@ const forgotPasswordLimiter = isTest ? bypass : rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { globalLimiter, authLimiter, forgotPasswordLimiter };
+const resetPasswordLimiter = isTest ? bypass : rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: resolveLimit('RESET_PASSWORD_RATE_LIMIT_MAX', 5),
+  message: {
+    success: false,
+    message: 'Trop de tentatives de rÃ©initialisation, rÃ©essayez dans 15 minutes',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { globalLimiter, authLimiter, forgotPasswordLimiter, resetPasswordLimiter };
