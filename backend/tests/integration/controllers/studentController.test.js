@@ -15,15 +15,18 @@ try {
     studentController = {};
 }
 
-jest.mock('../../../src/services/studentService', () => {
+jest.mock('../../../src/services/student/dashboardService', () => {
     return {
         getStudentDashboard: jest.fn().mockResolvedValue({ area: 'student', stats: { completedPortfolios: 1 } }),
-        getStudentProfile: jest.fn().mockResolvedValue({ user: { userId: 'stu-007', email: 'student@ensa.ac.ma' } }),
-        getDashboard: jest.fn().mockResolvedValue({ area: 'student', stats: { completedPortfolios: 1 } }),
-        getProfile: jest.fn().mockResolvedValue({ user: { userId: 'stu-007', email: 'student@ensa.ac.ma' } })
     };
 });
-const studentService = require('../../../src/services/studentService');
+jest.mock('../../../src/services/student/profileService', () => {
+    return {
+        getStudentProfile: jest.fn().mockResolvedValue({ user: { userId: 'stu-007', email: 'student@ensa.ac.ma' } }),
+    };
+});
+const studentDashboardService = require('../../../src/services/student/dashboardService');
+const studentProfileService = require('../../../src/services/student/profileService');
 
 
 const mockAuth = (req, res, next) => {
