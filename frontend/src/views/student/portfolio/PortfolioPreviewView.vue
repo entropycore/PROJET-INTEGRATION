@@ -57,6 +57,29 @@ const themes = [
   },
 ];
 
+const goalLabels = {
+  WEB_DEVELOPER: "Développeur Web",
+  DEVOPS: "DevOps",
+  DATA: "Data Science",
+};
+
+const getGoalLabel = (goal) => {
+  if (!goal) return "";
+  if (typeof goal === "string") return goalLabels[goal] || goal;
+
+  const label = String(goal.label || goal.name || goal.fullName || "").trim();
+  if (label) return label;
+
+  const value = String(goal.value || "").trim();
+  return goalLabels[value] || value;
+};
+
+const getGoalValue = (goal) => {
+  if (!goal) return "";
+  if (typeof goal === "string") return goal;
+  return String(goal.value || "").trim();
+};
+
 const syncConfigFromPortfolio = (data) => {
   const portfolioConfig = data?.portfolioConfig;
 
@@ -115,11 +138,12 @@ const selectedCount = computed(() => {
 });
 
 const currentGoalLabel = computed(() => {
+  const professionalObjective = portfolioData.value?.student?.professionalObjective;
+  const goal = portfolioData.value?.student?.goal;
+
   return (
-    portfolioData.value?.student?.professionalObjective?.label ||
-    portfolioData.value?.student?.professionalObjective ||
-    portfolioData.value?.student?.goal?.label ||
-    portfolioData.value?.student?.goal ||
+    getGoalLabel(professionalObjective) ||
+    getGoalLabel(goal) ||
     "Objectif professionnel non défini"
   );
 });
@@ -153,10 +177,8 @@ const generatePortfolio = async () => {
 
   const payload = {
     goal:
-      portfolioData.value?.student?.professionalObjective?.value ||
-      portfolioData.value?.student?.professionalObjective ||
-      portfolioData.value?.student?.goal?.value ||
-      portfolioData.value?.student?.goal ||
+      getGoalValue(portfolioData.value?.student?.professionalObjective) ||
+      getGoalValue(portfolioData.value?.student?.goal) ||
       null,
     theme: config.theme,
     includedSections: [

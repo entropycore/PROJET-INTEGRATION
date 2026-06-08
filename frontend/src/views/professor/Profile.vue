@@ -41,15 +41,6 @@ const formatDate = (date) => {
 
 const displayValue = (value) => value || "Non renseigné";
 
-const statusLabels = {
-  PENDING: "En attente",
-  APPROVED: "Approuvé",
-  REJECTED: "Refusé",
-  CHANGES_REQUESTED: "Correction demandée",
-};
-
-const getStatusLabel = (status) => statusLabels[status] || status || "-";
-
 const getStatusClass = (status) => String(status || "").toLowerCase();
 
 const accountStatusLabels = {
@@ -295,97 +286,6 @@ onMounted(loadProfile);
           </div>
         </section>
 
-        <section class="profile-panel wide">
-          <h2>Stages supervisés</h2>
-
-          <div v-if="profile.supervisedInternships.length" class="table-list">
-            <article
-              v-for="internship in profile.supervisedInternships"
-              :key="internship.id"
-              class="table-row"
-            >
-              <div>
-                <strong>{{ internship.hostOrganization }}</strong>
-                <p>
-                  {{ internship.student?.fullName || "Étudiant non renseigné" }}
-                </p>
-              </div>
-              <span
-                class="status-pill"
-                :class="getStatusClass(internship.validationStatus)"
-              >
-                {{ getStatusLabel(internship.validationStatus) }}
-              </span>
-              <small>
-                {{ formatDate(internship.startDate) }} -
-                {{ formatDate(internship.endDate) }}
-              </small>
-            </article>
-          </div>
-
-          <p v-else class="empty-text">Aucun stage supervisé.</p>
-        </section>
-
-        <section class="profile-panel wide">
-          <h2>Dernières validations</h2>
-
-          <div
-            v-if="
-              profile.recentProjectValidations.length ||
-              profile.recentInternshipValidations.length
-            "
-            class="table-list"
-          >
-            <article
-              v-for="validation in profile.recentProjectValidations"
-              :key="`project-${validation.id}`"
-              class="table-row"
-            >
-              <div>
-                <strong>{{ validation.project?.title || "Projet" }}</strong>
-                <p>
-                  {{
-                    validation.project?.studentName || "Étudiant non renseigné"
-                  }}
-                </p>
-              </div>
-              <span
-                class="status-pill"
-                :class="getStatusClass(validation.decision)"
-              >
-                {{ getStatusLabel(validation.decision) }}
-              </span>
-              <small>{{ formatDate(validation.decisionDate) }}</small>
-            </article>
-
-            <article
-              v-for="validation in profile.recentInternshipValidations"
-              :key="`internship-${validation.id}`"
-              class="table-row"
-            >
-              <div>
-                <strong>{{
-                  validation.internship?.hostOrganization || "Stage"
-                }}</strong>
-                <p>
-                  {{
-                    validation.internship?.studentName ||
-                    "Étudiant non renseigné"
-                  }}
-                </p>
-              </div>
-              <span
-                class="status-pill"
-                :class="getStatusClass(validation.decision)"
-              >
-                {{ getStatusLabel(validation.decision) }}
-              </span>
-              <small>{{ formatDate(validation.decisionDate) }}</small>
-            </article>
-          </div>
-
-          <p v-else class="empty-text">Aucune validation récente.</p>
-        </section>
       </div>
     </template>
   </section>
@@ -536,18 +436,26 @@ onMounted(loadProfile);
 }
 
 .profile-panel {
-  padding: 1.1rem;
+  padding: 1.3rem;
   min-width: 0;
 }
 
-.profile-panel.wide {
-  grid-column: 1 / -1;
+.profile-panel h2 {
+  margin: 0 0 1.15rem;
+  color: var(--app-primary);
+  font-family: var(--app-font-body);
+  font-size: 1rem;
+  font-weight: 900;
 }
 
-.profile-panel h2 {
-  margin: 0 0 1rem;
-  color: var(--app-heading);
-  font-size: var(--app-text-lg);
+.profile-panel h2::after {
+  content: "";
+  display: block;
+  width: 2.7rem;
+  height: 3px;
+  margin-top: 0.45rem;
+  border-radius: var(--app-radius-pill);
+  background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
 }
 
 .secondary-btn {
@@ -579,32 +487,41 @@ onMounted(loadProfile);
 
 .info-list {
   display: grid;
-  gap: 0.85rem;
+  gap: 0;
 }
 
 .info-list > div {
-  min-height: 3.25rem;
-  padding: 0.7rem 0.8rem;
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-md);
-  background: var(--app-surface-soft);
+  min-height: 3rem;
+  display: grid;
+  grid-template-columns: minmax(8.5rem, 40%) minmax(0, 1fr);
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--app-neutral-bg);
+}
+
+.info-list > div:last-child {
+  border-bottom: 0;
 }
 
 .info-list span {
-  display: block;
-  margin-bottom: 0.25rem;
+  margin: 0;
   color: var(--app-muted);
-  font-size: var(--app-text-xs);
-  font-weight: 800;
+  font-size: var(--app-text-sm);
+  font-weight: 600;
 }
 
 .info-list strong {
-  color: var(--app-text);
+  color: var(--app-heading);
+  font-size: var(--app-text-md);
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .info-list strong.is-empty {
   color: var(--app-muted);
   font-weight: 600;
+  font-style: italic;
 }
 
 .account-status-pill {
@@ -637,80 +554,8 @@ onMounted(loadProfile);
   color: var(--app-warning);
 }
 
-.table-list {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.table-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 1rem;
-  align-items: center;
-  padding: 0.8rem;
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-md);
-  background: var(--app-surface-soft);
-}
-
-.table-row > div {
-  min-width: 0;
-}
-
-.table-row strong {
-  color: var(--app-heading);
-  overflow-wrap: anywhere;
-}
-
-.table-row p {
-  margin: 0.2rem 0 0;
-  color: var(--app-muted);
-  font-size: var(--app-text-sm);
-}
-
-.status-pill {
-  width: fit-content;
-  min-height: 1.75rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--app-radius-pill);
-  padding: 0 0.7rem;
-  background: var(--app-warning-bg);
-  color: var(--app-warning);
-  font-size: var(--app-text-xs);
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.status-pill.approved {
-  background: var(--app-active-bg);
-  color: var(--app-active);
-}
-
-.status-pill.rejected {
-  background: var(--app-error-bg);
-  color: var(--app-error);
-}
-
-.status-pill.pending,
-.status-pill.changes_requested {
-  background: var(--app-warning-bg);
-  color: var(--app-warning);
-}
-
-.table-row small,
-.empty-text,
 .state-card {
   color: var(--app-muted);
-}
-
-.empty-text {
-  margin: 0;
-  padding: 1rem;
-  border: 1px dashed var(--app-border);
-  border-radius: var(--app-radius-md);
-  background: var(--app-surface-soft);
 }
 
 .state-card {
@@ -722,10 +567,8 @@ onMounted(loadProfile);
 }
 
 @media (max-width: 760px) {
-  .profile-header,
-  .table-row {
+  .profile-header {
     align-items: flex-start;
-    grid-template-columns: 1fr;
     flex-direction: column;
   }
 
@@ -739,6 +582,14 @@ onMounted(loadProfile);
 
   .profile-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .info-list > div {
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+    padding: 0.55rem 0;
   }
 }
 </style>
