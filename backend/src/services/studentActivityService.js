@@ -3,7 +3,7 @@
 const prisma = require('../config/prisma');
 const {
   deleteActivityCertificate,
-  getActivityCertificatePath,
+  getActivityCertificateTarget,
   storeActivityCertificate,
 } = require('./student/activityCertificateStorage');
 
@@ -356,7 +356,11 @@ const getActivityCertificateFile = async (userId, activityId) => {
   }
 
   return {
-    absolutePath: getActivityCertificatePath(certificate.storagePath),
+    target: await getActivityCertificateTarget(certificate.storagePath, {
+      originalName: certificate.fileName || 'attestation',
+      mimeType: certificate.mimeType || 'application/octet-stream',
+      contentDisposition: 'attachment',
+    }),
     downloadName: certificate.fileName || 'attestation',
     mimeType: certificate.mimeType || 'application/octet-stream',
   };
