@@ -137,6 +137,7 @@ model User {
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
   reportsAuthored Report[] @relation("ReportAuthor")
   uploadedFiles UploadedFile[] @relation("UploadedFilesOwner")
+  notifications Notification[] @relation("UserNotifications")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -217,6 +218,7 @@ model Student {
   recommendationLetters RecommendationLetter[]
   portfolio       Portfolio?
   recommendations Recommendation[]
+  studentBadges   StudentBadge[]
 
   @@map("students")
 }
@@ -702,6 +704,8 @@ model Notification {
   id              String           @id @default(uuid()) @map("id_notification")
   administratorId String?          @map("administrator_id")
   administrator   Administrator?   @relation(fields: [administratorId], references: [id], onDelete: SetNull)
+  userId          String?          @map("user_id")
+  user            User?            @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
   type            NotificationType
   title           String           @db.VarChar(200)
   message         String           @db.Text
@@ -712,8 +716,10 @@ model Notification {
   readAt          DateTime?        @map("read_at")
 
   @@index([administratorId])
+  @@index([userId])
   @@index([type])
   @@index([isRead, createdAt])
+  @@index([userId, isRead, createdAt])
   @@index([relatedType, relatedId])
   @@map("notifications")
 }
@@ -727,9 +733,31 @@ model Badge {
   tone        String   @default("blue") @db.VarChar(50)
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+  studentBadges StudentBadge[]
 
   @@index([createdAt])
   @@map("badges")
+}
+
+model StudentBadge {
+  id              String    @id @default(uuid()) @map("id_student_badge")
+  studentId       String    @map("student_id")
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badgeId         String    @map("badge_id")
+  badge           Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  isObtained      Boolean   @default(false) @map("is_obtained")
+  progressCurrent Int       @default(0) @map("progress_current")
+  progressTarget  Int       @default(1) @map("progress_target")
+  obtainedAt      DateTime? @map("obtained_at")
+  lastEvaluatedAt DateTime  @default(now()) @map("last_evaluated_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@unique([studentId, badgeId])
+  @@index([studentId])
+  @@index([badgeId])
+  @@index([isObtained])
+  @@map("student_badges")
 }
 
 model SystemSettings {
