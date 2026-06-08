@@ -4,3 +4,4 @@ Dockerfile
 uploads/
 coverage/
 src/logs/*.log
+src/generated/prisma/

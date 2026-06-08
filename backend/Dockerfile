@@ -5,10 +5,8 @@ WORKDIR /app
 COPY --chown=node:node package*.json ./
 RUN npm install
 
-COPY --chown=node:node prisma ./prisma
-RUN npx prisma generate
-
 COPY --chown=node:node . .
+RUN npx prisma generate
 
 USER node
 
