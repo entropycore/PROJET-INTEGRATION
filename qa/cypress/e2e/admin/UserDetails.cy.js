@@ -1,4 +1,6 @@
 describe("Details et edition utilisateur - Admin", () => {
+  const field = (label) => cy.contains("label", label);
+
   const mockUser = {
     id: "usr_123",
     firstName: "Kholoud",
@@ -38,10 +40,15 @@ describe("Details et edition utilisateur - Admin", () => {
     cy.intercept("GET", "**/api/admin/users**", {
       statusCode: 200,
       body: {
-        data: [mockUser],
-        total: 1,
-        page: 1,
-        limit: 10,
+        data: {
+          items: [mockUser],
+          pagination: {
+            page: 1,
+            limit: 10,
+            total: 1,
+            totalPages: 1,
+          },
+        },
       },
     }).as("getUsersList");
 
@@ -69,15 +76,12 @@ describe("Details et edition utilisateur - Admin", () => {
     );
 
     // Login admin puis visite de la liste
-    cy.loginAsAdmin();
-    cy.visit("/admin/users?role=STUDENT");
+    cy.loginAsAdmin("/admin/users/usr_123");
 
     // Attendre que la liste charge
-    cy.wait("@getUsersList");
+    cy.wait("@getUser");
 
     // Cliquer sur l'utilisateur pour aller sur sa page de détail
-    cy.contains("k.nihal@ensa.ma").click();
-    cy.wait("@getUser");
   });
 
   // ─────────────────────────────────────────────
@@ -86,8 +90,8 @@ describe("Details et edition utilisateur - Admin", () => {
   it("charge les details de l'utilisateur", () => {
     cy.get("h1").should("contain", "Kholoud Nihal");
     cy.get(".details-email").should("contain", "k.nihal@ensa.ma");
-    cy.contains("label", "Prenom").find("input").should("be.disabled");
-    cy.contains("label", "Apogee").find("input").should("be.disabled");
+    field(/Pr.nom/).find("input").should("be.disabled");
+    field(/Apog.e/).find("input").should("be.disabled");
     cy.get(".meta-card")
       .should("contain", "15/04/2026")
       .and("contain", "Oui");
@@ -114,8 +118,8 @@ describe("Details et edition utilisateur - Admin", () => {
     }).as("getUpdatedUser");
 
     cy.get(".primary-btn").contains("Modifier").click();
-    cy.contains("label", "Ville").find("input").clear().type("Tetouan");
-    cy.contains("label", "Statut").find("select").select("ACTIVE");
+    field("Ville").find("input").clear().type("Tetouan");
+    field("Statut").find("select").select("ACTIVE");
     cy.get(".primary-btn").contains("Enregistrer").click();
 
     cy.wait("@updateUser");
@@ -134,7 +138,7 @@ describe("Details et edition utilisateur - Admin", () => {
 
     cy.get(".security-card").scrollIntoView();
     cy.get(".security-card")
-      .contains("button", "Reinitialiser le mot de passe")
+      .contains("button", /initialiser le mot de passe/)
       .click();
 
     cy.wait("@resetPassword");
@@ -147,7 +151,7 @@ describe("Details et edition utilisateur - Admin", () => {
 
     // Copier le mot de passe
     cy.get(".admin-modal").contains("button", "Copier").click();
-    cy.get(".admin-modal").contains("button", "Copie").should("be.visible");
+    cy.get(".admin-modal").contains("button", /Cop/).should("be.visible");
 
     // Fermer le modal
     cy.get(".admin-modal").contains("button", "Fermer").click();

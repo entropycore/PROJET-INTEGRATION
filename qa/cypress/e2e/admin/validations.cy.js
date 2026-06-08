@@ -14,6 +14,8 @@ describe("Centre de validations - Admin", () => {
         title: "Projet Fin d'Annee - ValiDia",
         targetType: "PROJECT",
         status: "PENDING",
+        submittedAt: "2026-06-01T10:00:00.000Z",
+        description: "Validation projet en attente",
         student: {
           fullName: "Ghizlane Rabii",
           email: "g.rabii@ensa.ma",
@@ -24,6 +26,8 @@ describe("Centre de validations - Admin", () => {
         title: "Certification AWS Cloud Practitioner",
         targetType: "CERTIFICATE",
         status: "PENDING",
+        submittedAt: "2026-06-02T10:00:00.000Z",
+        description: "Validation certification en attente",
         student: {
           fullName: "Kholoud Nihal",
           email: "k.nihal@ensa.ma",
@@ -43,6 +47,11 @@ describe("Centre de validations - Admin", () => {
       email: "g.rabii@ensa.ma",
     },
     description: "Implementation des tests QA d'integration sous Cypress.",
+  };
+
+  const openFirstActionsMenu = () => {
+    cy.get(".validations-table .actions-trigger").first().click();
+    cy.get(".actions-dropdown-menu").first().should("be.visible");
   };
 
   beforeEach(() => {
@@ -78,7 +87,8 @@ describe("Centre de validations - Admin", () => {
       data: mockDetailedValidation,
     }).as("getDetails");
 
-    cy.get(".validations-page").contains("button", /Voir|Visualiser/i).first().click();
+    openFirstActionsMenu();
+    cy.get(".actions-dropdown-menu").first().contains("button", /Voir/i).click();
     cy.wait("@getDetails");
 
     cy.get("body").should(
@@ -89,7 +99,7 @@ describe("Centre de validations - Admin", () => {
       "contain",
       "Implementation des tests QA d'integration sous Cypress.",
     );
-    cy.get("body").contains("button", /Fermer|Close/i).click();
+    cy.get(".modal .close-btn").click();
   });
 
   it("gere le flux d'approbation", () => {
@@ -100,7 +110,8 @@ describe("Centre de validations - Admin", () => {
       statusCode: 200,
     }).as("approveApi");
 
-    cy.get(".validations-page").contains("button", /Voir/i).first().click();
+    openFirstActionsMenu();
+    cy.get(".actions-dropdown-menu").first().contains("button", /Voir/i).click();
     cy.wait("@getDetails");
     cy.on("window:confirm", () => true);
     cy.get("body").contains("button", /Approuver/i).click();
@@ -119,12 +130,13 @@ describe("Centre de validations - Admin", () => {
       { statusCode: 200 },
     ).as("changesApi");
 
-    cy.get(".validations-page").contains("button", /Voir/i).first().click();
+    openFirstActionsMenu();
+    cy.get(".actions-dropdown-menu").first().contains("button", /Voir/i).click();
     cy.wait("@getDetails");
     cy.window().then((win) => {
       cy.stub(win, "prompt").returns("Veuillez ajouter le rapport PDF manquant.");
     });
-    cy.get("body").contains("button", /Correction/i).click();
+    cy.get(".modal").contains("button", /correction/i).click();
 
     cy.wait("@changesApi");
     cy.wait(["@getValidations", "@getStats"]);

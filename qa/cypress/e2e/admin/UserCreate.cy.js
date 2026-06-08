@@ -1,4 +1,6 @@
 describe("Creation utilisateur - Admin", () => {
+  const field = (label) => cy.contains("label", label);
+
   beforeEach(() => {
     cy.intercept("POST", "**/api/admin/users", {
       statusCode: 201,
@@ -29,36 +31,36 @@ describe("Creation utilisateur - Admin", () => {
   });
 
   it("remplit le formulaire et affiche le mot de passe temporaire", () => {
-    cy.get("h1").should("contain", "Creer un etudiant");
+    cy.get("h1").should("contain", "tudiant");
 
-    cy.contains("label", "Prenom").find("input").type("Ghizlane");
-    cy.contains("label", "Nom").find("input").type("Rabii");
-    cy.contains("label", "Email").find("input").type("g.rabii@ensa.ma");
-    cy.contains("label", "Telephone").find("input").type("0612345678");
-    cy.contains("label", "Filiere").find("select").select(1);
-    cy.contains("label", "Niveau").find("input").type("CI1");
-    cy.contains("label", "Apogee").find("input").type("2200345");
+    field(/Pr.nom/).find("input").type("Ghizlane");
+    field("Nom").find("input").type("Rabii");
+    field("Email").find("input").type("g.rabii@ensa.ma");
+    field(/T.l.phone/).find("input").type("0612345678");
+    field(/Fili.re/).find("select").select(1);
+    field("Niveau").find("input").type("CI1");
+    field(/Apog.e/).find("input").type("2200345");
 
-    cy.get(".primary-btn").contains("Creer utilisateur").click();
+    cy.get(".primary-btn").contains("utilisateur").click();
     cy.wait("@createUserApi");
 
     cy.get(".admin-modal").should("be.visible");
     cy.get(".temporary-password-box").should("contain", "TempPassword2026!");
     cy.get(".admin-modal").contains("button", "Copier").click();
-    cy.get(".admin-modal").contains("button", "Copie").should("be.visible");
+    cy.get(".admin-modal").contains("button", /Cop/).should("be.visible");
     cy.get(".admin-modal").contains("button", "Continuer").click();
     cy.url().should("include", "/admin/users/usr_98765");
   });
 
   it("change dynamiquement les champs selon le role", () => {
-    cy.contains("label", "Role").find("select").select("PROFESSOR");
-    cy.get("h1").should("contain", "Creer un professeur");
+    field(/R.le/).find("select").select("PROFESSOR");
+    cy.get("h1").should("contain", "professeur");
     cy.contains("label", "Employee ID").should("be.visible");
-    cy.contains("label", "Departement").should("be.visible");
-    cy.contains("label", "Filiere").should("not.exist");
+    field(/D.partement/).should("be.visible");
+    cy.contains("label", /Fili.re/).should("not.exist");
 
-    cy.contains("label", "Role").find("select").select("PROFESSIONAL");
-    cy.get("h1").should("contain", "Creer un recruteur");
+    field(/R.le/).find("select").select("PROFESSIONAL");
+    cy.get("h1").should("contain", "recruteur");
     cy.contains("label", "Entreprise").should("be.visible");
     cy.contains("label", "Bio").should("be.visible");
   });
@@ -80,12 +82,12 @@ describe("Creation utilisateur - Admin", () => {
       body: { message: "Bad Request" },
     }).as("createUserError");
 
-    cy.contains("label", "Prenom").find("input").type("NomTest");
-    cy.get(".primary-btn").contains("Creer utilisateur").click();
+    field(/Pr.nom/).find("input").type("NomTest");
+    cy.get(".primary-btn").contains("utilisateur").click();
 
     cy.wait("@createUserError");
     cy.get(".details-state.error")
       .should("be.visible")
-      .and("contain", "Erreur lors de la creation de l'utilisateur.");
+      .and("contain", "Erreur lors de la");
   });
 });

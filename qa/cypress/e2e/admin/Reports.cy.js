@@ -2,9 +2,45 @@ describe("Gestion des signalements - Admin", () => {
   const reportsResponse = {
     data: {
       items: [
-        { id: "1", type: "POST", status: "PENDING", description: "Contenu inapproprie" },
-        { id: "2", type: "COMMENT", status: "RESOLVED", description: "Insulte textuelle" },
-        { id: "3", type: "USER", status: "REJECTED", description: "Faux profil" },
+        {
+          id: "1",
+          targetType: "PROJECT",
+          targetId: "project_1",
+          status: "PENDING",
+          reason: "Contenu inapproprie",
+          description: "Contenu inapproprie",
+          createdAt: "2026-06-01T10:00:00.000Z",
+          reportedBy: {
+            fullName: "Utilisateur123",
+            email: "user123@example.com",
+          },
+        },
+        {
+          id: "2",
+          targetType: "COMMENT",
+          targetId: "comment_2",
+          status: "RESOLVED",
+          reason: "Insulte textuelle",
+          description: "Insulte textuelle",
+          createdAt: "2026-06-02T10:00:00.000Z",
+          reportedBy: {
+            fullName: "Moderateur Test",
+            email: "moderateur@example.com",
+          },
+        },
+        {
+          id: "3",
+          targetType: "USER",
+          targetId: "user_3",
+          status: "REJECTED",
+          reason: "Faux profil",
+          description: "Faux profil",
+          createdAt: "2026-06-03T10:00:00.000Z",
+          reportedBy: {
+            fullName: "Signalant Test",
+            email: "signalant@example.com",
+          },
+        },
       ],
     },
   };
@@ -12,11 +48,21 @@ describe("Gestion des signalements - Admin", () => {
   const reportDetails = {
     data: {
       id: "1",
-      type: "POST",
+      targetType: "PROJECT",
+      targetId: "project_1",
       status: "PENDING",
+      reason: "Contenu inapproprie",
       description: "Contenu inapproprie",
-      user: "Utilisateur123",
+      createdAt: "2026-06-01T10:00:00.000Z",
+      reportedBy: {
+        fullName: "Utilisateur123",
+        email: "user123@example.com",
+      },
     },
+  };
+
+  const openFirstActionsMenu = () => {
+    cy.get(".reports-table .actions-trigger").first().click();
   };
 
   beforeEach(() => {
@@ -39,7 +85,8 @@ describe("Gestion des signalements - Admin", () => {
     );
     cy.on("window:confirm", () => true);
 
-    cy.get(".table-card").contains("voir", { matchCase: false }).first().click();
+    openFirstActionsMenu();
+    cy.get(".actions-dropdown-menu").contains("Voir details").click();
     cy.wait("@getReportDetails");
     cy.contains("button", /traite|traiter/i).click();
     cy.wait("@resolveReport");
@@ -55,7 +102,8 @@ describe("Gestion des signalements - Admin", () => {
       cy.stub(win, "prompt").returns("Ce contenu ne viole pas nos conditions.");
     });
 
-    cy.get(".table-card").contains("voir", { matchCase: false }).first().click();
+    openFirstActionsMenu();
+    cy.get(".actions-dropdown-menu").contains("Voir details").click();
     cy.wait("@getReportDetails");
     cy.contains("button", /rejeter/i).click();
     cy.wait("@rejectReport");
