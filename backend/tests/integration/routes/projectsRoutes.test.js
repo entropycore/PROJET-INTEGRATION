@@ -4,6 +4,7 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const { Readable } = require('stream');
 
 process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'test-access-secret';
 
@@ -36,6 +37,12 @@ const makeToken = (role = 'STUDENT', roleId = 40) =>
 const studentToken = makeToken();
 
 beforeEach(() => jest.clearAllMocks());
+
+const buildStreamTarget = (contentDisposition = 'inline') => ({
+  mode: 'stream',
+  stream: Readable.from(Buffer.from('file')),
+  contentDisposition,
+});
 
 describe("Tests d'Intégration - Routes Projets (projectsRoutes)", () => {
 
@@ -187,8 +194,9 @@ describe("Tests d'Intégration - Routes Projets (projectsRoutes)", () => {
     describe('GET /:projectId/media/:mediaId/content', () => {
       it('TC-STU-PROJ-10 : getProjectMediaContent -> 200', async () => {
         studentProjectMediaService.getProjectMediaFile.mockResolvedValue({
-          absolutePath: __filename,
-          mimeType: 'image/png'
+          target: buildStreamTarget('inline'),
+          mimeType: 'image/png',
+          downloadName: 'file.png',
         });
 
         const res = await request(app)
@@ -199,7 +207,8 @@ describe("Tests d'Intégration - Routes Projets (projectsRoutes)", () => {
         expect(studentProjectMediaService.getProjectMediaFile).toHaveBeenCalledWith(
           expect.objectContaining({ userId: 1, role: 'STUDENT' }),
           'p1',
-          'm1'
+          'm1',
+          'inline'
         );
       });
     });
@@ -207,8 +216,8 @@ describe("Tests d'Intégration - Routes Projets (projectsRoutes)", () => {
     describe('GET /:projectId/media/:mediaId/download', () => {
       it('TC-STU-PROJ-11 : downloadProjectMedia -> 200', async () => {
         studentProjectMediaService.getProjectMediaFile.mockResolvedValue({
-          absolutePath: __filename,
-          downloadName: 'file.png'
+          target: buildStreamTarget('attachment'),
+          downloadName: 'file.png',
         });
 
         const res = await request(app)

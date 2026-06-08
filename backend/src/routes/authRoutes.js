@@ -3,12 +3,17 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const verifyRefreshToken = require('../middlewares/verifyRefreshToken');
+const { generateCsrfToken } = require('../middlewares/csrfProtection');
 
 const { authLimiter, forgotPasswordLimiter } = require('../middlewares/rateLimiter'); 
 
 
 const { validationRules, handleValidationErrors } = require('../middlewares/validationRules');
 
+router.get('/csrf-token', (req, res) => {
+  const csrfToken = generateCsrfToken(req, res);
+  res.status(200).json({ success: true, csrfToken });
+});
 
 router.post('/register', authLimiter, validationRules('register'), handleValidationErrors, authController.register);
 router.post(

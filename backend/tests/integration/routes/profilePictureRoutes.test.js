@@ -3,7 +3,7 @@
 const request = require('supertest');
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const path = require('path');
+const { Readable } = require('stream');
 
 jest.mock('../../../src/logs/logger', () => ({
   info: jest.fn(),
@@ -30,13 +30,18 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+const buildStreamTarget = () => ({
+  mode: 'stream',
+  stream: Readable.from(Buffer.from('image')),
+  contentDisposition: 'inline',
+});
+
 describe("Tests d'Intégration - Routes Photos de Profil (profilePictureRoutes)", () => {
 
   describe('Endpoints Logic', () => {
 
     it('TC-PIC-01 : getProfilePicture -> 200', async () => {
-      // Use __filename (which is this test file) as a valid path to verify res.sendFile works
-      getProfilePicturePath.mockReturnValue(__filename);
+      getProfilePicturePath.mockReturnValue(buildStreamTarget());
 
       const res = await request(app).get('/api/profile-pictures/test.jpg');
 

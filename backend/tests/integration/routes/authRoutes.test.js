@@ -1,6 +1,7 @@
 'use strict';
 
 const request = require('supertest');
+const jwt = require('jsonwebtoken');
 const app = require('../../../src/server');
 const prisma = require('../../../src/config/prisma');
 
@@ -279,41 +280,33 @@ describe('AUTH - POST /forgot-password', () => {
 // POST /api/auth/reset-password
 // *************************
 describe('AUTH - POST /reset-password', () => {
-  const MOCK_RESET_TOKEN = `token_${timestamp}`;
-
-  beforeAll(async () => {
-    await prisma.user.update({
-      where: { email: TEST_EMAIL },
-      data: {
-        resetPasswordToken: MOCK_RESET_TOKEN,
-        resetPasswordExpires: new Date(Date.now() + 3600000) // +1 heure
-      }
-    });
-  });
-
-  
-  
+  const buildResetToken = async () => {
+    const user = await prisma.user.findUnique({ where: { email: TEST_EMAIL } });
+    return jwt.sign(
+      { userId: user.id, email: user.email, purpose: 'password-reset' },
+      process.env.EMAIL_TOKEN_SECRET || process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '1h' }
+    );
+  };
 
   test('TC-AUTH-RP-01 : Token invalide -> 400', async () => {
     const res = await request(app)
       .post('/api/auth/reset-password')
       .send({
         token: 'wrong_token',
-        password: 'NewStrongPassword@2026',
-        confirmPassword: 'NewStrongPassword@2026'
+        newPassword: 'NewStrongPassword@2026',
       });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.success).toBe(false);
   });
 
-  test('TC-AUTH-RP-02 : Validation - Passwords ne correspondent pas -> 400', async () => {
+  test('TC-AUTH-RP-02 : Validation - nouveau mot de passe trop faible -> 400', async () => {
     const res = await request(app)
       .post('/api/auth/reset-password')
       .send({
-        token: MOCK_RESET_TOKEN,
-        password: 'NewStrongPassword@2026',
-        confirmPassword: 'DifferentPassword'
+        token: await buildResetToken(),
+        newPassword: 'short',
       });
 
     expect(res.statusCode).toBe(400);

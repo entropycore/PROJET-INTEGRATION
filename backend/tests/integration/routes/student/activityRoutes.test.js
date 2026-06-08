@@ -4,6 +4,7 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const { Readable } = require('stream');
 
 process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'test-access-secret';
 
@@ -35,6 +36,12 @@ const makeToken = (role = 'STUDENT', roleId = 40) =>
 const studentToken = makeToken();
 
 beforeEach(() => jest.clearAllMocks());
+
+const buildStreamTarget = () => ({
+  mode: 'stream',
+  stream: Readable.from(Buffer.from('file')),
+  contentDisposition: 'attachment',
+});
 
 describe("Tests d'Intégration - Routes Activités Étudiant (activityRoutes)", () => {
 
@@ -197,8 +204,9 @@ describe("Tests d'Intégration - Routes Activités Étudiant (activityRoutes)", 
     describe('GET /activities/:activityId/certificate/download', () => {
       it('TC-STU-ACT-11 : Téléchargement attestation -> 200', async () => {
         studentActivityService.getActivityCertificateFile.mockResolvedValue({
-          absolutePath: __filename, // Utilise ce fichier de test comme fichier bidon à télécharger
-          downloadName: 'test.pdf'
+          target: buildStreamTarget(),
+          downloadName: 'test.pdf',
+          mimeType: 'application/pdf',
         });
 
         const res = await request(app)

@@ -5,8 +5,8 @@ const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 
-require('dotenv').config();
-jest.mock('../../../src/services/studentService', () => ({
+require('../../../src/config/loadEnv');
+jest.mock('../../../src/services/student/dashboardService', () => ({
   getStudentDashboard: jest.fn().mockResolvedValue({
     area: 'student',
     user: { id: 7, firstName: 'Najim', lastName: 'QA' },
@@ -17,6 +17,9 @@ jest.mock('../../../src/services/studentService', () => ({
     },
     projects: []
   }),
+}));
+
+jest.mock('../../../src/services/student/profileService', () => ({
   getStudentProfile: jest.fn().mockResolvedValue({
     user: { id: 7, firstName: 'Najim', email: 'student@ensa.ac.ma' },
     profile: { major: 'Informatique', level: '5th Year' },
@@ -31,6 +34,8 @@ jest.mock('../../../src/logs/logger', () => ({
 }));
 
 const studentRouter = require('../../../src/routes/studentRoutes');
+const studentDashboardService = require('../../../src/services/student/dashboardService');
+const studentProfileService = require('../../../src/services/student/profileService');
 
 const app = express();
 app.use(express.json());
@@ -87,6 +92,7 @@ describe("Tests d'Intégration - Routes Étudiant", () => {
       expect(res.status).toBe(200);
       expect(res.body.data.area).toBe('student');
       expect(res.body.data.user).toBeDefined();
+      expect(studentDashboardService.getStudentDashboard).toHaveBeenCalledWith(1);
     });
 
     it('TC-STU-05 : Étudiant accède au Profil → 200 OK', async () => {
@@ -95,6 +101,7 @@ describe("Tests d'Intégration - Routes Étudiant", () => {
         .set('Cookie', `accessToken=${studentToken}`);
       expect(res.status).toBe(200);
       expect(res.body.data.user).toBeDefined();
+      expect(studentProfileService.getStudentProfile).toHaveBeenCalledWith(1);
     });
 
   });

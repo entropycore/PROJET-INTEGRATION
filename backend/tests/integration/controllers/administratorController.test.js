@@ -30,7 +30,10 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
 
         test('TC-ADM-01 : Récupération réussie de la liste des demandes en attente', async () => {
             // BUT: Vérifier que l'admin peut lister les demandes avec le statut par défaut (PENDING)
-            administratorService.listProfessionalRequests.mockResolvedValue([{ id: 1, status: 'PENDING' }]);
+            administratorService.listProfessionalRequests.mockResolvedValue({
+                requests: [{ id: 1, status: 'PENDING' }],
+                pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
+            });
 
             const res = await request(app).get('/api/admin/professional-requests?status=PENDING');
 
@@ -92,7 +95,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
             // BUT: Vérifier que le système informe correctement l'admin si l'ID de la demande n'existe pas dans la base
             administratorService.getProfessionalRequest.mockRejectedValue(new Error('REQUEST_NOT_FOUND'));
 
-            const res = await request(app).get('/api/admin/requests/unknown-user');
+            const res = await request(app).get('/api/admin/professional-requests/unknown-user');
 
             expect(res.statusCode).toBe(404);
             expect(res.body.message).toMatch(/introuvable/i);
