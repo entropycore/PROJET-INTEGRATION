@@ -6,6 +6,15 @@ import { getStudentBadges } from "@/services/studentDashboardService";
 const selectedFilter = ref("ALL");
 const isLoading = ref(false);
 
+const BADGE_ICONS = {
+  "Web Developer": "terminal",
+  "DevOps Explorer": "cloud_sync",
+  "Hackathon Participant": "groups",
+  "Full Stack Developer": "developer_mode",
+  "Security Aware": "security",
+  "AI / Data": "analytics",
+};
+
 const mockBadges = [
   {
     id: 1,
@@ -13,8 +22,7 @@ const mockBadges = [
     description: "Badge pour les étudiants actifs en développement web.",
     rule: "3 projets web validés",
     iconUrl: "",
-    iconFallback: "🌐",
-    tone: "blue",
+    icon: "terminal",
     isObtained: true,
     obtainedAt: "Mars 2025",
     progress: { current: 3, target: 3 },
@@ -25,8 +33,7 @@ const mockBadges = [
     description: "Badge lié aux outils DevOps.",
     rule: "Projet avec Docker + pipeline CI/CD + dépôt GitHub",
     iconUrl: "",
-    iconFallback: "☁️",
-    tone: "cyan",
+    icon: "cloud_sync",
     isObtained: true,
     obtainedAt: "Avr 2025",
     progress: { current: 3, target: 3 },
@@ -37,8 +44,7 @@ const mockBadges = [
     description: "Badge pour participation aux événements.",
     rule: "Participation à un hackathon avec attestation vérifiée",
     iconUrl: "",
-    iconFallback: "👥",
-    tone: "purple",
+    icon: "groups",
     isObtained: true,
     obtainedAt: "Fév 2025",
     progress: { current: 1, target: 1 },
@@ -49,8 +55,7 @@ const mockBadges = [
     description: "Badge lié aux compétences frontend et backend.",
     rule: "Projets frontend ET backend validés",
     iconUrl: "",
-    iconFallback: "💠",
-    tone: "green",
+    icon: "developer_mode",
     isObtained: false,
     obtainedAt: null,
     progress: { current: 1, target: 2 },
@@ -61,8 +66,7 @@ const mockBadges = [
     description: "Badge lié aux bonnes pratiques de cybersécurité.",
     rule: "Projet avec bonnes pratiques OWASP documentées",
     iconUrl: "",
-    iconFallback: "🛡️",
-    tone: "red",
+    icon: "security",
     isObtained: false,
     obtainedAt: null,
     progress: { current: 0, target: 1 },
@@ -73,8 +77,7 @@ const mockBadges = [
     description: "Badge lié aux projets IA ou Data Science.",
     rule: "Projet en IA ou Data Science validé",
     iconUrl: "",
-    iconFallback: "📊",
-    tone: "orange",
+    icon: "analytics",
     isObtained: false,
     obtainedAt: null,
     progress: { current: 0, target: 1 },
@@ -107,63 +110,78 @@ const obtainedBadges = computed(() => {
   return badges.value.filter((badge) => badge.isObtained);
 });
 
+const inProgressBadges = computed(() => {
+  return badges.value.filter(
+    (badge) => !badge.isObtained && Number(badge.progress?.current || 0) > 0,
+  );
+});
+
 const lockedBadges = computed(() => {
-  return badges.value.filter((badge) => !badge.isObtained);
+  return badges.value.filter(
+    (badge) => !badge.isObtained && Number(badge.progress?.current || 0) === 0,
+  );
 });
 
 const filteredBadges = computed(() => {
   if (selectedFilter.value === "OBTAINED") return obtainedBadges.value;
+  if (selectedFilter.value === "IN_PROGRESS") return inProgressBadges.value;
   if (selectedFilter.value === "LOCKED") return lockedBadges.value;
   return badges.value;
 });
 
-const completionRate = computed(() => {
-  if (!badges.value.length) return 0;
-
-  return Math.round((obtainedBadges.value.length / badges.value.length) * 100);
-});
-
 const progressPercent = (badge) => {
-  if (!badge.progress) return 0;
+  if (badge.isObtained) return 100;
 
-  return Math.min(
-    Math.round((badge.progress.current / badge.progress.target) * 100),
-    100,
-  );
+  const current = Number(badge.progress?.current || 0);
+  const target = Number(badge.progress?.target || 0);
+
+  if (!target) return 0;
+
+  return Math.min(Math.max(Math.round((current / target) * 100), 0), 100);
+};
+
+const getBadgeStatus = (badge) => {
+  if (badge.isObtained) return "obtained";
+  return Number(badge.progress?.current || 0) > 0 ? "in-progress" : "locked";
+};
+
+const getBadgeIcon = (badge) => {
+  return badge.icon || BADGE_ICONS[badge.name] || "workspace_premium";
+};
+
+const getBadgeMessage = (badge) => {
+  if (badge.isObtained) {
+    return "Félicitations ! Vous avez obtenu ce badge.";
+  }
+
+  if (Number(badge.progress?.current || 0) > 0) {
+    return "Continuez, vous êtes sur la bonne voie.";
+  }
+
+  return "Validez les éléments requis pour débloquer ce badge.";
 };
 </script>
 
 <template>
   <section class="badges-page">
     <header class="page-header">
-      <span class="page-label">BADGES</span>
+      <div>
+        <span class="page-label">BADGES</span>
+        <h1>Mes badges</h1>
+        <p>
+          Progressez, relevez des défis et obtenez des badges pour valoriser
+          vos compétences.
+        </p>
+      </div>
 
-      <h1>Mes badges</h1>
-
-      <p>
-        Suivez vos distinctions académiques et débloquez de nouveaux badges.
-      </p>
+      <article class="obtained-summary">
+        <span class="material-icons-round">emoji_events</span>
+        <div>
+          <small>Badges obtenus</small>
+          <strong>{{ obtainedBadges.length }} / {{ badges.length }}</strong>
+        </div>
+      </article>
     </header>
-
-    <div class="summary-grid">
-      <article class="summary-card">
-        <span>Badges obtenus</span>
-        <strong>{{ obtainedBadges.length }}</strong>
-        <p>sur {{ badges.length }} badges disponibles</p>
-      </article>
-
-      <article class="summary-card">
-        <span>Progression globale</span>
-        <strong>{{ completionRate }}%</strong>
-        <p>Continuez à valider vos projets et stages</p>
-      </article>
-
-      <article class="summary-card">
-        <span>À débloquer</span>
-        <strong>{{ lockedBadges.length }}</strong>
-        <p>badges encore disponibles</p>
-      </article>
-    </div>
 
     <div class="filters">
       <button
@@ -174,17 +192,24 @@ const progressPercent = (badge) => {
       </button>
 
       <button
-        :class="{ active: selectedFilter === 'OBTAINED' }"
-        @click="selectedFilter = 'OBTAINED'"
-      >
-        Obtenus
-      </button>
-
-      <button
         :class="{ active: selectedFilter === 'LOCKED' }"
         @click="selectedFilter = 'LOCKED'"
       >
         À débloquer
+      </button>
+
+      <button
+        :class="{ active: selectedFilter === 'IN_PROGRESS' }"
+        @click="selectedFilter = 'IN_PROGRESS'"
+      >
+        En cours
+      </button>
+
+      <button
+        :class="{ active: selectedFilter === 'OBTAINED' }"
+        @click="selectedFilter = 'OBTAINED'"
+      >
+        Obtenus
       </button>
     </div>
 
@@ -221,61 +246,61 @@ const progressPercent = (badge) => {
         v-for="badge in filteredBadges"
         :key="badge.id"
         class="badge-card"
-        :class="{ locked: !badge.isObtained }"
+        :class="getBadgeStatus(badge)"
       >
-        <div class="badge-top">
-          <div class="badge-title-group">
-            <div class="badge-icon" :class="`tone-${badge.tone}`">
-              <img
-                v-if="badge.iconUrl"
-                :src="badge.iconUrl"
-                :alt="badge.name"
-                class="badge-image"
-              />
+        <div class="badge-main">
+          <div class="badge-icon">
+            <img
+              v-if="badge.iconUrl"
+              :src="badge.iconUrl"
+              :alt="badge.name"
+              class="badge-image"
+            />
 
-              <span v-else class="badge-fallback">
-                {{ badge.iconFallback }}
-              </span>
+            <span v-else class="material-icons-round">
+              {{ getBadgeIcon(badge) }}
+            </span>
+          </div>
+
+          <div class="badge-copy">
+            <h2>{{ badge.name }}</h2>
+            <p class="description">{{ badge.description }}</p>
+          </div>
+        </div>
+
+        <div class="rule">
+          <span class="material-icons-round">verified_user</span>
+          <p><strong>Règle :</strong> {{ badge.rule }}</p>
+        </div>
+
+        <div class="badge-card-footer">
+          <div class="progress-block">
+            <div class="progress-header">
+              <span>{{ badge.isObtained ? "Obtenu le" : "Progression" }}</span>
+              <strong>
+                {{
+                  badge.isObtained
+                    ? badge.obtainedAt || "Date non renseignée"
+                    : `${badge.progress?.current || 0}/${badge.progress?.target || 0}`
+                }}
+              </strong>
             </div>
 
-            <h2>{{ badge.name }}</h2>
+            <div class="progress-track">
+              <div
+                class="progress-fill"
+                :style="{ width: `${progressPercent(badge)}%` }"
+              ></div>
+            </div>
           </div>
 
-          <span
-            class="badge-status"
-            :class="badge.isObtained ? 'obtained' : 'locked'"
-          >
-            {{ badge.isObtained ? "Obtenu" : "À débloquer" }}
-          </span>
-        </div>
-        <p class="description">
-          {{ badge.description }}
-        </p>
-
-        <div class="rule-box">
-          <span>Règle d’obtention</span>
-          <p>{{ badge.rule }}</p>
-        </div>
-
-        <div class="progress-block">
-          <div class="progress-header">
-            <span>Progression</span>
-            <strong>
-              {{ badge.progress.current }}/{{ badge.progress.target }}
-            </strong>
-          </div>
-
-          <div class="progress-track">
-            <div
-              class="progress-fill"
-              :style="{ width: `${progressPercent(badge)}%` }"
-            ></div>
+          <div class="badge-message" :class="{ obtained: badge.isObtained }">
+            <span class="material-icons-round">
+              {{ badge.isObtained ? "verified" : "info" }}
+            </span>
+            <p>{{ getBadgeMessage(badge) }}</p>
           </div>
         </div>
-
-        <p v-if="badge.isObtained" class="obtained-date">
-          Obtenu en {{ badge.obtainedAt }}
-        </p>
       </article>
     </div>
   </section>
@@ -287,7 +312,11 @@ const progressPercent = (badge) => {
 }
 
 .page-header {
-  margin-bottom: 1.125rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 }
 
 .page-label {
@@ -316,84 +345,105 @@ const progressPercent = (badge) => {
   margin: 0;
 }
 
-.summary-grid {
+.obtained-summary {
+  min-width: 11rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-card);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-card);
+}
+
+.obtained-summary > .material-icons-round {
+  width: 2.5rem;
+  height: 2.5rem;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--app-active-bg);
+  color: var(--app-primary);
 }
 
-.summary-card {
-  background: #ffffff;
-  border: 1px solid #dee1dd;
-  border-radius: 0.9rem;
-  padding: 1.25rem 1.4rem;
-}
-
-.summary-card span {
-  color: #99aead;
-  font-size: 0.8rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.07rem;
-}
-
-.summary-card strong {
+.obtained-summary small,
+.obtained-summary strong {
   display: block;
-  color: #102a33;
-  font-size: 2rem;
-  font-weight: 800;
-  margin: 0.55rem 0 0.35rem;
 }
 
-.summary-card p {
-  color: #6d9197;
-  font-size: 0.9rem;
-  margin: 0;
+.obtained-summary small {
+  color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-xs);
+  font-weight: 700;
+}
+
+.obtained-summary strong {
+  margin-top: 0.15rem;
+  color: var(--app-heading);
+  font-family: var(--app-font-body);
+  font-size: var(--app-text-lg);
+  font-weight: 900;
 }
 
 .filters {
-  display: flex;
-  gap: 0.65rem;
-  margin-bottom: 1.25rem;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem;
+  margin-bottom: 0.7rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.9rem;
+  background: var(--app-surface);
 }
 
 .filters button {
-  border: 1px solid #c4cdc1;
-  background: #ffffff;
-  color: #2f575d;
-  border-radius: 999px;
-  padding: 0.55rem 1rem;
-  font-size: 0.88rem;
-  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.65rem 1rem;
+  background: transparent;
+  color: var(--app-muted);
+  font-size: 0.9rem;
+  font-weight: 800;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.filters button:hover {
+  background: var(--app-surface-soft);
+  color: var(--app-primary);
 }
 
 .filters button.active {
-  background: #2f575d;
+  background: var(--app-primary);
   color: #ffffff;
-  border-color: #2f575d;
 }
 
 .badges-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(15rem, 1fr));
+  gap: 1.25rem;
 }
 
 .badge-card {
-  background: #ffffff;
-  border: 1px solid #dee1dd;
-  border-radius: 0.95rem;
-  padding: 1.25rem;
-  align-items: stretch;
+  position: relative;
+  min-height: 20rem;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-
-  min-height: 22rem;
+  gap: 1.2rem;
+  padding: 1.5rem;
+  background: var(--app-surface);
+  border: 1px solid #e1e7e5;
+  border-radius: 1.25rem;
+  box-shadow: 0 0.75rem 2rem rgba(47, 87, 93, 0.06);
   text-align: left;
-
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -401,139 +451,109 @@ const progressPercent = (badge) => {
 }
 
 .badge-card:hover {
-  transform: translateY(-0.15rem);
-  border-color: #c4cdc1;
-  box-shadow: 0 0.625rem 1.5rem rgba(47, 87, 93, 0.08);
+  transform: translateY(-0.12rem);
+  border-color: var(--app-border-strong);
+  box-shadow: var(--app-shadow-card-hover);
 }
 
-.badge-card.locked {
-  opacity: 0.82;
-}
-
-.badge-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.badge-main {
+  display: grid;
+  grid-template-columns: 4.8rem minmax(0, 1fr);
   gap: 1rem;
-}
-.badge-title-group {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: 0.85rem;
-  min-width: 0;
+  align-items: start;
 }
 
 .badge-icon {
-  width: 3.2rem;
-  height: 3.2rem;
+  width: 4.8rem;
+  height: 4.8rem;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.badge-icon.tone-blue {
-  background: #e8f1fd;
-  color: #2f6fb5;
-}
-
-.badge-icon.tone-cyan {
-  background: #e7f6f6;
-  color: #0f8b8d;
-}
-
-.badge-icon.tone-purple {
-  background: #f1ecfa;
-  color: #7b4dbb;
-}
-
-.badge-icon.tone-green {
-  background: #edf7ed;
-  color: #2e7d32;
-}
-
-.badge-icon.tone-red {
-  background: #fdecec;
-  color: #c62828;
-}
-
-.badge-icon.tone-orange {
-  background: #fff4e4;
-  color: #e67e22;
+  background: #f8faf9;
+  color: var(--app-primary);
+  box-shadow:
+    inset 0 0 0 1px #dbe4e1,
+    0 0.65rem 1.5rem rgba(47, 87, 93, 0.07);
 }
 
 .badge-image {
-  width: 1.6rem;
-  height: 1.6rem;
+  width: 2.2rem;
+  height: 2.2rem;
   object-fit: contain;
 }
 
-.badge-fallback {
-  font-size: 1.35rem;
-  line-height: 1;
+.badge-icon .material-icons-round {
+  font-size: 2rem;
 }
 
-.badge-status {
-  border-radius: 999px;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.badge-status.obtained {
-  background: #e8f5ec;
-  color: #2e7d32;
-}
-
-.badge-status.locked {
-  background: #edf0ef;
-  color: #6f7f82;
+.badge-copy {
+  min-width: 0;
+  padding-top: 0.15rem;
 }
 
 .badge-card h2 {
-  color: #102a33;
-  font-size: 1.15rem;
-  font-weight: 800;
-  margin: 0 0 0.55rem;
+  margin: 0;
+  color: var(--app-heading);
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1.25;
 }
 
 .description {
-  color: #6d9197;
-  font-size: 0.92rem;
+  margin: 0.65rem 0 0;
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
   line-height: 1.55;
-  margin: 0 0 1rem;
 }
 
-.rule-box {
-  background: #f8f9f8;
-  border: 1px solid #edf0ee;
-  border-radius: 0.75rem;
-  padding: 0.9rem;
-  margin-bottom: 1rem;
+.rule {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  margin-top: 0;
+  padding: 1rem 1.1rem;
+  border-left: 0.18rem solid var(--app-primary);
+  border-radius: var(--app-radius-md);
+  background: linear-gradient(
+    90deg,
+    rgba(47, 87, 93, 0.075),
+    rgba(47, 87, 93, 0.018)
+  );
 }
 
-.rule-box span {
-  display: block;
-  color: #2f575d;
-  font-size: 0.78rem;
-  font-weight: 800;
-  margin-bottom: 0.35rem;
-  text-transform: uppercase;
+.rule .material-icons-round {
+  margin-top: 0.1rem;
+  color: var(--app-primary);
+  font-size: 1.05rem;
 }
 
-.rule-box p {
-  color: #435b60;
-  font-size: 0.88rem;
+.rule p {
   line-height: 1.5;
   margin: 0;
-  width: 100%;
+  color: var(--app-text);
+  font-size: var(--app-text-sm);
+}
+
+.rule strong {
+  color: var(--app-primary);
+  font-weight: 900;
+}
+
+.badge-card-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid transparent;
+  background:
+    linear-gradient(var(--app-surface), var(--app-surface)) padding-box,
+    linear-gradient(90deg, transparent, rgba(47, 87, 93, 0.22), transparent)
+      border-box;
 }
 
 .progress-block {
-  margin-top: auto;
   width: 100%;
 }
+
 .progress-header {
   display: flex;
   align-items: center;
@@ -557,22 +577,40 @@ const progressPercent = (badge) => {
 .progress-track {
   width: 100%;
   height: 0.45rem;
-  background: #dfe6e3;
+  background: #e3ebe8;
   border-radius: 999px;
   overflow: hidden;
 }
+
 .progress-fill {
   height: 100%;
   background: #2f575d;
   border-radius: 999px;
 }
 
-.obtained-date {
-  color: #2f775f;
-  font-size: 0.85rem;
-  font-weight: 700;
-  margin: 0.8rem 0 0;
+.badge-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+  color: var(--app-muted);
 }
+
+.badge-message .material-icons-round {
+  font-size: 1rem;
+  margin-top: 0.1rem;
+}
+
+.badge-message p {
+  margin: 0;
+  font-size: var(--app-text-xs);
+  line-height: 1.45;
+}
+
+.badge-message.obtained {
+  color: #2f7d5f;
+}
+
 .empty-state {
   background: #ffffff;
   border: 1px solid #dee1dd;
@@ -620,20 +658,29 @@ const progressPercent = (badge) => {
   .badges-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 700px) {
-  .badges-grid,
-  .summary-grid {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .obtained-summary {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .badges-grid {
     grid-template-columns: 1fr;
   }
 
   .filters {
+    width: 100%;
     flex-wrap: wrap;
+  }
+
+  .filters button {
+    flex: 1;
   }
 }
 </style>
