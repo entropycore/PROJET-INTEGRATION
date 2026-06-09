@@ -2,10 +2,10 @@ describe('Parcours E2E - Liste des activites parascolaires avec vrai backend', (
   beforeEach(() => {
     cy.session('student-activity-session', () => {
       cy.visit('/login');
-      cy.get('input[type="email"]').type('student.activity@ensat.ma');
-      cy.get('input[type="password"]').type('PasswordValid123!');
+      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma');
+      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/student');
     });
 
     cy.intercept('GET', '**/api/student/activities').as('getActivities');

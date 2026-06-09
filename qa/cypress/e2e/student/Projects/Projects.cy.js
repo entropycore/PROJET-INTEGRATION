@@ -4,15 +4,15 @@ describe('Parcours E2E - Tableau de bord et Liste des Projets (Vrai Backend)', (
     // 1. Session d'authentification étudiante pour persister le token
     cy.session('student-session', () => {
       cy.visit('/login');
-      cy.get('input[type="email"]').type('student.test@ensat.ma');
-      cy.get('input[type="password"]').type('PasswordValid123!');
+      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma');
+      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/student');
     });
 
     // 2. Intercepter l'appel API réel de récupération globale pour synchroniser l'UI
-    cy.intercept('GET', '**/api/projects').as('getAllProjects');
-    cy.intercept('POST', '**/api/projects/*/submit').as('submitProjectApi');
+    cy.intercept('GET', '**/api/projects/me*').as('getAllProjects');
+    cy.intercept('PATCH', '**/api/projects/*/submit').as('submitProjectApi');
 
     // 3. Accéder à la page de la liste des projets
     cy.visit('/student/projects');

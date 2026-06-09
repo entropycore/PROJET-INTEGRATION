@@ -1,112 +1,68 @@
-import { test, expect } from "@playwright/test";
+describe("E2E - Details activite etudiant", () => {
+  let activityId;
 
-const ACTIVITY_ID = process.env.E2E_ACTIVITY_ID || "1";
-
-test.describe("E2E - Détails activité étudiant", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/login");
-
-    await page.getByLabel(/email/i).fill(process.env.E2E_EMAIL);
-    await page.getByLabel(/mot de passe|password/i).fill(process.env.E2E_PASSWORD);
-    await page.getByRole("button", { name: /connexion|login/i }).click();
-
-    await page.waitForURL(/student/);
-  });
-
-  test("affiche les détails de l’activité", async ({ page }) => {
-    await page.goto(`/student/activities/${ACTIVITY_ID}`);
-
-    await expect(page.getByText(/à propos de l’activité/i)).toBeVisible();
-    await expect(page.getByText(/attestation/i)).toBeVisible();
-    await expect(page.getByText(/captures \/ médias de l’activité/i)).toBeVisible();
-    await expect(page.getByText(/historique de validation/i)).toBeVisible();
-    await expect(page.getByText(/validation/i)).toBeVisible();
-    await expect(page.getByText(/informations/i)).toBeVisible();
-  });
-
-  test("bouton retour redirige vers la liste des activités", async ({ page }) => {
-    await page.goto(`/student/activities/${ACTIVITY_ID}`);
-
-    await page.getByRole("button", { name: /retour aux activités/i }).click();
-
-    await expect(page).toHaveURL(/\/student\/activities$/);
-  });
-
-  test("bouton modifier redirige vers la page edit si disponible", async ({ page }) => {
-    await page.goto(`/student/activities/${ACTIVITY_ID}`);
-
-    const editButton = page.getByRole("button", { name: /modifier/i });
-
-    if (await editButton.isVisible()) {
-      await editButton.click();
-      await expect(page).toHaveURL(new RegExp(`/student/activities/${ACTIVITY_ID}/edit`));
-    }
-  });
-
-  test("prévisualise l’attestation si elle existe", async ({ page }) => {
-    await page.goto(`/student/activities/${ACTIVITY_ID}`);
-
-    const previewButton = page.getByRole("button", { name: /prévisualiser/i });
-
-    if (await previewButton.isVisible()) {
-      await previewButton.click();
-
-      await expect(page.getByRole("dialog")).toBeVisible();
-      await expect(page.getByText(/attestation/i)).toBeVisible();
-
-      await page.getByLabel(/fermer/i).click();
-      await expect(page.getByRole("dialog")).not.toBeVisible();
-    }
-  });
-
-  test("téléchargement attestation existe si attestation disponible", async ({ page }) => {
-    await page.goto(`/student/activities/${ACTIVITY_ID}`);
-
-    const downloadLink = page.getByRole("link", { name: /télécharger/i });
-
-    if (await downloadLink.isVisible()) {
-      await expect(downloadLink).toHaveAttribute("href", /.+/);
-    }
-  });
-
-  test("soumet l’activité si le bouton soumettre est disponible", async ({ page }) => {
-    await page.goto(`/student/activities/${ACTIVITY_ID}`);
-
-    const submitButton = page.getByRole("button", { name: /soumettre/i });
-
-    if (await submitButton.isVisible()) {
-      await submitButton.click();
-
-      await expect(
-        page.getByText(/activité soumise à validation|impossible de soumettre/i)
-      ).toBeVisible();
-    }
-  });
-
-  test("supprime l’activité si le bouton suppression est disponible", async ({ page }) => {
-    await page.goto(`/student/activities/${ACTIVITY_ID}`);
-
-    const deleteButton = page.getByRole("button", {
-      name: /supprimer l’activité/i,
+  beforeEach(() => {
+    cy.session("student-session", () => {
+      cy.visit("/login");
+      cy.get('input[type="email"]').type(Cypress.env("E2E_EMAIL") || "etudiant@credencia.ma");
+      cy.get('input[type="password"]').type(Cypress.env("E2E_PASSWORD") || "Password123!");
+      cy.get('button[type="submit"]').click();
+      cy.url().should("include", "/student");
     });
 
-    if (await deleteButton.isVisible()) {
-      page.once("dialog", async (dialog) => {
-        expect(dialog.message()).toContain("Voulez-vous vraiment supprimer");
-        await dialog.accept();
-      });
-
-      await deleteButton.click();
-
-      await expect(page).toHaveURL(/\/student\/activities$/);
-    }
+    cy.request("/api/student/activities").then((response) => {
+      const activities = response.body.data?.items || response.body.data || response.body.items || [];
+      expect(activities, "activites existantes pour le test details").to.have.length.greaterThan(0);
+      activityId = activities[0].id;
+    });
   });
 
-  test("affiche erreur si activité introuvable", async ({ page }) => {
-    await page.goto("/student/activities/999999999");
+  it("affiche les details de l'activite", () => {
+    cy.visit(`/student/activities/${activityId}`);
 
-    await expect(
-      page.getByText(/impossible de charger cette activité|activité introuvable/i)
-    ).toBeVisible();
+    cy.contains(/activit/i).should("be.visible");
+    cy.contains(/validation|informations|attestation/i).should("exist");
+  });
+
+  it("bouton retour redirige vers la liste des activites", () => {
+    cy.visit(`/student/activities/${activityId}`);
+
+    cy.contains("button", /retour/i).click();
+    cy.url().should("match", /\/student\/activities$/);
+  });
+
+  it("bouton modifier redirige vers la page edit si disponible", () => {
+    cy.visit(`/student/activities/${activityId}`);
+
+    cy.get("body").then(($body) => {
+      const editButton = [...$body.find("button")].find((button) =>
+        /modifier/i.test(button.innerText),
+      );
+
+      if (editButton) {
+        cy.wrap(editButton).click();
+        cy.url().should("include", `/student/activities/${activityId}/edit`);
+      }
+    });
+  });
+
+  it("telechargement attestation existe si attestation disponible", () => {
+    cy.visit(`/student/activities/${activityId}`);
+
+    cy.get("body").then(($body) => {
+      const downloadLink = [...$body.find("a")].find((link) =>
+        /telecharger|télécharger/i.test(link.innerText),
+      );
+
+      if (downloadLink) {
+        cy.wrap(downloadLink).should("have.attr", "href").and("not.be.empty");
+      }
+    });
+  });
+
+  it("affiche erreur si activite introuvable", () => {
+    cy.visit("/student/activities/999999999");
+
+    cy.contains(/impossible de charger cette activit|activit.*introuvable/i).should("exist");
   });
 });

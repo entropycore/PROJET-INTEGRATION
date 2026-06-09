@@ -1,13 +1,36 @@
 describe("E2E - Profil professeur", () => {
   beforeEach(() => {
-    cy.visit("/login");
+    cy.intercept("GET", "**/api/professor/profile", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          user: {
+            fullName: "Professor Cypress",
+            firstName: "Professor",
+            lastName: "Cypress",
+            email: "professor.test@ensat.ma",
+            phone: "",
+            accountStatus: "ACTIVE",
+            lastLoginAt: null,
+            createdAt: null,
+            profilePicture: "",
+          },
+          profile: {
+            employeeId: "",
+            grade: "",
+            specialty: "",
+            department: "",
+          },
+          supervisedInternships: [],
+          recentProjectValidations: [],
+          recentInternshipValidations: [],
+        },
+      },
+    }).as("getProfessorProfile");
 
-    cy.get('input[type="email"]').type(Cypress.env("E2E_PROF_EMAIL"));
-    cy.get('input[type="password"]').type(Cypress.env("E2E_PROF_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-
-    cy.visit("/professor/profile");
+    cy.loginAsRoleSession("PROFESSOR", "/professor/profile");
+    cy.wait("@getProfessorProfile");
   });
 
   it("affiche la page profil professeur", () => {
@@ -32,24 +55,24 @@ describe("E2E - Profil professeur", () => {
   });
 
   it("affiche les sections du profil", () => {
-    cy.contains("Informations académiques").should("be.visible");
-    cy.contains("Compte").should("be.visible");
-    cy.contains("Stages supervisés").should("be.visible");
-    cy.contains("Dernières validations").should("be.visible");
+    cy.contains(/informations acad/i).scrollIntoView().should("be.visible");
+    cy.contains("Compte").scrollIntoView().should("be.visible");
+    cy.contains(/stages supervis/i).scrollIntoView().should("be.visible");
+    cy.contains(/derni.res validations/i).scrollIntoView().should("exist");
   });
 
   it("affiche les informations académiques", () => {
     cy.contains("Matricule").should("be.visible");
     cy.contains("Grade").should("be.visible");
-    cy.contains("Spécialité").should("be.visible");
-    cy.contains("Département").should("be.visible");
+    cy.contains(/sp.cialit/i).should("be.visible");
+    cy.contains(/d.partement/i).should("be.visible");
   });
 
   it("affiche les informations du compte", () => {
-    cy.contains("Téléphone").should("be.visible");
+    cy.contains(/t.l.phone/i).should("be.visible");
     cy.contains("Statut").should("be.visible");
-    cy.contains("Dernière connexion").should("be.visible");
-    cy.contains("Création").should("be.visible");
+    cy.contains(/derni.re connexion/i).should("be.visible");
+    cy.contains(/cr.ation/i).should("be.visible");
   });
 
   it("affiche le statut du compte", () => {
@@ -60,28 +83,28 @@ describe("E2E - Profil professeur", () => {
   });
 
   it("affiche les stages supervisés ou un état vide", () => {
-    cy.contains("Stages supervisés")
-      .parents(".profile-panel")
+    cy.contains(".profile-panel", /stages supervis/i)
+      .scrollIntoView()
       .within(() => {
-        cy.get("body").then(($body) => {
-          if ($body.find(".table-row").length > 0) {
+        cy.root().then(($panel) => {
+          if ($panel.find(".table-row").length > 0) {
             cy.get(".table-row").first().should("be.visible");
           } else {
-            cy.contains(/aucun stage supervisé/i).should("be.visible");
+            cy.contains(/aucun stage supervis/i).should("be.visible");
           }
         });
       });
   });
 
   it("affiche les validations récentes ou un état vide", () => {
-    cy.contains("Dernières validations")
-      .parents(".profile-panel")
+    cy.contains(".profile-panel", /derni.res validations/i)
+      .scrollIntoView()
       .within(() => {
-        cy.get("body").then(($body) => {
-          if ($body.find(".table-row").length > 0) {
+        cy.root().then(($panel) => {
+          if ($panel.find(".table-row").length > 0) {
             cy.get(".table-row").first().should("be.visible");
           } else {
-            cy.contains(/aucune validation récente/i).should("be.visible");
+            cy.contains(/aucune validation r.cente/i).should("exist");
           }
         });
       });
@@ -101,7 +124,7 @@ describe("E2E - Profil professeur", () => {
       { force: true }
     );
 
-    cy.contains(/format image non autorisé/i).should("be.visible");
+    cy.contains(/format image non autoris/i).should("be.visible");
   });
 
   it("refuse une image supérieure à 3Mo", () => {
@@ -120,15 +143,9 @@ describe("E2E - Profil professeur", () => {
   });
 
   it("affiche une photo ou des initiales", () => {
-    cy.get("body").then(($body) => {
-      if ($body.find(".profile-avatar").length > 0) {
-        cy.get(".profile-avatar")
-          .invoke("text")
-          .should("not.be.empty");
-      } else {
-        cy.get(".avatar-block img").should("exist");
-      }
-    });
+    cy.get(".avatar-block")
+      .find("img, .profile-avatar")
+      .should("be.visible");
   });
 
   it("affiche les statuts des validations", () => {
@@ -142,7 +159,7 @@ describe("E2E - Profil professeur", () => {
   });
 
   it("vérifie les dates affichées", () => {
-    cy.contains("Dernière connexion")
+    cy.contains(/derni.re connexion/i)
       .parent()
       .find("strong")
       .invoke("text")

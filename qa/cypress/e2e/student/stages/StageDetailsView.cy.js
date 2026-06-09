@@ -1,29 +1,31 @@
 describe('Parcours E2E - Détails du Stage (Vrai Backend & Médias)', () => {
 
-  const stageId = Cypress.env('E2E_STAGE_ID');
-
-  before(() => {
-    expect(stageId, 'E2E_STAGE_ID doit pointer vers un vrai stage de la base de test').to.be.a('string').and.not.be.empty;
-  });
+  let stageId;
 
   beforeEach(() => {
     // 1. Authentification unique via Session
     cy.session('student-session', () => {
       cy.visit('/login');
-      cy.get('input[type="email"]').type('student.stage@ensat.ma');
-      cy.get('input[type="password"]').type('PasswordValid123!');
+      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma');
+      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/student');
     });
 
     // 2. Intercepter les VRAIS appels API dyal l-backend (SANS MOCK)
     // Hadchi drori bach Cypress y-tsna le backend y-sirve la data qbel ma l-test y-clique
+    cy.request('/api/student/stages').then((response) => {
+      const stages = response.body.data?.items || response.body.data || response.body.items || [];
+      expect(stages, 'stages existants pour le test details').to.have.length.greaterThan(0);
+      stageId = stages[0].id;
+
     cy.intercept('GET', `**/api/student/stages/${stageId}`).as('getStageDetails');
     cy.intercept('GET', `**/api/student/stages/${stageId}/images/*`).as('getStageImage');
     cy.intercept('GET', `**/api/student/stages/${stageId}/report`).as('getStageReport');
 
     // 3. Naviguer vers la page de détail dyal le stage
     cy.visit(`/student/stages/${stageId}`);
+    });
   });
 
   it('Devrait charger la vraie data, hydrater les images/PDF et valider le parcours UI', () => {
