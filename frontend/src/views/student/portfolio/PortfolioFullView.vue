@@ -8,6 +8,7 @@ import {
   getPublicPortfolioData,
   getStudentPortfolioData,
 } from "@/services/studentPortfolioService";
+import { getBadgeIcon } from "@/utils/badges";
 import api from "@/services/api";
 
 const router = useRouter();
@@ -481,7 +482,15 @@ onMounted(fetchPortfolio);
               :key="badge.id"
               class="badge-card"
             >
-              <span class="material-icons-round">{{ badge.icon }}</span>
+              <img
+                v-if="badge.iconUrl"
+                :src="badge.iconUrl"
+                :alt="badge.name"
+                class="badge-image"
+              />
+              <span v-else class="material-icons-round">
+                {{ getBadgeIcon(badge) }}
+              </span>
               <strong>{{ badge.name }}</strong>
             </div>
           </div>
