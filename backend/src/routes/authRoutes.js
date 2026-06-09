@@ -4,7 +4,11 @@ const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const verifyRefreshToken = require('../middlewares/verifyRefreshToken');
 
-const { authLimiter, forgotPasswordLimiter } = require('../middlewares/rateLimiter'); 
+const {
+  authLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
+} = require('../middlewares/rateLimiter'); 
 
 
 const { validationRules, handleValidationErrors } = require('../middlewares/validationRules');
@@ -26,6 +30,7 @@ router.post(
 );
 router.post(
   '/reset-password',
+  resetPasswordLimiter,
   validationRules('resetPassword'),
   handleValidationErrors,
   authController.resetPassword
