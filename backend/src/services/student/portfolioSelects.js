@@ -166,6 +166,7 @@ const studentDataSelect = {
       email: true,
       phone: true,
       profilePicture: true,
+      preferences: true,
     },
   },
   academicPaths: {

@@ -73,7 +73,9 @@ const syncAdminNotifications = async () => {
 };
 
 const getNotificationOrThrow = async (notificationId, administratorId = null) => {
-  const scopeConditions = administratorId ? [{ OR: [{ administratorId }, { administratorId: null }] }] : [];
+  const scopeConditions = administratorId
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }, { userId: null }]
+    : [{ userId: null }];
   const notification = await safeReadWithFallback(
     () =>
       prisma.notification.findFirst({
@@ -105,8 +107,8 @@ const listNotifications = async ({ administratorId, type, isRead, page = 1, limi
   const { skip, page: safePage, limit: safeLimit } = normalizePagination(page, limit);
   const normalizedSearch = String(search || '').trim();
   const scopeConditions = administratorId
-    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
-    : [{ administratorId: null }];
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }, { userId: null }]
+    : [{ administratorId: null }, { userId: null }];
 
   const where = {
     ...(normalizedType ? { type: getNotificationFilterByType(normalizedType) } : {}),
@@ -178,8 +180,8 @@ const listNotifications = async ({ administratorId, type, isRead, page = 1, limi
 
 const getUnreadNotificationsCount = async (administratorId) => {
   const scopeConditions = administratorId
-    ? [{ OR: [{ administratorId }, { administratorId: null }] }]
-    : [{ administratorId: null }];
+    ? [{ OR: [{ administratorId }, { administratorId: null }] }, { userId: null }]
+    : [{ administratorId: null }, { userId: null }];
 
   return safeCount(() =>
     prisma.notification.count({
