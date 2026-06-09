@@ -1,5 +1,8 @@
 describe('Parcours E2E - Édition et Mise à jour de Projet Existant', () => {
-  const targetProjectId = '12345'; 
+  const targetProjectId = Cypress.env('E2E_EDIT_PROJECT_ID') || Cypress.env('E2E_PROJECT_ID');
+  before(() => {
+    expect(targetProjectId, 'E2E_EDIT_PROJECT_ID ou E2E_PROJECT_ID doit pointer vers un vrai projet editable').to.be.a('string').and.not.be.empty;
+  });
   const updatedTitle = `Projet Édité E2E - ${Date.now()}`;
 
   beforeEach(() => {

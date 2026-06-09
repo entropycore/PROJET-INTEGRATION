@@ -1,5 +1,9 @@
 describe('Parcours E2E - Détails d\'un Projet (Vrai Backend)', () => {
-  const projectIdToTest = '123'; // À remplacer par un ID existant dans ta DB de test
+  const projectIdToTest = Cypress.env('E2E_PROJECT_ID');
+
+  before(() => {
+    expect(projectIdToTest, 'E2E_PROJECT_ID doit pointer vers un vrai projet de la base de test').to.be.a('string').and.not.be.empty;
+  });
 
   beforeEach(() => {
     // 1. Session d'authentification étudiante
