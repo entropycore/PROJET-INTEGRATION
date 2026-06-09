@@ -52,11 +52,8 @@ const formatFileSize = (size) => {
     >
       <header class="modal-header">
         <div>
-          <span>{{
-            validation.targetType === "PROJECT" ? "Projet" : "Stage"
-          }}</span>
           <h2 id="professor-validation-details-title">
-            {{ validation.title }}
+            Détail de la validation
           </h2>
         </div>
 
@@ -66,13 +63,16 @@ const formatFileSize = (size) => {
           aria-label="Fermer le détail"
           @click="emit('close')"
         >
-          <span class="material-icons-round">close</span>
+          <span aria-hidden="true">✕</span>
         </button>
       </header>
 
       <div class="modal-layout">
         <aside class="student-panel">
-          <h3>Étudiant</h3>
+          <h3>
+            <span class="material-icons-round section-icon">person</span>
+            Informations étudiant
+          </h3>
 
           <div class="student-line">
             <img
@@ -107,7 +107,25 @@ const formatFileSize = (size) => {
         </aside>
 
         <main class="details-panel">
-          <h3>Détails</h3>
+          <h3>
+            <span class="material-icons-round section-icon">
+              {{
+                validation.targetType === "PROJECT"
+                  ? "folder_open"
+                  : "business_center"
+              }}
+            </span>
+            {{
+              validation.targetType === "PROJECT"
+                ? "Détails du projet"
+                : "Détails du stage"
+            }}
+          </h3>
+
+          <div class="detail-row">
+            <span>Titre</span>
+            <strong>{{ validation.title }}</strong>
+          </div>
 
           <div class="detail-row">
             <span>Description</span>
@@ -174,7 +192,10 @@ const formatFileSize = (size) => {
       </div>
 
       <section class="files-panel">
-        <h3>Fichiers joints</h3>
+        <h3>
+          <span class="material-icons-round section-icon">attach_file</span>
+          Fichiers joints
+        </h3>
 
         <div v-if="validation.content?.files?.length" class="files-list">
           <a
@@ -240,7 +261,7 @@ const formatFileSize = (size) => {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-panel);
-  padding: 1.4rem;
+  padding: 1.15rem;
   box-shadow: var(--app-shadow-popover);
 }
 
@@ -251,19 +272,19 @@ const formatFileSize = (size) => {
   margin-bottom: 1.2rem;
 }
 
-.modal-header span {
-  color: var(--app-muted);
-  font-size: var(--app-text-xs);
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
 .modal-header h2 {
-  margin: 0.25rem 0 0;
+  margin: 0;
   color: var(--app-heading);
   font-family: var(--app-font-display);
-  font-size: 1.65rem;
-  font-weight: 600;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.modal-subtitle {
+  margin: 0.4rem 0 0;
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
+  line-height: 1.5;
 }
 
 .close-btn {
@@ -275,13 +296,26 @@ const formatFileSize = (size) => {
   border-radius: var(--app-radius-md);
   background: var(--app-surface);
   color: var(--app-muted);
+  font-family: var(--app-font-body);
+  font-size: 1rem;
+  font-weight: 800;
   cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.close-btn:hover {
+  border-color: var(--app-active-border);
+  background: var(--app-active-bg);
+  color: var(--app-primary);
 }
 
 .modal-layout {
   display: grid;
   grid-template-columns: 18rem 1fr;
-  gap: 1rem;
+  gap: 0.8rem;
 }
 
 .student-panel,
@@ -294,24 +328,38 @@ const formatFileSize = (size) => {
 }
 
 h3 {
-  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 0.85rem;
   color: var(--app-heading);
-  font-size: var(--app-text-md);
+  font-family: var(--app-font-body);
+  font-size: 1rem;
   font-weight: 800;
+}
+
+.section-icon {
+  color: var(--app-primary);
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 .student-line {
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.45rem;
+  padding: 0.65rem;
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface-soft);
 }
 
 .student-line img,
 .student-avatar {
-  width: 3rem;
-  height: 3rem;
+  width: 3.25rem;
+  height: 3.25rem;
   border-radius: 50%;
+  border: 2px solid var(--app-active-border);
 }
 
 .student-line img {
@@ -328,6 +376,8 @@ h3 {
 
 .student-line strong {
   color: var(--app-heading);
+  font-size: var(--app-text-md);
+  font-weight: 800;
 }
 
 .student-line p,
@@ -341,25 +391,39 @@ h3 {
 .details-panel {
   display: flex;
   flex-direction: column;
+  gap: 0;
+}
+
+.info-list > div,
+.detail-row {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
   gap: 0.8rem;
+  align-items: start;
+  padding: 0.6rem 0;
 }
 
 .info-list span,
 .detail-row span {
-  display: block;
   color: var(--app-muted);
   font-size: var(--app-text-xs);
-  font-weight: 800;
-  margin-bottom: 0.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .info-list strong,
 .detail-row strong,
 .detail-row p {
   margin: 0;
-  color: var(--app-text);
-  font-size: var(--app-text-sm);
+  color: var(--app-heading);
+  font-size: var(--app-text-md);
+  font-weight: 700;
   line-height: 1.55;
+}
+
+.detail-row p {
+  color: var(--app-text);
+  font-weight: 500;
 }
 
 .chips {
@@ -373,15 +437,17 @@ h3 {
   border-radius: var(--app-radius-pill);
   background: var(--app-active-bg);
   color: var(--app-primary);
+  font-size: var(--app-text-xs);
+  font-weight: 800;
 }
 
 .files-panel {
-  margin-top: 1rem;
+  margin-top: 0.8rem;
 }
 
 .files-list {
   display: grid;
-  gap: 0.55rem;
+  gap: 0;
 }
 
 .file-row {
@@ -389,22 +455,44 @@ h3 {
   grid-template-columns: auto 1fr auto;
   gap: 0.6rem;
   align-items: center;
-  min-height: 2.8rem;
-  padding: 0 0.75rem;
-  background: var(--app-surface-soft);
-  border-radius: var(--app-radius-md);
+  min-height: 2.9rem;
+  padding: 0.4rem 0.65rem;
+  border-bottom: 1px solid var(--app-neutral-bg);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface);
   color: var(--app-text);
   text-decoration: none;
+  transition:
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.file-row:last-child {
+  border-bottom: 0;
+}
+
+.file-row:hover {
+  background: var(--app-surface-soft);
+  box-shadow: inset 0 0 0 1px var(--app-border);
 }
 
 .file-row strong {
   min-width: 0;
+  color: var(--app-heading);
+  font-size: var(--app-text-sm);
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
 
 .file-row .material-icons-round {
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--app-active-bg);
   color: var(--app-primary);
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .file-row small {
@@ -415,8 +503,8 @@ h3 {
   display: flex;
   justify-content: flex-end;
   gap: 0.7rem;
-  margin-top: 1.2rem;
-  padding-top: 1rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
   border-top: 1px solid var(--app-border);
 }
 
@@ -428,6 +516,10 @@ h3 {
   padding: 0 1rem;
   font-weight: 800;
   cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .primary-btn {
@@ -442,6 +534,10 @@ h3 {
   color: var(--app-primary);
 }
 
+.secondary-btn:hover {
+  background: var(--app-surface-soft);
+}
+
 .danger-btn {
   border: 1px solid transparent;
   background: var(--app-error-bg);
@@ -451,6 +547,12 @@ h3 {
 @media (max-width: 760px) {
   .modal-layout {
     grid-template-columns: 1fr;
+  }
+
+  .info-list > div,
+  .detail-row {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
   }
 
   .modal-actions {
