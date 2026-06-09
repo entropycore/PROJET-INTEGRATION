@@ -11,7 +11,7 @@ const profilePictureUpload = multer({
       return cb(null, true);
     }
 
-    return cb(new Error('Format de photo de profil non autorise.'));
+    return cb(new Error('Format de photo de profil non autorisé.'));
   },
   limits: {
     files: 1,

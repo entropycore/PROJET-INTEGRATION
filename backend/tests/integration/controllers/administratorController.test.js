@@ -30,7 +30,10 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
 
         test('TC-ADM-01 : Récupération réussie de la liste des demandes en attente', async () => {
             // BUT: Vérifier que l'admin peut lister les demandes avec le statut par défaut (PENDING)
-            administratorService.listProfessionalRequests.mockResolvedValue([{ id: 1, status: 'PENDING' }]);
+            administratorService.listProfessionalRequests.mockResolvedValue({
+                items: [{ id: 1, status: 'PENDING' }],
+                pagination: { total: 1, page: 1, limit: 10 }
+            });
 
             const res = await request(app).get('/api/admin/professional-requests?status=PENDING');
 
@@ -40,7 +43,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
 
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
-            expect(res.body.data.requests).toBeDefined();
+            expect(res.body.data.items).toBeDefined();
         });
 
         test('TC-ADM-02 : Rejet si le filtre de statut est invalide', async () => {
@@ -61,7 +64,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
             const res = await request(app).patch('/api/admin/professional-requests/user-789/approve');
 
             expect(res.statusCode).toBe(409); // Conflit de logique métier
-            expect(res.body.message).toMatch(/doit etre verifie/i);
+            expect(res.body.message).toMatch(/doit être vérifié/i);
         });
 
         test('TC-ADM-06 : Erreur si la demande a déjà été approuvée auparavant', async () => {
@@ -71,7 +74,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
             const res = await request(app).patch('/api/admin/professional-requests/user-789/approve');
 
             expect(res.statusCode).toBe(409);
-            expect(res.body.message).toMatch(/deja ete approuvee/i);
+            expect(res.body.message).toMatch(/déjà été approuvée/i);
         });
 
         test('TC-ADM-07 : Rejet d\'une demande avec un motif de refus spécifié', async () => {
@@ -82,7 +85,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
                 .patch('/api/admin/professional-requests/user-789/reject')
                 .send({ rejectionReason: 'Documents non valides' });
             expect(res.statusCode).toBe(200);
-            expect(res.body.message).toMatch(/Demande professionnelle rejetee/i);
+            expect(res.body.message).toMatch(/Demande professionnelle rejetée/i);
         });
     });
 

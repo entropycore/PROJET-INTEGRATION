@@ -30,12 +30,22 @@ const validators = ref([]);
 const isValidatorSuggestionsOpen = ref(false);
 
 const projectTypes = [
-  "Module",
-  "Intégration",
-  "Hackathon",
-  "Personnel",
-  "Stage",
+  { value: "Module", label: "Module" },
+  { value: "Integration", label: "Intégration" },
+  { value: "Hackathon", label: "Hackathon" },
+  { value: "Personnel", label: "Personnel" },
+  { value: "Stage", label: "Stage" },
 ];
+
+const normalizeProjectType = (type) => {
+  const value = String(type || "Module").trim();
+  const normalized = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  return normalized === "integration" ? "Integration" : value;
+};
 
 const canSubmit = computed(() => {
   return Boolean(projectForm.value?.validatorId);
@@ -64,8 +74,11 @@ const filteredValidators = computed(() => {
 const buildProjectPayload = () => {
   const payload = { ...projectForm.value };
 
+  payload.type = normalizeProjectType(payload.type);
+
   delete payload.screenshots;
   delete payload.attachments;
+  delete payload.validator;
   delete payload.validationHistory;
   delete payload.createdAt;
   delete payload.updatedAt;
@@ -78,7 +91,17 @@ const fetchProject = async () => {
 
   try {
     const response = await getStudentProjectById(route.params.id);
-    projectForm.value = structuredClone(response.data.data);
+    const loadedProject = structuredClone(response.data.data);
+
+    projectForm.value = {
+      ...loadedProject,
+      type: normalizeProjectType(loadedProject.type),
+      validatorId:
+        loadedProject.validatorId || loadedProject.validator?.id || "",
+      validatorName:
+        loadedProject.validatorName || loadedProject.validator?.fullName || "",
+    };
+
     syncValidatorSelectionFromProject();
   } catch (error) {
     console.warn("API project detail indisponible.");
@@ -417,10 +440,10 @@ onMounted(async () => {
                 <select v-model="projectForm.type">
                   <option
                     v-for="type in projectTypes"
-                    :key="type"
-                    :value="type"
+                    :key="type.value"
+                    :value="type.value"
                   >
-                    {{ type }}
+                    {{ type.label }}
                   </option>
                 </select>
               </label>

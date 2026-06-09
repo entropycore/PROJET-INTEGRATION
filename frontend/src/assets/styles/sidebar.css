@@ -58,17 +58,28 @@
   background: var(--app-surface-soft);
 }
 
-.sidebar-avatar {
+.sidebar-avatar,
+.sidebar-avatar-img {
   width: 2.5rem;
   height: 2.5rem;
   flex-shrink: 0;
   border-radius: 50%;
+}
+
+.sidebar-avatar {
   background: var(--app-primary);
   color: white;
   display: grid;
   place-items: center;
   font-size: 0.95rem;
   font-weight: 700;
+}
+
+.sidebar-avatar-img {
+  display: block;
+  object-fit: cover;
+  border: 2px solid var(--app-active-bg);
+  background: var(--app-surface-soft);
 }
 
 .sidebar-user h3 {

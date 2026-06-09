@@ -17,11 +17,11 @@ const selectedType = ref("");
 const selectedStatus = ref("");
 
 const projectTypes = [
-  "Module",
-  "Intégration",
-  "Hackathon",
-  "Personnel",
-  "Stage",
+  { value: "Module", label: "Module" },
+  { value: "Integration", label: "Intégration" },
+  { value: "Hackathon", label: "Hackathon" },
+  { value: "Personnel", label: "Personnel" },
+  { value: "Stage", label: "Stage" },
 ];
 
 const projectStatuses = [
@@ -58,6 +58,26 @@ const fetchProjects = async () => {
 
 onMounted(fetchProjects);
 
+const normalizeProjectType = (type) => {
+  return String(type || "")
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+};
+
+const getProjectTypeLabel = (type) => {
+  const projectType = projectTypes.find((item) => {
+    return normalizeProjectType(item.value) === normalizeProjectType(type);
+  });
+
+  return projectType?.label || type;
+};
+
+const getProjectValidatorName = (project) => {
+  return project.validatorName || project.validator?.fullName || "";
+};
+
 const filteredProjects = computed(() => {
   return projects.value.filter((project) => {
     const query = searchQuery.value.toLowerCase().trim();
@@ -69,7 +89,9 @@ const filteredProjects = computed(() => {
       project.technologies.some((tech) => tech.toLowerCase().includes(query));
 
     const matchesType =
-      !selectedType.value || project.type === selectedType.value;
+      !selectedType.value ||
+      normalizeProjectType(project.type) ===
+        normalizeProjectType(selectedType.value);
 
     const matchesStatus =
       !selectedStatus.value ||
@@ -88,7 +110,7 @@ const canSubmitProject = (project) => {
     project.validationStatus === "DRAFT" &&
     project.title?.trim() &&
     project.description?.trim() &&
-    project.validatorName
+    getProjectValidatorName(project)
   );
 };
 
@@ -112,11 +134,11 @@ const submitProject = async (projectId) => {
 
 <template>
   <section class="student-projects-page">
-    <div class="projects-page-header">
+    <div class="page-header">
       <div>
-        <p class="admin-kicker">PROJECTS</p>
+        <span class="page-label">PROJETS</span>
         <h1>Mes projets</h1>
-        <p class="admin-subtitle">
+        <p>
           Gérez vos projets académiques, personnels et professionnels.
         </p>
       </div>
@@ -137,8 +159,12 @@ const submitProject = async (projectId) => {
         <select v-model="selectedType">
           <option value="">Tous les types</option>
 
-          <option v-for="type in projectTypes" :key="type" :value="type">
-            {{ type }}
+          <option
+            v-for="type in projectTypes"
+            :key="type.value"
+            :value="type.value"
+          >
+            {{ type.label }}
           </option>
         </select>
 
@@ -174,9 +200,7 @@ const submitProject = async (projectId) => {
           class="project-card"
         >
           <div class="project-card-top">
-            <span class="project-type-pill">
-              {{ project.type }}
-            </span>
+            <h2>{{ project.title }}</h2>
 
             <span
               class="project-status-pill"
@@ -186,12 +210,63 @@ const submitProject = async (projectId) => {
             </span>
           </div>
 
-          <div class="project-card-content">
-            <h2>{{ project.title }}</h2>
+          <div class="project-kind">
+            <span class="material-icons-round">category</span>
+            <strong>{{ getProjectTypeLabel(project.type) }}</strong>
+          </div>
 
+          <div class="project-card-content">
             <p class="project-description">
               {{ project.description }}
             </p>
+          </div>
+
+          <div class="separator"></div>
+
+          <div class="project-info-grid">
+            <div class="project-info-item">
+              <span>Date de création</span>
+              <strong>
+                <span class="material-icons-round small-icon">
+                  calendar_month
+                </span>
+                {{ formatDate(project.createdAt) }}
+              </strong>
+            </div>
+
+            <div class="project-info-item">
+              <span>Type</span>
+              <strong>
+                <span class="material-icons-round small-icon">inventory_2</span>
+                {{ getProjectTypeLabel(project.type) }}
+              </strong>
+            </div>
+
+            <div class="project-info-item">
+              <span>Validateur</span>
+              <strong>
+                <span class="material-icons-round small-icon">person</span>
+                {{ getProjectValidatorName(project) || "Non assigné" }}
+              </strong>
+            </div>
+
+            <div class="project-info-item">
+              <span>Rôle</span>
+              <strong>
+                <span class="material-icons-round small-icon">badge</span>
+                {{ project.role || "Non renseigné" }}
+              </strong>
+            </div>
+          </div>
+
+          <div
+            v-if="project.technologies?.length"
+            class="project-technologies-box"
+          >
+            <div class="project-tech-title">
+              <span class="material-icons-round">code</span>
+              Technologies
+            </div>
 
             <div class="project-tech-list">
               <span
@@ -204,14 +279,10 @@ const submitProject = async (projectId) => {
             </div>
           </div>
 
-          <div class="project-meta">
-            {{ formatDate(project.createdAt) }}
-          </div>
-
           <div class="project-actions">
             <RouterLink
               :to="`/student/projects/${project.id}`"
-              class="secondary-action"
+              class="project-action-btn"
             >
               <span class="material-icons-round">visibility</span>
               Voir détails
@@ -220,7 +291,7 @@ const submitProject = async (projectId) => {
             <RouterLink
               v-if="canEditProject(project.validationStatus)"
               :to="`/student/projects/${project.id}/edit`"
-              class="secondary-action"
+              class="project-action-btn"
             >
               <span class="material-icons-round">edit</span>
               Modifier
@@ -229,7 +300,7 @@ const submitProject = async (projectId) => {
             <button
               v-if="canSubmitProject(project)"
               type="button"
-              class="primary-action"
+              class="project-submit-btn"
               @click="submitProject(project.id)"
             >
               <span class="material-icons-round">send</span>

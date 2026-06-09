@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { RouterLink } from "vue-router";
+import { buildBackendUrl } from "@/services/backendUrl";
 
 import {
   canDeleteActivity,
@@ -46,7 +47,9 @@ const deleteCurrentActivity = () => {
 
 const isCertificatePreviewOpen = ref(false);
 
-const certificateUrl = computed(() => props.activity.certificateUrl || "");
+const certificateUrl = computed(() =>
+  buildBackendUrl(props.activity.certificateUrl || ""),
+);
 
 const certificateExtension = computed(() => {
   const value = (
@@ -235,6 +238,7 @@ const closeCertificatePreview = () => {
 
 <style scoped>
 .activity-card {
+  font-family: "DM Sans", sans-serif;
   background: #ffffff;
   border: 1px solid #dee1dd;
   border-radius: 1rem;
@@ -271,8 +275,9 @@ const closeCertificatePreview = () => {
 }
 
 h3 {
+  font-family: "Times New Roman", Times, serif;
   color: #28363d;
-  font-size: 1.18rem;
+  font-size: 1.25rem;
   line-height: 1.35;
   font-weight: 700;
   margin: 0;

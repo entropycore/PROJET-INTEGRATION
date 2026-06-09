@@ -22,11 +22,11 @@ const validators = ref([]);
 const isValidatorSuggestionsOpen = ref(false);
 
 const projectTypes = [
-  "Module",
-  "Intégration",
-  "Hackathon",
-  "Personnel",
-  "Stage",
+  { value: "Module", label: "Module" },
+  { value: "Integration", label: "Intégration" },
+  { value: "Hackathon", label: "Hackathon" },
+  { value: "Personnel", label: "Personnel" },
+  { value: "Stage", label: "Stage" },
 ];
 
 const projectForm = ref({
@@ -360,8 +360,12 @@ onMounted(fetchValidators);
               <span>Type</span>
 
               <select v-model="projectForm.type">
-                <option v-for="type in projectTypes" :key="type" :value="type">
-                  {{ type }}
+                <option
+                  v-for="type in projectTypes"
+                  :key="type.value"
+                  :value="type.value"
+                >
+                  {{ type.label }}
                 </option>
               </select>
             </label>

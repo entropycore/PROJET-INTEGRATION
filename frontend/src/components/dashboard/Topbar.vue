@@ -1,11 +1,13 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import AppLogo from "../AppLogo.vue";
+import { buildBackendUrl } from "../../services/backendUrl";
 import "../../assets/styles/topbar.css";
 import notificationIcon from "../../assets/icons/notification.svg";
 
 const authStore = useAuthStore();
+const avatarFailed = ref(false);
 
 const roleBasePath = computed(() => {
   const map = {
@@ -35,6 +37,18 @@ const roleLabel = computed(() => {
 const avatarLetter = computed(() => {
   return authStore.user?.firstName?.charAt(0)?.toUpperCase() || "A";
 });
+
+const profilePicture = computed(() => authStore.user?.profilePicture || "");
+
+const avatarUrl = computed(() => {
+  if (!profilePicture.value || avatarFailed.value) return "";
+
+  return buildBackendUrl(profilePicture.value);
+});
+
+watch(profilePicture, () => {
+  avatarFailed.value = false;
+});
 </script>
 
 <template>
@@ -56,7 +70,14 @@ const avatarLetter = computed(() => {
       </RouterLink>
 
       <RouterLink :to="profilePath" class="avatar">
-        {{ avatarLetter }}
+        <img
+          v-if="avatarUrl"
+          :src="avatarUrl"
+          alt="Photo de profil"
+          class="avatar-img"
+          @error="avatarFailed = true"
+        />
+        <span v-else>{{ avatarLetter }}</span>
       </RouterLink>
     </div>
   </header>

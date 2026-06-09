@@ -24,6 +24,14 @@ const extractData = (response) => {
   return response.data?.data || response.data || [];
 };
 
+const normalizeStageStatus = (status) => {
+  const value = String(status || "")
+    .trim()
+    .toUpperCase();
+
+  return value === "CORRECTION_REQUIRED" ? "CHANGES_REQUESTED" : value;
+};
+
 const fetchStages = async () => {
   isLoading.value = true;
 
@@ -57,7 +65,7 @@ const filteredStages = computed(() => {
 
     const matchesStatus =
       selectedStatus.value === "ALL" ||
-      stage.validationStatus === selectedStatus.value;
+      normalizeStageStatus(stage.validationStatus) === selectedStatus.value;
 
     const matchesVisibility =
       selectedVisibility.value === "ALL" ||

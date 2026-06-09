@@ -39,7 +39,7 @@ const MOCK_BADGES = [
   {
     id: "mock-web-developer",
     name: "Web Developer",
-    description: "Badge pour les etudiants actifs en developpement web.",
+    description: "Badge pour les étudiants actifs en développement web.",
     rule: "Avoir au moins un projet web valide.",
     iconFallback: "WD",
     tone: "blue",
@@ -47,7 +47,7 @@ const MOCK_BADGES = [
   {
     id: "mock-devops-explorer",
     name: "DevOps Explorer",
-    description: "Badge lie aux outils DevOps et a l'integration continue.",
+    description: "Badge lié aux outils DevOps et à l'intégration continue.",
     rule: "Avoir un projet avec pipeline, Docker ou workflow GitHub.",
     iconFallback: "DX",
     tone: "green",
@@ -55,32 +55,32 @@ const MOCK_BADGES = [
   {
     id: "mock-hackathon-participant",
     name: "Hackathon Participant",
-    description: "Badge attribue apres validation d'une participation.",
-    rule: "Declarer une activite de type hackathon validee.",
+    description: "Badge attribué après validation d'une participation.",
+    rule: "Déclarer une activité de type hackathon validée.",
     iconFallback: "HP",
     tone: "purple",
   },
   {
     id: "mock-full-stack-developer",
     name: "Full Stack Developer",
-    description: "Badge pour les projets frontend ET backend valides.",
-    rule: "Projets frontend ET backend valides.",
+    description: "Badge pour les projets frontend ET backend validés.",
+    rule: "Projets frontend ET backend validés.",
     iconFallback: "FS",
     tone: "green",
   },
   {
     id: "mock-security-aware",
     name: "Security Aware",
-    description: "Badge pour les bonnes pratiques et la securite.",
-    rule: "Projet avec bonnes pratiques OWASP documentees.",
+    description: "Badge pour les bonnes pratiques et la sécurité.",
+    rule: "Projet avec bonnes pratiques OWASP documentées.",
     iconFallback: "SA",
     tone: "red",
   },
   {
     id: "mock-ai-data",
     name: "AI / Data",
-    description: "Badge pour les projets en IA ou Data Science valides.",
-    rule: "Projet IA ou Data valide.",
+    description: "Badge pour les projets en IA ou Data Science validés.",
+    rule: "Projet IA ou Data validé.",
     iconFallback: "AI",
     tone: "orange",
   },
@@ -241,7 +241,7 @@ const upsertTemporaryBadge = (payload) => {
 
 const handleSaveBadge = async () => {
   if (!newBadge.value.name || !newBadge.value.rule) {
-    alert("Veuillez remplir au moins le nom et la regle d'attribution.");
+    alert("Veuillez remplir au moins le nom et la règle d'attribution.");
     return;
   }
 
@@ -285,8 +285,8 @@ const handleDeleteBadge = async (id) => {
     <header class="page-header">
       <div>
         <span>ADMINISTRATION</span>
-        <h1>Systeme de badges</h1>
-        <p>Configurez les regles d'attribution automatique des badges</p>
+        <h1>Système de badges</h1>
+        <p>Configurez les règles d'attribution automatique des badges</p>
       </div>
 
       <button class="primary-btn" @click="handleNewBadge">
@@ -359,7 +359,7 @@ const handleDeleteBadge = async (id) => {
 
       <div v-if="useMockFallback" class="state-box temporary-note">
         <span class="material-icons-round">info</span>
-        Mode temporaire : le backend badges ne renvoie pas encore de donnees
+        Mode temporaire : le backend badges ne renvoie pas encore de données
         utilisables, donc l'affichage conserve des badges locaux.
       </div>
     </template>
@@ -373,7 +373,7 @@ const handleDeleteBadge = async (id) => {
         </div>
 
         <div class="form-group">
-          <label>URL de l'icone</label>
+          <label>URL de l'icône</label>
 
           <input
             v-model="newBadge.iconUrl"
@@ -382,7 +382,7 @@ const handleDeleteBadge = async (id) => {
           />
 
           <div v-if="newBadge.iconUrl" class="icon-preview">
-            <img :src="newBadge.iconUrl" alt="Apercu icone" />
+            <img :src="newBadge.iconUrl" alt="Aperçu icône" />
           </div>
         </div>
 
@@ -405,11 +405,11 @@ const handleDeleteBadge = async (id) => {
         </div>
 
         <div class="form-group">
-          <label>Regle d'attribution</label>
+          <label>Règle d'attribution</label>
           <textarea
             v-model="newBadge.rule"
             rows="4"
-            placeholder="Decrivez les criteres..."
+            placeholder="Décrivez les critères..."
           ></textarea>
         </div>
 
@@ -417,7 +417,7 @@ const handleDeleteBadge = async (id) => {
           <button class="cancel-btn" @click="closeCreateModal">Annuler</button>
 
           <button class="create-btn" @click="handleSaveBadge">
-            {{ isEditMode ? "Enregistrer" : "+ Creer" }}
+            {{ isEditMode ? "Enregistrer" : "+ Créer" }}
           </button>
         </div>
       </div>

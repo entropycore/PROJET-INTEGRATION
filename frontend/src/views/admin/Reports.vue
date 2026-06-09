@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
 
 import ReportsStats from "@/components/admin/reports/ReportsStats.vue";
 import ReportsToolbar from "@/components/admin/reports/ReportsToolbar.vue";
@@ -13,6 +14,8 @@ import {
   resolveReport,
 } from "@/services/adminReportsApi";
 
+const route = useRoute();
+
 const loading = ref(false);
 const error = ref(null);
 
@@ -22,8 +25,31 @@ const selectedStatus = ref("ALL");
 
 const showDetailsModal = ref(false);
 const selectedReport = ref(null);
+const lastOpenedTargetId = ref(null);
 
 const reports = ref([]);
+
+const openTargetedReport = async () => {
+  const targetId = route.query.itemId ? String(route.query.itemId) : null;
+
+  if (!targetId || lastOpenedTargetId.value === targetId) return;
+
+  const report = reports.value.find((item) => String(item.id) === targetId);
+
+  lastOpenedTargetId.value = targetId;
+
+  if (report) {
+    await handleView(report);
+    return;
+  }
+
+  try {
+    selectedReport.value = await getReportDetails(targetId);
+    showDetailsModal.value = true;
+  } catch (e) {
+    console.error("Signalement ciblé introuvable:", e);
+  }
+};
 
 const fetchReports = async () => {
   loading.value = true;
@@ -46,6 +72,7 @@ const fetchReports = async () => {
     const data = await getReports(params);
 
     reports.value = data.items || [];
+    await openTargetedReport();
   } catch (e) {
     console.error("Erreur signalements:", e);
     error.value = "Impossible de charger les signalements.";
@@ -57,6 +84,14 @@ const fetchReports = async () => {
 onMounted(fetchReports);
 
 watch([search, selectedType, selectedStatus], fetchReports);
+
+watch(
+  () => route.query.itemId,
+  () => {
+    lastOpenedTargetId.value = null;
+    openTargetedReport();
+  },
+);
 
 const stats = computed(() => {
   return {
@@ -77,8 +112,8 @@ const handleView = async (report) => {
     selectedReport.value = await getReportDetails(report.id);
     showDetailsModal.value = true;
   } catch (e) {
-    console.error("Erreur detail signalement:", e);
-    alert("Impossible de charger le detail du signalement.");
+    console.error("Erreur détail signalement:", e);
+    alert("Impossible de charger le détail du signalement.");
   }
 };
 
@@ -88,7 +123,7 @@ const closeDetailsModal = () => {
 };
 
 const handleResolve = async (report) => {
-  if (!confirm("Voulez-vous marquer ce signalement comme traite ?")) return;
+  if (!confirm("Voulez-vous marquer ce signalement comme traité ?")) return;
 
   try {
     await resolveReport(report.id);
@@ -116,15 +151,15 @@ const handleReject = async (report) => {
 };
 
 const handleDeleteTarget = async (report) => {
-  if (!confirm("Voulez-vous vraiment supprimer le contenu signale ?")) return;
+  if (!confirm("Voulez-vous vraiment supprimer le contenu signalé ?")) return;
 
   try {
     await deleteReportedTarget(report.id);
     await fetchReports();
     closeDetailsModal();
   } catch (e) {
-    console.error("Erreur suppression contenu signale:", e);
-    alert("Impossible de supprimer le contenu signale.");
+    console.error("Erreur suppression contenu signalé:", e);
+    alert("Impossible de supprimer le contenu signalé.");
   }
 };
 </script>
@@ -135,7 +170,7 @@ const handleDeleteTarget = async (report) => {
       <div>
         <span>ADMINISTRATION</span>
         <h1>Signalements</h1>
-        <p>Moderez les contenus signales par les utilisateurs</p>
+        <p>Modérez les contenus signalés par les utilisateurs</p>
       </div>
     </header>
 

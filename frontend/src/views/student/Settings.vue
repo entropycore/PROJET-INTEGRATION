@@ -199,8 +199,9 @@ const saveNotifications = async () => {
   <div class="settings-page">
     <div class="page-header">
       <div>
+        <span class="page-label">PARAMÈTRES</span>
         <h1>Paramètres</h1>
-        <div class="sub">Confidentialité et sécurité du compte</div>
+        <p>Gérez la confidentialité, la sécurité et les notifications.</p>
       </div>
     </div>
 
@@ -444,20 +445,36 @@ const saveNotifications = async () => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 24px;
+  gap: 1.25rem;
+  margin-bottom: 1.125rem;
 }
-.page-header h1 {
-  font-family: "DM Serif Display", serif;
-  font-size: 26px;
-  font-weight: 400;
-  color: #28363d;
-  line-height: 1.2;
-}
-.sub {
-  font-size: 13px;
-  color: #99aead;
-  margin-top: 3px;
+
+.page-label {
+  display: inline-block;
+  font-family: "Times New Roman", Times, serif !important;
+  margin-bottom: 0.4rem;
+  color: #a8aca8;
+  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
   font-style: italic;
+  font-weight: 400;
+}
+
+.page-header h1 {
+  font-family: "Times New Roman", Times, serif !important;
+  color: #28363d;
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.page-header p {
+  font-family: "Times New Roman", Times, serif !important;
+  margin: 0;
+  color: #6d9197;
+  font-size: 0.875rem;
+  font-style: italic;
+  font-weight: 400;
 }
 .content-card {
   background: #fff;
@@ -467,11 +484,20 @@ const saveNotifications = async () => {
   margin-bottom: 16px;
 }
 .card-title {
-  font-size: 15px;
-  color: #28363d;
-  font-family: "DM Serif Display", serif;
-  font-weight: 400;
+  font-size: 1rem;
+  color: var(--app-primary);
+  font-family: "Times New Roman", Times, serif !important;
+  font-weight: 700;
   margin-bottom: 16px;
+}
+.card-title::after {
+  content: "";
+  display: block;
+  width: 2.7rem;
+  height: 3px;
+  margin-top: 0.45rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
 }
 .form-group {
   margin-bottom: 16px;
@@ -484,7 +510,7 @@ const saveNotifications = async () => {
   margin-bottom: 5px;
 }
 
-/* Input avec icone oeil */
+/* Input avec icône oeil */
 .input-eye {
   position: relative;
 }
