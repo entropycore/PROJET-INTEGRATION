@@ -17,6 +17,7 @@ const emit = defineEmits(["close", "submit"]);
 const comment = ref("");
 const localError = ref("");
 
+const showsComment = computed(() => props.action?.showComment === true);
 const needsComment = computed(() => props.action?.requiresComment !== false);
 const commentLength = computed(() => comment.value.trim().length);
 
@@ -74,7 +75,6 @@ const handleSubmit = () => {
         </span>
 
         <div class="action-title-block">
-          <span class="action-eyebrow">{{ action.eyebrow }}</span>
           <h2 id="professor-validation-action-title">{{ action.title }}</h2>
         </div>
 
@@ -88,17 +88,11 @@ const handleSubmit = () => {
         </button>
       </header>
 
-      <div class="validation-context">
-        <span>{{ validationTypeLabel }}</span>
-        <strong>{{ action.validation?.title }}</strong>
-        <p>{{ studentName }}</p>
-      </div>
-
       <p class="action-description">
         {{ action.description }}
       </p>
 
-      <div v-if="needsComment" class="form-group">
+      <div v-if="showsComment" class="form-group">
         <div class="label-row">
           <label for="validation-comment">{{ action.label }}</label>
           <small>{{ commentLength }}/600</small>
@@ -112,10 +106,6 @@ const handleSubmit = () => {
           autofocus
           @input="localError = ''"
         />
-        <small class="hint-text">
-          Soyez précis : indiquez ce qui manque et ce que l'étudiant doit
-          déposer ou modifier.
-        </small>
       </div>
 
       <p v-if="localError" class="error-text">{{ localError }}</p>
@@ -168,7 +158,15 @@ const handleSubmit = () => {
 }
 
 .action-modal.warning {
-  border-top: 0.28rem solid var(--app-warning);
+  border-top: 0.28rem solid var(--app-primary);
+  background:
+    linear-gradient(
+      180deg,
+      var(--app-active-bg) 0,
+      var(--app-neutral-bg) 2.5rem,
+      var(--app-surface) 6rem
+    ),
+    var(--app-surface);
 }
 
 .action-modal.danger {
@@ -176,7 +174,10 @@ const handleSubmit = () => {
 }
 
 .action-modal.success {
-  border-top: 0.28rem solid var(--app-success);
+  border-top: 0.28rem solid var(--app-primary);
+  background:
+    linear-gradient(180deg, var(--app-active-bg) 0, var(--app-surface) 5rem),
+    var(--app-surface);
 }
 
 .action-header,
@@ -217,8 +218,12 @@ const handleSubmit = () => {
 }
 
 .action-icon.warning {
-  background: var(--app-warning-bg);
-  color: var(--app-warning);
+  background: linear-gradient(
+    135deg,
+    var(--app-active-bg),
+    var(--app-active-border)
+  );
+  color: var(--app-primary);
 }
 
 .action-icon.danger {
@@ -227,8 +232,8 @@ const handleSubmit = () => {
 }
 
 .action-icon.success {
-  background: var(--app-success-bg);
-  color: var(--app-success);
+  background: var(--app-active-bg);
+  color: var(--app-primary);
 }
 
 .action-icon .material-icons-round {
@@ -296,7 +301,7 @@ const handleSubmit = () => {
 }
 
 .action-description {
-  margin: 0 0 1rem;
+  margin: 10px 0 1rem;
   color: var(--app-muted);
   line-height: 1.55;
 }
@@ -384,8 +389,13 @@ textarea:focus {
 }
 
 .primary-btn.success {
-  border-color: var(--app-success);
-  background: var(--app-success);
+  border-color: var(--app-primary);
+  background: var(--app-primary);
+}
+
+.primary-btn.success:hover {
+  border-color: var(--app-primary-hover);
+  background: var(--app-primary-hover);
 }
 
 .primary-btn.danger {
@@ -395,9 +405,17 @@ textarea:focus {
 }
 
 .primary-btn.warning {
-  border-color: var(--app-warning, #d4a72c);
-  background: var(--app-warning, #d4a72c);
-  color: #1f2933;
+  border-color: var(--app-primary);
+  color: #ffffff;
+}
+
+.primary-btn.warning:hover {
+  border-color: var(--app-primary-hover);
+  background: linear-gradient(
+    135deg,
+    var(--app-primary-hover),
+    var(--app-accent)
+  );
 }
 
 .primary-btn .material-icons-round,
