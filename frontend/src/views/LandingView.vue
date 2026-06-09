@@ -2,11 +2,12 @@
   <div class="landing-wrapper">
     <Navbar />
     <HeroSection />
-    <FeaturesSection />
     <WorkflowSection />
-    <RolesSection />
+    <FeaturesSection />
     <ScoringSection />
+    <RolesSection />
     <DemoSection />
+    <ProfessionalSection />
     <CtaSection />
     <FooterSection />
   </div>
@@ -23,6 +24,7 @@ import WorkflowSection from "../components/landing/WorkflowSection.vue";
 import RolesSection from "../components/landing/RolesSection.vue";
 import ScoringSection from "../components/landing/ScoringSection.vue";
 import DemoSection from "../components/landing/DemoSection.vue";
+import ProfessionalSection from "../components/landing/ProfessionalSection.vue";
 import CtaSection from "../components/landing/CtaSection.vue";
 import FooterSection from "../components/landing/FooterSection.vue";
 

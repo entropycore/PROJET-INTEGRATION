@@ -2,24 +2,23 @@
   <section class="cta-section">
     <div class="cta-box reveal">
       <h2 class="cta-title">
-        À la recherche de<br /><em>nouveaux talents</em> ?
+        À la recherche de<br /><em>nouveaux talents ?</em>
       </h2>
 
       <p class="cta-sub">
-        Rejoignez notre réseau d'entreprises partenaires. Demandez un accès
-        professionnel pour découvrir et recruter nos futurs ingénieurs grâce à
-        leurs portfolios certifiés.
+        Accédez à des portfolios certifiés,<br />
+        construits à partir de projets, stages,<br />
+        activités et compétences validés.
       </p>
 
       <div class="cta-actions">
-        <!-- Zidna hna /register -->
         <router-link to="/request-access" class="btn-cta-primary">
-          Demander accès à notre plateforme
+          Demander un accès professionnel
         </router-link>
 
-        <a href="mailto:contact@ensa.ma" class="btn-cta-ghost">
-          Nous contacter
-        </a>
+        <router-link to="/login" class="btn-cta-ghost">
+          Déjà membre ? <span>Se connecter</span>
+        </router-link>
       </div>
     </div>
   </section>
