@@ -1,22 +1,38 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import path from 'path'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
+import path from "path";
 // Configuration principale de Vite
 export default defineConfig({
   // Utilisation du plugin Vue pour compiler les fichiers .vue
   plugins: [vue()],
-  
+
+  server: {
+    headers: {
+      "X-Content-Type-Options": "nosniff",
+      "X-Frame-Options": "DENY",
+      "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Content-Security-Policy":
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: http://localhost:3000 http://localhost:5000 http://127.0.0.1:3000 http://127.0.0.1:5000 https://ghchart.rshah.org https://github.com https://avatars.githubusercontent.com; frame-src 'self' blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://localhost:3000 http://localhost:5000 http://127.0.0.1:3000 http://127.0.0.1:5000; form-action 'self'; frame-ancestors 'none'; base-uri 'self'",
+      "Cross-Origin-Resource-Policy": "same-origin",
+    },
+  },
+
   test: {
     // Activation des API globales (describe, it, expect) pour éviter les imports répétitifs
     globals: true,
     // Simulation du DOM du navigateur via jsdom (nécessaire pour les tests UI et Smoke)
-    environment: 'jsdom',
+    environment: "jsdom",
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+    ],
   },
   resolve: {
     alias: {
       // Configuration de l'alias '@' pour pointer vers le dossier 'src'
       // Cela facilite les imports : '@/components/...' au lieu de '../../../src/components/...'
-      '@': path.resolve(__dirname, './src'),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
-})
+});
