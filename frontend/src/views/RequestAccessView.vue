@@ -101,28 +101,30 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="auth-page">
+  <div class="auth-page request-access-page">
     <section class="auth-left">
+      <div class="hero-lines" aria-hidden="true"></div>
+
       <div class="brand-block">
-        <div class="brand-logo-row">
+        <div class="brand-identity">
           <AppLogo />
+          <span class="brand-title">Credencia</span>
         </div>
 
         <div class="hero-text">
           <h1>
-            Recrutez des profils<br />
-            vérifiés et<br />
-            <span>certifiés.</span>
+            Recrutez les talents<br />
+            <span>de demain.</span>
           </h1>
 
           <p>
-            Découvrez une sélection de portfolios académiques validés, offrant
-            une visibilité claire et fiable sur les compétences des candidats.
+            Accédez à des profils vérifiés. Ne vous fiez plus uniquement aux CV
+            : consultez des portfolios certifiés, construits à partir
+            d’expériences, de projets et de réalisations validées.
           </p>
 
           <p>
-            Chaque réalisation présentée est certifiée par son institution, pour
-            un recrutement basé sur des données authentiques.
+            Soyez parmi les premiers à identifier les talents de demain.
           </p>
         </div>
       </div>
@@ -131,7 +133,7 @@ const handleSubmit = async () => {
     <section class="auth-right">
       <div class="auth-card auth-card-request">
         <div class="auth-form-block">
-          <h2>Rejoignez ValiDia</h2>
+          <h2>Rejoignez Credencia</h2>
           <p class="subtitle">
             Envoyez votre demande d'accès à notre plateforme
           </p>
@@ -199,17 +201,27 @@ const handleSubmit = async () => {
                     :type="showPassword ? 'text' : 'password'"
                     placeholder="••••••••"
                   />
-                  <img
-                    class="toggle-icon"
-                    :src="
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    :aria-label="
                       showPassword
-                        ? '/src/assets/Button.png'
-                        : '/src/assets/icon.png'
+                        ? 'Masquer le mot de passe'
+                        : 'Afficher le mot de passe'
                     "
-                    alt=""
-                    aria-hidden="true"
                     @click="togglePassword"
-                  />
+                  >
+                    <img
+                      class="toggle-icon"
+                      :src="
+                        showPassword
+                          ? '/src/assets/Button.png'
+                          : '/src/assets/icon.png'
+                      "
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
               </div>
 
@@ -222,17 +234,27 @@ const handleSubmit = async () => {
                     :type="showConfirmPassword ? 'text' : 'password'"
                     placeholder="••••••••"
                   />
-                  <img
-                    class="toggle-icon"
-                    :src="
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    :aria-label="
                       showConfirmPassword
-                        ? '/src/assets/Button.png'
-                        : '/src/assets/icon.png'
+                        ? 'Masquer la confirmation du mot de passe'
+                        : 'Afficher la confirmation du mot de passe'
                     "
-                    alt=""
-                    aria-hidden="true"
                     @click="toggleConfirmPassword"
-                  />
+                  >
+                    <img
+                      class="toggle-icon"
+                      :src="
+                        showConfirmPassword
+                          ? '/src/assets/Button.png'
+                          : '/src/assets/icon.png'
+                      "
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
               </div>
             </div>

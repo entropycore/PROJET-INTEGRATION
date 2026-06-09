@@ -92,10 +92,15 @@ const togglePassword = () => {
 </script>
 
 <template>
-  <div class="auth-page">
+  <div class="auth-page login-page">
     <section class="auth-left">
+      <div class="hero-lines" aria-hidden="true"></div>
+
       <div class="brand-block">
-        <AppLogo />
+        <div class="brand-identity">
+          <AppLogo />
+          <span class="brand-title">Credencia</span>
+        </div>
 
         <div class="hero-text">
           <h1>
@@ -145,17 +150,27 @@ const togglePassword = () => {
                   placeholder="••••••••"
                   autocomplete="current-password"
                 />
-                <img
-                  class="toggle-icon"
-                  :src="
+                <button
+                  class="password-toggle"
+                  type="button"
+                  :aria-label="
                     showPassword
-                      ? '/src/assets/Button.png'
-                      : '/src/assets/icon.png'
+                      ? 'Masquer le mot de passe'
+                      : 'Afficher le mot de passe'
                   "
-                  alt=""
-                  aria-hidden="true"
                   @click="togglePassword"
-                />
+                >
+                  <img
+                    class="toggle-icon"
+                    :src="
+                      showPassword
+                        ? '/src/assets/Button.png'
+                        : '/src/assets/icon.png'
+                    "
+                    alt=""
+                    aria-hidden="true"
+                  />
+                </button>
               </div>
             </div>
 
@@ -169,13 +184,6 @@ const togglePassword = () => {
                   Mot de passe oublié ?
                 </button>
               </div>
-
-              <p class="access-request-text">
-                Vous n'avez pas encore de compte ?
-                <span class="access-request-link" @click="goToRequestAccess">
-                  Demandez l'accès
-                </span>
-              </p>
             </div>
 
             <p v-if="errorMessage" class="error-message">
@@ -189,6 +197,17 @@ const togglePassword = () => {
             <button class="submit-btn" type="submit" :disabled="isLoading">
               {{ isLoading ? "Connexion..." : "Se connecter" }}
             </button>
+
+            <div class="auth-or-divider" aria-hidden="true">
+              <span>ou</span>
+            </div>
+
+            <p class="access-request-text">
+              Vous n'avez pas encore de compte ?
+              <span class="access-request-link" @click="goToRequestAccess">
+                Demandez l'accès
+              </span>
+            </p>
           </form>
         </div>
       </div>
