@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PortfolioSection — Tests UI > Snapshot > correspond au snapshot de référence (structure stable) 1`] = `
+"<section class="portfolio-section theme-modern-academic">
+  <h2><span class="material-icons-round">school</span> Formation</h2>
+  <p>Contenu stable</p>
+</section>"
+`;
