@@ -1,6 +1,5 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
 
 import ReportsStats from "@/components/admin/reports/ReportsStats.vue";
 import ReportsToolbar from "@/components/admin/reports/ReportsToolbar.vue";
@@ -14,8 +13,6 @@ import {
   resolveReport,
 } from "@/services/adminReportsApi";
 
-const route = useRoute();
-
 const loading = ref(false);
 const error = ref(null);
 
@@ -25,31 +22,8 @@ const selectedStatus = ref("ALL");
 
 const showDetailsModal = ref(false);
 const selectedReport = ref(null);
-const lastOpenedTargetId = ref(null);
 
 const reports = ref([]);
-
-const openTargetedReport = async () => {
-  const targetId = route.query.itemId ? String(route.query.itemId) : null;
-
-  if (!targetId || lastOpenedTargetId.value === targetId) return;
-
-  const report = reports.value.find((item) => String(item.id) === targetId);
-
-  lastOpenedTargetId.value = targetId;
-
-  if (report) {
-    await handleView(report);
-    return;
-  }
-
-  try {
-    selectedReport.value = await getReportDetails(targetId);
-    showDetailsModal.value = true;
-  } catch (e) {
-    console.error("Signalement ciblé introuvable:", e);
-  }
-};
 
 const fetchReports = async () => {
   loading.value = true;
@@ -72,7 +46,6 @@ const fetchReports = async () => {
     const data = await getReports(params);
 
     reports.value = data.items || [];
-    await openTargetedReport();
   } catch (e) {
     console.error("Erreur signalements:", e);
     error.value = "Impossible de charger les signalements.";
@@ -84,14 +57,6 @@ const fetchReports = async () => {
 onMounted(fetchReports);
 
 watch([search, selectedType, selectedStatus], fetchReports);
-
-watch(
-  () => route.query.itemId,
-  () => {
-    lastOpenedTargetId.value = null;
-    openTargetedReport();
-  },
-);
 
 const stats = computed(() => {
   return {

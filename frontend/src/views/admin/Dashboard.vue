@@ -4,10 +4,9 @@ import { useRouter } from "vue-router";
 import { getAdminDashboard } from "../../services/adminService";
 import "../../assets/styles/admin-dashboard.css";
 
-const router = useRouter();
-
 const loading = ref(false);
 const error = ref(null);
+const router = useRouter();
 
 const dashboardData = ref({
   summaryCards: {},
@@ -91,7 +90,7 @@ const stats = computed(() => {
    RECENT ACTIVITY
 ====================== */
 const activityRouteByType = {
-  ACCESS_REQUEST: "/admin/users",
+  ACCESS_REQUEST: "/admin/users?role=PROFESSIONAL&status=PENDING",
   CERTIFICATE_VALIDATION: "/admin/validations",
   PROJECT: "/admin/validations",
   INTERNSHIP: "/admin/validations",
@@ -115,14 +114,14 @@ const activityTypeAliases = {
 };
 
 const activityLabelByType = {
-  ACCESS_REQUEST: "Accès",
-  CERTIFICATE_VALIDATION: "Certificat",
-  PROJECT: "Projet",
-  INTERNSHIP: "Stage",
-  ACTIVITY: "Activité",
-  RECOMMENDATION_LETTER_VALIDATION: "Lettre",
-  COMMENT_VALIDATION: "Commentaire",
-  RECOMMENDATION_VALIDATION: "Reco.",
+  ACCESS_REQUEST: "Demande d'accès",
+  CERTIFICATE_VALIDATION: "Validation certificat",
+  PROJECT: "Validation projet",
+  INTERNSHIP: "Validation stage",
+  ACTIVITY: "Validation activité",
+  RECOMMENDATION_LETTER_VALIDATION: "Validation lettre",
+  COMMENT_VALIDATION: "Validation commentaire",
+  RECOMMENDATION_VALIDATION: "Validation recommandation",
   REPORT: "Signalement",
 };
 
@@ -197,6 +196,10 @@ const getActivityTone = (activity) => {
   return activityToneByType[getActivityType(activity)] || activity.tone || "blue";
 };
 
+const getActivityRoute = (activity) => {
+  return activityRouteByType[getActivityType(activity)] || "/admin/notifications";
+};
+
 const mapRecentActivity = (activity) => {
   const name = activity.requesterName || activity.name || "Utilisateur inconnu";
   const organization =
@@ -224,45 +227,8 @@ const requests = computed(() => {
   return (dashboardData.value.recentRequests || []).map(mapRecentActivity);
 });
 
-const getActivityTarget = (activity = {}) => {
-  const type = getActivityType(activity);
-  const path = activityRouteByType[type];
-  const itemId =
-    activity.id ||
-    activity.itemId ||
-    activity.raw?.itemId ||
-    activity.raw?.certificateId ||
-    activity.raw?.reportId ||
-    activity.raw?.userId;
-
-  if (!path || !itemId) return null;
-
-  if (type === "ACCESS_REQUEST") {
-    return {
-      path,
-      query: {
-        role: "PROFESSIONAL",
-        status: "PENDING",
-        itemId,
-      },
-    };
-  }
-
-  return {
-    path,
-    query: {
-      itemType: type,
-      itemId,
-    },
-  };
-};
-
 const openActivity = (activity) => {
-  const target = getActivityTarget(activity);
-
-  if (!target) return;
-
-  router.push(target);
+  router.push(getActivityRoute(activity));
 };
 
 /* ======================
@@ -347,23 +313,13 @@ const actions = computed(() => {
             </div>
 
             <RouterLink to="/admin/notifications" class="card-header-link">
-              Voir les notifications
+              Voir toute l'activit&eacute;
               <span class="material-icons-round">arrow_forward</span>
             </RouterLink>
           </div>
 
           <div v-if="requests.length" class="request-list">
-            <div
-              v-for="req in requests"
-              :key="req.id"
-              class="request-item"
-              :class="{ clickable: getActivityTarget(req) }"
-              :tabindex="getActivityTarget(req) ? 0 : undefined"
-              :role="getActivityTarget(req) ? 'button' : undefined"
-              @click="openActivity(req)"
-              @keydown.enter.prevent="openActivity(req)"
-              @keydown.space.prevent="openActivity(req)"
-            >
+            <div v-for="req in requests" :key="req.id" class="request-item">
               <div class="avatar">
                 {{ req.initial }}
               </div>
@@ -388,6 +344,11 @@ const actions = computed(() => {
                   </span>
                   {{ req.label }}
                 </span>
+
+                <button class="btn-light" @click="openActivity(req)">
+                  <span class="material-icons-round">visibility</span>
+                  Voir
+                </button>
               </div>
             </div>
           </div>

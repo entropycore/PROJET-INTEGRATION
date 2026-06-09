@@ -1,6 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
-import { useRoute } from "vue-router";
+import { computed, onMounted, ref } from "vue";
 
 import ValidationStats from "@/components/admin/validations/ValidationStats.vue";
 import ValidationToolbar from "@/components/admin/validations/ValidationToolbar.vue";
@@ -15,8 +14,6 @@ import {
   requestValidationChanges,
 } from "@/services/adminValidationsApi";
 
-const route = useRoute();
-
 const loading = ref(false);
 const error = ref(null);
 const search = ref("");
@@ -24,7 +21,6 @@ const selectedType = ref("ALL");
 const selectedStatus = ref("ALL");
 const showDetailsModal = ref(false);
 const selectedValidation = ref(null);
-const lastOpenedTargetId = ref(null);
 
 const stats = ref({
   count: 0,
@@ -35,34 +31,6 @@ const stats = ref({
 });
 
 const validations = ref([]);
-
-const openTargetedValidation = async () => {
-  const targetId = route.query.itemId ? String(route.query.itemId) : null;
-
-  if (!targetId || lastOpenedTargetId.value === targetId) return;
-
-  const validation = validations.value.find((item) => {
-    return (
-      String(item.id) === targetId ||
-      String(item.raw?.certificateId) === targetId ||
-      String(item.raw?.itemId) === targetId
-    );
-  });
-
-  lastOpenedTargetId.value = targetId;
-
-  if (validation) {
-    await handleView(validation);
-    return;
-  }
-
-  try {
-    selectedValidation.value = await getValidationDetails(targetId);
-    showDetailsModal.value = true;
-  } catch (err) {
-    console.error("Validation ciblée introuvable:", err);
-  }
-};
 
 const fetchValidations = async () => {
   loading.value = true;
@@ -76,7 +44,6 @@ const fetchValidations = async () => {
 
     validations.value = validationsData.items || [];
     stats.value = statsData;
-    await openTargetedValidation();
   } catch (err) {
     console.error("Erreur validations:", err);
     validations.value = [];
@@ -87,14 +54,6 @@ const fetchValidations = async () => {
 };
 
 onMounted(fetchValidations);
-
-watch(
-  () => route.query.itemId,
-  () => {
-    lastOpenedTargetId.value = null;
-    openTargetedValidation();
-  },
-);
 
 const filteredValidations = computed(() => {
   return validations.value.filter((validation) => {

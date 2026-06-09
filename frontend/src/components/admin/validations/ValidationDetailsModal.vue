@@ -211,7 +211,7 @@ const content = props.validation.content || props.validation;
 
             <div class="detail-row" v-if="targetDetails.credentialUrl">
               <span>Lien certificat</span>
-              <a :href="targetDetails.credentialUrl" target="_blank">
+              <a :href="buildBackendUrl(targetDetails.credentialUrl)" target="_blank">
                 Ouvrir le lien
               </a>
             </div>
@@ -241,7 +241,7 @@ const content = props.validation.content || props.validation;
           <a
             v-for="file in files"
             :key="file.id || file.name"
-            :href="file.url"
+            :href="buildBackendUrl(file.url)"
             target="_blank"
             class="file-item"
           >

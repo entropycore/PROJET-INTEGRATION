@@ -51,7 +51,7 @@ export const sidebarConfig = {
       items: [
         {
           label: "Système de badges",
-          path: "/admin/Badges",
+          path: "/admin/badges",
           icon: "workspace_premium",
         },
         {
