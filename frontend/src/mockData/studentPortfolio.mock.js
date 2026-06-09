@@ -40,13 +40,13 @@
     {
       id: 1,
       name: "Web Developer",
-      icon: "language",
+      icon: "terminal",
       tone: "blue",
     },
     {
       id: 2,
       name: "DevOps Explorer",
-      icon: "cloud",
+      icon: "cloud_sync",
       tone: "cyan",
     },
     {
@@ -57,8 +57,8 @@
     },
     {
       id: 4,
-      name: "Full Stack",
-      icon: "layers",
+      name: "Full Stack Developer",
+      icon: "developer_mode",
       tone: "green",
     },
   ],
