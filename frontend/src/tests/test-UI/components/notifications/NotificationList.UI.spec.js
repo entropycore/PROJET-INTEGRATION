@@ -2,16 +2,16 @@ import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import NotificationList from "@/components/notifications/NotificationsList.vue";
 
-describe("NotificationList - UI Test", () => {
-  it("emits read event when NotificationItem emits read", async () => {
-    const notifications = [{ id: 1, title: "Test notification" }];
+describe("NotificationList - Test UI", () => {
+  it("emet l'evenement read quand NotificationItem emet read", async () => {
+    const notifications = [{ id: 1, title: "Notification de test" }];
 
     const wrapper = mount(NotificationList, {
       props: { notifications },
       global: {
         stubs: {
           NotificationItem: {
-            template: "<button @click=\"$emit('read')\">Read</button>",
+            template: "<button @click=\"$emit('read')\">Lire</button>",
           },
         },
       },
@@ -23,15 +23,15 @@ describe("NotificationList - UI Test", () => {
     expect(wrapper.emitted("read")?.length).toBe(1);
   });
 
-  it("emits delete event with notification id", async () => {
-    const notifications = [{ id: 7, title: "Delete me" }];
+  it("emet l'evenement delete avec l'identifiant de notification", async () => {
+    const notifications = [{ id: 7, title: "A supprimer" }];
 
     const wrapper = mount(NotificationList, {
       props: { notifications },
       global: {
         stubs: {
           NotificationItem: {
-            template: "<button @click=\"$emit('delete')\">Delete</button>",
+            template: "<button @click=\"$emit('delete')\">Supprimer</button>",
           },
         },
       },
