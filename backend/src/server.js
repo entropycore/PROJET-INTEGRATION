@@ -8,6 +8,7 @@ const securityHeaders = require('./middlewares/securityHeaders');
 const redirectHttps = require('./middlewares/redirectHttps');
 const { handleErrors, notFound } = require('./middlewares/handleErrors');
 const { globalLimiter } = require('./middlewares/rateLimiter');
+const { doubleCsrfProtection } = require('./middlewares/csrfProtection');
 const { sanitizeInputs } = require('./middlewares/sanitize');
 const logger = require('./logs/logger');
 
@@ -41,6 +42,7 @@ app.use(globalLimiter);
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(cookieParser());
+app.use(doubleCsrfProtection);
 app.use(sanitizeInputs);
 
 app.get('/', (_req, res) => {
