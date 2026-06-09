@@ -126,11 +126,6 @@ export const sidebarConfig = {
           path: "/student/recommendation-letters",
           icon: "history_edu",
         },
-        {
-          label: "Commentaires",
-          path: "/student/comments",
-          icon: "forum",
-        },
       ],
     },
 
