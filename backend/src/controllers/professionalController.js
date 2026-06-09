@@ -9,7 +9,7 @@ const handleProfessionalError = (res, err) => {
   }
 
   if (err.message === 'PROFILE_PICTURE_UPLOAD_EMPTY') {
-    return error(res, 400, 'Ajoutez une photo de profil.');
+    return error(res, 400, 'Photo de profil requise.');
   }
 
   return null;

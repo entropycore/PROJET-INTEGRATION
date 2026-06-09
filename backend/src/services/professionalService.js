@@ -188,7 +188,8 @@ const mapPublicProfile = (portfolio) => {
     highlights: {
       projectsCount: projects.length,
       internshipsCount: internships.length,
-      recommendationsCount: student.recommendations.length + student.recommendationLetters.length,
+      recommendationsCount:
+        student.recommendations.length + student.recommendationLetters.length,
       latestProjects: projects.slice(0, 3).map((project) => ({
         id: project.id,
         title: project.title,
