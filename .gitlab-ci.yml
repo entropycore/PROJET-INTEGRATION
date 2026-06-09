@@ -1,0 +1,113 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "dev" || $CI_COMMIT_BRANCH == "main")'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "dev" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main")'
+      when: always
+    - when: never
+
+stages:
+  - test
+  - e2e
+  - build
+
+variables:
+  NODE_VERSION: "24"
+  POSTGRES_DB: credencia_test
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_HOST_AUTH_METHOD: trust
+  DATABASE_URL: postgresql://postgres:postgres@postgres:5432/credencia_test
+  DIRECT_URL: postgresql://postgres:postgres@postgres:5432/credencia_test
+  CLIENT_URL: http://localhost:5173
+  VITE_API_BASE_URL: http://localhost:3000
+  BACKEND_PORT: "3000"
+  PORT: "3000"
+  ACCESS_TOKEN_SECRET: ci_access_token_secret
+  REFRESH_TOKEN_SECRET: ci_refresh_token_secret
+  EMAIL_TOKEN_SECRET: ci_email_token_secret
+
+frontend:test:
+  stage: test
+  image: node:${NODE_VERSION}
+  script:
+    - cd frontend
+    - npm ci
+    - npm run lint
+    - mkdir -p reports
+    - npm run test:ci
+  artifacts:
+    when: always
+    reports:
+      junit: frontend/reports/frontend-vitest-junit.xml
+    paths:
+      - frontend/reports/frontend-vitest-junit.xml
+    expire_in: 7 days
+
+backend:test:
+  stage: test
+  image: node:${NODE_VERSION}
+  services:
+    - name: postgres:15-alpine
+      alias: postgres
+  variables:
+    NODE_ENV: test
+  script:
+    - cd backend
+    - npm ci
+    - npx prisma generate
+    - npx prisma migrate deploy
+    - npm run lint
+    - npm run test:unit
+    - npm run test:sec
+    - npm run test:integration
+    - npm run test:coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d.]+)/'
+  artifacts:
+    when: always
+    paths:
+      - backend/coverage/
+    expire_in: 7 days
+
+e2e:cypress:
+  stage: e2e
+  image: cypress/included:15.14.2
+  services:
+    - name: postgres:15-alpine
+      alias: postgres
+  variables:
+    NODE_ENV: e2e
+  script:
+    - cd backend
+    - npm ci
+    - npx prisma generate
+    - npx prisma migrate deploy
+    - npm run start > ../backend-e2e.log 2>&1 &
+    - cd ../frontend
+    - npm ci
+    - npm run dev -- --host 0.0.0.0 > ../frontend-e2e.log 2>&1 &
+    - cd ..
+    - until curl -fsS http://localhost:3000/api/health > /dev/null; do echo "Waiting for backend..."; sleep 2; done
+    - until curl -fsS http://localhost:5173 > /dev/null; do echo "Waiting for frontend..."; sleep 2; done
+    - cd frontend
+    - npx cypress run --project ../qa --env API_BASE_URL=http://localhost:3000
+  artifacts:
+    when: always
+    paths:
+      - qa/cypress/screenshots/
+      - qa/cypress/videos/
+      - backend-e2e.log
+      - frontend-e2e.log
+    expire_in: 7 days
+
+build:frontend:
+  stage: build
+  image: node:${NODE_VERSION}
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 7 days
