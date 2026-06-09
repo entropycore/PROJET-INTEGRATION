@@ -63,11 +63,14 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="auth-page">
+  <div class="auth-page forgot-password-page">
     <section class="auth-left">
+      <div class="hero-lines" aria-hidden="true"></div>
+
       <div class="brand-block">
-        <div class="brand-logo-row">
+        <div class="brand-identity">
           <AppLogo />
+          <span class="brand-title">Credencia</span>
         </div>
 
         <div class="hero-text">
@@ -82,10 +85,7 @@ const handleSubmit = async () => {
             réinitialisation si votre compte existe déjà dans la plateforme.
           </p>
 
-          <p>
-            Pour des raisons de confidentialité, nous affichons le même message
-            même si aucun compte ne correspond à l'adresse renseignée.
-          </p>
+          
         </div>
       </div>
     </section>
