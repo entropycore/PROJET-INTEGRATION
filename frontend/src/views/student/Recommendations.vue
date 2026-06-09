@@ -231,32 +231,28 @@ onMounted(() => {
 }
 
 .page-header {
-  margin-bottom: 1.125rem;
+  margin-bottom: 1.4rem;
 }
 
 .page-label {
   display: inline-block;
-  margin-bottom: 0.4rem;
-  color: #a8aca8;
-  font-family: serif;
-  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+  color: #8f9f9c;
+  font-size: 0.82rem;
   font-style: italic;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
 }
 
 .page-header h1 {
-  font-family: serif;
   color: #28363d;
   font-size: 2rem;
-  line-height: 1.15;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
+  font-weight: 800;
+  margin: 0 0 0.35rem;
 }
 
 .page-header p {
-  font-family: serif;
   color: #6d9197;
-  font-size: 0.875rem;
-  font-style: italic;
+  font-size: 1rem;
   margin: 0;
 }
 

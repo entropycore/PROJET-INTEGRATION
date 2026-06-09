@@ -259,10 +259,13 @@ onMounted(loadAll);
   <div class="skills-page">
     <div class="page-header">
       <div>
-        <span class="page-label">COMPÉTENCES</span>
-        <h1>Mes compétences</h1>
-        <p>Suivez vos compétences techniques et comportementales.</p>
+        <h1>Compétences</h1>
+        <div class="sub">Compétences techniques et comportementales</div>
       </div>
+      <button class="btn btn-primary" @click="openAddSkill">
+        <span class="material-icons-round">add</span>
+        Ajouter une compétence
+      </button>
     </div>
 
     <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
@@ -334,10 +337,6 @@ onMounted(loadAll);
       <div class="content-card">
         <div class="flex-between mb-16">
           <h3 class="card-title" style="margin: 0">Compétences techniques</h3>
-          <button class="btn btn-primary btn-sm" @click="openAddSkill">
-            <span class="material-icons-round">add</span>
-            Ajouter
-          </button>
         </div>
 
         <div v-if="mySkills.length > 0" class="skills-grid">
@@ -394,7 +393,7 @@ onMounted(loadAll);
             Compétences comportementales
           </h3>
           <button
-            class="btn btn-primary btn-sm"
+            class="btn btn-secondary btn-sm"
             @click="showAddSoft = !showAddSoft"
           >
             <span class="material-icons-round">add</span>

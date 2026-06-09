@@ -1,5 +1,4 @@
 import api from "./api";
-import { studentPortfolioMock } from "@/mockData/studentPortfolio.mock";
 
 const extractPortfolioData = (response) => response.data?.data || response.data;
 
@@ -16,21 +15,13 @@ export const getPublicPortfolioBySlug = (slug) => {
 };
 
 export const getStudentPortfolioData = async () => {
-  try {
-    const response = await getStudentPortfolioPreview();
-    return extractPortfolioData(response);
-  } catch (error) {
-    console.warn("Backend portfolio indisponible, utilisation du mock.", error);
-    return studentPortfolioMock;
-  }
+  const response = await getStudentPortfolioPreview();
+
+  return extractPortfolioData(response);
 };
 
 export const getPublicPortfolioData = async (slug) => {
-  try {
-    const response = await getPublicPortfolioBySlug(slug);
-    return extractPortfolioData(response);
-  } catch (error) {
-    console.warn("Portfolio public indisponible, utilisation du mock.", error);
-    return studentPortfolioMock;
-  }
+  const response = await getPublicPortfolioBySlug(slug);
+
+  return extractPortfolioData(response);
 };

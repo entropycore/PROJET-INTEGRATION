@@ -3,33 +3,33 @@
 }
 
 .github-page-header {
-  margin-bottom: 1.125rem;
+  margin-bottom: 1.8rem;
 }
 
 .page-kicker {
-  display: inline-block;
-  margin-bottom: 0.4rem;
-  color: #a8aca8;
-  font-family: serif;
-  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
+  display: block;
+  margin-bottom: 0.35rem;
+  color: #9a9d98;
+  font-size: 0.78rem;
+  font-weight: 800;
   font-style: italic;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .github-page-header h1 {
-  color: #28363d;
-  font-family: serif;
-  font-size: 2rem;
-  line-height: 1.15;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
+  margin: 0;
+  color: #24363a;
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.05;
 }
 
 .github-page-header p {
-  margin: 0;
-  color: #6d9197;
-  font-family: serif;
-  font-size: 0.875rem;
-  font-style: italic;
+  margin: 0.6rem 0 0;
+  color: #5f6b67;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .github-state-card,

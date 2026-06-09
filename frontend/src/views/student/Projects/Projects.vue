@@ -134,11 +134,11 @@ const submitProject = async (projectId) => {
 
 <template>
   <section class="student-projects-page">
-    <div class="page-header">
+    <div class="projects-page-header">
       <div>
-        <span class="page-label">PROJETS</span>
+        <p class="admin-kicker">PROJECTS</p>
         <h1>Mes projets</h1>
-        <p>
+        <p class="admin-subtitle">
           Gérez vos projets académiques, personnels et professionnels.
         </p>
       </div>
@@ -200,7 +200,9 @@ const submitProject = async (projectId) => {
           class="project-card"
         >
           <div class="project-card-top">
-            <h2>{{ project.title }}</h2>
+            <span class="project-type-pill">
+              {{ getProjectTypeLabel(project.type) }}
+            </span>
 
             <span
               class="project-status-pill"
@@ -210,63 +212,12 @@ const submitProject = async (projectId) => {
             </span>
           </div>
 
-          <div class="project-kind">
-            <span class="material-icons-round">category</span>
-            <strong>{{ getProjectTypeLabel(project.type) }}</strong>
-          </div>
-
           <div class="project-card-content">
+            <h2>{{ project.title }}</h2>
+
             <p class="project-description">
               {{ project.description }}
             </p>
-          </div>
-
-          <div class="separator"></div>
-
-          <div class="project-info-grid">
-            <div class="project-info-item">
-              <span>Date de création</span>
-              <strong>
-                <span class="material-icons-round small-icon">
-                  calendar_month
-                </span>
-                {{ formatDate(project.createdAt) }}
-              </strong>
-            </div>
-
-            <div class="project-info-item">
-              <span>Type</span>
-              <strong>
-                <span class="material-icons-round small-icon">inventory_2</span>
-                {{ getProjectTypeLabel(project.type) }}
-              </strong>
-            </div>
-
-            <div class="project-info-item">
-              <span>Validateur</span>
-              <strong>
-                <span class="material-icons-round small-icon">person</span>
-                {{ getProjectValidatorName(project) || "Non assigné" }}
-              </strong>
-            </div>
-
-            <div class="project-info-item">
-              <span>Rôle</span>
-              <strong>
-                <span class="material-icons-round small-icon">badge</span>
-                {{ project.role || "Non renseigné" }}
-              </strong>
-            </div>
-          </div>
-
-          <div
-            v-if="project.technologies?.length"
-            class="project-technologies-box"
-          >
-            <div class="project-tech-title">
-              <span class="material-icons-round">code</span>
-              Technologies
-            </div>
 
             <div class="project-tech-list">
               <span
@@ -279,10 +230,14 @@ const submitProject = async (projectId) => {
             </div>
           </div>
 
+          <div class="project-meta">
+            {{ formatDate(project.createdAt) }}
+          </div>
+
           <div class="project-actions">
             <RouterLink
               :to="`/student/projects/${project.id}`"
-              class="project-action-btn"
+              class="secondary-action"
             >
               <span class="material-icons-round">visibility</span>
               Voir détails
@@ -291,7 +246,7 @@ const submitProject = async (projectId) => {
             <RouterLink
               v-if="canEditProject(project.validationStatus)"
               :to="`/student/projects/${project.id}/edit`"
-              class="project-action-btn"
+              class="secondary-action"
             >
               <span class="material-icons-round">edit</span>
               Modifier
@@ -300,7 +255,7 @@ const submitProject = async (projectId) => {
             <button
               v-if="canSubmitProject(project)"
               type="button"
-              class="project-submit-btn"
+              class="primary-action"
               @click="submitProject(project.id)"
             >
               <span class="material-icons-round">send</span>

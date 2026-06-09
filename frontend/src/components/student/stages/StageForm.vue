@@ -59,14 +59,43 @@ const calculatedDuration = computed(() => {
   return `${months} mois`;
 });
 
+const normalizeSupervisorName = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+const findSupervisorByName = (name) => {
+  const normalizedName = normalizeSupervisorName(name);
+
+  if (!normalizedName) return null;
+
+  return (
+    props.validators.find(
+      (validator) =>
+        normalizeSupervisorName(validator.fullName) === normalizedName,
+    ) || null
+  );
+};
+
 const hasReport = computed(() => {
   return Boolean(form.report || props.initialStage?.reportUrl);
 });
 
 const selectedSupervisor = computed(() => {
-  return props.validators.find(
-    (validator) => validator.id === form.supervisorId,
+  return (
+    props.validators.find((validator) => validator.id === form.supervisorId) ||
+    findSupervisorByName(form.supervisorName)
   );
+});
+
+const hasSupervisor = computed(() => {
+  if (form.supervisorId) return true;
+
+  const supervisorName = form.supervisorName.trim();
+  if (!supervisorName) return false;
+
+  return !props.validators.length || Boolean(findSupervisorByName(supervisorName));
 });
 
 const filteredSupervisors = computed(() => {
@@ -92,7 +121,7 @@ const missingSubmitFields = computed(() => {
   if (!form.company.trim()) missingFields.push("entreprise");
   if (!form.startDate) missingFields.push("date début");
   if (!form.endDate) missingFields.push("date fin");
-  if (!form.supervisorId) missingFields.push("encadrant");
+  if (!hasSupervisor.value) missingFields.push("encadrant");
   if (!calculatedDuration.value) missingFields.push("durée");
   if (!hasReport.value) missingFields.push("rapport PDF");
 
@@ -142,8 +171,6 @@ const syncSupervisorFromSelection = () => {
   const supervisor = selectedSupervisor.value;
 
   if (!supervisor) {
-    form.supervisorName = "";
-    form.supervisorDepartment = "";
     return;
   }
 
@@ -164,7 +191,8 @@ const closeSupervisorSuggestions = () => {
 const handleSupervisorInput = () => {
   if (
     selectedSupervisor.value &&
-    form.supervisorName.trim() !== selectedSupervisor.value.fullName
+    normalizeSupervisorName(form.supervisorName) !==
+      normalizeSupervisorName(selectedSupervisor.value.fullName)
   ) {
     form.supervisorId = "";
     form.supervisorDepartment = "";
@@ -183,12 +211,7 @@ const selectSupervisor = (supervisor) => {
 const syncSupervisorSelectionFromStage = () => {
   if (form.supervisorId || !form.supervisorName.trim()) return;
 
-  const matchingValidator = props.validators.find((validator) => {
-    return (
-      validator.fullName?.trim().toLowerCase() ===
-      form.supervisorName.trim().toLowerCase()
-    );
-  });
+  const matchingValidator = findSupervisorByName(form.supervisorName);
 
   if (matchingValidator) {
     form.supervisorId = matchingValidator.id;
@@ -250,6 +273,8 @@ const deleteExistingImage = (image) => {
 };
 
 const buildPayload = () => {
+  const supervisor = selectedSupervisor.value || {};
+
   return {
     title: form.title,
     company: form.company,
@@ -262,9 +287,9 @@ const buildPayload = () => {
       .map((mission) => mission.trim())
       .filter(Boolean),
     supervisor: {
-      id: form.supervisorId,
-      fullName: form.supervisorName,
-      department: form.supervisorDepartment,
+      id: form.supervisorId || supervisor.id || "",
+      fullName: supervisor.fullName || form.supervisorName,
+      department: supervisor.department || form.supervisorDepartment,
     },
     technologies: form.technologies,
     visibility: form.visibility,

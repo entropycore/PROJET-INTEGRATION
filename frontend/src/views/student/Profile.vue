@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { computed, ref, onMounted } from "vue";
 import { useAuthStore } from "../../stores/auth";
 import { buildBackendUrl } from "../../services/backendUrl";
 import {
@@ -30,6 +30,8 @@ const showAddSkill = ref(false);
 const newSkillName = ref("");
 const pictureInput = ref(null);
 const isUploadingPicture = ref(false);
+const profilePictureFailed = ref(false);
+const profilePictureVersion = ref(Date.now());
 
 const careerGoals = [
   { value: "WEB_DEVELOPER", label: "Développeur Web" },
@@ -56,6 +58,31 @@ const newPath = ref({
 });
 
 const unwrapData = (response) => response?.data ?? response ?? null;
+
+const hasProfilePicture = computed(
+  () => Boolean(profile.value?.profilePicture) && !profilePictureFailed.value,
+);
+
+const profilePictureUrl = computed(() => {
+  if (!hasProfilePicture.value) return "";
+
+  const url = buildBackendUrl(profile.value.profilePicture);
+  const separator = url.includes("?") ? "&" : "?";
+
+  return `${url}${separator}v=${profilePictureVersion.value}`;
+});
+
+const syncAuthUser = (studentProfile) => {
+  if (!authStore.user || !studentProfile) return;
+
+  authStore.setAuthSession({
+    ...authStore.user,
+    firstName: studentProfile.firstName,
+    lastName: studentProfile.lastName,
+    phone: studentProfile.phone,
+    profilePicture: studentProfile.profilePicture,
+  });
+};
 
 const normalizeSoftSkills = (payload) => {
   const items = Array.isArray(payload)
@@ -108,6 +135,8 @@ const loadAll = async () => {
       getCareerGoal(),
     ]);
     profile.value = unwrapData(profileRes);
+    profilePictureFailed.value = false;
+    syncAuthUser(profile.value);
     academicPaths.value = unwrapData(pathsRes) || [];
     softSkills.value = normalizeSoftSkills(unwrapData(skillsRes));
     careerGoal.value = unwrapData(goalRes)?.careerGoal || "";
@@ -123,6 +152,7 @@ const loadAll = async () => {
       city: "",
       bio: "",
       linkedinUrl: "",
+      profilePicture: user.profilePicture || "",
     };
     academicPaths.value = [];
     softSkills.value = [];
@@ -250,6 +280,9 @@ const handleProfilePictureChange = async (event) => {
       profilePicture: data?.profilePicture || profile.value.profilePicture,
     };
 
+    profilePictureFailed.value = false;
+    profilePictureVersion.value = Date.now();
+    syncAuthUser(profile.value);
     successMessage.value = "Photo de profil mise à jour.";
   } catch (error) {
     errorMessage.value =
@@ -269,7 +302,18 @@ onMounted(loadAll);
 <template>
   <div class="profile-page">
     <div class="page-header">
-      
+      <div>
+        <h1>Mon profil</h1>
+        <div class="sub">Informations personnelles et parcours académique</div>
+      </div>
+      <button
+        v-if="!isEditing && profile"
+        class="btn btn-primary"
+        @click="startEdit"
+      >
+        <span class="material-icons-round">edit</span>
+        Modifier
+      </button>
     </div>
 
     <p v-if="isLoading" class="text-muted">Chargement...</p>
@@ -277,58 +321,53 @@ onMounted(loadAll);
     <p v-if="successMessage" class="success-msg">{{ successMessage }}</p>
 
     <div v-if="profile">
-      <div class="student-profile-header">
-        <div class="profile-avatar">
-          <img
-            v-if="profile.profilePicture"
-            :src="buildBackendUrl(profile.profilePicture)"
-            alt=""
-          />
-          <span v-else>
-            {{ getInitials(profile.firstName, profile.lastName) }}
-          </span>
-        </div>
-
-        <div class="profile-identity">
-          <span>PROFIL ÉTUDIANT</span>
-          <div class="profile-name">
-            {{ profile.firstName }} {{ profile.lastName }}
-          </div>
-          <div class="text-muted">{{ profile.email }}</div>
-        </div>
-
-        <div class="profile-header-actions">
-          <input
-            ref="pictureInput"
-            class="visually-hidden"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            @change="handleProfilePictureChange"
-          />
-          <button
-            class="btn btn-secondary"
-            type="button"
-            :disabled="isUploadingPicture"
-            @click="openPicturePicker"
-          >
-            <span class="material-icons-round">photo_camera</span>
-            {{ isUploadingPicture ? "Upload..." : "Changer la photo" }}
-          </button>
-          <button
-            v-if="!isEditing"
-            class="btn btn-primary"
-            type="button"
-            @click="startEdit"
-          >
-            <span class="material-icons-round">edit</span>
-            Modifier le profil
-          </button>
-        </div>
-      </div>
-
       <div class="section-row">
         <!-- Colonne gauche -->
         <div class="content-card">
+          <div class="avatar-row">
+            <div class="profile-avatar">
+              <img
+                v-if="hasProfilePicture"
+                :key="`${profile.profilePicture}-${profilePictureVersion}`"
+                :src="profilePictureUrl"
+                alt=""
+                @error="profilePictureFailed = true"
+              />
+              <span v-else>
+                {{ getInitials(profile.firstName, profile.lastName) }}
+              </span>
+            </div>
+            <div>
+              <div class="profile-name">
+                {{ profile.firstName }} {{ profile.lastName }}
+              </div>
+              <div class="text-muted">{{ profile.email }}</div>
+              <div style="margin-top: 6px">
+                <span class="badge badge-info"
+                  >{{ profile.field }} {{ profile.level }}</span
+                >
+              </div>
+              <div class="avatar-actions">
+                <input
+                  ref="pictureInput"
+                  class="visually-hidden"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  @change="handleProfilePictureChange"
+                />
+                <button
+                  class="btn btn-secondary btn-sm"
+                  type="button"
+                  :disabled="isUploadingPicture"
+                  @click="openPicturePicker"
+                >
+                  <span class="material-icons-round">photo_camera</span>
+                  {{ isUploadingPicture ? "Upload..." : "Changer photo" }}
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div v-if="!isEditing">
             <h3 class="card-title">Informations personnelles</h3>
             <table class="info-table">
@@ -404,8 +443,8 @@ onMounted(loadAll);
         </div>
 
         <!-- Colonne droite -->
-        <div class="profile-side-column">
-          <div class="content-card">
+        <div>
+          <div class="content-card" style="margin-bottom: 16px">
             <h3 class="card-title">Objectif professionnel</h3>
             <div class="chips-row">
               <span
@@ -582,122 +621,55 @@ onMounted(loadAll);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1.25rem;
-  margin-bottom: 1.125rem;
+  margin-bottom: 24px;
 }
-
-.page-label {
-  display: inline-block;
-  font-family: "Times New Roman", Times, serif !important;
-  margin-bottom: 0.4rem;
-  color: #a8aca8;
-  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
-  font-style: italic;
-  font-weight: 400;
-}
-
 .page-header h1 {
-  font-family: "Times New Roman", Times, serif !important;
-  color: #28363d;
-  font-size: 2rem;
-  line-height: 1.15;
-  font-weight: 700;
-  margin: 0 0 0.25rem;
-}
-
-.page-header p {
-  font-family: "Times New Roman", Times, serif !important;
-  margin: 0;
-  color: #6d9197;
-  font-size: 0.875rem;
-  font-style: italic;
+  font-family: "DM Serif Display", serif;
+  font-size: 26px;
   font-weight: 400;
+  color: #28363d;
+  line-height: 1.2;
+}
+.sub {
+  font-size: 13px;
+  color: #99aead;
+  margin-top: 3px;
+  font-style: italic;
 }
 
 .section-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  align-items: stretch;
-  margin-bottom: 1rem;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .content-card {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-panel);
-  box-shadow: var(--app-shadow-card);
-  padding: 1.25rem;
+  background: #fff;
+  border: 1px solid #dee1dd;
+  border-radius: 12px;
+  padding: 20px;
   margin-bottom: 16px;
 }
-
-.section-row > .content-card,
-.profile-side-column .content-card {
-  margin-bottom: 0;
-}
-
-.profile-side-column {
-  display: grid;
-  gap: 1rem;
-}
-
-.student-profile-header {
-  display: flex;
-  align-items: center;
-  gap: 1.1rem;
-  padding: 1.35rem;
-  margin-bottom: 1rem;
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-panel);
-  box-shadow: var(--app-shadow-card);
-}
-
-.profile-identity {
-  min-width: 0;
-}
-
-.profile-identity > span {
-  color: var(--app-muted);
-  font-size: var(--app-text-xs);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-}
-
-.profile-header-actions {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.65rem;
-  flex-wrap: wrap;
-}
-
 .card-title {
-  font-size: 1rem;
-  color: var(--app-primary);
-  font-family: var(--app-font-body);
-  font-weight: 900;
+  font-size: 15px;
+  color: #28363d;
+  font-family: "DM Serif Display", serif;
+  font-weight: 400;
   margin-bottom: 12px;
 }
 
-.card-title::after {
-  content: "";
-  display: block;
-  width: 2.7rem;
-  height: 3px;
-  margin-top: 0.45rem;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
 }
-
 .profile-avatar {
-  width: 5.2rem;
-  height: 5.2rem;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
-  border: 2px solid var(--app-active-border);
-  background: var(--app-primary);
-  box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.08);
+  background: #2f575d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -712,6 +684,9 @@ onMounted(loadAll);
   height: 100%;
   object-fit: cover;
 }
+.avatar-actions {
+  margin-top: 8px;
+}
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -724,12 +699,9 @@ onMounted(loadAll);
   border: 0;
 }
 .profile-name {
-  margin: 0.25rem 0;
-  color: var(--app-heading);
-  font-family: var(--app-font-display);
-  font-size: clamp(1.7rem, 2.4vw, 2.3rem);
-  font-weight: 500;
-  overflow-wrap: anywhere;
+  font-size: 20px;
+  font-family: "DM Serif Display", serif;
+  color: #28363d;
 }
 
 .badge {
@@ -751,20 +723,16 @@ onMounted(loadAll);
   border-collapse: collapse;
 }
 .info-label {
-  color: var(--app-muted);
-  font-size: var(--app-text-sm);
-  font-weight: 600;
-  padding: 0.65rem 0;
+  color: #99aead;
+  font-size: 13px;
+  padding: 7px 0;
   width: 140px;
   vertical-align: top;
-  border-bottom: 1px solid var(--app-neutral-bg);
 }
 .info-value {
-  color: var(--app-heading);
-  font-size: var(--app-text-md);
-  font-weight: 700;
-  padding: 0.65rem 0;
-  border-bottom: 1px solid var(--app-neutral-bg);
+  font-size: 13.5px;
+  color: #28363d;
+  padding: 7px 0;
 }
 .info-value.link {
   color: #2f575d;
@@ -1041,63 +1009,5 @@ onMounted(loadAll);
   color: #658b6f;
   font-size: 13px;
   margin-bottom: 12px;
-}
-
-@media (max-width: 900px) {
-  .section-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 760px) {
-  .student-profile-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .profile-header-actions {
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .profile-header-actions .btn {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .page-header,
-  .flex-between {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .profile-header-actions {
-    flex-direction: column;
-  }
-
-  .profile-header-actions .btn {
-    width: 100%;
-  }
-
-  .info-label,
-  .info-value {
-    display: block;
-    width: 100%;
-  }
-
-  .info-label {
-    padding-bottom: 0.15rem;
-    border-bottom: 0;
-  }
-
-  .info-value {
-    padding-top: 0;
-  }
 }
 </style>
