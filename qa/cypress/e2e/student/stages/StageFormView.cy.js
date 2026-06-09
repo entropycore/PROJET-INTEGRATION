@@ -72,14 +72,15 @@ describe('Parcours E2E - Formulaire de Stage (Création, Modification & Upload R
   });
 
   it('Devrait gérer le mode édition et confirmer la suppression d\'une image', () => {
-    const mockStageId = 'stage-existing-id';
+    const stageId = Cypress.env('E2E_EDIT_STAGE_ID') || Cypress.env('E2E_STAGE_ID');
+    expect(stageId, 'E2E_EDIT_STAGE_ID ou E2E_STAGE_ID doit pointer vers un vrai stage editable').to.be.a('string').and.not.be.empty;
     
     // Intercepter le chargement du stage spécifique en mode édition
-    cy.intercept('GET', `**/api/student/stages/${mockStageId}`).as('loadSpecificStage');
-    cy.intercept('DELETE', `**/api/student/stages/${mockStageId}/images/*`).as('deleteImageApi');
+    cy.intercept('GET', `**/api/student/stages/${stageId}`).as('loadSpecificStage');
+    cy.intercept('DELETE', `**/api/student/stages/${stageId}/images/*`).as('deleteImageApi');
 
     // Visiter la page en mode édition
-    cy.visit(`/student/stages/${mockStageId}/edit`);
+    cy.visit(`/student/stages/${stageId}/edit`);
     cy.wait('@loadSpecificStage').its('response.statusCode').should('eq', 200);
 
     // Vérifier que le titre de la page s'est dynamiquement adapté

@@ -1,6 +1,10 @@
 describe('Parcours E2E - Détails du Stage (Vrai Backend & Médias)', () => {
 
-  const stageId = 'stage-123-vrai'; // L'id dyal le stage li 3ndkom f la base de données de test
+  const stageId = Cypress.env('E2E_STAGE_ID');
+
+  before(() => {
+    expect(stageId, 'E2E_STAGE_ID doit pointer vers un vrai stage de la base de test').to.be.a('string').and.not.be.empty;
+  });
 
   beforeEach(() => {
     // 1. Authentification unique via Session
