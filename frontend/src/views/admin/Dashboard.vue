@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import StatCard from "@/components/ui/StatCard.vue";
+import { DASHBOARD_ICONS } from "@/constants/dashboardIcons";
 import { getAdminDashboard } from "../../services/adminService";
 import "../../assets/styles/admin-dashboard.css";
 
@@ -62,28 +64,27 @@ const stats = computed(() => {
   return [
     {
       value: cards.totalUsers?.value ?? 0,
-      label: "UTILISATEURS",
-      detail: cards.totalUsers?.variation,
-      icon: "groups",
+      title: "Utilisateurs",
+      subtitle: cards.totalUsers?.variation || "Comptes enregistrés",
+      icon: DASHBOARD_ICONS.users,
     },
     {
       value: cards.totalStudents?.value ?? 0,
-      label: "ÉTUDIANTS",
-      detail: cards.totalStudents?.variation,
-      icon: "school",
+      title: "Étudiants",
+      subtitle: cards.totalStudents?.variation || "Comptes étudiants",
+      icon: DASHBOARD_ICONS.students,
     },
     {
       value: cards.totalProfessors?.value ?? 0,
-      label: "PROFESSEURS",
-      detail: cards.totalProfessors?.variation,
-      icon: "person",
+      title: "Professeurs",
+      subtitle: cards.totalProfessors?.variation || "Comptes professeurs",
+      icon: DASHBOARD_ICONS.professors,
     },
     {
       value: cards.pendingRequests?.value ?? 0,
-      label: "Demandes En Attente",
-      detail: cards.pendingRequests?.variation,
-      icon: "schedule",
-      warning: true,
+      title: "Demandes en attente",
+      subtitle: cards.pendingRequests?.variation || "Demandes à traiter",
+      icon: DASHBOARD_ICONS.pendingRequests,
     },
   ];
 });
@@ -316,19 +317,14 @@ const actions = computed(() => {
            CARDS
       ====================== -->
       <div class="stats-grid">
-        <div
-          v-for="(stat, i) in stats"
-          :key="i"
-          class="stat-card"
-          :class="{ warning: stat.warning }"
-        >
-          <span class="stat-icon material-icons-round">{{ stat.icon }}</span>
-          <div class="stat-value">{{ stat.value }}</div>
-          <div class="stat-label">{{ stat.label }}</div>
-          <div v-if="stat.detail" class="stat-detail">
-            {{ stat.detail }}
-          </div>
-        </div>
+        <StatCard
+          v-for="stat in stats"
+          :key="stat.title"
+          :value="stat.value"
+          :title="stat.title"
+          :subtitle="stat.subtitle"
+          :icon="stat.icon"
+        />
       </div>
 
       <!-- ======================

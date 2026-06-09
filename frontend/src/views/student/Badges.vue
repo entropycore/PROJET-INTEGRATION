@@ -2,18 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 
 import { getStudentBadges } from "@/services/studentDashboardService";
+import { getBadgeIcon } from "@/utils/badges";
 
 const selectedFilter = ref("ALL");
 const isLoading = ref(false);
-
-const BADGE_ICONS = {
-  "Web Developer": "terminal",
-  "DevOps Explorer": "cloud_sync",
-  "Hackathon Participant": "groups",
-  "Full Stack Developer": "developer_mode",
-  "Security Aware": "security",
-  "AI / Data": "analytics",
-};
 
 const mockBadges = [
   {
@@ -143,10 +135,6 @@ const progressPercent = (badge) => {
 const getBadgeStatus = (badge) => {
   if (badge.isObtained) return "obtained";
   return Number(badge.progress?.current || 0) > 0 ? "in-progress" : "locked";
-};
-
-const getBadgeIcon = (badge) => {
-  return badge.icon || BADGE_ICONS[badge.name] || "workspace_premium";
 };
 
 const getBadgeMessage = (badge) => {
