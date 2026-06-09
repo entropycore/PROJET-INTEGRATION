@@ -160,6 +160,9 @@ const certificateDetailSelect = {
   validationStatus: true,
   submittedAt: true,
   documentUrl: true,
+  fileName: true,
+  mimeType: true,
+  fileSize: true,
   activity: {
     select: {
       id: true,
@@ -243,6 +246,9 @@ const projectValidationSelect = {
       mediaType: true,
       mediaUrl: true,
       description: true,
+      fileName: true,
+      mimeType: true,
+      fileSize: true,
     },
   },
 };
@@ -255,6 +261,9 @@ const internshipValidationSelect = {
   endDate: true,
   missions: true,
   reportUrl: true,
+  reportFileName: true,
+  reportMimeType: true,
+  reportFileSize: true,
   validationStatus: true,
   visibility: true,
   student: {

@@ -7,6 +7,7 @@ module.exports = {
   ...require('./administrator/userService'),
   ...require('./administrator/professionalRequestService'),
   ...require('./administrator/validationService'),
+  ...require('./administrator/validationFileService'),
   ...require('./administrator/adminNotificationService'),
   ...require('./administrator/reportService'),
 };
