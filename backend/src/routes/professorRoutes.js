@@ -14,7 +14,6 @@ router.use(checkRoles('PROFESSOR'));
 
 router.get('/dashboard', professorController.getDashboard);
 router.get('/profile', professorController.getProfile);
-router.put('/profile', professorController.updateProfile);
 router.post(
   '/profile-picture',
   uploadProfilePicture,
@@ -29,6 +28,10 @@ router.put(
 );
 router.get('/validations/stats', professorController.getValidationStats);
 router.get('/validations', professorController.listValidations);
+router.get(
+  '/validations/:itemType/:itemId/files/:fileId/:action',
+  professorController.downloadValidationFile,
+);
 router.get(
   '/validations/:itemType/:itemId',
   professorController.getValidationDetail,

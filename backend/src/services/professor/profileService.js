@@ -79,56 +79,6 @@ const getProfessorProfile = async (userId) => {
   };
 };
 
-const readRequiredText = (value, fallback, errorCode) => {
-  const normalized = String(value ?? fallback ?? '').trim();
-
-  if (!normalized) {
-    throw new Error(errorCode);
-  }
-
-  return normalized;
-};
-
-const readOptionalText = (value, fallback) => {
-  if (value === undefined) return fallback;
-
-  const normalized = String(value || '').trim();
-  return normalized || null;
-};
-
-const updateProfessorProfile = async (userId, payload = {}) => {
-  const professor = await getProfessorByUserId(userId, professorProfileSelect);
-
-  await prisma.$transaction([
-    prisma.user.update({
-      where: { id: professor.user.id },
-      data: {
-        firstName: readRequiredText(
-          payload.firstName,
-          professor.user.firstName,
-          'PROFESSOR_PROFILE_REQUIRED_FIELDS',
-        ),
-        lastName: readRequiredText(
-          payload.lastName,
-          professor.user.lastName,
-          'PROFESSOR_PROFILE_REQUIRED_FIELDS',
-        ),
-        phone: readOptionalText(payload.phone, professor.user.phone),
-      },
-    }),
-    prisma.professor.update({
-      where: { id: professor.id },
-      data: {
-        grade: readOptionalText(payload.grade, professor.grade),
-        specialty: readOptionalText(payload.specialty, professor.specialty),
-        department: readOptionalText(payload.department, professor.department),
-      },
-    }),
-  ]);
-
-  return getProfessorProfile(userId);
-};
-
 const updateProfessorProfilePicture = async (userId, file) => {
   if (!file) {
     throw new Error('PROFILE_PICTURE_UPLOAD_EMPTY');
@@ -160,6 +110,5 @@ const updateProfessorProfilePicture = async (userId, file) => {
 
 module.exports = {
   getProfessorProfile,
-  updateProfessorProfile,
   updateProfessorProfilePicture,
 };
