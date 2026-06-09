@@ -42,9 +42,7 @@ app.use(globalLimiter);
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(cookieParser());
-if (process.env.CSRF_PROTECTION_ENABLED === 'true') {
-  app.use(doubleCsrfProtection);
-}
+app.use(doubleCsrfProtection);
 app.use(sanitizeInputs);
 
 app.get('/', (_req, res) => {

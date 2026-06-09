@@ -113,8 +113,8 @@ exports.verifyEmailToken = async (token) => {
 
 // Demande de réinitialisation de mot de passe
 exports.requestPasswordReset = async (email) => {
-  const user = await prisma.user.findUnique({
-    where: { email },
+  const user = await prisma.user.findFirst({
+    where: emailWhereInsensitive(email),
     select: {
       id: true,
       email: true,
@@ -225,15 +225,21 @@ exports.loginUser = async (email, password, userAgent, ipAddress) => {
   
   // Stocker le refresh token en BDD 
   const tokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 jours
-  await prisma.refreshTokenSession.create({
-    data: {
-      userId: user.id,
-      tokenHash: hashToken(refreshToken),
-      userAgent: userAgent || null,
-      ipAddress: ipAddress || null,
-      expiresAt: tokenExpiresAt
-    }
-  });
+  await prisma.$transaction([
+    prisma.refreshTokenSession.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashToken(refreshToken),
+        userAgent: userAgent || null,
+        ipAddress: ipAddress || null,
+        expiresAt: tokenExpiresAt,
+      },
+    }),
+    prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    }),
+  ]);
 
   return { role: user.role, accessToken, refreshToken };
 };
