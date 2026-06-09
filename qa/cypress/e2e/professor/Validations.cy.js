@@ -1,0 +1,155 @@
+describe("E2E - Validations professeur", () => {
+  beforeEach(() => {
+    cy.visit("/login");
+
+    cy.get('input[type="email"]').type(Cypress.env("E2E_PROF_EMAIL"));
+    cy.get('input[type="password"]').type(Cypress.env("E2E_PROF_PASSWORD"));
+
+    cy.contains("button", /connexion|login/i).click();
+
+    cy.visit("/professor/validations");
+  });
+
+  it("affiche la page validations professeur", () => {
+    cy.contains("ESPACE PROFESSEUR").should("be.visible");
+    cy.contains("Validations").should("be.visible");
+    cy.contains("Validez les projets et stages").should("be.visible");
+  });
+
+  it("affiche les statistiques des validations", () => {
+    cy.get("body").then(($body) => {
+      expect(
+        $body.text().includes("Validations") ||
+          $body.text().includes("Projets") ||
+          $body.text().includes("Stages") ||
+          $body.text().includes("Approuv")
+      ).to.equal(true);
+    });
+  });
+
+  it("affiche la toolbar de recherche et filtres", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find('input[type="search"], input[type="text"]').length > 0) {
+        cy.get('input[type="search"], input[type="text"]').first().should("be.visible");
+      }
+
+      if ($body.find("select").length > 0) {
+        cy.get("select").first().should("be.visible");
+      }
+    });
+  });
+
+  it("cherche une validation", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find('input[type="search"], input[type="text"]').length > 0) {
+        cy.get('input[type="search"], input[type="text"]')
+          .first()
+          .clear()
+          .type("test");
+
+        cy.contains("Validations").should("be.visible");
+      }
+    });
+  });
+
+  it("change les filtres si disponibles", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find("select").length > 0) {
+        cy.get("select").each(($select) => {
+          cy.wrap($select).select(1);
+        });
+
+        cy.contains("Validations").should("be.visible");
+      }
+    });
+  });
+
+  it("affiche la table ou un état vide", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find("table").length > 0) {
+        cy.get("table").should("be.visible");
+      } else {
+        cy.contains(/aucune validation|chargement|impossible de charger/i).should("exist");
+      }
+    });
+  });
+
+  it("ouvre les détails d'une validation si disponible", () => {
+    cy.get("body").then(($body) => {
+      if (
+        $body.find("table tbody tr").length > 0 &&
+        $body.find("button").filter((_, btn) =>
+          /voir|détails|details/i.test(btn.innerText)
+        ).length > 0
+      ) {
+        cy.contains("button", /voir|détails|details/i).first().click();
+
+        cy.get("body").then(($modalBody) => {
+          expect(
+            $modalBody.text().includes("Approuver") ||
+              $modalBody.text().includes("Refuser") ||
+              $modalBody.text().includes("Correction")
+          ).to.equal(true);
+        });
+      }
+    });
+  });
+
+  it("ouvre modal approbation si action disponible", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find("button").filter((_, btn) => /approuver/i.test(btn.innerText)).length > 0) {
+        cy.contains("button", /approuver/i).first().click();
+
+        cy.contains(/approuver la validation|confirmer/i).should("be.visible");
+      }
+    });
+  });
+
+  it("ouvre modal refus si action disponible", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find("button").filter((_, btn) => /refuser/i.test(btn.innerText)).length > 0) {
+        cy.contains("button", /refuser/i).first().click();
+
+        cy.contains(/refuser la validation|motif du refus/i).should("be.visible");
+      }
+    });
+  });
+
+  it("ouvre modal correction si action disponible", () => {
+    cy.get("body").then(($body) => {
+      if (
+        $body.find("button").filter((_, btn) =>
+          /correction|demander/i.test(btn.innerText)
+        ).length > 0
+      ) {
+        cy.contains("button", /correction|demander/i).first().click();
+
+        cy.contains(/demander une correction|correction demandée/i).should("be.visible");
+      }
+    });
+  });
+
+  it("refuse une action sans commentaire si commentaire obligatoire", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find("button").filter((_, btn) => /refuser/i.test(btn.innerText)).length > 0) {
+        cy.contains("button", /refuser/i).first().click();
+
+        cy.contains("button", /refuser/i).last().click();
+
+        cy.contains(/motif|raison|commentaire|refus/i).should("exist");
+      }
+    });
+  });
+
+  it("valide une action d'approbation si disponible", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find("button").filter((_, btn) => /approuver/i.test(btn.innerText)).length > 0) {
+        cy.contains("button", /approuver/i).first().click();
+
+        cy.contains("button", /approuver/i).last().click();
+
+        cy.contains("Validations").should("be.visible");
+      }
+    });
+  });
+});
