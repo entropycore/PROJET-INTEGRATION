@@ -106,6 +106,35 @@ describe("StudentActivities - Unit", () => {
     expect(wrapper.text()).not.toContain("Hackathon Orange");
   });
 
+  it("affiche un état vide si aucune activité n'est retournée", async () => {
+    getStudentActivities.mockResolvedValueOnce({
+      data: { data: [] },
+    });
+
+    const wrapper = mount(StudentActivities);
+
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Aucune activité trouvée");
+    expect(wrapper.find(".activity-card").exists()).toBe(false);
+  });
+
+  it("affiche une erreur si le chargement des activités échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    getStudentActivities.mockRejectedValueOnce(new Error("API down"));
+
+    const wrapper = mount(StudentActivities);
+
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Impossible de charger les activités.");
+    expect(wrapper.text()).toContain("Aucune activité trouvée");
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("filtre les activités par statut", async () => {
     const wrapper = mount(StudentActivities);
 
@@ -153,6 +182,26 @@ describe("StudentActivities - Unit", () => {
     expect(deleteStudentActivity).not.toHaveBeenCalled();
   });
 
+  it("affiche une erreur si la suppression échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    deleteStudentActivity.mockRejectedValueOnce(new Error("Delete failed"));
+
+    const wrapper = mount(StudentActivities);
+
+    await flushPromises();
+
+    await wrapper.find(".delete").trigger("click");
+    await flushPromises();
+
+    expect(deleteStudentActivity).toHaveBeenCalledWith(1);
+    expect(getStudentActivities).toHaveBeenCalledTimes(1);
+    expect(wrapper.text()).toContain("Impossible de supprimer cette activité.");
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("soumet une activité valide à la validation", async () => {
     const wrapper = mount(StudentActivities);
 
@@ -164,6 +213,32 @@ describe("StudentActivities - Unit", () => {
     expect(canSubmitActivity).toHaveBeenCalledWith(activitiesMock[0]);
     expect(submitStudentActivityValidation).toHaveBeenCalledWith(1);
     expect(wrapper.text()).toContain("Activité soumise à validation.");
+  });
+
+  it("affiche une erreur si la soumission de l'activité échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    submitStudentActivityValidation.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: "Activité déjà soumise.",
+        },
+      },
+    });
+
+    const wrapper = mount(StudentActivities);
+
+    await flushPromises();
+
+    await wrapper.find(".submit").trigger("click");
+    await flushPromises();
+
+    expect(submitStudentActivityValidation).toHaveBeenCalledWith(1);
+    expect(getStudentActivities).toHaveBeenCalledTimes(1);
+    expect(wrapper.text()).toContain("Activité déjà soumise.");
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("affiche message si activité sans attestation", async () => {

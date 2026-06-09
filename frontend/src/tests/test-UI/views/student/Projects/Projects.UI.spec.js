@@ -68,7 +68,7 @@ describe("StudentProjects - Tests UI", () => {
     const wrapper = await mountComponent();
 
     expect(wrapper.find(".project-card").exists()).toBe(true);
-    expect(wrapper.find(".project-type-pill").exists()).toBe(true);
+    expect(wrapper.find(".project-kind").exists()).toBe(true);
     expect(wrapper.find(".project-status-pill").exists()).toBe(true);
     expect(wrapper.find(".project-tech-pill").exists()).toBe(true);
   });

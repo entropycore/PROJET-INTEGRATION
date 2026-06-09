@@ -104,6 +104,41 @@ describe("StageFormPage - Unit", () => {
     expect(getStudentValidators).toHaveBeenCalled();
   });
 
+  it("continue l'affichage si le chargement des validateurs échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    getStudentValidators.mockRejectedValueOnce(new Error("Validators failed"));
+
+    const wrapper = mount(StageFormPage);
+
+    await flushPromises();
+
+    expect(getStudentValidators).toHaveBeenCalled();
+    expect(wrapper.find(".stage-form").exists()).toBe(true);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("capture l'erreur si le chargement du stage échoue en mode édition", async () => {
+    routeParams = { id: "1" };
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    getStudentStageById.mockRejectedValueOnce(new Error("Stage failed"));
+
+    const wrapper = mount(StageFormPage);
+
+    await flushPromises();
+
+    expect(getStudentStageById).toHaveBeenCalledWith("1");
+    expect(wrapper.find(".stage-form").exists()).toBe(true);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("crée un stage brouillon en mode création", async () => {
     const wrapper = mount(StageFormPage);
 
@@ -116,6 +151,27 @@ describe("StageFormPage - Unit", () => {
     expect(uploadStudentStageReport).toHaveBeenCalledWith(10, expect.any(File));
     expect(uploadStudentStageImages).toHaveBeenCalledWith(10, expect.any(Array));
     expect(pushMock).toHaveBeenCalledWith("/student/stages");
+  });
+
+  it("ne redirige pas si la création du stage échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    createStudentStage.mockRejectedValueOnce(new Error("Create failed"));
+
+    const wrapper = mount(StageFormPage);
+
+    await flushPromises();
+
+    await wrapper.find(".save").trigger("click");
+    await flushPromises();
+
+    expect(createStudentStage).toHaveBeenCalled();
+    expect(uploadStudentStageReport).not.toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("modifie un stage brouillon en mode édition", async () => {
@@ -140,6 +196,28 @@ describe("StageFormPage - Unit", () => {
     expect(pushMock).toHaveBeenCalledWith("/student/stages");
   });
 
+  it("ne redirige pas si la modification du stage échoue", async () => {
+    routeParams = { id: "1" };
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    updateStudentStage.mockRejectedValueOnce(new Error("Update failed"));
+
+    const wrapper = mount(StageFormPage);
+
+    await flushPromises();
+
+    await wrapper.find(".save").trigger("click");
+    await flushPromises();
+
+    expect(updateStudentStage).toHaveBeenCalled();
+    expect(uploadStudentStageReport).not.toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("crée puis soumet un stage à la validation", async () => {
     const wrapper = mount(StageFormPage);
 
@@ -151,6 +229,30 @@ describe("StageFormPage - Unit", () => {
     expect(createStudentStage).toHaveBeenCalled();
     expect(submitStudentStageValidation).toHaveBeenCalledWith(10);
     expect(pushMock).toHaveBeenCalledWith("/student/stages");
+  });
+
+  it("ne soumet pas si l'upload du rapport échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    uploadStudentStageReport.mockRejectedValueOnce(
+      new Error("Upload report failed")
+    );
+
+    const wrapper = mount(StageFormPage);
+
+    await flushPromises();
+
+    await wrapper.find(".submit").trigger("click");
+    await flushPromises();
+
+    expect(createStudentStage).toHaveBeenCalled();
+    expect(uploadStudentStageReport).toHaveBeenCalledWith(10, expect.any(File));
+    expect(submitStudentStageValidation).not.toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("modifie puis soumet un stage à la validation en mode édition", async () => {
@@ -194,5 +296,26 @@ describe("StageFormPage - Unit", () => {
     await flushPromises();
 
     expect(deleteStudentStageImage).not.toHaveBeenCalled();
+  });
+
+  it("capture l'erreur si la suppression d'image échoue", async () => {
+    routeParams = { id: "1" };
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    deleteStudentStageImage.mockRejectedValueOnce(new Error("Delete failed"));
+
+    const wrapper = mount(StageFormPage);
+
+    await flushPromises();
+
+    await wrapper.find(".delete-image").trigger("click");
+    await flushPromises();
+
+    expect(deleteStudentStageImage).toHaveBeenCalledWith("1", 5);
+    expect(getStudentStageById).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 });

@@ -25,6 +25,7 @@ vi.mock("@/components/student/activities/ActivityForm.vue", () => ({
       <div class="activity-form">
         <span>{{ submitLabel }}</span>
         <button class="save" @click="$emit('save-activity', mockPayload)">save</button>
+        <button class="save-without-file" @click="$emit('save-activity', payloadWithoutFile)">save without file</button>
         <button class="cancel" @click="$emit('cancel')">cancel</button>
       </div>
     `,
@@ -40,6 +41,17 @@ vi.mock("@/components/student/activities/ActivityForm.vue", () => ({
           certificateName: "attestation.pdf",
           certificateUrl: "/old.pdf",
           certificate: new File(["test"], "attestation.pdf"),
+        },
+        payloadWithoutFile: {
+          title: "Club Robotique",
+          organization: "ENSA",
+          description: "Participation au club",
+          type: "CLUB",
+          startDate: "2025-01-01",
+          endDate: "2025-02-01",
+          certificateName: "attestation.pdf",
+          certificateUrl: "/old.pdf",
+          certificate: null,
         },
       };
     },
@@ -86,6 +98,17 @@ describe("ActivityCreatePage - Unit", () => {
     );
   });
 
+  it("n'upload pas d'attestation si certificate n'est pas un File", async () => {
+    const wrapper = mount(ActivityCreatePage);
+
+    await wrapper.find(".save-without-file").trigger("click");
+    await flushPromises();
+
+    expect(createStudentActivity).toHaveBeenCalled();
+    expect(uploadStudentActivityCertificate).not.toHaveBeenCalled();
+    expect(pushMock).toHaveBeenCalledWith("/student/activities/7");
+  });
+
   it("redirige vers la page détail après création", async () => {
     const wrapper = mount(ActivityCreatePage);
 
@@ -110,6 +133,34 @@ describe("ActivityCreatePage - Unit", () => {
     await flushPromises();
 
     expect(wrapper.text()).toContain("Titre obligatoire");
+  });
+
+  it("affiche un message d'erreur si l'upload de l'attestation échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    uploadStudentActivityCertificate.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: "Upload impossible",
+        },
+      },
+    });
+
+    const wrapper = mount(ActivityCreatePage);
+
+    await wrapper.find(".save").trigger("click");
+    await flushPromises();
+
+    expect(createStudentActivity).toHaveBeenCalled();
+    expect(uploadStudentActivityCertificate).toHaveBeenCalledWith(
+      7,
+      expect.any(File)
+    );
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("Upload impossible");
+
+    consoleErrorSpy.mockRestore();
   });
 
   it("retourne vers la liste si le formulaire annule", async () => {

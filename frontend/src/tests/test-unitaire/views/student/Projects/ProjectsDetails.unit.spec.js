@@ -86,6 +86,22 @@ describe("ProjectDetailsView - Unit", () => {
     );
   });
 
+  it("ne rend pas les détails si le chargement du projet échoue", async () => {
+    const consoleWarnSpy = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => {});
+    getStudentProjectById.mockRejectedValueOnce(new Error("API down"));
+
+    const wrapper = mount(ProjectDetailsView);
+
+    await flushPromises();
+
+    expect(wrapper.find(".project-details-header").exists()).toBe(false);
+    expect(consoleWarnSpy).toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
   it("affiche le bon message pour un projet validé", async () => {
     getStudentProjectById.mockResolvedValueOnce({
       data: {
@@ -135,6 +151,23 @@ describe("ProjectDetailsView - Unit", () => {
     expect(text.indexOf("Récent")).toBeLessThan(text.indexOf("Ancien"));
   });
 
+  it("affiche un message si l'historique est vide", async () => {
+    getStudentProjectById.mockResolvedValueOnce({
+      data: {
+        data: {
+          ...baseProject,
+          validationHistory: [],
+        },
+      },
+    });
+
+    const wrapper = mount(ProjectDetailsView);
+
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Aucun historique de validation disponible.");
+  });
+
   it("affiche la date formatée", async () => {
     const wrapper = mount(ProjectDetailsView);
 
@@ -168,5 +201,26 @@ describe("ProjectDetailsView - Unit", () => {
 
     expect(deleteStudentProject).not.toHaveBeenCalled();
     expect(pushMock).not.toHaveBeenCalled();
+  });
+
+  it("ne redirige pas si la suppression du projet échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    deleteStudentProject.mockRejectedValueOnce(new Error("Delete failed"));
+
+    const wrapper = mount(ProjectDetailsView);
+
+    await flushPromises();
+
+    const deleteButton = wrapper.find(".delete-project-button");
+    await deleteButton.trigger("click");
+    await flushPromises();
+
+    expect(deleteStudentProject).toHaveBeenCalledWith("1");
+    expect(pushMock).not.toHaveBeenCalledWith("/student/projects");
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 });
