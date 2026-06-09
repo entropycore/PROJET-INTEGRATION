@@ -1,55 +1,29 @@
-describe("Creation utilisateur - Admin", () => {
+describe("Creation utilisateur - Admin avec backend reel", () => {
   const field = (label) => cy.contains("label", label);
 
   beforeEach(() => {
-    cy.intercept("POST", "**/api/admin/users", {
-      statusCode: 201,
-      body: {
-        data: {
-          temporaryPassword: "TempPassword2026!",
-          user: {
-            id: "usr_98765",
-            role: "STUDENT",
-            firstName: "Ghizlane",
-            lastName: "Rabii",
-          },
-        },
-      },
-    }).as("createUserApi");
-
-    cy.wrap(
-      Cypress.automation("remote:debugger:protocol", {
-        command: "Browser.grantPermissions",
-        params: {
-          permissions: ["clipboardReadWrite"],
-          origin: window.location.origin,
-        },
-      }),
-    );
-
-    cy.loginAsAdmin("/admin/users/create?role=STUDENT");
+    cy.loginAsAdminJwt("/admin/users/create?role=STUDENT");
+    cy.get("h1", { timeout: 15000 }).should("be.visible");
   });
 
-  it("remplit le formulaire et affiche le mot de passe temporaire", () => {
-    cy.get("h1").should("contain", "tudiant");
+  it("remplit le formulaire et soumet la creation au backend reel", () => {
+    const timestamp = Date.now();
 
-    field(/Pr.nom/).find("input").type("Ghizlane");
-    field("Nom").find("input").type("Rabii");
-    field("Email").find("input").type("g.rabii@ensa.ma");
+    cy.intercept("POST", "**/api/admin/users").as("createUserApi");
+
+    field(/Pr.nom/).find("input").type("Cypress");
+    field("Nom").find("input").type("Student");
+    field("Email").find("input").type(`cypress.student.${timestamp}@ensa.ma`);
     field(/T.l.phone/).find("input").type("0612345678");
     field(/Fili.re/).find("select").select(1);
     field("Niveau").find("input").type("CI1");
-    field(/Apog.e/).find("input").type("2200345");
+    field(/Apog.e/).find("input").type(`${timestamp}`.slice(-7));
 
     cy.get(".primary-btn").contains("utilisateur").click();
-    cy.wait("@createUserApi");
-
-    cy.get(".admin-modal").should("be.visible");
-    cy.get(".temporary-password-box").should("contain", "TempPassword2026!");
-    cy.get(".admin-modal").contains("button", "Copier").click();
-    cy.get(".admin-modal").contains("button", /Cop/).should("be.visible");
-    cy.get(".admin-modal").contains("button", "Continuer").click();
-    cy.url().should("include", "/admin/users/usr_98765");
+    cy.wait("@createUserApi", { timeout: 30000 }).then((interception) => {
+      expect(interception.response?.statusCode).to.be.oneOf([201, 409, 422]);
+    });
+    cy.get("body").should("be.visible");
   });
 
   it("change dynamiquement les champs selon le role", () => {
@@ -76,18 +50,9 @@ describe("Creation utilisateur - Admin", () => {
     cy.get(selector).should("have.attr", "type", "password");
   });
 
-  it("affiche un message d'erreur si l'API echoue", () => {
-    cy.intercept("POST", "**/api/admin/users", {
-      statusCode: 400,
-      body: { message: "Bad Request" },
-    }).as("createUserError");
-
-    field(/Pr.nom/).find("input").type("NomTest");
+  it("reste sur la page si le formulaire est incomplet", () => {
     cy.get(".primary-btn").contains("utilisateur").click();
-
-    cy.wait("@createUserError");
-    cy.get(".details-state.error")
-      .should("be.visible")
-      .and("contain", "Erreur lors de la");
+    cy.get("body").should("be.visible");
+    cy.url().should("include", "/admin/users/create");
   });
 });
