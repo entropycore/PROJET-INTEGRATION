@@ -4,10 +4,10 @@ describe('Parcours E2E - Générateur de Portfolio (Vrai Backend)', () => {
     // 1. Authentification automatique via Session pour ne pas répéter le login
     cy.session('student-session', () => {
       cy.visit('/login'); // Modifier selon votre route de login real
-      cy.get('input[type="email"]').type('student.test@ensat.ma'); 
-      cy.get('input[type="password"]').type('PasswordValid123!');
+      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma'); 
+      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/student');
     });
 
     // 2. Intercepter les VRAIS appels API (Sans Mock) pour synchroniser Cypress avec le backend

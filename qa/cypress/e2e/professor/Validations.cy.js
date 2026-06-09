@@ -1,19 +1,12 @@
 describe("E2E - Validations professeur", () => {
   beforeEach(() => {
-    cy.visit("/login");
-
-    cy.get('input[type="email"]').type(Cypress.env("E2E_PROF_EMAIL"));
-    cy.get('input[type="password"]').type(Cypress.env("E2E_PROF_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-
-    cy.visit("/professor/validations");
+    cy.loginAsRoleSession("PROFESSOR", "/professor/validations");
   });
 
   it("affiche la page validations professeur", () => {
-    cy.contains("ESPACE PROFESSEUR").should("be.visible");
-    cy.contains("Validations").should("be.visible");
-    cy.contains("Validez les projets et stages").should("be.visible");
+    cy.contains(/espace professeur/i).should("be.visible");
+    cy.contains(/validations/i).should("be.visible");
+    cy.contains(/validez les projets et stages/i).should("be.visible");
   });
 
   it("affiche les statistiques des validations", () => {

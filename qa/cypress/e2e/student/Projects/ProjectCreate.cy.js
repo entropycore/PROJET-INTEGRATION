@@ -7,20 +7,20 @@ describe('Parcours E2E - Création et Soumission de Projet (Vrai Backend)', () =
     // 1. Session d'authentification pour bypasser le login à chaque test
     cy.session('student-session', () => {
       cy.visit('/login');
-      cy.get('input[type="email"]').type('student.test@ensat.ma');
-      cy.get('input[type="password"]').type('PasswordValid123!');
+      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma');
+      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/student');
     });
 
     // 2. Intercepter les vrais appels API réseau pour l'auto-waiting progressif
-    cy.intercept('GET', '**/api/projects/validators').as('getValidators');
+    cy.intercept('GET', '**/api/student/validators').as('getValidators');
     cy.intercept('POST', '**/api/projects').as('createProject');
     cy.intercept('POST', '**/api/projects/*/media').as('uploadMedia');
-    cy.intercept('POST', '**/api/projects/*/submit').as('submitProject');
+    cy.intercept('PATCH', '**/api/projects/*/submit').as('submitProject');
 
     // 3. Naviguer vers la page de création de projet
-    cy.visit('/student/projects/new');
+    cy.visit('/student/projects/create');
   });
 
   it('Devrait remplir tout le formulaire complexe, ajouter les techs/liens, uploader les médias, et soumettre au vrai backend', () => {
@@ -50,7 +50,7 @@ describe('Parcours E2E - Création et Soumission de Projet (Vrai Backend)', () =
     // 3. TESTER L'AUTOCOMPLETE DYNAMIQUE DU VALIDATEUR
     // ---------------------------------------------------
     // On tape le début d'un nom (par exemple "Karim" ou juste "a")
-    cy.get('input[placeholder="Tapez le nom du validateur"]').type('Moussaoui');
+    cy.get('input[placeholder="Tapez le nom du validateur"]').type('Ghailani');
     
     // La liste des suggestions doit s'ouvrir suite au focus/input
     cy.get('.suggestions-list').should('be.visible');

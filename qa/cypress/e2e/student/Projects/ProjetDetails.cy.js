@@ -1,27 +1,29 @@
 describe('Parcours E2E - Détails d\'un Projet (Vrai Backend)', () => {
-  const projectIdToTest = Cypress.env('E2E_PROJECT_ID');
-
-  before(() => {
-    expect(projectIdToTest, 'E2E_PROJECT_ID doit pointer vers un vrai projet de la base de test').to.be.a('string').and.not.be.empty;
-  });
+  let projectIdToTest;
 
   beforeEach(() => {
     // 1. Session d'authentification étudiante
     cy.session('student-session', () => {
       cy.visit('/login');
-      cy.get('input[type="email"]').type('student.test@ensat.ma');
-      cy.get('input[type="password"]').type('PasswordValid123!');
+      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma');
+      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/student');
     });
 
     // 2. Intercepter l'appel API réel des détails du projet et des fichiers binaires
+    cy.request('/api/projects/me').then((response) => {
+      const projects = response.body.data?.items || response.body.data || response.body.items || [];
+      expect(projects, 'projets existants pour le test details').to.have.length.greaterThan(0);
+      projectIdToTest = projects[0].id;
+
     cy.intercept('GET', `**/api/projects/${projectIdToTest}`).as('getProjectDetails');
     cy.intercept('GET', `**/api/projects/${projectIdToTest}/media/**`).as('getProjectMedia');
     cy.intercept('DELETE', `**/api/projects/${projectIdToTest}`).as('deleteProjectApi');
 
     // 3. Naviguer directement vers la page des détails du projet
     cy.visit(`/student/projects/${projectIdToTest}`);
+    });
   });
 
   it('Devrait charger les détails réels, valider l\'UI principale et le comportement des screenshots', () => {

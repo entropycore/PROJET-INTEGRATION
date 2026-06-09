@@ -4,16 +4,16 @@ describe('Parcours E2E - Tableau de bord et Liste des Stages (Vrai Backend)', ()
     // 1. Authentification unique via Session
     cy.session('student-session', () => {
       cy.visit('/login');
-      cy.get('input[type="email"]').type('student.stage@ensat.ma');
-      cy.get('input[type="password"]').type('PasswordValid123!');
+      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma');
+      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
       cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/dashboard');
+      cy.url().should('include', '/student');
     });
 
     // 2. Intercepter les VRAIS appels API pour synchroniser la UI avec la base de données
     cy.intercept('GET', '**/api/student/stages').as('getStagesList');
     cy.intercept('DELETE', '**/api/student/stages/*').as('deleteStageApi');
-    cy.intercept('POST', '**/api/student/stages/*/submit').as('submitStageApi');
+    cy.intercept('POST', '**/api/student/stages/*/submit-validation').as('submitStageApi');
 
     // 3. Naviguer vers la page principale des stages
     cy.visit('/student/stages');

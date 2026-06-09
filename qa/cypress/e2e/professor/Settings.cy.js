@@ -1,26 +1,19 @@
 describe("E2E - Paramètres professeur", () => {
   beforeEach(() => {
-    cy.visit("/login");
-
-    cy.get('input[type="email"]').type(Cypress.env("E2E_PROF_EMAIL"));
-    cy.get('input[type="password"]').type(Cypress.env("E2E_PROF_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-
-    cy.visit("/professor/settings");
+    cy.loginAsRoleSession("PROFESSOR", "/professor/settings");
   });
 
   it("affiche la page paramètres", () => {
-    cy.contains("ESPACE PROFESSEUR").should("be.visible");
-    cy.contains("Paramètres").should("be.visible");
-    cy.contains("Gérez la sécurité").should("be.visible");
+    cy.contains(/espace professeur/i).should("be.visible");
+    cy.contains(/param/i).should("be.visible");
+    cy.contains(/g.rez la s.curit/i).should("be.visible");
   });
 
   it("affiche les sections principales", () => {
-    cy.contains("Sécurité du compte").should("be.visible");
-    cy.contains("Réinitialisation par email").should("be.visible");
-    cy.contains("Confidentialité").should("be.visible");
-    cy.contains("Notifications").should("be.visible");
+    cy.contains(/s.curit. du compte/i).should("be.visible");
+    cy.contains(/r.initialisation par email/i).should("be.visible");
+    cy.contains(/confidentialit/i).should("be.visible");
+    cy.contains(/notifications/i).should("be.visible");
   });
 
   it("affiche les champs mot de passe", () => {

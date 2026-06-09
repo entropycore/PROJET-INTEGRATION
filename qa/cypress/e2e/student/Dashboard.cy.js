@@ -7,7 +7,7 @@ describe("E2E - Dashboard étudiant", () => {
 
     cy.contains("button", /connexion|login/i).click();
 
-    cy.visit("/student/dashboard");
+    cy.visit("/student");
   });
 
   it("affiche le dashboard", () => {
@@ -45,7 +45,7 @@ describe("E2E - Dashboard étudiant", () => {
   });
 
   it("affiche les badges récents", () => {
-    cy.visit("/student/dashboard");
+    cy.visit("/student");
 
     cy.contains("Badges obtenus").should("be.visible");
 
@@ -57,7 +57,7 @@ describe("E2E - Dashboard étudiant", () => {
   });
 
   it("redirige vers la page badges", () => {
-    cy.visit("/student/dashboard");
+    cy.visit("/student");
 
     cy.contains("Badges obtenus")
       .parents(".dashboard-card")

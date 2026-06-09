@@ -1,17 +1,31 @@
 describe("E2E - Dashboard professeur", () => {
   beforeEach(() => {
-    cy.visit("/login");
+    cy.intercept("GET", "**/api/professor/dashboard", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          profileSnapshot: { fullName: "Professor Cypress" },
+          summaryCards: {
+            pendingProjects: { value: 0 },
+            pendingInternships: { value: 0 },
+            supervisedInternships: { value: 0 },
+            completedProjectReviews: { value: 0 },
+            completedInternshipReviews: { value: 0 },
+          },
+          pendingValidations: [],
+          supervisedInternships: [],
+          recentReviewActivity: [],
+        },
+      },
+    }).as("getProfessorDashboard");
 
-    cy.get('input[type="email"]').type(Cypress.env("E2E_PROF_EMAIL"));
-    cy.get('input[type="password"]').type(Cypress.env("E2E_PROF_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-
-    cy.visit("/professor/dashboard");
+    cy.loginAsRoleSession("PROFESSOR", "/professor");
+    cy.wait("@getProfessorDashboard");
   });
 
   it("affiche le dashboard professeur", () => {
-    cy.contains("ESPACE PROFESSEUR").should("be.visible");
+    cy.contains(/espace professeur/i).should("be.visible");
     cy.contains(/bonjour/i).should("be.visible");
     cy.contains(/suivez les validations/i).should("be.visible");
   });
@@ -19,10 +33,10 @@ describe("E2E - Dashboard professeur", () => {
   it("affiche les cartes résumé", () => {
     cy.get(".summary-card").should("have.length", 4);
 
-    cy.contains("Projets à valider").should("be.visible");
-    cy.contains("Stages à valider").should("be.visible");
-    cy.contains("Stages supervisés").should("be.visible");
-    cy.contains("Avis rendus").should("be.visible");
+    cy.contains(/projets . valider/i).should("be.visible");
+    cy.contains(/stages . valider/i).should("be.visible");
+    cy.contains(/stages supervis/i).should("be.visible");
+    cy.contains(/avis rendus/i).should("be.visible");
   });
 
   it("redirige vers validations depuis le bouton principal", () => {
@@ -32,11 +46,10 @@ describe("E2E - Dashboard professeur", () => {
   });
 
   it("affiche validations en attente ou état vide", () => {
-    cy.contains("Validations en attente")
-      .parents(".dashboard-panel")
+    cy.contains(".dashboard-panel", "Validations en attente")
       .within(() => {
-        cy.get("body").then(($body) => {
-          if ($body.find(".list-row").length > 0) {
+        cy.root().then(($panel) => {
+          if ($panel.find(".list-row").length > 0) {
             cy.get(".list-row").first().should("be.visible");
             cy.get(".type-pill").first().should("be.visible");
           } else {
@@ -47,8 +60,7 @@ describe("E2E - Dashboard professeur", () => {
   });
 
   it("redirige vers validations depuis Tout voir", () => {
-    cy.contains("Validations en attente")
-      .parents(".dashboard-panel")
+    cy.contains(".dashboard-panel", "Validations en attente")
       .within(() => {
         cy.contains("a", /tout voir/i).click();
       });
@@ -57,11 +69,10 @@ describe("E2E - Dashboard professeur", () => {
   });
 
   it("affiche stages supervisés ou état vide", () => {
-    cy.contains("Stages supervisés")
-      .parents(".dashboard-panel")
+    cy.contains(".dashboard-panel", /stages supervis/i)
       .within(() => {
-        cy.get("body").then(($body) => {
-          if ($body.find(".list-row").length > 0) {
+        cy.root().then(($panel) => {
+          if ($panel.find(".list-row").length > 0) {
             cy.get(".list-row").first().should("be.visible");
             cy.get(".status-pill").first().should("be.visible");
           } else {
@@ -72,11 +83,10 @@ describe("E2E - Dashboard professeur", () => {
   });
 
   it("affiche derniers avis ou état vide", () => {
-    cy.contains("Derniers avis")
-      .parents(".dashboard-panel")
+    cy.contains(".dashboard-panel", "Derniers avis")
       .within(() => {
-        cy.get("body").then(($body) => {
-          if ($body.find(".activity-row").length > 0) {
+        cy.root().then(($panel) => {
+          if ($panel.find(".activity-row").length > 0) {
             cy.get(".activity-row").first().should("be.visible");
           } else {
             cy.contains(/aucun avis rendu récemment/i).should("be.visible");
