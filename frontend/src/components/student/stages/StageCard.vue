@@ -127,12 +127,10 @@ const deleteCurrentStage = () => {
       </div>
 
       <div class="info-item">
-        <span>Visibilité</span>
+        <span>Département</span>
         <strong>
-          <span class="material-icons-round small-icon">
-            {{ stage.visibility === "PUBLIC" ? "public" : "lock" }}
-          </span>
-          {{ stage.visibility === "PUBLIC" ? "Publique" : "Privée" }}
+          <span class="material-icons-round small-icon">apartment</span>
+          {{ stage.supervisor.department || "Non renseigné" }}
         </strong>
       </div>
     </div>
@@ -182,6 +180,7 @@ const deleteCurrentStage = () => {
 
 <style scoped>
 .stage-card {
+  font-family: "DM Sans", sans-serif;
   background: #ffffff;
   border: 1px solid #dee1dd;
   border-radius: 1rem;
@@ -206,10 +205,12 @@ const deleteCurrentStage = () => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.875rem;
-  margin-bottom: 0.875rem;
+  margin-bottom: 0.65rem;
 }
 
 h3 {
+  font-family: "Times New Roman", Times, serif;
+  margin: 0;
   color: #28363d;
   font-size: 1.25rem;
   line-height: 1.35;
@@ -221,7 +222,7 @@ h3 {
   align-items: center;
   gap: 0.5rem;
   color: #2f575d;
-  margin-bottom: 0.875rem;
+  margin-bottom: 0.7rem;
 }
 
 .company strong {
@@ -234,7 +235,7 @@ h3 {
   color: #526f75;
   font-size: 0.875rem;
   line-height: 1.6;
-  margin-bottom: 0.875rem;
+  margin: 0 0 0.8rem;
 
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -245,14 +246,14 @@ h3 {
 .separator {
   height: 1px;
   background: #edf0ee;
-  margin-bottom: 0.875rem;
+  margin-bottom: 0.75rem;
 }
 
 .info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.8125rem 1.125rem;
-  margin-bottom: 1rem;
+  gap: 0.7rem 1.125rem;
+  margin-bottom: 0.9rem;
 }
 
 .info-item {

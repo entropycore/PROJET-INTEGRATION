@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import ValidationBadge from '@/components/student/stages/stageValidationBadge.vue'
+import ValidationBadge from '@/components/student/stages/StageValidationBadge.vue'
 
 describe('ValidationBadge.vue - Smoke Test', () => {
   it('devrait monter le badge avec sa valeur par défaut sans planter', () => {
