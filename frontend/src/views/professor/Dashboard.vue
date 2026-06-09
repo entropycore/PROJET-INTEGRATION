@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from "vue";
 import { RouterLink } from "vue-router";
 
+import StatCard from "@/components/ui/StatCard.vue";
+import { DASHBOARD_ICONS } from "@/constants/dashboardIcons";
 import { getProfessorDashboard } from "@/services/professorApi";
 
 const dashboard = ref(null);
@@ -15,24 +17,28 @@ const summaryCards = computed(() => {
     {
       label: "Projets à valider",
       value: cards.pendingProjects?.value || 0,
-      icon: "folder_open",
+      subtitle: "Projets en attente de votre avis",
+      icon: DASHBOARD_ICONS.projects,
     },
     {
       label: "Stages à valider",
       value: cards.pendingInternships?.value || 0,
-      icon: "business_center",
+      subtitle: "Stages en attente de votre avis",
+      icon: DASHBOARD_ICONS.internships,
     },
     {
       label: "Stages supervisés",
       value: cards.supervisedInternships?.value || 0,
-      icon: "school",
+      subtitle: "Stages sous votre supervision",
+      icon: DASHBOARD_ICONS.supervisedInternships,
     },
     {
       label: "Avis rendus",
       value:
         (cards.completedProjectReviews?.value || 0) +
         (cards.completedInternshipReviews?.value || 0),
-      icon: "fact_check",
+      subtitle: "Validations déjà traitées",
+      icon: DASHBOARD_ICONS.reviews,
     },
   ];
 });
@@ -96,15 +102,14 @@ onMounted(async () => {
       </header>
 
       <div class="summary-grid">
-        <article
+        <StatCard
           v-for="card in summaryCards"
           :key="card.label"
-          class="summary-card"
-        >
-          <span class="material-icons-round">{{ card.icon }}</span>
-          <strong>{{ card.value }}</strong>
-          <p>{{ card.label }}</p>
-        </article>
+          :value="card.value"
+          :title="card.label"
+          :subtitle="card.subtitle"
+          :icon="card.icon"
+        />
       </div>
 
       <div class="dashboard-grid">
@@ -289,44 +294,12 @@ onMounted(async () => {
   gap: 1rem;
 }
 
-.summary-card,
 .dashboard-panel,
 .state-card {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-panel);
   box-shadow: var(--app-shadow-card);
-}
-
-.summary-card {
-  min-height: 8rem;
-  padding: 1.2rem;
-}
-
-.summary-card .material-icons-round {
-  width: 2.45rem;
-  height: 2.45rem;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--app-active-bg);
-  color: var(--app-primary);
-  font-size: 1.45rem;
-}
-
-.summary-card strong {
-  display: block;
-  margin-top: 0.9rem;
-  color: var(--app-heading);
-  font-size: 2rem;
-  line-height: 1;
-}
-
-.summary-card p {
-  margin: 0.45rem 0 0;
-  color: var(--app-muted);
-  font-size: var(--app-text-sm);
-  font-weight: 700;
 }
 
 .dashboard-grid {
