@@ -112,13 +112,10 @@ const openActionModal = (type, validation) => {
       eyebrow: "Validation",
       title: "Approuver la validation",
       description: `Confirmer l'approbation de "${validation.title}" ?`,
-      label: "Message pour l'étudiant (optionnel)",
-      placeholder:
-        "Exemple : excellent travail, les objectifs sont atteints.",
+      label: "",
+      placeholder: "",
       confirmLabel: "Approuver",
-      showComment: true,
       requiresComment: false,
-      hint: "Ajoutez un retour positif ou une précision utile à l'étudiant.",
       tone: "success",
     },
     reject: {
@@ -131,10 +128,7 @@ const openActionModal = (type, validation) => {
       label: "Motif du refus",
       placeholder: "Exemple : le document joint ne correspond pas au projet.",
       confirmLabel: "Refuser",
-      showComment: true,
       requiresComment: true,
-      hint:
-        "Soyez précis : expliquez clairement la raison du refus à l'étudiant.",
       tone: "danger",
     },
     requestChanges: {
@@ -148,10 +142,7 @@ const openActionModal = (type, validation) => {
       placeholder:
         "Exemple : ajoutez plus de détails sur les missions et joignez le rapport signé.",
       confirmLabel: "Envoyer la demande",
-      showComment: true,
       requiresComment: true,
-      hint:
-        "Soyez précis : indiquez ce qui manque et ce que l'étudiant doit déposer ou modifier.",
       tone: "warning",
     },
   };
@@ -178,7 +169,7 @@ const submitActionModal = async (comment) => {
   isSubmittingAction.value = true;
   try {
     if (action.type === "approve") {
-      await approveProfessorValidation(action.validation, { comment });
+      await approveProfessorValidation(action.validation);
     } else if (action.type === "reject") {
       await rejectProfessorValidation(action.validation, { comment });
     } else {

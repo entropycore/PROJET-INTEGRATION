@@ -162,6 +162,11 @@ export const sidebarConfig = {
           path: "/professor/validations",
           icon: "fact_check",
         },
+        {
+          label: "Historique",
+          path: "/professor/history",
+          icon: "history",
+        },
       ],
     },
     {

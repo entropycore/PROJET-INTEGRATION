@@ -92,7 +92,10 @@ onMounted(async () => {
           </p>
         </div>
 
-       
+        <RouterLink to="/professor/validations" class="primary-link">
+          <span class="material-icons-round">fact_check</span>
+          Voir les validations
+        </RouterLink>
       </header>
 
       <div class="summary-grid">
@@ -110,17 +113,8 @@ onMounted(async () => {
       <div class="dashboard-grid">
         <section class="dashboard-panel">
           <div class="panel-header">
-            <div class="panel-title-group">
-              <div class="panel-title-row">
-                <span class="material-icons-round">pending_actions</span>
-                <h2>Validations en attente</h2>
-              </div>
-              <p>Les projets et stages qui nécessitent votre avis.</p>
-            </div>
-            <RouterLink to="/professor/validations">
-              Tout voir
-              <span class="material-icons-round">arrow_forward</span>
-            </RouterLink>
+            <h2>Validations en attente</h2>
+            <RouterLink to="/professor/validations">Tout voir</RouterLink>
           </div>
 
           <div v-if="dashboard.pendingValidations?.length" class="item-list">
@@ -135,13 +129,6 @@ onMounted(async () => {
               </div>
 
               <span class="type-pill">
-                <span class="material-icons-round">
-                  {{
-                    validation.targetType === "PROJECT"
-                      ? "folder_open"
-                      : "business_center"
-                  }}
-                </span>
                 {{ validation.targetType === "PROJECT" ? "Projet" : "Stage" }}
               </span>
             </article>
@@ -152,13 +139,7 @@ onMounted(async () => {
 
         <section class="dashboard-panel">
           <div class="panel-header">
-            <div class="panel-title-group">
-              <div class="panel-title-row">
-                <span class="material-icons-round">school</span>
-                <h2>Stages supervisés</h2>
-              </div>
-              <p>Les stages actuellement suivis sous votre supervision.</p>
-            </div>
+            <h2>Stages supervisés</h2>
           </div>
 
           <div v-if="dashboard.supervisedInternships?.length" class="item-list">
@@ -189,13 +170,8 @@ onMounted(async () => {
 
         <section class="dashboard-panel wide">
           <div class="panel-header">
-            <div class="panel-title-group">
-              <div class="panel-title-row">
-                <span class="material-icons-round">history</span>
-                <h2>Derniers avis</h2>
-              </div>
-              <p>Vos décisions de validation les plus récentes.</p>
-            </div>
+            <h2>Derniers avis</h2>
+            <RouterLink to="/professor/history">Historique</RouterLink>
           </div>
 
           <div
@@ -337,7 +313,7 @@ onMounted(async () => {
 
 .dashboard-panel {
   min-width: 0;
-  padding: 1.5rem;
+  padding: 1.1rem;
 }
 
 .dashboard-panel.wide {
@@ -346,76 +322,27 @@ onMounted(async () => {
 
 .panel-header {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.panel-title-group {
-  min-width: 0;
-}
-
-.panel-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.panel-title-row > .material-icons-round {
-  color: var(--app-primary);
-  font-size: 1.15rem;
+  margin-bottom: 1rem;
 }
 
 .panel-header h2 {
   margin: 0;
-  color: var(--app-primary);
-  font-family: var(--app-font-body);
-  font-size: 1.08rem;
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.panel-title-group p {
-  margin: 0.35rem 0 0 1.65rem;
-  color: var(--app-muted);
-  font-size: 0.92rem;
-  line-height: 1.45;
+  color: var(--app-heading);
+  font-size: var(--app-text-lg);
 }
 
 .panel-header a {
-  min-height: 2.2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  border: 1px solid var(--app-border);
-  border-radius: 0.7rem;
-  background: var(--app-surface-soft);
   color: var(--app-primary);
-  padding: 0 0.9rem;
-  font-size: 0.78rem;
   font-weight: 800;
   text-decoration: none;
-  white-space: nowrap;
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.panel-header a:hover {
-  background: var(--app-active-bg);
-  border-color: var(--app-active-border);
-}
-
-.panel-header a .material-icons-round {
-  font-size: 1rem;
 }
 
 .item-list,
 .activity-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  gap: 0.65rem;
 }
 
 .list-row,
@@ -424,24 +351,11 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 4.5rem;
-  padding: 1rem 0.75rem;
-  border-bottom: 1px solid var(--app-neutral-bg);
-  border-radius: 0.75rem;
-  transition:
-    background 0.18s ease,
-    box-shadow 0.18s ease;
-}
-
-.list-row:last-child,
-.activity-row:last-child {
-  border-bottom: 0;
-}
-
-.list-row:hover,
-.activity-row:hover {
+  min-height: 4rem;
+  padding: 0.75rem;
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-md);
   background: var(--app-surface-soft);
-  box-shadow: inset 0 0 0 1px var(--app-border);
 }
 
 .list-row > div,
@@ -452,18 +366,14 @@ onMounted(async () => {
 .list-row strong,
 .activity-row strong {
   color: var(--app-heading);
-  font-family: var(--app-font-body);
-  font-size: 1rem;
-  font-weight: 800;
   overflow-wrap: anywhere;
 }
 
 .list-row p,
 .activity-row p {
-  margin: 0.18rem 0 0;
+  margin: 0.2rem 0 0;
   color: var(--app-muted);
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: var(--app-text-sm);
 }
 
 .activity-row {
@@ -471,42 +381,23 @@ onMounted(async () => {
 }
 
 .activity-row .material-icons-round {
-  width: 2.7rem;
-  height: 2.7rem;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  background: var(--app-active-bg);
   color: var(--app-primary);
-  font-size: 1.15rem;
 }
 
 .activity-row small {
   margin-left: auto;
   color: var(--app-muted);
-  font-size: 0.76rem;
-  white-space: nowrap;
 }
 
 .type-pill,
 .status-pill {
-  min-height: 2rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
   border-radius: var(--app-radius-pill);
-  padding: 0 0.8rem;
+  padding: 0.35rem 0.65rem;
   background: var(--app-active-bg);
   color: var(--app-primary);
-  font-size: 0.76rem;
+  font-size: var(--app-text-xs);
   font-weight: 800;
   white-space: nowrap;
-}
-
-.type-pill .material-icons-round {
-  font-size: 0.95rem;
 }
 
 .status-pill.rejected {
@@ -527,8 +418,10 @@ onMounted(async () => {
 }
 
 .empty-text {
-  padding: 1.4rem 0;
-  text-align: center;
+  padding: 1rem;
+  border: 1px dashed var(--app-border);
+  border-radius: var(--app-radius-md);
+  background: var(--app-surface-soft);
 }
 
 .state-card {
@@ -547,17 +440,11 @@ onMounted(async () => {
 }
 
 @media (max-width: 720px) {
-  .page-header {
+  .page-header,
+  .list-row,
+  .activity-row {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .panel-header {
-    flex-direction: column;
-  }
-
-  .panel-header a {
-    width: 100%;
   }
 
   .summary-grid,
@@ -565,18 +452,7 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
 
-  .list-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .activity-row {
-    display: grid;
-    grid-template-columns: auto 1fr;
-  }
-
   .activity-row small {
-    grid-column: 2;
     margin-left: 0;
   }
 }

@@ -225,7 +225,7 @@ onMounted(loadSettings);
     <template v-else>
       <div class="settings-grid">
         <section class="settings-panel wide">
-          <h2 class="card-title">Sécurité du compte</h2>
+          <h2>Sécurité du compte</h2>
 
           <p
             v-if="passwordMsg.text"
@@ -308,24 +308,20 @@ onMounted(loadSettings);
             </label>
           </div>
 
-          <div class="panel-actions">
-            <button
-              type="button"
-              class="primary-btn"
-              :disabled="loadingPassword"
-              @click="savePassword"
-            >
-              <span class="material-icons-round">lock_reset</span>
-              {{
-                loadingPassword ? "Mise à jour..." : "Changer le mot de passe"
-              }}
-            </button>
-          </div>
+          <button
+            type="button"
+            class="primary-btn"
+            :disabled="loadingPassword"
+            @click="savePassword"
+          >
+            <span class="material-icons-round">lock_reset</span>
+            {{ loadingPassword ? "Mise à jour..." : "Changer le mot de passe" }}
+          </button>
         </section>
 
         <section class="settings-panel compact">
           <div>
-            <h2 class="card-title">Réinitialisation par email</h2>
+            <h2>Réinitialisation par email</h2>
             <p>{{ accountEmail || "Email du compte non disponible" }}</p>
           </div>
 
@@ -348,7 +344,7 @@ onMounted(loadSettings);
         </section>
 
         <section class="settings-panel">
-          <h2 class="card-title">Confidentialité</h2>
+          <h2>Confidentialité</h2>
 
           <p
             v-if="privacyMsg.text"
@@ -393,20 +389,18 @@ onMounted(loadSettings);
             <input v-model="privacyForm.showPhone" type="checkbox" />
           </label>
 
-          <div class="panel-actions">
-            <button
-              type="button"
-              class="primary-btn"
-              :disabled="loadingPrivacy"
-              @click="savePrivacy"
-            >
-              {{ loadingPrivacy ? "Enregistrement..." : "Enregistrer" }}
-            </button>
-          </div>
+          <button
+            type="button"
+            class="primary-btn"
+            :disabled="loadingPrivacy"
+            @click="savePrivacy"
+          >
+            {{ loadingPrivacy ? "Enregistrement..." : "Enregistrer" }}
+          </button>
         </section>
 
         <section class="settings-panel">
-          <h2 class="card-title">Notifications</h2>
+          <h2>Notifications</h2>
 
           <p
             v-if="notificationMsg.text"
@@ -448,16 +442,14 @@ onMounted(loadSettings);
             <input v-model="notificationForm.weeklyDigest" type="checkbox" />
           </label>
 
-          <div class="panel-actions">
-            <button
-              type="button"
-              class="primary-btn"
-              :disabled="loadingNotifications"
-              @click="saveNotifications"
-            >
-              {{ loadingNotifications ? "Enregistrement..." : "Enregistrer" }}
-            </button>
-          </div>
+          <button
+            type="button"
+            class="primary-btn"
+            :disabled="loadingNotifications"
+            @click="saveNotifications"
+          >
+            {{ loadingNotifications ? "Enregistrement..." : "Enregistrer" }}
+          </button>
         </section>
       </div>
     </template>
@@ -522,25 +514,13 @@ onMounted(loadSettings);
   flex-wrap: wrap;
 }
 
-.settings-panel .card-title {
+.settings-panel h2 {
   margin: 0 0 1rem;
-  color: var(--app-primary);
-  font-family: var(--app-font-display);
-  font-size: 1rem;
-  font-weight: 700;
+  color: var(--app-heading);
+  font-size: var(--app-text-lg);
 }
 
-.settings-panel .card-title::after {
-  content: "";
-  display: block;
-  width: 2.7rem;
-  height: 3px;
-  margin-top: 0.45rem;
-  border-radius: var(--app-radius-pill);
-  background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
-}
-
-.settings-panel.compact .card-title {
+.settings-panel.compact h2 {
   margin-bottom: 0.25rem;
 }
 
@@ -685,12 +665,6 @@ onMounted(loadSettings);
   cursor: pointer;
 }
 
-.panel-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 1rem;
-}
-
 .primary-btn {
   border: 1px solid var(--app-primary);
   background: var(--app-primary);
@@ -745,10 +719,6 @@ button:disabled {
 
   .primary-btn,
   .secondary-btn {
-    width: 100%;
-  }
-
-  .panel-actions {
     width: 100%;
   }
 }
