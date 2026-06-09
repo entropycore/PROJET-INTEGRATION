@@ -2,8 +2,6 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-RUN mkdir -p /app/uploads && chown -R node:node /app/uploads
-
 COPY --chown=node:node package*.json ./
 RUN npm install
 
