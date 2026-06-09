@@ -241,6 +241,54 @@ const canReadFile = (user, file) =>
   String(user?.role || '').toUpperCase() === 'ADMINISTRATOR' ||
   file.ownerUserId === user?.userId;
 
+const isProfessor = (user) =>
+  String(user?.role || '').toUpperCase() === 'PROFESSOR';
+
+const professorCanReadEntityFile = async (user, file) => {
+  if (!isProfessor(user) || !file.entityType || !file.entityId) {
+    return false;
+  }
+
+  const professor = await prisma.professor.findUnique({
+    where: { userId: user.userId },
+    select: { id: true },
+  });
+
+  if (!professor) return false;
+
+  if (file.entityType === 'PROJECT') {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: file.entityId,
+        validatorProfessorId: professor.id,
+      },
+      select: { id: true },
+    });
+
+    return Boolean(project);
+  }
+
+  if (file.entityType === 'INTERNSHIP') {
+    const internship = await prisma.internship.findFirst({
+      where: {
+        id: file.entityId,
+        supervisorProfessorId: professor.id,
+      },
+      select: { id: true },
+    });
+
+    return Boolean(internship);
+  }
+
+  return false;
+};
+
+const canReadFileForUser = async (user, file) => {
+  if (canReadFile(user, file)) return true;
+
+  return professorCanReadEntityFile(user, file);
+};
+
 const canDeleteFile = (user, file) =>
   String(user?.role || '').toUpperCase() === 'ADMINISTRATOR' ||
   file.ownerUserId === user?.userId;
@@ -438,7 +486,7 @@ exports.getFileMetadata = async ({ user, fileId }) => {
     throw createServiceError('FILE_NOT_FOUND', 404);
   }
 
-  if (!canReadFile(user, file)) {
+  if (!(await canReadFileForUser(user, file))) {
     throw createServiceError('FILE_ACCESS_DENIED', 403);
   }
 
@@ -462,7 +510,7 @@ exports.getDownloadTarget = async ({ user, fileId }) => {
     throw createServiceError('FILE_NOT_FOUND', 404);
   }
 
-  if (!canReadFile(user, file)) {
+  if (!(await canReadFileForUser(user, file))) {
     throw createServiceError('FILE_ACCESS_DENIED', 403);
   }
 

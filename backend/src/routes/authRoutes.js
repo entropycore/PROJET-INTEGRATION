@@ -12,7 +12,13 @@ const {
 
 
 const { validationRules, handleValidationErrors } = require('../middlewares/validationRules');
+const { generateCsrfToken } = require('../middlewares/csrfProtection');
 
+// GET endpoint — frontend must call this before any POST/PUT/DELETE to get a CSRF token
+router.get('/csrf-token', (req, res) => {
+  const csrfToken = generateCsrfToken(req, res);
+  res.json({ csrfToken });
+});
 
 router.post('/register', authLimiter, validationRules('register'), handleValidationErrors, authController.register);
 router.post(
