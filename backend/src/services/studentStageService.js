@@ -39,6 +39,17 @@ const ensureTechnology = async (name) => {
 };
 
 const resolveSupervisorProfessorId = async (supervisor) => {
+  const supervisorId = String(supervisor?.id || '').trim();
+
+  if (supervisorId) {
+    const professor = await prisma.professor.findUnique({
+      where: { id: supervisorId },
+      select: { id: true },
+    });
+
+    if (professor) return professor.id;
+  }
+
   const supervisorName = String(supervisor?.fullName || '').trim();
 
   if (!supervisorName) return null;
