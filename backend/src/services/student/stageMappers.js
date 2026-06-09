@@ -83,23 +83,19 @@ const splitLines = (value) =>
     .filter(Boolean);
 
 const decodeInternshipContent = (rawValue, internship) => {
-  const supervisor = internship.supervisorProfessor
-    ? {
-        id: internship.supervisorProfessor.id,
-        fullName: formatFullName(internship.supervisorProfessor.user),
-        department: internship.supervisorProfessor.department || '',
-      }
-    : {
-        id: '',
-        fullName: '',
-        department: '',
-      };
-
   const fallback = {
     title: internship.hostOrganization ? `Stage chez ${internship.hostOrganization}` : 'Stage',
     description: rawValue || '',
     missions: splitLines(rawValue),
-    supervisor,
+    supervisor: internship.supervisorProfessor
+      ? {
+          fullName: formatFullName(internship.supervisorProfessor.user),
+          department: internship.supervisorProfessor.department || '',
+        }
+      : {
+          fullName: '',
+          department: '',
+        },
   };
 
   if (!rawValue) {
@@ -114,10 +110,7 @@ const decodeInternshipContent = (rawValue, internship) => {
         title: parsed.title || fallback.title,
         description: parsed.description || '',
         missions: Array.isArray(parsed.missions) ? parsed.missions : [],
-        supervisor: {
-          ...fallback.supervisor,
-          ...(parsed.supervisor || {}),
-        },
+        supervisor: parsed.supervisor || fallback.supervisor,
       };
     }
   } catch {
@@ -154,7 +147,6 @@ const mapInternshipRecord = (internship) => {
   const content = decodeInternshipContent(internship.missions, internship);
   const supervisorFromRelation = internship.supervisorProfessor
     ? {
-        id: internship.supervisorProfessor.id,
         fullName: formatFullName(internship.supervisorProfessor.user),
         department: internship.supervisorProfessor.department || '',
       }
