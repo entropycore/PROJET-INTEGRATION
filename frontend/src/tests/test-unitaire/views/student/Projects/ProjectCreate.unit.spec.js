@@ -54,6 +54,23 @@ describe("ProjectCreate - Tests unitaires", () => {
     expect(wrapper.text()).toContain("Complétez le titre");
   });
 
+  it("continue l'affichage si le chargement des validateurs échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    getStudentProjectValidators.mockRejectedValueOnce(
+      new Error("Validators failed")
+    );
+
+    const wrapper = mount(ProjectCreate);
+    await vi.dynamicImportSettled();
+
+    expect(wrapper.text()).toContain("Nouveau projet");
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("ajoute une technologie", async () => {
     const wrapper = await mountPage();
 
@@ -104,6 +121,30 @@ describe("ProjectCreate - Tests unitaires", () => {
     expect(push).toHaveBeenCalledWith("/student/projects");
   });
 
+  it("affiche une erreur si la création du brouillon échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    createStudentProject.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: "Titre requis",
+        },
+      },
+    });
+
+    const wrapper = await mountPage();
+
+    await wrapper.find(".secondary-action").trigger("click");
+    await vi.dynamicImportSettled();
+
+    expect(createStudentProject).toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("Titre requis");
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("crée et soumet le projet si formulaire valide", async () => {
     createStudentProject.mockResolvedValue({
       data: { data: { id: 99 } },
@@ -128,5 +169,44 @@ describe("ProjectCreate - Tests unitaires", () => {
     expect(createStudentProject).toHaveBeenCalled();
     expect(submitStudentProject).toHaveBeenCalledWith(99);
     expect(push).toHaveBeenCalledWith("/student/projects");
+  });
+
+  it("affiche une erreur si la soumission du projet échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    createStudentProject.mockResolvedValue({
+      data: { data: { id: 99 } },
+    });
+    submitStudentProject.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: "Validateur obligatoire",
+        },
+      },
+    });
+
+    const wrapper = await mountPage();
+
+    const inputs = wrapper.findAll("input");
+    await inputs[0].setValue("Projet Portfolio");
+
+    await wrapper.find("textarea").setValue("Description complète du projet.");
+
+    const validatorInput = wrapper.find('input[placeholder="Tapez le nom du validateur"]');
+    await validatorInput.trigger("focus");
+    await validatorInput.setValue("Ahmed");
+    await validatorInput.trigger("input");
+    await wrapper.find(".suggestion-item").trigger("mousedown");
+
+    await wrapper.find(".primary-action").trigger("click");
+    await vi.dynamicImportSettled();
+
+    expect(createStudentProject).toHaveBeenCalled();
+    expect(submitStudentProject).toHaveBeenCalledWith(99);
+    expect(push).not.toHaveBeenCalled();
+    expect(wrapper.text()).toContain("Validateur obligatoire");
+
+    consoleErrorSpy.mockRestore();
   });
 });

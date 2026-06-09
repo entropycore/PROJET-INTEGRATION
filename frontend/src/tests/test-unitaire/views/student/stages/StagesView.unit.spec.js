@@ -102,6 +102,37 @@ describe("StudentStages - Unit", () => {
     expect(wrapper.text()).not.toContain("Stage Spring");
   });
 
+  it("affiche un état vide si aucun stage n'est retourné", async () => {
+    getStudentStages.mockResolvedValueOnce({
+      data: { data: [] },
+    });
+
+    const wrapper = mount(StudentStages);
+
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Aucun stage trouvé");
+    expect(wrapper.text()).toContain("0 stages");
+    expect(wrapper.find(".stage-card").exists()).toBe(false);
+  });
+
+  it("capture l'erreur si le chargement des stages échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    getStudentStages.mockRejectedValueOnce(new Error("API down"));
+
+    const wrapper = mount(StudentStages);
+
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("Aucun stage trouvé");
+    expect(wrapper.text()).toContain("0 stages");
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("filtre les stages par statut", async () => {
     const wrapper = mount(StudentStages);
 
@@ -161,6 +192,26 @@ describe("StudentStages - Unit", () => {
     expect(deleteStudentStage).not.toHaveBeenCalled();
   });
 
+  it("capture l'erreur si la suppression du stage échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    deleteStudentStage.mockRejectedValueOnce(new Error("Delete failed"));
+
+    const wrapper = mount(StudentStages);
+
+    await flushPromises();
+
+    await wrapper.find(".delete").trigger("click");
+    await flushPromises();
+
+    expect(deleteStudentStage).toHaveBeenCalledWith(1);
+    expect(getStudentStages).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("soumet un stage à la validation", async () => {
     const wrapper = mount(StudentStages);
 
@@ -171,5 +222,27 @@ describe("StudentStages - Unit", () => {
 
     expect(submitStudentStageValidation).toHaveBeenCalledWith(1);
     expect(getStudentStages).toHaveBeenCalledTimes(2);
+  });
+
+  it("capture l'erreur si la soumission du stage échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    submitStudentStageValidation.mockRejectedValueOnce(
+      new Error("Submit failed")
+    );
+
+    const wrapper = mount(StudentStages);
+
+    await flushPromises();
+
+    await wrapper.find(".submit").trigger("click");
+    await flushPromises();
+
+    expect(submitStudentStageValidation).toHaveBeenCalledWith(1);
+    expect(getStudentStages).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 });

@@ -107,9 +107,10 @@ describe("StudentProjects - Tests unitaires", () => {
 
     const wrapper = await mountComponent();
 
-    const submitButton = wrapper.find(".project-actions .primary-action");
+    const submitButton = wrapper.find(".project-submit-btn");
 
     await submitButton.trigger("click");
+    await vi.dynamicImportSettled();
 
     expect(submitStudentProject).toHaveBeenCalledWith(1);
     expect(getStudentProjects).toHaveBeenCalledTimes(2);

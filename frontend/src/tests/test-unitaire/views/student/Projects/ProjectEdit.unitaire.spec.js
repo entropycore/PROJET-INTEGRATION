@@ -81,6 +81,46 @@ describe("ProjectEdit Unit Tests", () => {
     vi.clearAllMocks();
   });
 
+  it("affiche l'état de chargement si le projet ne se charge pas", async () => {
+    const consoleWarnSpy = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => {});
+    getStudentProjectById.mockRejectedValueOnce(new Error("Project failed"));
+    getStudentProjectValidators.mockResolvedValue({
+      data: { data: validatorsMock },
+    });
+
+    const wrapper = mount(ProjectEdit);
+
+    await vi.dynamicImportSettled();
+
+    expect(wrapper.find(".edit-header").exists()).toBe(false);
+    expect(consoleWarnSpy).toHaveBeenCalled();
+
+    consoleWarnSpy.mockRestore();
+  });
+
+  it("continue si le chargement des validateurs échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    getStudentProjectById.mockResolvedValue({
+      data: { data: projectMock },
+    });
+    getStudentProjectValidators.mockRejectedValueOnce(
+      new Error("Validators failed")
+    );
+
+    const wrapper = mount(ProjectEdit);
+
+    await vi.dynamicImportSettled();
+
+    expect(wrapper.find(".edit-header").exists()).toBe(true);
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("ajoute une technologie", async () => {
     const wrapper = await mountComponent();
 
@@ -137,6 +177,34 @@ describe("ProjectEdit Unit Tests", () => {
       .toHaveBeenCalledWith("/student/projects/1");
   });
 
+  it("affiche une erreur si la sauvegarde échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const wrapper = await mountComponent();
+
+    updateStudentProject.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: "Modification impossible",
+        },
+      },
+    });
+
+    await wrapper
+      .find(".secondary-action")
+      .trigger("click");
+    await vi.dynamicImportSettled();
+
+    expect(updateStudentProject)
+      .toHaveBeenCalled();
+    expect(push)
+      .not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
+  });
+
   it("soumet le projet", async () => {
     const wrapper = await mountComponent();
 
@@ -153,5 +221,37 @@ describe("ProjectEdit Unit Tests", () => {
 
     expect(submitStudentProject)
       .toHaveBeenCalledWith("1");
+  });
+
+  it("affiche une erreur si la soumission échoue", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const wrapper = await mountComponent();
+
+    updateStudentProject.mockResolvedValue({});
+    uploadStudentProjectMedia.mockResolvedValue({});
+    submitStudentProject.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: "Soumission impossible",
+        },
+      },
+    });
+
+    await wrapper
+      .find(".primary-action")
+      .trigger("click");
+    await vi.dynamicImportSettled();
+
+    expect(updateStudentProject)
+      .toHaveBeenCalled();
+    expect(submitStudentProject)
+      .toHaveBeenCalledWith("1");
+    expect(push)
+      .not.toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+
+    consoleErrorSpy.mockRestore();
   });
 });
