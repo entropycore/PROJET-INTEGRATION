@@ -1,9 +1,11 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useAuthStore } from "../../stores/auth";
+import { buildBackendUrl } from "../../services/backendUrl";
 import {
   getStudentProfile,
   updateStudentProfile,
+  uploadStudentProfilePicture,
   getAcademicPaths,
   addAcademicPath,
   deleteAcademicPath,
@@ -26,6 +28,8 @@ const isEditing = ref(false);
 const showAddPath = ref(false);
 const showAddSkill = ref(false);
 const newSkillName = ref("");
+const pictureInput = ref(null);
+const isUploadingPicture = ref(false);
 
 const careerGoals = [
   { value: "WEB_DEVELOPER", label: "Développeur Web" },
@@ -211,6 +215,51 @@ const handleDeleteSkill = async (id) => {
   }
 };
 
+const openPicturePicker = () => {
+  pictureInput.value?.click();
+};
+
+const handleProfilePictureChange = async (event) => {
+  const file = event.target.files?.[0];
+
+  if (!file) return;
+
+  errorMessage.value = "";
+  successMessage.value = "";
+
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    errorMessage.value = "Format image non autorisé. Utilisez JPG, PNG ou WebP.";
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > 3 * 1024 * 1024) {
+    errorMessage.value = "La photo doit faire moins de 3 Mo.";
+    event.target.value = "";
+    return;
+  }
+
+  isUploadingPicture.value = true;
+
+  try {
+    const response = await uploadStudentProfilePicture(file);
+    const data = unwrapData(response);
+
+    profile.value = {
+      ...profile.value,
+      profilePicture: data?.profilePicture || profile.value.profilePicture,
+    };
+
+    successMessage.value = "Photo de profil mise à jour.";
+  } catch (error) {
+    errorMessage.value =
+      error?.response?.data?.message || "Erreur upload photo de profil.";
+  } finally {
+    isUploadingPicture.value = false;
+    event.target.value = "";
+  }
+};
+
 const getInitials = (fn, ln) =>
   `${fn?.[0] || ""}${ln?.[0] || ""}`.toUpperCase();
 
@@ -220,18 +269,7 @@ onMounted(loadAll);
 <template>
   <div class="profile-page">
     <div class="page-header">
-      <div>
-        <h1>Mon profil</h1>
-        <div class="sub">Informations personnelles et parcours académique</div>
-      </div>
-      <button
-        v-if="!isEditing && profile"
-        class="btn btn-primary"
-        @click="startEdit"
-      >
-        <span class="material-icons-round">edit</span>
-        Modifier
-      </button>
+      
     </div>
 
     <p v-if="isLoading" class="text-muted">Chargement...</p>
@@ -239,26 +277,58 @@ onMounted(loadAll);
     <p v-if="successMessage" class="success-msg">{{ successMessage }}</p>
 
     <div v-if="profile">
+      <div class="student-profile-header">
+        <div class="profile-avatar">
+          <img
+            v-if="profile.profilePicture"
+            :src="buildBackendUrl(profile.profilePicture)"
+            alt=""
+          />
+          <span v-else>
+            {{ getInitials(profile.firstName, profile.lastName) }}
+          </span>
+        </div>
+
+        <div class="profile-identity">
+          <span>PROFIL ÉTUDIANT</span>
+          <div class="profile-name">
+            {{ profile.firstName }} {{ profile.lastName }}
+          </div>
+          <div class="text-muted">{{ profile.email }}</div>
+        </div>
+
+        <div class="profile-header-actions">
+          <input
+            ref="pictureInput"
+            class="visually-hidden"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            @change="handleProfilePictureChange"
+          />
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="isUploadingPicture"
+            @click="openPicturePicker"
+          >
+            <span class="material-icons-round">photo_camera</span>
+            {{ isUploadingPicture ? "Upload..." : "Changer la photo" }}
+          </button>
+          <button
+            v-if="!isEditing"
+            class="btn btn-primary"
+            type="button"
+            @click="startEdit"
+          >
+            <span class="material-icons-round">edit</span>
+            Modifier le profil
+          </button>
+        </div>
+      </div>
+
       <div class="section-row">
         <!-- Colonne gauche -->
         <div class="content-card">
-          <div class="avatar-row">
-            <div class="profile-avatar">
-              {{ getInitials(profile.firstName, profile.lastName) }}
-            </div>
-            <div>
-              <div class="profile-name">
-                {{ profile.firstName }} {{ profile.lastName }}
-              </div>
-              <div class="text-muted">{{ profile.email }}</div>
-              <div style="margin-top: 6px">
-                <span class="badge badge-info"
-                  >{{ profile.field }} {{ profile.level }}</span
-                >
-              </div>
-            </div>
-          </div>
-
           <div v-if="!isEditing">
             <h3 class="card-title">Informations personnelles</h3>
             <table class="info-table">
@@ -334,8 +404,8 @@ onMounted(loadAll);
         </div>
 
         <!-- Colonne droite -->
-        <div>
-          <div class="content-card" style="margin-bottom: 16px">
+        <div class="profile-side-column">
+          <div class="content-card">
             <h3 class="card-title">Objectif professionnel</h3>
             <div class="chips-row">
               <span
@@ -512,55 +582,122 @@ onMounted(loadAll);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 24px;
+  gap: 1.25rem;
+  margin-bottom: 1.125rem;
 }
-.page-header h1 {
-  font-family: "DM Serif Display", serif;
-  font-size: 26px;
-  font-weight: 400;
-  color: #28363d;
-  line-height: 1.2;
-}
-.sub {
-  font-size: 13px;
-  color: #99aead;
-  margin-top: 3px;
+
+.page-label {
+  display: inline-block;
+  font-family: "Times New Roman", Times, serif !important;
+  margin-bottom: 0.4rem;
+  color: #a8aca8;
+  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
   font-style: italic;
+  font-weight: 400;
+}
+
+.page-header h1 {
+  font-family: "Times New Roman", Times, serif !important;
+  color: #28363d;
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 700;
+  margin: 0 0 0.25rem;
+}
+
+.page-header p {
+  font-family: "Times New Roman", Times, serif !important;
+  margin: 0;
+  color: #6d9197;
+  font-size: 0.875rem;
+  font-style: italic;
+  font-weight: 400;
 }
 
 .section-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
 }
 
 .content-card {
-  background: #fff;
-  border: 1px solid #dee1dd;
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+  padding: 1.25rem;
   margin-bottom: 16px;
 }
+
+.section-row > .content-card,
+.profile-side-column .content-card {
+  margin-bottom: 0;
+}
+
+.profile-side-column {
+  display: grid;
+  gap: 1rem;
+}
+
+.student-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.35rem;
+  margin-bottom: 1rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+}
+
+.profile-identity {
+  min-width: 0;
+}
+
+.profile-identity > span {
+  color: var(--app-muted);
+  font-size: var(--app-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.profile-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
 .card-title {
-  font-size: 15px;
-  color: #28363d;
-  font-family: "DM Serif Display", serif;
-  font-weight: 400;
+  font-size: 1rem;
+  color: var(--app-primary);
+  font-family: var(--app-font-body);
+  font-weight: 900;
   margin-bottom: 12px;
 }
 
-.avatar-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
+.card-title::after {
+  content: "";
+  display: block;
+  width: 2.7rem;
+  height: 3px;
+  margin-top: 0.45rem;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
 }
+
 .profile-avatar {
-  width: 72px;
-  height: 72px;
+  width: 5.2rem;
+  height: 5.2rem;
   border-radius: 50%;
-  background: #2f575d;
+  border: 2px solid var(--app-active-border);
+  background: var(--app-primary);
+  box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -568,11 +705,31 @@ onMounted(loadAll);
   font-family: "DM Serif Display", serif;
   color: #fff;
   flex-shrink: 0;
+  overflow: hidden;
+}
+.profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .profile-name {
-  font-size: 20px;
-  font-family: "DM Serif Display", serif;
-  color: #28363d;
+  margin: 0.25rem 0;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.7rem, 2.4vw, 2.3rem);
+  font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .badge {
@@ -594,16 +751,20 @@ onMounted(loadAll);
   border-collapse: collapse;
 }
 .info-label {
-  color: #99aead;
-  font-size: 13px;
-  padding: 7px 0;
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  padding: 0.65rem 0;
   width: 140px;
   vertical-align: top;
+  border-bottom: 1px solid var(--app-neutral-bg);
 }
 .info-value {
-  font-size: 13.5px;
-  color: #28363d;
-  padding: 7px 0;
+  color: var(--app-heading);
+  font-size: var(--app-text-md);
+  font-weight: 700;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--app-neutral-bg);
 }
 .info-value.link {
   color: #2f575d;
@@ -778,6 +939,10 @@ onMounted(loadAll);
 .btn-danger:hover {
   background: #fff5f5;
 }
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 .btn-sm {
   padding: 6px 12px;
   font-size: 12.5px;
@@ -876,5 +1041,63 @@ onMounted(loadAll);
   color: #658b6f;
   font-size: 13px;
   margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .section-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .student-profile-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-header-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .profile-header-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header,
+  .flex-between {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .profile-header-actions {
+    flex-direction: column;
+  }
+
+  .profile-header-actions .btn {
+    width: 100%;
+  }
+
+  .info-label,
+  .info-value {
+    display: block;
+    width: 100%;
+  }
+
+  .info-label {
+    padding-bottom: 0.15rem;
+    border-bottom: 0;
+  }
+
+  .info-value {
+    padding-top: 0;
+  }
 }
 </style>

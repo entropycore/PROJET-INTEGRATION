@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
 import Toolbar from "@/components/notifications/NotificationToolbar.vue";
 
-describe("Toolbar UI", () => {
+describe("Toolbar - Tests UI", () => {
   it("l'utilisateur peut changer le filtre", async () => {
     const wrapper = mount(Toolbar, {
       props: {

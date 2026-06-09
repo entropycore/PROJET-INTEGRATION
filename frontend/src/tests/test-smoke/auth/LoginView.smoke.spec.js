@@ -12,7 +12,7 @@ vi.mock("vue-router", () => ({
   useRoute: () => mockRoute,
 }));
 
-describe("Smoke Test - Page de Connexion", () => {
+describe("Test de fumee - Page de connexion", () => {
   let wrapper;
 
   beforeEach(() => {

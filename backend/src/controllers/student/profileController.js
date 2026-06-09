@@ -43,7 +43,7 @@ exports.uploadProfilePicture = async (req, res, next) => {
       req.user.userId,
       req.file,
     );
-    return success(res, 200, 'Photo de profil mise a jour.', result);
+    return success(res, 200, 'Photo de profil mise à jour.', result);
   } catch (err) {
     if (handleStudentError(res, err)) return;
     next(err);

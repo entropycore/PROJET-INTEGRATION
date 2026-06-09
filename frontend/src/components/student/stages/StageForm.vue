@@ -286,8 +286,12 @@ const submitValidation = () => {
   emit("submit-validation", buildPayload());
 };
 
+const isCorrectionStatus = (status) => {
+  return ["CORRECTION_REQUIRED", "CHANGES_REQUESTED"].includes(status);
+};
+
 const submitButtonLabel = () => {
-  return props.initialStage?.validationStatus === "CORRECTION_REQUIRED"
+  return isCorrectionStatus(props.initialStage?.validationStatus)
     ? "Resoumettre pour validation"
     : "Soumettre validation";
 };

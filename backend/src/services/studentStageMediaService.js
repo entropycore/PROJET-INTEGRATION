@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const prisma = require('../config/prisma');
 const {
   deleteStageFile,
-  getStageFilePath,
+  getStageFileTarget,
   storeStageFile,
 } = require('./student/stageMediaStorage');
 
@@ -101,7 +101,11 @@ const getStageReportFile = async (userId, internshipId) => {
   }
 
   return {
-    absolutePath: getStageFilePath(internship.reportStoragePath),
+    target: await getStageFileTarget(internship.reportStoragePath, {
+      originalName: internship.reportFileName || 'rapport-stage.pdf',
+      mimeType: internship.reportMimeType || 'application/pdf',
+      contentDisposition: 'attachment',
+    }),
     downloadName: internship.reportFileName || 'rapport-stage.pdf',
     mimeType: internship.reportMimeType || 'application/pdf',
   };
@@ -154,7 +158,11 @@ const getStageImageFile = async (userId, internshipId, mediaId) => {
   }
 
   return {
-    absolutePath: getStageFilePath(media.storagePath),
+    target: await getStageFileTarget(media.storagePath, {
+      originalName: media.fileName || 'image-stage',
+      mimeType: media.mimeType || 'application/octet-stream',
+      contentDisposition: 'inline',
+    }),
     downloadName: media.fileName || 'image-stage',
     mimeType: media.mimeType || 'application/octet-stream',
   };

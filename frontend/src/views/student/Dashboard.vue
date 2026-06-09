@@ -44,6 +44,19 @@ const recentBadges = computed(() => {
     : [];
 });
 
+const BADGE_ICONS = {
+  "Web Developer": "terminal",
+  "DevOps Explorer": "cloud_sync",
+  "Hackathon Participant": "groups",
+  "Full Stack Developer": "developer_mode",
+  "Security Aware": "security",
+  "AI / Data": "analytics",
+};
+
+const getBadgeIcon = (badge) => {
+  return BADGE_ICONS[badge.name] || "workspace_premium";
+};
+
 const credibilityDetails = computed(() => {
   return Array.isArray(dashboard.value?.credibility?.details)
     ? dashboard.value.credibility.details
@@ -128,6 +141,7 @@ const getStatusLabel = (status) => {
     PENDING: "En attente",
     DRAFT: "Brouillon",
     CORRECTION_REQUIRED: "Correction",
+    CHANGES_REQUESTED: "Correction",
     REJECTED: "Refusé",
   };
 
@@ -216,7 +230,10 @@ onMounted(async () => {
         <div class="left-column">
           <article class="dashboard-card">
             <div class="card-header">
-              <h2>Projets récents</h2>
+              <div class="card-title-row">
+                <span class="material-icons-round">folder_open</span>
+                <h2>Projets récents</h2>
+              </div>
 
               <button class="ghost-btn" @click="goToProjects">Voir tout</button>
             </div>
@@ -245,7 +262,10 @@ onMounted(async () => {
 
           <article class="dashboard-card">
             <div class="card-header">
-              <h2>Badges obtenus</h2>
+              <div class="card-title-row">
+                <span class="material-icons-round">workspace_premium</span>
+                <h2>Badges obtenus</h2>
+              </div>
 
               <button class="ghost-btn" @click="goToBadges">Voir tout</button>
             </div>
@@ -256,7 +276,7 @@ onMounted(async () => {
                 :key="badge.id"
                 class="badge-card"
               >
-                <div class="badge-icon" :class="`tone-${badge.tone}`">
+                <div class="badge-icon">
                   <img
                     v-if="badge.iconUrl"
                     :src="badge.iconUrl"
@@ -264,8 +284,8 @@ onMounted(async () => {
                     class="badge-image"
                   />
 
-                  <span v-else class="badge-fallback">
-                    {{ badge.iconFallback }}
+                  <span v-else class="material-icons-round">
+                    {{ getBadgeIcon(badge) }}
                   </span>
                 </div>
 
@@ -278,7 +298,12 @@ onMounted(async () => {
 
         <div class="right-column">
           <article class="dashboard-card">
-            <h2>Score de crédibilité</h2>
+            <div class="card-header">
+              <div class="card-title-row">
+                <span class="material-icons-round">verified</span>
+                <h2>Score de crédibilité</h2>
+              </div>
+            </div>
 
             <div class="score-ring-wrap">
               <svg class="score-ring-svg" viewBox="0 0 140 140">
@@ -322,7 +347,10 @@ onMounted(async () => {
 
           <article class="dashboard-card">
             <div class="card-header">
-              <h2>Notifications récentes</h2>
+              <div class="card-title-row">
+                <span class="material-icons-round">notifications</span>
+                <h2>Notifications récentes</h2>
+              </div>
 
               <button class="ghost-btn" @click="goToNotifications">
                 Voir tout

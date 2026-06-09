@@ -15,15 +15,18 @@ try {
     studentController = {};
 }
 
-jest.mock('../../../src/services/studentService', () => {
+jest.mock('../../../src/services/student/dashboardService', () => {
     return {
         getStudentDashboard: jest.fn().mockResolvedValue({ area: 'student', stats: { completedPortfolios: 1 } }),
-        getStudentProfile: jest.fn().mockResolvedValue({ user: { userId: 'stu-007', email: 'student@ensa.ac.ma' } }),
-        getDashboard: jest.fn().mockResolvedValue({ area: 'student', stats: { completedPortfolios: 1 } }),
-        getProfile: jest.fn().mockResolvedValue({ user: { userId: 'stu-007', email: 'student@ensa.ac.ma' } })
     };
 });
-const studentService = require('../../../src/services/studentService');
+jest.mock('../../../src/services/student/profileService', () => {
+    return {
+        getStudentProfile: jest.fn().mockResolvedValue({ user: { userId: 'stu-007', email: 'student@ensa.ac.ma' } }),
+    };
+});
+const studentDashboardService = require('../../../src/services/student/dashboardService');
+const studentProfileService = require('../../../src/services/student/profileService');
 
 
 const mockAuth = (req, res, next) => {
@@ -44,11 +47,11 @@ const mockCheckRole = (role) => (req, res, next) => {
 
 const dashboardMethod = studentController.getDashboard || 
                         studentController.getStudentDashboard || 
-                        (async (req, res) => res.status(200).json({ success: true, message: 'Tableau de bord etudiant charge.', data: { area: 'student' } }));
+                        (async (req, res) => res.status(200).json({ success: true, message: 'Tableau de bord étudiant chargé.', data: { area: 'student' } }));
 
 const profileMethod = studentController.getProfile || 
                       studentController.getStudentProfile || 
-                      (async (req, res) => res.status(200).json({ success: true, message: 'Profil etudiant charge.', data: { user: { userId: 'stu-007' } } }));
+                      (async (req, res) => res.status(200).json({ success: true, message: 'Profil étudiant chargé.', data: { user: { userId: 'stu-007' } } }));
 
 app.get('/api/student/dashboard', mockAuth, mockCheckRole('STUDENT'), dashboardMethod);
 app.get('/api/student/profile', mockAuth, mockCheckRole('STUDENT'), profileMethod);
