@@ -1,17 +1,15 @@
 <template>
   <section class="roles" id="roles">
-    <div class="section-label">Acteurs du système</div>
-    <h2 class="section-title reveal">Quatre rôles, une plateforme</h2>
+    <div class="section-label">Écosystème de confiance</div>
+    <h2 class="section-title reveal">Quatre rôles, une même plateforme</h2>
     <p class="section-sub reveal">
-      Chaque utilisateur dispose d'un espace adapté à ses responsabilités et
-      permissions.
+      Credencia organise la collaboration entre ceux qui documentent, valident,
+      supervisent et consultent les réalisations.
     </p>
 
     <div class="roles-grid">
-      <!-- ÉTUDIANT -->
       <div class="role-card reveal">
         <div class="role-avatar ra-student">
-          <!-- Graduation Cap Icon -->
           <svg
             width="26"
             height="26"
@@ -29,22 +27,19 @@
         </div>
         <div class="role-name">Étudiant</div>
         <div class="role-desc">
-          Crée et gère son profil, soumet ses projets et génère son portfolio
-          certifié.
+          Construit progressivement son identité académique et professionnelle.
         </div>
         <ul class="role-perms">
-          <li>Créer et gérer son profil</li>
-          <li>Soumettre des projets</li>
-          <li>Générer son portfolio</li>
-          <li>Connecter GitHub</li>
-          <li>Gérer la visibilité</li>
+          <li>Gérer son profil</li>
+          <li>Documenter ses réalisations</li>
+          <li>Soumettre ses expériences à validation</li>
+          <li>Générer son portfolio certifié</li>
+          <li>Connecter GitHub et LinkedIn</li>
         </ul>
       </div>
 
-      <!-- PROFESSEUR -->
       <div class="role-card reveal">
         <div class="role-avatar ra-prof">
-          <!-- Open Book Icon -->
           <svg
             width="26"
             height="26"
@@ -61,22 +56,19 @@
         </div>
         <div class="role-name">Professeur</div>
         <div class="role-desc">
-          Valide les projets, les stages et rédige des lettres de
-          recommandation.
+          Accompagne les étudiants et valide leurs acquis académiques.
         </div>
         <ul class="role-perms">
-          <li>Valider les projets</li>
-          <li>Encadrer les stages</li>
-          <li>Rédiger des lettres</li>
-          <li>Commenter les portfolios</li>
-          <li>Recommander un profil</li>
+          <li>Consulter les profils étudiants</li>
+          <li>Valider projets, stages et activités</li>
+          <li>Rédiger des lettres de recommandation</li>
+          <li>Recommander des portfolios</li>
+          <li>Fournir des retours et commentaires</li>
         </ul>
       </div>
 
-      <!-- ADMINISTRATEUR -->
       <div class="role-card reveal">
         <div class="role-avatar ra-admin">
-          <!-- Shield Check Icon -->
           <svg
             width="26"
             height="26"
@@ -93,22 +85,19 @@
         </div>
         <div class="role-name">Administrateur</div>
         <div class="role-desc">
-          Supervise la plateforme, gère les utilisateurs et les modèles de
-          portfolio.
+          Garantit la confiance et le bon fonctionnement de la plateforme.
         </div>
         <ul class="role-perms">
           <li>Gérer les utilisateurs</li>
-          <li>Gérer les modèles</li>
-          <li>Valider les pros</li>
-          <li>Créer des badges</li>
           <li>Superviser la plateforme</li>
+          <li>Valider les comptes professionnels</li>
+          <li>Gérer les badges et modèles</li>
+          <li>Assurer la cohérence institutionnelle</li>
         </ul>
       </div>
 
-      <!-- PROFESSIONNEL -->
       <div class="role-card reveal">
         <div class="role-avatar ra-pro">
-          <!-- Briefcase Icon -->
           <svg
             width="26"
             height="26"
@@ -125,14 +114,14 @@
         </div>
         <div class="role-name">Professionnel</div>
         <div class="role-desc">
-          Consulte les portfolios publics et recommande les profils après
-          validation du compte.
+          Découvre et évalue des profils construits sur des preuves validées.
         </div>
         <ul class="role-perms">
           <li>Consulter les portfolios</li>
-          <li>Commenter les projets</li>
-          <li>Recommander un portfolio</li>
-          <li>Compte validé par l'admin</li>
+          <li>Explorer les réalisations validées</li>
+          <li>Recommander des talents</li>
+          <li>Commenter les portfolios</li>
+          <li>Identifier de futurs collaborateurs</li>
         </ul>
       </div>
     </div>
