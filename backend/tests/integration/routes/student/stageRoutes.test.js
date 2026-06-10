@@ -4,6 +4,7 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const fs = require('fs');
 
 process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'test-access-secret';
 
@@ -210,8 +211,13 @@ describe("Tests d'Intégration - Routes Stages Étudiant (stageRoutes)", () => {
     describe('GET /stages/:stageId/report/download', () => {
       it('TC-STU-STAGE-12 : downloadStageReport -> 200', async () => {
         studentStageMediaService.getStageReportFile.mockResolvedValue({
-          absolutePath: __filename,
-          downloadName: 'rapport.pdf'
+          target: {
+            mode: 'stream',
+            contentDisposition: 'attachment',
+            stream: fs.createReadStream(__filename),
+          },
+          downloadName: 'rapport.pdf',
+          mimeType: 'application/pdf',
         });
 
         const res = await request(app)
@@ -241,8 +247,13 @@ describe("Tests d'Intégration - Routes Stages Étudiant (stageRoutes)", () => {
     describe('GET /stages/:stageId/images/:mediaId/content', () => {
       it('TC-STU-STAGE-14 : getStageImageContent -> 200', async () => {
         studentStageMediaService.getStageImageFile.mockResolvedValue({
-          absolutePath: __filename,
-          mimeType: 'image/png'
+          target: {
+            mode: 'stream',
+            contentDisposition: 'inline',
+            stream: fs.createReadStream(__filename),
+          },
+          downloadName: 'img1.png',
+          mimeType: 'image/png',
         });
 
         const res = await request(app)
