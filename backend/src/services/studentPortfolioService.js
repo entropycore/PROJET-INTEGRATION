@@ -19,6 +19,7 @@ const {
   studentDataSelect,
   studentWithPortfolioSelect,
 } = require('./student/portfolioSelects');
+const { mergeStudentSettings } = require('./student/settingsHelpers');
 const {
   mapAcademicPath,
   mapActivity,
@@ -88,7 +89,34 @@ const buildSlug = (student) => {
   return `${nameSlug}-${suffix}`;
 };
 
-const buildPortfolioPayload = async (student, portfolio = student.portfolio) => {
+const getStudentPrivacy = (student) => mergeStudentSettings(student.user?.preferences).privacy;
+
+const resolvePortfolioVisibility = (student) =>
+  getStudentPrivacy(student).profileVisibility === 'PUBLIC' ? 'PUBLIC' : 'PRIVATE';
+
+const mapPortfolioContact = (student, isPublicView) => {
+  if (!isPublicView) {
+    return {
+      email: student.user.email,
+      phone: student.user.phone || '',
+    };
+  }
+
+  const privacy = getStudentPrivacy(student);
+
+  return {
+    email: privacy.showEmail ? student.user.email : '',
+    phone: privacy.showPhone ? student.user.phone || '' : '',
+  };
+};
+
+const ensurePublicPrivacyAllowsPortfolio = (student) => {
+  if (getStudentPrivacy(student).profileVisibility !== 'PUBLIC') {
+    throw new Error('PUBLIC_PORTFOLIO_NOT_FOUND');
+  }
+};
+
+const buildPortfolioPayload = async (student, portfolio = student.portfolio, options = {}) => {
   const studentForStats = {
     ...student,
     portfolio,
@@ -100,6 +128,7 @@ const buildPortfolioPayload = async (student, portfolio = student.portfolio) => 
   const githubActivity = await getGithubActivity(student);
   const skills = student.studentSkills.map(mapSkill);
   const school = student.academicPaths[0]?.institution || '';
+  const contact = mapPortfolioContact(student, Boolean(options.publicView));
 
   return {
     student: {
@@ -110,8 +139,8 @@ const buildPortfolioPayload = async (student, portfolio = student.portfolio) => 
       role: 'Étudiant ingénieur',
       major: student.major,
       school,
-      email: student.user.email,
-      phone: student.user.phone || '',
+      email: contact.email,
+      phone: contact.phone,
       city: student.city || '',
       bio: student.bio || '',
       linkedinUrl: student.linkedinUrl || '',
@@ -196,13 +225,14 @@ const generateStudentPortfolio = async (userId, payload = {}) => {
   const config = normalizePortfolioConfig(payload);
   const fullName = formatFullName(student.user);
   const targetDomain = String(payload.goal || student.careerObjective || '').trim() || null;
+  const visibility = resolvePortfolioVisibility(student);
 
   const portfolio = await prisma.portfolio.upsert({
     where: { studentId: student.id },
     update: {
       title: `Portfolio de ${fullName}`,
       description: student.bio || null,
-      visibility: 'PUBLIC',
+      visibility,
       status: 'ACTIVE',
       targetDomain,
       theme: config.theme,
@@ -215,7 +245,7 @@ const generateStudentPortfolio = async (userId, payload = {}) => {
       title: `Portfolio de ${fullName}`,
       publicSlug: buildSlug(student),
       description: student.bio || null,
-      visibility: 'PUBLIC',
+      visibility,
       status: 'ACTIVE',
       targetDomain,
       theme: config.theme,
@@ -244,7 +274,11 @@ const getPublicPortfolioBySlug = async (slug) => {
     throw new Error('PUBLIC_PORTFOLIO_NOT_FOUND');
   }
 
-  const payload = await buildPortfolioPayload(portfolio.student, portfolio);
+  ensurePublicPrivacyAllowsPortfolio(portfolio.student);
+
+  const payload = await buildPortfolioPayload(portfolio.student, portfolio, {
+    publicView: true,
+  });
   return applyConfig(payload);
 };
 

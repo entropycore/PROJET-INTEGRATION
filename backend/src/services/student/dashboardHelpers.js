@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const prisma = require('../../config/prisma');
 
 const PROJECT_TYPE_LABELS = {
@@ -10,9 +11,9 @@ const PROJECT_TYPE_LABELS = {
   INTERNSHIP: 'Stage',
 };
 
-const BADGE_CATALOG = [
+const DEFAULT_BADGE_RULES = [
   {
-    id: 'web-developer',
+    key: 'web-developer',
     name: 'Web Developer',
     description: 'Badge pour les étudiants actifs en développement web.',
     rule: '3 projets validés',
@@ -23,7 +24,7 @@ const BADGE_CATALOG = [
     current: (stats) => stats.validatedProjects,
   },
   {
-    id: 'devops-explorer',
+    key: 'devops-explorer',
     name: 'DevOps Explorer',
     description: 'Badge lié aux outils DevOps.',
     rule: '2 projets avec plusieurs technologies',
@@ -34,7 +35,7 @@ const BADGE_CATALOG = [
     current: (stats) => stats.multiTechProjects,
   },
   {
-    id: 'hackathon-participant',
+    key: 'hackathon-participant',
     name: 'Hackathon Participant',
     description: 'Badge pour participation aux événements.',
     rule: '1 activité de type hackathon',
@@ -45,7 +46,7 @@ const BADGE_CATALOG = [
     current: (stats) => stats.hackathonActivities,
   },
   {
-    id: 'full-stack-developer',
+    key: 'full-stack-developer',
     name: 'Full Stack Developer',
     description: 'Badge lié aux compétences frontend et backend.',
     rule: '2 projets validés avec plusieurs technologies',
@@ -56,7 +57,7 @@ const BADGE_CATALOG = [
     current: (stats) => stats.validatedProjects,
   },
   {
-    id: 'security-aware',
+    key: 'security-aware',
     name: 'Security Aware',
     description: 'Badge lié aux bonnes pratiques de sécurité.',
     rule: '1 projet validé documenté',
@@ -67,7 +68,7 @@ const BADGE_CATALOG = [
     current: (stats) => stats.validatedProjectsWithLinks,
   },
   {
-    id: 'ai-data',
+    key: 'ai-data',
     name: 'AI / Data',
     description: 'Badge lié aux projets IA ou Data Science.',
     rule: '1 projet ou activité de type data validé',
@@ -78,6 +79,213 @@ const BADGE_CATALOG = [
     current: (stats) => stats.dataSignals,
   },
 ];
+
+const DEFAULT_BADGES = DEFAULT_BADGE_RULES.map(
+  ({ name, description, rule, iconUrl, tone }) => ({
+    name,
+    description,
+    rule,
+    iconUrl,
+    tone,
+  }),
+);
+
+const normalizeBadgeName = (name) =>
+  String(name || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+const DEFAULT_BADGE_RULES_BY_NAME = new Map(
+  DEFAULT_BADGE_RULES.map((rule) => [normalizeBadgeName(rule.name), rule]),
+);
+
+const isStructureMissingError = (err) =>
+  err?.code === 'P2021' ||
+  err?.code === 'P2022' ||
+  err?.meta?.code === '42P01' ||
+  err?.meta?.code === '42703';
+
+const safeInt = (value, fallback = 0) => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const clampProgress = (value, target) => Math.max(0, Math.min(safeInt(value), target));
+
+const buildIconFallback = (name) => {
+  const initials = String(name || '')
+    .split(/[^A-Za-z0-9]+/)
+    .map((part) => part.trim().charAt(0))
+    .filter(Boolean)
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
+  return initials || '*';
+};
+
+const getBadgeRule = (badge) =>
+  DEFAULT_BADGE_RULES_BY_NAME.get(normalizeBadgeName(badge.name)) || {
+    key: normalizeBadgeName(badge.name) || badge.id,
+    target: 1,
+    current: () => 0,
+  };
+
+const buildDefaultBadgeFallback = () =>
+  DEFAULT_BADGES.map((badge) => ({
+    ...badge,
+    id: normalizeBadgeName(badge.name),
+    createdAt: null,
+    updatedAt: null,
+  }));
+
+const ensureDefaultBadges = async () => {
+  if (typeof prisma.badge?.findMany !== 'function') {
+    return;
+  }
+
+  const existingBadges = await prisma.badge.findMany({
+    where: {
+      name: {
+        in: DEFAULT_BADGES.map((badge) => badge.name),
+      },
+    },
+    select: { name: true },
+  });
+  const existingNames = new Set(existingBadges.map((badge) => badge.name));
+  const missingBadges = DEFAULT_BADGES.filter((badge) => !existingNames.has(badge.name));
+
+  await Promise.all(
+    missingBadges.map((badge) =>
+      prisma.badge
+        .create({
+          data: badge,
+        })
+        .catch((err) => {
+          if (err?.code === 'P2002') return null;
+          throw err;
+        }),
+    ),
+  );
+};
+
+const loadBadgeCatalog = async () => {
+  if (typeof prisma.badge?.findMany !== 'function') {
+    return buildDefaultBadgeFallback();
+  }
+
+  try {
+    await ensureDefaultBadges();
+
+    const badges = await prisma.badge.findMany({
+      orderBy: [{ createdAt: 'asc' }, { name: 'asc' }],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        rule: true,
+        iconUrl: true,
+        tone: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    return badges.length ? badges : buildDefaultBadgeFallback();
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      return buildDefaultBadgeFallback();
+    }
+
+    throw err;
+  }
+};
+
+const findStudentBadgeAward = async (studentId, badgeId) => {
+  const rows = await prisma.$queryRaw`
+    SELECT
+      "id_student_badge" AS "id",
+      "is_obtained" AS "isObtained",
+      "obtained_at" AS "obtainedAt"
+    FROM "student_badges"
+    WHERE "student_id" = ${studentId}
+      AND "badge_id" = ${badgeId}
+    LIMIT 1
+  `;
+
+  return rows[0] || null;
+};
+
+const syncStudentBadgeAward = async ({
+  studentId,
+  badgeId,
+  isObtained,
+  progressCurrent,
+  progressTarget,
+  referenceDate,
+}) => {
+  try {
+    const existing = await findStudentBadgeAward(studentId, badgeId);
+    const now = new Date();
+    const hasExistingAward = Boolean(existing?.obtainedAt || existing?.isObtained);
+    const nextIsObtained = hasExistingAward || isObtained;
+    const nextObtainedAt = existing?.obtainedAt || (isObtained ? referenceDate : null);
+
+    if (existing) {
+      await prisma.$executeRaw`
+        UPDATE "student_badges"
+        SET
+          "is_obtained" = ${nextIsObtained},
+          "progress_current" = ${progressCurrent},
+          "progress_target" = ${progressTarget},
+          "obtained_at" = ${nextObtainedAt},
+          "last_evaluated_at" = ${now},
+          "updated_at" = ${now}
+        WHERE "id_student_badge" = ${existing.id}
+      `;
+    } else {
+      await prisma.$executeRaw`
+        INSERT INTO "student_badges" (
+          "id_student_badge",
+          "student_id",
+          "badge_id",
+          "is_obtained",
+          "progress_current",
+          "progress_target",
+          "obtained_at",
+          "last_evaluated_at",
+          "created_at",
+          "updated_at"
+        )
+        VALUES (
+          ${crypto.randomUUID()},
+          ${studentId},
+          ${badgeId},
+          ${nextIsObtained},
+          ${progressCurrent},
+          ${progressTarget},
+          ${nextObtainedAt},
+          ${now},
+          ${now},
+          ${now}
+        )
+      `;
+    }
+
+    return {
+      isObtained: nextIsObtained,
+      obtainedAt: nextObtainedAt,
+    };
+  } catch (err) {
+    if (isStructureMissingError(err)) {
+      return null;
+    }
+
+    throw err;
+  }
+};
 
 const formatFullName = (user) => `${user.firstName} ${user.lastName}`.trim();
 
@@ -152,28 +360,46 @@ const buildCredibility = (stats, profileCompletionRate) => {
   return { score, label, details };
 };
 
-const buildBadges = (stats) =>
-  BADGE_CATALOG.map((badge) => {
-    const current = badge.current(stats);
-    const isObtained = current >= badge.target;
+const buildBadges = async (studentId, stats) => {
+  const badgeCatalog = await loadBadgeCatalog();
+  const badges = [];
 
-    return {
-      id: badge.id,
+  for (const badge of badgeCatalog) {
+    const rule = getBadgeRule(badge);
+    const target = Math.max(1, safeInt(rule.target, 1));
+    const current = clampProgress(rule.current(stats), target);
+    const computedIsObtained = current >= target;
+    const award = await syncStudentBadgeAward({
+      studentId,
+      badgeId: badge.id,
+      isObtained: computedIsObtained,
+      progressCurrent: current,
+      progressTarget: target,
+      referenceDate: stats.referenceDate,
+    });
+    const isObtained = award?.isObtained ?? computedIsObtained;
+    const obtainedAt = award?.obtainedAt || (isObtained ? stats.referenceDate : null);
+
+    badges.push({
+      id: badge.id || rule.key,
       name: badge.name,
       description: badge.description,
       rule: badge.rule,
-      iconUrl: badge.iconUrl,
-      iconFallback: badge.iconFallback,
-      tone: badge.tone,
+      iconUrl: badge.iconUrl || '',
+      iconFallback: badge.iconFallback || buildIconFallback(badge.name),
+      tone: badge.tone || 'blue',
       isObtained,
-      obtainedAt: isObtained ? formatShortMonth(stats.referenceDate) : null,
+      obtainedAt: obtainedAt ? formatShortMonth(obtainedAt) : null,
       progress: {
-        current: Math.min(current, badge.target),
-        target: badge.target,
+        current,
+        target,
       },
-      date: isObtained ? formatShortMonth(stats.referenceDate) : null,
-    };
-  });
+      date: obtainedAt ? formatShortMonth(obtainedAt) : null,
+    });
+  }
+
+  return badges;
+};
 
 const buildDashboardNotifications = (stats) => {
   const notifications = [];
@@ -442,7 +668,7 @@ const computeDashboardStats = async (student) => {
     referenceDate: new Date(),
   };
 
-  const badges = buildBadges(baseStats);
+  const badges = await buildBadges(student.id, baseStats);
 
   return {
     ...baseStats,
