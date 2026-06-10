@@ -231,7 +231,10 @@ const router = createRouter({
         {
           path: "recommendation-letters",
           name: "StudentRecommendationLetters",
-          component: () => import("@/views/student/RecommendationLetters.vue"),
+          component: () =>
+            import(
+              "@/views/student/recommendationLetters/RecommendationLettersView.vue"
+            ),
         },
         {
           path: "settings",
@@ -284,6 +287,11 @@ const router = createRouter({
           path: "validations",
           name: "professor-validations",
           component: () => import("../views/professor/Validations.vue"),
+        },
+        {
+          path: "recommendation-letters",
+          name: "professor-recommendation-letters",
+          component: () => import("../views/professor/RecommendationLetters.vue"),
         },
         {
           path: "notifications",
