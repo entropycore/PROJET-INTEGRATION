@@ -41,13 +41,13 @@ describe("Tests d'Intégration - Routes Settings Étudiant (settingsRoutes)", ()
   describe('Sécurité & Rôles', () => {
 
     it('TC-STU-SET-SEC-01 : Sans token -> 401', async () => {
-      const res = await request(app).get('/api/student/settings/settings');
+      const res = await request(app).get('/api/student/settings');
       expect(res.status).toBe(401);
     });
 
     it('TC-STU-SET-SEC-02 : Professeur accède -> 403', async () => {
       const res = await request(app)
-        .get('/api/student/settings/settings')
+        .get('/api/student/settings')
         .set('Cookie', `accessToken=${makeToken('PROFESSOR')}`);
       expect(res.status).toBe(403);
     });
@@ -60,7 +60,7 @@ describe("Tests d'Intégration - Routes Settings Étudiant (settingsRoutes)", ()
       studentSettingsService.getStudentSettings.mockResolvedValue({ privacy: 'PUBLIC', showEmail: true });
 
       const res = await request(app)
-        .get('/api/student/settings/settings')
+        .get('/api/student/settings')
         .set('Cookie', `accessToken=${studentToken}`);
 
       expect(res.status).toBe(200);

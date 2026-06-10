@@ -4,6 +4,7 @@ const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const cookieParser = require('cookie-parser');
+const fs = require('fs');
 
 process.env.ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET || 'test-access-secret';
 
@@ -187,7 +188,12 @@ describe("Tests d'Intégration - Routes Projets (projectsRoutes)", () => {
     describe('GET /:projectId/media/:mediaId/content', () => {
       it('TC-STU-PROJ-10 : getProjectMediaContent -> 200', async () => {
         studentProjectMediaService.getProjectMediaFile.mockResolvedValue({
-          absolutePath: __filename,
+          target: {
+            mode: 'stream',
+            contentDisposition: 'inline',
+            stream: fs.createReadStream(__filename),
+          },
+          downloadName: 'test.png',
           mimeType: 'image/png'
         });
 
@@ -199,7 +205,8 @@ describe("Tests d'Intégration - Routes Projets (projectsRoutes)", () => {
         expect(studentProjectMediaService.getProjectMediaFile).toHaveBeenCalledWith(
           expect.objectContaining({ userId: 1, role: 'STUDENT' }),
           'p1',
-          'm1'
+          'm1',
+          'inline'
         );
       });
     });
@@ -207,8 +214,13 @@ describe("Tests d'Intégration - Routes Projets (projectsRoutes)", () => {
     describe('GET /:projectId/media/:mediaId/download', () => {
       it('TC-STU-PROJ-11 : downloadProjectMedia -> 200', async () => {
         studentProjectMediaService.getProjectMediaFile.mockResolvedValue({
-          absolutePath: __filename,
-          downloadName: 'file.png'
+          target: {
+            mode: 'stream',
+            contentDisposition: 'attachment',
+            stream: fs.createReadStream(__filename),
+          },
+          downloadName: 'file.png',
+          mimeType: 'image/png'
         });
 
         const res = await request(app)
