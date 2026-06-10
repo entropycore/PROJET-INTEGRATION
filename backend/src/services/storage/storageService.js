@@ -1,13 +1,9 @@
 'use strict';
 
 const config = require('./storageConfig');
-const localStorageProvider = require('./localStorageProvider');
 const s3StorageProvider = require('./s3StorageProvider');
 
-const getProvider = () => {
-  if (config.driver === 'local') return localStorageProvider;
-  return s3StorageProvider;
-};
+const getProvider = () => s3StorageProvider;
 
 exports.getStorageConfig = () => config;
 
