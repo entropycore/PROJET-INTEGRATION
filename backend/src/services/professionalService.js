@@ -167,7 +167,7 @@ exports.getProfessionalDashboard = async (userId) => {
   const timeline = [
     {
       type: 'ACCOUNT_CREATED',
-      label: 'Compte créé',
+      label: 'Compte cree',
       date: professional.user.createdAt,
       actor: null,
       details: null,
@@ -175,7 +175,7 @@ exports.getProfessionalDashboard = async (userId) => {
     professional.emailVerifiedAt
       ? {
           type: 'EMAIL_VERIFIED',
-          label: 'Email vérifié',
+          label: 'Email verifie',
           date: professional.emailVerifiedAt,
           actor: null,
           details: null,
@@ -227,7 +227,7 @@ exports.getProfessionalDashboard = async (userId) => {
     },
     summaryCards: {
       profileCompletion: { value: profileCompletion, label: 'Profil complet (%)' },
-      emailVerified: { value: professional.isEmailVerified ? 1 : 0, label: 'Email vérifié' },
+      emailVerified: { value: professional.isEmailVerified ? 1 : 0, label: 'Email verifie' },
       adminVerified: { value: professional.isVerified ? 1 : 0, label: 'Validation admin' },
       accountSuspended: {
         value: professional.user.accountStatus === 'SUSPENDED' || professional.suspendedAt ? 1 : 0,
