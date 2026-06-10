@@ -15,7 +15,7 @@ const resolveLimit = (envName, fallback) => {
 // General limiter for all routes.
 const globalLimiter = isTest ? bypass : rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: resolveLimit('GLOBAL_RATE_LIMIT_MAX', 100),
+  max: resolveLimit('GLOBAL_RATE_LIMIT_MAX', 1000),
   message: {
     success: false,
     message: 'Trop de requêtes, réessayez dans 15 minutes',
@@ -49,4 +49,16 @@ const forgotPasswordLimiter = isTest ? bypass : rateLimit({
   legacyHeaders: false,
 });
 
-module.exports = { globalLimiter, authLimiter, forgotPasswordLimiter };
+// Reset password limiter — protège contre le brute-force des tokens de réinitialisation.
+const resetPasswordLimiter = isTest ? bypass : rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: resolveLimit('RESET_PASSWORD_RATE_LIMIT_MAX', 5),
+  message: {
+    success: false,
+    message: 'Trop de tentatives de réinitialisation, réessayez dans 15 minutes',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+module.exports = { globalLimiter, authLimiter, forgotPasswordLimiter, resetPasswordLimiter };
