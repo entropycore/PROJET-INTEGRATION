@@ -24,6 +24,8 @@ const buildBadgeSearch = (search) => {
 
 const normalizeBadgeTone = (value) => normalizeRequiredText(value) || 'blue';
 const hasBadgeFeature = () => typeof prisma.badge?.findMany === 'function';
+const isStudentBadgeStructureMissing = (err) =>
+  isStructureMissingError(err) || err?.meta?.code === '42P01' || err?.meta?.code === '42703';
 
 const ensureBadgeFeatureAvailable = () => {
   if (!hasBadgeFeature()) {
@@ -33,7 +35,34 @@ const ensureBadgeFeatureAvailable = () => {
   return prisma.badge;
 };
 
-const mapBadgeItem = (badge) => ({
+const countBadgeAttributions = async (badgeId) => {
+  try {
+    const rows = await prisma.$queryRaw`
+      SELECT COUNT(*)::int AS "count"
+      FROM "student_badges"
+      WHERE "badge_id" = ${badgeId}
+        AND "is_obtained" = true
+    `;
+
+    return Number(rows[0]?.count || 0);
+  } catch (err) {
+    if (isStudentBadgeStructureMissing(err)) {
+      return 0;
+    }
+
+    throw err;
+  }
+};
+
+const loadBadgeAttributionCounts = async (badges) => {
+  const entries = await Promise.all(
+    badges.map(async (badge) => [badge.id, await countBadgeAttributions(badge.id)]),
+  );
+
+  return new Map(entries);
+};
+
+const mapBadgeItem = (badge, attributionCount = 0) => ({
   id: badge.id,
   name: badge.name,
   description: badge.description,
@@ -41,7 +70,7 @@ const mapBadgeItem = (badge) => ({
   iconUrl: badge.iconUrl || '',
   iconFallback: '🏅',
   tone: badge.tone || 'blue',
-  attributionCount: 0,
+  attributionCount,
   createdAt: badge.createdAt,
   updatedAt: badge.updatedAt,
 });
@@ -115,8 +144,10 @@ const listBadges = async ({ page = 1, limit = 10, search } = {}) => {
       }),
     ]);
 
+    const attributionCounts = await loadBadgeAttributionCounts(badges);
+
     return {
-      items: badges.map(mapBadgeItem),
+      items: badges.map((badge) => mapBadgeItem(badge, attributionCounts.get(badge.id) || 0)),
       pagination: buildPagination(safePage, safeLimit, total),
     };
   } catch (err) {
@@ -153,7 +184,7 @@ const createBadge = async (payload = {}) => {
       select: badgeSelect,
     });
 
-    return mapBadgeItem(badge);
+    return mapBadgeItem(badge, await countBadgeAttributions(badge.id));
   } catch (err) {
     if (isStructureMissingError(err)) {
       throw new Error('BADGE_FEATURE_UNAVAILABLE', { cause: err });
@@ -201,7 +232,7 @@ const updateBadge = async (badgeId, payload = {}) => {
       select: badgeSelect,
     });
 
-    return mapBadgeItem(updatedBadge);
+    return mapBadgeItem(updatedBadge, await countBadgeAttributions(updatedBadge.id));
   } catch (err) {
     if (isStructureMissingError(err)) {
       throw new Error('BADGE_FEATURE_UNAVAILABLE', { cause: err });

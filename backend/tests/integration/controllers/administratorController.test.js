@@ -30,7 +30,10 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
 
         test('TC-ADM-01 : Récupération réussie de la liste des demandes en attente', async () => {
             // BUT: Vérifier que l'admin peut lister les demandes avec le statut par défaut (PENDING)
-            administratorService.listProfessionalRequests.mockResolvedValue([{ id: 1, status: 'PENDING' }]);
+            administratorService.listProfessionalRequests.mockResolvedValue({
+                items: [{ id: 1, status: 'PENDING' }],
+                pagination: { total: 1, page: 1, limit: 10 }
+            });
 
             const res = await request(app).get('/api/admin/professional-requests?status=PENDING');
 
@@ -40,7 +43,7 @@ describe('INTEGRATION TEST: Administrator Controller - Professional Requests Man
 
             expect(res.statusCode).toBe(200);
             expect(res.body.success).toBe(true);
-            expect(res.body.data.requests).toBeDefined();
+            expect(res.body.data.items).toBeDefined();
         });
 
         test('TC-ADM-02 : Rejet si le filtre de statut est invalide', async () => {
