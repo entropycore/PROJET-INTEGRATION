@@ -17,74 +17,11 @@ import "../../assets/styles/admin-badges.css";
   PUT    /api/admin/badges/:id
   DELETE /api/admin/badges/:id
 
-  Limites temporaires :
-  - pas d'upload d'image pour l'instant ;
-  - iconUrl est une simple URL texte ;
-  - attributionCount n'est pas encore relie a une table d'attribution.
+  L'écran admin consomme uniquement le backend badges.
 */
 
 const loading = ref(false);
 const error = ref(null);
-
-const TEMP_ATTRIBUTION_COUNTS = {
-  "Web Developer": 89,
-  "DevOps Explorer": 34,
-  "Hackathon Participant": 67,
-  "Full Stack Developer": 45,
-  "Security Aware": 22,
-  "AI / Data": 18,
-};
-
-const MOCK_BADGES = [
-  {
-    id: "mock-web-developer",
-    name: "Web Developer",
-    description: "Badge pour les étudiants actifs en développement web.",
-    rule: "Avoir au moins un projet web valide.",
-    iconFallback: "WD",
-    tone: "blue",
-  },
-  {
-    id: "mock-devops-explorer",
-    name: "DevOps Explorer",
-    description: "Badge lié aux outils DevOps et à l'intégration continue.",
-    rule: "Avoir un projet avec pipeline, Docker ou workflow GitHub.",
-    iconFallback: "DX",
-    tone: "green",
-  },
-  {
-    id: "mock-hackathon-participant",
-    name: "Hackathon Participant",
-    description: "Badge attribué après validation d'une participation.",
-    rule: "Déclarer une activité de type hackathon validée.",
-    iconFallback: "HP",
-    tone: "green",
-  },
-  {
-    id: "mock-full-stack-developer",
-    name: "Full Stack Developer",
-    description: "Badge pour les projets frontend ET backend validés.",
-    rule: "Projets frontend ET backend validés.",
-    iconFallback: "FS",
-    tone: "green",
-  },
-  {
-    id: "mock-security-aware",
-    name: "Security Aware",
-    description: "Badge pour les bonnes pratiques et la sécurité.",
-    rule: "Projet avec bonnes pratiques OWASP documentées.",
-    iconFallback: "SA",
-    tone: "red",
-  },
-  {
-    id: "mock-ai-data",
-    name: "AI / Data",
-    description: "Badge pour les projets en IA ou Data Science validés.",
-    rule: "Projet IA ou Data validé.",
-    iconFallback: "AI",
-    tone: "orange",
-  },
-];
 
 const FALLBACK_BADGE_ICON = "*";
 
@@ -110,12 +47,11 @@ const normalizeBadge = (badge) => ({
   iconUrl: badge.iconUrl || "",
   iconFallback: badge.iconFallback || FALLBACK_BADGE_ICON,
   tone: badge.tone || "blue",
-  attributionCount:
-    badge.attributionCount ?? TEMP_ATTRIBUTION_COUNTS[badge.name] ?? 0,
+  attributionCount: badge.attributionCount ?? 0,
 });
 
 const badges = ref([]);
-const useMockFallback = ref(false);
+const brokenIconIds = ref(new Set());
 
 const getBadgeIcon = (badge) => {
   return (
@@ -134,29 +70,27 @@ const extractBadgeItems = (response) => {
   return [];
 };
 
-const loadTemporaryBadges = () => {
-  useMockFallback.value = true;
-  badges.value = MOCK_BADGES.map(normalizeBadge);
+const getApiErrorMessage = (err) => {
+  return (
+    err.response?.data?.message ||
+    err.response?.data?.error ||
+    "Impossible de charger les badges depuis le backend."
+  );
 };
 
 const fetchBadges = async () => {
   loading.value = true;
   error.value = null;
-  useMockFallback.value = false;
 
   try {
     const response = await getBadges();
     const items = extractBadgeItems(response);
-
-    if (items.length) {
-      badges.value = items.map(normalizeBadge);
-      return;
-    }
-
-    loadTemporaryBadges();
+    badges.value = items.map(normalizeBadge);
+    brokenIconIds.value = new Set();
   } catch (e) {
     console.error("Erreur badges:", e);
-    loadTemporaryBadges();
+    error.value = getApiErrorMessage(e);
+    badges.value = [];
   } finally {
     loading.value = false;
   }
@@ -214,33 +148,36 @@ const handleEditBadge = (badge) => {
   };
 };
 
+const isValidIconUrl = (value) => {
+  const iconUrl = value.trim();
+
+  if (!iconUrl) return true;
+  if (iconUrl.startsWith("/")) return true;
+
+  try {
+    const url = new URL(iconUrl);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+};
+
 const buildBadgePayload = () => ({
-  name: newBadge.value.name,
-  description: newBadge.value.description,
-  rule: newBadge.value.rule,
-  iconUrl: newBadge.value.iconUrl,
+  name: newBadge.value.name.trim(),
+  description: newBadge.value.description.trim(),
+  rule: newBadge.value.rule.trim(),
+  iconUrl: newBadge.value.iconUrl.trim(),
   tone: newBadge.value.tone,
 });
 
-const upsertTemporaryBadge = (payload) => {
-  const localBadge = normalizeBadge({
-    id: selectedBadgeId.value || `local-${Date.now()}`,
-    ...payload,
-  });
-
-  if (isEditMode.value) {
-    badges.value = badges.value.map((badge) =>
-      badge.id === selectedBadgeId.value ? localBadge : badge,
-    );
+const handleSaveBadge = async () => {
+  if (!newBadge.value.name.trim() || !newBadge.value.rule.trim()) {
+    alert("Veuillez remplir au moins le nom et la règle d'attribution.");
     return;
   }
 
-  badges.value = [localBadge, ...badges.value];
-};
-
-const handleSaveBadge = async () => {
-  if (!newBadge.value.name || !newBadge.value.rule) {
-    alert("Veuillez remplir au moins le nom et la règle d'attribution.");
+  if (!isValidIconUrl(newBadge.value.iconUrl)) {
+    alert("L'icône doit être une URL valide ou rester vide.");
     return;
   }
 
@@ -257,9 +194,7 @@ const handleSaveBadge = async () => {
     closeCreateModal();
   } catch (e) {
     console.error("Erreur sauvegarde badge:", e);
-    useMockFallback.value = true;
-    upsertTemporaryBadge(payload);
-    closeCreateModal();
+    alert(getApiErrorMessage(e));
   }
 };
 
@@ -273,9 +208,15 @@ const handleDeleteBadge = async (id) => {
     await fetchBadges();
   } catch (e) {
     console.error("Erreur suppression badge:", e);
-    useMockFallback.value = true;
-    badges.value = badges.value.filter((badge) => badge.id !== id);
+    alert(getApiErrorMessage(e));
   }
+};
+
+const hasUsableIconImage = (badge) =>
+  Boolean(badge.iconUrl) && !brokenIconIds.value.has(badge.id);
+
+const markIconAsBroken = (badgeId) => {
+  brokenIconIds.value = new Set([...brokenIconIds.value, badgeId]);
 };
 </script>
 
@@ -300,66 +241,69 @@ const handleDeleteBadge = async (id) => {
     </div>
 
     <template v-else>
-      <div class="badges-grid">
+      <div v-if="badges.length" class="badges-grid">
         <article v-for="badge in badges" :key="badge.id" class="badge-card">
-  <div class="badge-main">
-    <div class="badge-icon">
-      <img v-if="badge.iconUrl" :src="badge.iconUrl" alt="Icone badge" />
+          <div class="badge-main">
+            <div class="badge-icon">
+              <img
+                v-if="hasUsableIconImage(badge)"
+                :src="badge.iconUrl"
+                alt="Icone badge"
+                @error="markIconAsBroken(badge.id)"
+              />
 
-      <span v-else class="material-icons-round">
-        {{ getBadgeIcon(badge) }}
-      </span>
-    </div>
+              <span v-else class="material-icons-round">
+                {{ getBadgeIcon(badge) }}
+              </span>
+            </div>
 
-    <div class="badge-copy">
-      <h3>{{ badge.name }}</h3>
+            <div class="badge-copy">
+              <h3>{{ badge.name }}</h3>
 
-      <p class="description">
-        {{ badge.description || "Aucune description renseignée." }}
-      </p>
-    </div>
-  </div>
+              <p class="description">
+                {{ badge.description || "Aucune description renseignée." }}
+              </p>
+            </div>
+          </div>
 
-  <div class="rule">
-    <span class="material-icons-round">verified_user</span>
+          <div class="rule">
+            <span class="material-icons-round">verified_user</span>
 
-    <p>
-      <strong>Règle :</strong>
-      {{ badge.rule }}
-    </p>
-  </div>
+            <p>
+              <strong>Règle :</strong>
+              {{ badge.rule }}
+            </p>
+          </div>
 
-  <div class="badge-card-footer">
-    <p class="count">
-      <span class="material-icons-round">groups</span>
-      {{ badge.attributionCount }} attributions
-    </p>
+          <div class="badge-card-footer">
+            <p class="count">
+              <span class="material-icons-round">groups</span>
+              {{ badge.attributionCount }} attributions
+            </p>
 
-    <div class="card-actions">
-      <button
-        class="edit-btn"
-        title="Modifier ce badge"
-        @click="handleEditBadge(badge)"
-      >
-        <span class="material-icons-round">edit</span>
-      </button>
+            <div class="card-actions">
+              <button
+                class="edit-btn"
+                title="Modifier ce badge"
+                @click="handleEditBadge(badge)"
+              >
+                <span class="material-icons-round">edit</span>
+              </button>
 
-      <button
-        class="delete-btn"
-        title="Supprimer ce badge"
-        @click="handleDeleteBadge(badge.id)"
-      >
-        <span class="material-icons-round">delete</span>
-      </button>
-    </div>
-  </div>
-</article>
+              <button
+                class="delete-btn"
+                title="Supprimer ce badge"
+                @click="handleDeleteBadge(badge.id)"
+              >
+                <span class="material-icons-round">delete</span>
+              </button>
+            </div>
+          </div>
+        </article>
       </div>
 
-      <div v-if="useMockFallback" class="state-box temporary-note">
-        <span class="material-icons-round">info</span>
-        Mode temporaire : le backend badges ne renvoie pas encore de données
-        utilisables, donc l'affichage conserve des badges locaux.
+      <div v-else class="state-box empty-state">
+        Aucun badge n'est encore configuré.
       </div>
     </template>
 
@@ -372,7 +316,7 @@ const handleDeleteBadge = async (id) => {
         </div>
 
         <div class="form-group">
-          <label>URL de l'icône</label>
+          <label>URL de l'icône optionnelle</label>
 
           <input
             v-model="newBadge.iconUrl"
@@ -380,7 +324,7 @@ const handleDeleteBadge = async (id) => {
             placeholder="https://exemple.com/badge.svg"
           />
 
-          <div v-if="newBadge.iconUrl" class="icon-preview">
+          <div v-if="isValidIconUrl(newBadge.iconUrl) && newBadge.iconUrl" class="icon-preview">
             <img :src="newBadge.iconUrl" alt="Aperçu icône" />
           </div>
         </div>

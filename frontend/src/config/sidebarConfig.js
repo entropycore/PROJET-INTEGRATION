@@ -37,16 +37,6 @@ export const sidebarConfig = {
       ],
     },
     {
-      section: "RÉPERTOIRE",
-      items: [
-        {
-          label: "Explore Profiles",
-          path: "/admin/profiles",
-          icon: "manage_search",
-        },
-      ],
-    },
-    {
       section: "SYSTÈME",
       items: [
         {
@@ -60,7 +50,6 @@ export const sidebarConfig = {
           icon: "notifications",
           danger: true,
         },
-        { label: "Paramètres ", path: "/admin/settings", icon: "settings" },
       ],
     },
   ],
@@ -159,11 +148,6 @@ export const sidebarConfig = {
           label: "Validations",
           path: "/professor/validations",
           icon: "fact_check",
-        },
-        {
-          label: "Lettres de reco.",
-          path: "/professor/recommendation-letters",
-          icon: "history_edu",
         },
       ],
     },

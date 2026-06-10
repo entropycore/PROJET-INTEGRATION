@@ -3,10 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { RouterLink } from "vue-router";
 
 import { buildBackendUrl } from "@/services/backendUrl";
-import {
-  createProfessionalRecommendation,
-  getProfessionalProfiles,
-} from "@/services/professionalApi";
+import { getProfessionalProfiles } from "@/services/professionalApi";
 
 const profiles = ref([]);
 const isLoading = ref(true);
@@ -14,11 +11,6 @@ const errorMessage = ref("");
 const search = ref("");
 const selectedDomain = ref("");
 const searchTimer = ref(null);
-const selectedProfile = ref(null);
-const recommendationMessage = ref("");
-const recommendationFeedback = ref("");
-const recommendationError = ref("");
-const isSendingRecommendation = ref(false);
 
 const domains = computed(() => {
   const values = profiles.value
@@ -75,42 +67,6 @@ const getCredibilityLabel = (profile) => {
   }
 
   return "";
-};
-
-const openRecommendationModal = (profile) => {
-  selectedProfile.value = profile;
-  recommendationMessage.value = "";
-  recommendationFeedback.value = "";
-  recommendationError.value = "";
-};
-
-const closeRecommendationModal = () => {
-  if (isSendingRecommendation.value) return;
-  selectedProfile.value = null;
-};
-
-const submitRecommendation = async () => {
-  const content = recommendationMessage.value.trim();
-  if (!selectedProfile.value || !content) return;
-
-  isSendingRecommendation.value = true;
-  recommendationFeedback.value = "";
-  recommendationError.value = "";
-
-  try {
-    await createProfessionalRecommendation({
-      portfolioId: selectedProfile.value.id,
-      content,
-    });
-    recommendationFeedback.value =
-      "Recommandation envoyée. Elle apparaît maintenant dans l’espace étudiant.";
-    recommendationMessage.value = "";
-  } catch (error) {
-    recommendationError.value =
-      error.response?.data?.message || "Impossible d’envoyer la recommandation.";
-  } finally {
-    isSendingRecommendation.value = false;
-  }
 };
 
 const loadProfiles = async () => {
@@ -295,107 +251,11 @@ onMounted(loadProfiles);
             <span class="material-icons-round">visibility</span>
             Ouvrir portfolio
           </RouterLink>
-          <button
-            type="button"
-            @click="openRecommendationModal(profile)"
-          >
-            <span class="material-icons-round">recommend</span>
-            Recommander
-          </button>
         </div>
       </article>
     </div>
 
     <p v-else class="empty-text">Aucun profil public ne correspond a la recherche.</p>
-
-    <div
-      v-if="selectedProfile"
-      class="recommendation-overlay"
-      @click.self="closeRecommendationModal"
-    >
-      <section class="recommendation-modal" role="dialog" aria-modal="true">
-        <header class="recommendation-modal-header">
-          <span class="recommendation-modal-icon" aria-hidden="true">
-            <span class="material-icons-round">recommend</span>
-          </span>
-          <div class="recommendation-modal-title">
-            <h2>Recommander ce profil</h2>
-          </div>
-          <button
-            type="button"
-            aria-label="Fermer"
-            :disabled="isSendingRecommendation"
-            @click="closeRecommendationModal"
-          >
-            <span class="material-icons-round">close</span>
-          </button>
-        </header>
-
-        <p class="recommendation-description">
-          Partagez une recommandation professionnelle qui valorise les qualités
-          et compétences de cet étudiant.
-        </p>
-
-        <div class="recommendation-student">
-          <div class="profile-avatar">
-            {{ getInitials(selectedProfile.student.fullName) }}
-          </div>
-          <div>
-            <strong>{{ selectedProfile.student.fullName }}</strong>
-            <p>
-              {{ selectedProfile.student.major || "Filière non renseignée" }}
-              <span aria-hidden="true">·</span>
-              {{ getCredibilityLabel(selectedProfile) }}
-            </p>
-          </div>
-        </div>
-
-        <label class="recommendation-field">
-          <span class="recommendation-label-row">
-            <strong>Message de recommandation</strong>
-            <small>{{ recommendationMessage.length }}/2000</small>
-          </span>
-          <textarea
-            v-model="recommendationMessage"
-            maxlength="2000"
-            rows="6"
-            placeholder="Décrivez les qualités et compétences qui motivent votre recommandation..."
-          ></textarea>
-        </label>
-
-        <p v-if="recommendationFeedback" class="recommendation-success">
-          {{ recommendationFeedback }}
-        </p>
-        <p v-if="recommendationError" class="recommendation-error">
-          {{ recommendationError }}
-        </p>
-
-        <footer class="recommendation-actions">
-          <button
-            type="button"
-            :disabled="isSendingRecommendation"
-            @click="closeRecommendationModal"
-          >
-            <span class="material-icons-round">close</span>
-            Annuler
-          </button>
-          <button
-            type="button"
-            :disabled="!recommendationMessage.trim() || isSendingRecommendation"
-            @click="submitRecommendation"
-          >
-            <span class="material-icons-round">
-              {{ isSendingRecommendation ? "hourglass_top" : "send" }}
-            </span>
-            {{
-              isSendingRecommendation
-                ? "Envoi en cours..."
-                : "Envoyer la recommandation"
-            }}
-          </button>
-        </footer>
-      </section>
-    </div>
   </section>
 </template>
 

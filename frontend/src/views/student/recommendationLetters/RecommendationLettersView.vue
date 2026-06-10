@@ -3,31 +3,19 @@ import { computed, onMounted, ref } from "vue";
 
 import RecommendationLetterCard from "@/components/student/recommendationLetters/RecommendationLetterCard.vue";
 import RecommendationLetterFilters from "@/components/student/recommendationLetters/RecommendationLetterFilters.vue";
-import RecommendationLetterRequestModal from "@/components/student/recommendationLetters/RecommendationLetterRequestModal.vue";
 import RecommendationLetterPreviewModal from "@/components/student/recommendationLetters/RecommendationLetterPreviewModal.vue";
-import {
-  createStudentRecommendationLetterRequest,
-  getRecommendationLetterTeachers,
-  getStudentRecommendationLetters,
-} from "@/services/studentRecommendationLettersService";
+import { getStudentRecommendationLetters } from "@/services/studentRecommendationLettersService";
 
 const letters = ref([]);
-const teachers = ref([]);
 const search = ref("");
 const selectedStatus = ref("ALL");
 const selectedType = ref("ALL");
 const isLoading = ref(false);
-const isSubmitting = ref(false);
-const isModalOpen = ref(false);
-const feedback = ref("");
 const selectedLetter = ref(null);
 
 const loadData = async () => {
   isLoading.value = true;
-  [letters.value, teachers.value] = await Promise.all([
-    getStudentRecommendationLetters(),
-    getRecommendationLetterTeachers(),
-  ]);
+  letters.value = await getStudentRecommendationLetters();
   isLoading.value = false;
 };
 
@@ -50,15 +38,6 @@ const filteredLetters = computed(() => {
     return matchesSearch && matchesStatus && matchesType;
   });
 });
-
-const submitRequest = async (payload) => {
-  isSubmitting.value = true;
-  await createStudentRecommendationLetterRequest(payload);
-  isSubmitting.value = false;
-  isModalOpen.value = false;
-  feedback.value = "Votre demande a été ajoutée avec le statut En attente.";
-  await loadData();
-};
 </script>
 
 <template>
@@ -70,10 +49,6 @@ const submitRequest = async (payload) => {
         <p>Gérez vos demandes et documents de recommandation académique.</p>
       </div>
 
-      <button class="add-btn" @click="isModalOpen = true">
-        <span class="material-icons-round">add</span>
-        Faire une demande
-      </button>
     </header>
 
     <RecommendationLetterFilters
@@ -81,8 +56,6 @@ const submitRequest = async (payload) => {
       v-model:status="selectedStatus"
       v-model:type="selectedType"
     />
-
-    <p v-if="feedback" class="feedback">{{ feedback }}</p>
 
     <div v-if="isLoading" class="empty-state">
       <span class="material-icons-round">hourglass_top</span>
@@ -102,7 +75,7 @@ const submitRequest = async (payload) => {
     <div v-else class="empty-state">
       <span class="material-icons-round">history_edu</span>
       <h3>Aucune lettre trouvée</h3>
-      <p>Modifiez les filtres ou créez une nouvelle demande.</p>
+      <p>Modifiez les filtres ou revenez plus tard.</p>
     </div>
 
     <div class="count-line">
@@ -110,14 +83,6 @@ const submitRequest = async (payload) => {
       <p>{{ filteredLetters.length }} lettres</p>
       <span></span>
     </div>
-
-    <RecommendationLetterRequestModal
-      :open="isModalOpen"
-      :teachers="teachers"
-      :is-submitting="isSubmitting"
-      @close="isModalOpen = false"
-      @submit="submitRequest"
-    />
 
     <RecommendationLetterPreviewModal
       :letter="selectedLetter"

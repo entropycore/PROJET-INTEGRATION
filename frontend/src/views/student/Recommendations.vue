@@ -8,6 +8,7 @@ import {
 import { buildBackendUrl } from "@/services/backendUrl";
 
 const loading = ref(false);
+const errorMessage = ref("");
 const actionLoadingId = ref(null);
 const selectedAuthor = ref(null);
 
@@ -25,11 +26,15 @@ const selectedFilter = ref("ALL");
 
 const loadRecommendations = async () => {
   loading.value = true;
+  errorMessage.value = "";
 
   try {
     recommendationsData.value = await getStudentRecommendationsData({
       status: selectedFilter.value,
     });
+  } catch (error) {
+    console.error("Erreur chargement recommandations:", error);
+    errorMessage.value = "Impossible de charger les recommandations.";
   } finally {
     loading.value = false;
   }
@@ -140,6 +145,10 @@ onMounted(() => {
 
     <div v-if="loading" class="loading-state">
       Chargement des recommandations...
+    </div>
+
+    <div v-else-if="errorMessage" class="loading-state">
+      {{ errorMessage }}
     </div>
 
     <div v-else class="recommendations-list">

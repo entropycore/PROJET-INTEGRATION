@@ -270,11 +270,6 @@ const handleImportCsv = async (event) => {
   }
 };
 
-const handleExport = () => {
-  //en attente que sont api est pret
-  console.log("Export users");
-};
-
 const pageTitle = computed(() => {
   switch (selectedRole.value) {
     case "STUDENT":
@@ -361,9 +356,6 @@ const dynamicColumns = computed(() => {
           {{ importingCsv ? "Import..." : "Import CSV" }}
         </button>
 
-        <button class="secondary-action" type="button" @click="handleExport">
-          Export
-        </button>
       </div>
 
       <div v-if="importMessage" class="users-import-result">

@@ -86,11 +86,6 @@ const router = createRouter({
           component: () => import("../views/admin/Validations.vue"),
         },
         {
-          path: "profiles",
-          name: "admin-profiles",
-          component: () => import("../views/profiles.vue"),
-        },
-        {
           path: "notifications",
           name: "admin-notifications",
           component: () => import("../views/Notifications.vue"),
@@ -103,11 +98,6 @@ const router = createRouter({
           path: "badges",
           name: "admin-badges",
           component: () => import("../views/admin/Badges.vue"),
-        },
-        {
-          path: "settings",
-          name: "admin-settings",
-          component: () => import("../views/Settings.vue"),
         },
         {
           path: "profile",
@@ -287,11 +277,6 @@ const router = createRouter({
           path: "validations",
           name: "professor-validations",
           component: () => import("../views/professor/Validations.vue"),
-        },
-        {
-          path: "recommendation-letters",
-          name: "professor-recommendation-letters",
-          component: () => import("../views/professor/RecommendationLetters.vue"),
         },
         {
           path: "notifications",

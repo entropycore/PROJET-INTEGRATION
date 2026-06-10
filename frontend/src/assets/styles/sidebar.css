@@ -183,6 +183,12 @@
   font-family: inherit;
 }
 
+.sidebar-dropdown-active {
+  background: var(--app-active-bg);
+  color: var(--app-primary);
+  font-weight: 800;
+}
+
 .sidebar-link-left {
   display: flex;
   align-items: center;

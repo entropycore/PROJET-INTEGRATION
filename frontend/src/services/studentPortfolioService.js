@@ -12,7 +12,9 @@ export const generateStudentPortfolio = (data) => {
 };
 
 export const getPublicPortfolioBySlug = (slug) => {
-  return api.get(`/portfolio/${slug}`);
+  return api.get(`/portfolio/${slug}`, {
+    skipForbiddenRedirect: true,
+  });
 };
 
 export const getStudentPortfolioData = async () => {

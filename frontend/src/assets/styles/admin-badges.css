@@ -167,6 +167,7 @@
   font-weight: 900;
   line-height: 1.25;
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .description {
@@ -175,6 +176,7 @@
   line-height: 1.55;
   font-size: var(--app-text-sm);
   text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .rule {
@@ -204,6 +206,7 @@
   color: var(--app-text);
   line-height: 1.5;
   font-size: var(--app-text-sm);
+  overflow-wrap: anywhere;
 }
 
 .rule strong {
@@ -240,6 +243,13 @@
   font-size: var(--app-text-sm);
   font-weight: 900;
   white-space: nowrap;
+}
+
+.empty-state {
+  min-height: 8rem;
+  display: grid;
+  place-items: center;
+  text-align: center;
 }
 
 .count .material-icons-round {
