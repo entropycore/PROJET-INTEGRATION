@@ -269,19 +269,7 @@ onMounted(loadAll);
 <template>
   <div class="profile-page">
     <div class="page-header">
-      <div>
-        <span class="page-label">PROFIL</span>
-        <h1>Mon profil</h1>
-        <p>Gérez vos informations personnelles et votre parcours académique.</p>
-      </div>
-      <button
-        v-if="!isEditing && profile"
-        class="btn btn-primary"
-        @click="startEdit"
-      >
-        <span class="material-icons-round">edit</span>
-        Modifier
-      </button>
+      
     </div>
 
     <p v-if="isLoading" class="text-muted">Chargement...</p>
@@ -289,51 +277,58 @@ onMounted(loadAll);
     <p v-if="successMessage" class="success-msg">{{ successMessage }}</p>
 
     <div v-if="profile">
+      <div class="student-profile-header">
+        <div class="profile-avatar">
+          <img
+            v-if="profile.profilePicture"
+            :src="buildBackendUrl(profile.profilePicture)"
+            alt=""
+          />
+          <span v-else>
+            {{ getInitials(profile.firstName, profile.lastName) }}
+          </span>
+        </div>
+
+        <div class="profile-identity">
+          <span>PROFIL ÉTUDIANT</span>
+          <div class="profile-name">
+            {{ profile.firstName }} {{ profile.lastName }}
+          </div>
+          <div class="text-muted">{{ profile.email }}</div>
+        </div>
+
+        <div class="profile-header-actions">
+          <input
+            ref="pictureInput"
+            class="visually-hidden"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            @change="handleProfilePictureChange"
+          />
+          <button
+            class="btn btn-secondary"
+            type="button"
+            :disabled="isUploadingPicture"
+            @click="openPicturePicker"
+          >
+            <span class="material-icons-round">photo_camera</span>
+            {{ isUploadingPicture ? "Upload..." : "Changer la photo" }}
+          </button>
+          <button
+            v-if="!isEditing"
+            class="btn btn-primary"
+            type="button"
+            @click="startEdit"
+          >
+            <span class="material-icons-round">edit</span>
+            Modifier le profil
+          </button>
+        </div>
+      </div>
+
       <div class="section-row">
         <!-- Colonne gauche -->
         <div class="content-card">
-          <div class="avatar-row">
-            <div class="profile-avatar">
-              <img
-                v-if="profile.profilePicture"
-                :src="buildBackendUrl(profile.profilePicture)"
-                alt=""
-              />
-              <span v-else>
-                {{ getInitials(profile.firstName, profile.lastName) }}
-              </span>
-            </div>
-            <div>
-              <div class="profile-name">
-                {{ profile.firstName }} {{ profile.lastName }}
-              </div>
-              <div class="text-muted">{{ profile.email }}</div>
-              <div style="margin-top: 6px">
-                <span class="badge badge-info"
-                  >{{ profile.field }} {{ profile.level }}</span
-                >
-              </div>
-              <div class="avatar-actions">
-                <input
-                  ref="pictureInput"
-                  class="visually-hidden"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  @change="handleProfilePictureChange"
-                />
-                <button
-                  class="btn btn-secondary btn-sm"
-                  type="button"
-                  :disabled="isUploadingPicture"
-                  @click="openPicturePicker"
-                >
-                  <span class="material-icons-round">photo_camera</span>
-                  {{ isUploadingPicture ? "Upload..." : "Changer photo" }}
-                </button>
-              </div>
-            </div>
-          </div>
-
           <div v-if="!isEditing">
             <h3 class="card-title">Informations personnelles</h3>
             <table class="info-table">
@@ -409,8 +404,8 @@ onMounted(loadAll);
         </div>
 
         <!-- Colonne droite -->
-        <div>
-          <div class="content-card" style="margin-bottom: 16px">
+        <div class="profile-side-column">
+          <div class="content-card">
             <h3 class="card-title">Objectif professionnel</h3>
             <div class="chips-row">
               <span
@@ -622,17 +617,62 @@ onMounted(loadAll);
 .section-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 1rem;
+  align-items: stretch;
+  margin-bottom: 1rem;
 }
 
 .content-card {
-  background: #fff;
-  border: 1px solid #dee1dd;
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+  padding: 1.25rem;
   margin-bottom: 16px;
 }
+
+.section-row > .content-card,
+.profile-side-column .content-card {
+  margin-bottom: 0;
+}
+
+.profile-side-column {
+  display: grid;
+  gap: 1rem;
+}
+
+.student-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  padding: 1.35rem;
+  margin-bottom: 1rem;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-panel);
+  box-shadow: var(--app-shadow-card);
+}
+
+.profile-identity {
+  min-width: 0;
+}
+
+.profile-identity > span {
+  color: var(--app-muted);
+  font-size: var(--app-text-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.profile-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
 .card-title {
   font-size: 1rem;
   color: var(--app-primary);
@@ -651,17 +691,13 @@ onMounted(loadAll);
   background: linear-gradient(90deg, var(--app-primary), var(--app-accent));
 }
 
-.avatar-row {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 20px;
-}
 .profile-avatar {
-  width: 72px;
-  height: 72px;
+  width: 5.2rem;
+  height: 5.2rem;
   border-radius: 50%;
-  background: #2f575d;
+  border: 2px solid var(--app-active-border);
+  background: var(--app-primary);
+  box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -676,9 +712,6 @@ onMounted(loadAll);
   height: 100%;
   object-fit: cover;
 }
-.avatar-actions {
-  margin-top: 8px;
-}
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -691,9 +724,12 @@ onMounted(loadAll);
   border: 0;
 }
 .profile-name {
-  font-size: 20px;
-  font-family: "DM Serif Display", serif;
-  color: #28363d;
+  margin: 0.25rem 0;
+  color: var(--app-heading);
+  font-family: var(--app-font-display);
+  font-size: clamp(1.7rem, 2.4vw, 2.3rem);
+  font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .badge {
@@ -715,16 +751,20 @@ onMounted(loadAll);
   border-collapse: collapse;
 }
 .info-label {
-  color: #99aead;
-  font-size: 13px;
-  padding: 7px 0;
+  color: var(--app-muted);
+  font-size: var(--app-text-sm);
+  font-weight: 600;
+  padding: 0.65rem 0;
   width: 140px;
   vertical-align: top;
+  border-bottom: 1px solid var(--app-neutral-bg);
 }
 .info-value {
-  font-size: 13.5px;
-  color: #28363d;
-  padding: 7px 0;
+  color: var(--app-heading);
+  font-size: var(--app-text-md);
+  font-weight: 700;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--app-neutral-bg);
 }
 .info-value.link {
   color: #2f575d;
@@ -1001,5 +1041,63 @@ onMounted(loadAll);
   color: #658b6f;
   font-size: 13px;
   margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .section-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .student-profile-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-header-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .profile-header-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header,
+  .flex-between {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .profile-header-actions {
+    flex-direction: column;
+  }
+
+  .profile-header-actions .btn {
+    width: 100%;
+  }
+
+  .info-label,
+  .info-value {
+    display: block;
+    width: 100%;
+  }
+
+  .info-label {
+    padding-bottom: 0.15rem;
+    border-bottom: 0;
+  }
+
+  .info-value {
+    padding-top: 0;
+  }
 }
 </style>

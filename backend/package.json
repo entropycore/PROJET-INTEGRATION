@@ -9,10 +9,11 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "dev:docker": "prisma migrate deploy && prisma generate && node --watch src/server.js",
+
     "test": "jest --forceExit --detectOpenHandles --runInBand",
     "test:unit": "jest tests/unit --verbose --runInBand",
     "test:watch": "jest --watch",
+
     "test:coverage": "jest --coverage --forceExit --runInBand",
     "test:integration": "jest tests/integration --runInBand",
     "test:sec": "jest tests/integration/middlewares tests/unit/middlewares --runInBand",
@@ -25,7 +26,10 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+<<<<<<< HEAD
     "@aws-sdk/client-s3": "^3.1053.0",
+=======
+>>>>>>> ec494d43e1efa6db5265096db1c1b6edae1faaa5
     "@prisma/client": "^6.19.3",
     "axios": "^1.16.0",
     "bcrypt": "^6.0.0",
@@ -37,7 +41,6 @@
     "express-validator": "^7.3.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
-    "multer": "^2.1.1",
     "nodemailer": "^8.0.5",
     "winston": "^3.19.0"
   },
@@ -52,12 +55,8 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ],
-    "setupFiles": [
-      "dotenv/config"
-    ],
+    "testMatch": ["**/tests/**/*.test.js"],
+    "setupFiles": ["dotenv/config"],
     "coverageThreshold": {
       "global": {
         "lines": 70,

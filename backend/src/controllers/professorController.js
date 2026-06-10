@@ -9,6 +9,7 @@ const handleProfessorError = (res, err) => {
     return error(res, 404, 'Profil professeur introuvable.');
   }
 
+<<<<<<< HEAD
   if (err.message === 'PROFESSOR_VALIDATION_NOT_FOUND') {
     return error(res, 404, 'Validation professeur introuvable.');
   }
@@ -93,55 +94,16 @@ const handleProfessorError = (res, err) => {
     );
   }
 
+=======
+>>>>>>> ec494d43e1efa6db5265096db1c1b6edae1faaa5
   return null;
 };
 
-const buildEmptyDashboard = (user) => ({
-  area: 'professor',
-  user,
-  profileSnapshot: null,
-  summaryCards: {
-    pendingProjects: { value: 0, label: 'Projets à valider' },
-    pendingInternships: { value: 0, label: 'Stages à valider' },
-    supervisedInternships: { value: 0, label: 'Stages supervisés' },
-    pendingSupervisedInternships: {
-      value: 0,
-      label: 'Stages supervisés en attente',
-    },
-    completedProjectReviews: { value: 0, label: 'Avis projet rendus' },
-    completedInternshipReviews: { value: 0, label: 'Avis stage rendus' },
-  },
-  pendingValidations: [],
-  recentPendingProjects: [],
-  recentPendingInternships: [],
-  supervisedInternships: [],
-  recentReviewActivity: [],
-});
-
-const buildEmptyProfile = (user) => ({
-  user,
-  profile: null,
-  supervisedInternships: [],
-  recentProjectValidations: [],
-  recentInternshipValidations: [],
-});
-
 exports.getDashboard = async (req, res, next) => {
   try {
-    const dashboard = await professorService.getProfessorDashboard(
-      req.user.userId,
-    );
-    return success(res, 200, 'Tableau de bord professeur chargé.', dashboard);
+    const dashboard = await professorService.getProfessorDashboard(req.user.userId);
+    return success(res, 200, 'Tableau de bord professeur charge.', dashboard);
   } catch (err) {
-    if (err.message === 'PROFESSOR_PROFILE_NOT_FOUND') {
-      return success(
-        res,
-        200,
-        'Tableau de bord professeur chargé.',
-        buildEmptyDashboard(req.user),
-      );
-    }
-
     if (handleProfessorError(res, err)) return;
     next(err);
   }
@@ -150,6 +112,7 @@ exports.getDashboard = async (req, res, next) => {
 exports.getProfile = async (req, res, next) => {
   try {
     const profile = await professorService.getProfessorProfile(req.user.userId);
+<<<<<<< HEAD
     return success(res, 200, 'Profil professeur chargé.', profile);
   } catch (err) {
     if (err.message === 'PROFESSOR_PROFILE_NOT_FOUND') {
@@ -350,6 +313,9 @@ exports.requestValidationChanges = async (req, res, next) => {
     );
 
     return success(res, 200, 'Demande de correction envoyée.', validation);
+=======
+    return success(res, 200, 'Profil professeur charge.', profile);
+>>>>>>> ec494d43e1efa6db5265096db1c1b6edae1faaa5
   } catch (err) {
     if (handleProfessorError(res, err)) return;
     next(err);

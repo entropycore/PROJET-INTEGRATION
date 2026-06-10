@@ -34,40 +34,40 @@ exports.verifyEmail = async (req, res, next) => {
   }
 };
 
-// Demande de réinitialisation de mot de passe
+// Demande de reinitialisation de mot de passe
 exports.forgotPassword = async (req, res, next) => {
   try {
     await authService.requestPasswordReset(req.body.email);
     res.json({
       success: true,
       message:
-        "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.",
+        "Si un compte existe avec cet email, un lien de reinitialisation a ete envoye.",
     });
   } catch (err) {
     if (err.message === "EMAIL_SEND_FAILED") {
       return res.status(500).json({
         success: false,
-        message: "Erreur d'envoi d'email. Veuillez réessayer.",
+        message: "Erreur d'envoi d'email. Veuillez reessayer.",
       });
     }
     next(err);
   }
 };
 
-// Réinitialisation du mot de passe
+// Reinitialisation du mot de passe
 exports.resetPassword = async (req, res, next) => {
   try {
     const { token, newPassword } = req.body;
     await authService.resetPassword(token, newPassword);
     res.json({
       success: true,
-      message: 'Mot de passe réinitialisé avec succès.',
+      message: 'Mot de passe reinitialise avec succes.',
     });
   } catch (err) {
     if (err.message === "INVALID_RESET_TOKEN") {
       return res.status(400).json({
         success: false,
-        message: 'Lien de réinitialisation invalide ou expire.',
+        message: 'Lien de reinitialisation invalide ou expire.',
       });
     }
     next(err);

@@ -11,54 +11,6 @@ const SEED_CERTIFICATE_BUFFER = Buffer.from(
   'utf8',
 );
 
-const SKILL_DOMAINS = [
-  {
-    name: 'Web',
-    slug: 'web',
-    description: 'Développement frontend et interfaces web.',
-    displayOrder: 1,
-  },
-  {
-    name: 'Backend',
-    slug: 'backend',
-    description: 'API, bases de données et logique serveur.',
-    displayOrder: 2,
-  },
-  {
-    name: 'DevOps',
-    slug: 'devops',
-    description: 'Déploiement, automatisation et intégration continue.',
-    displayOrder: 3,
-  },
-  {
-    name: 'Security',
-    slug: 'security',
-    description: 'Sécurité applicative et protection des systèmes.',
-    displayOrder: 4,
-  },
-  {
-    name: 'AI/Data',
-    slug: 'ai-data',
-    description: 'Analyse de données, IA et apprentissage automatique.',
-    displayOrder: 5,
-  },
-  {
-    name: 'Mobile',
-    slug: 'mobile',
-    description: 'Développement mobile et applications hybrides.',
-    displayOrder: 6,
-  },
-];
-
-const TECHNICAL_SKILLS_BY_DOMAIN = {
-  web: ['Vue.js', 'React', 'HTML', 'CSS', 'JavaScript'],
-  backend: ['Node.js', 'Express.js', 'Prisma', 'PostgreSQL'],
-  devops: ['Docker', 'GitHub Actions', 'CI/CD', 'Kubernetes'],
-  security: ['JWT', 'OWASP', 'Firewall', 'Secure API'],
-  'ai-data': ['Python', 'Machine Learning', 'Data Analysis'],
-  mobile: ['React Native', 'Flutter'],
-};
-
 const upsertUser = async ({
   email,
   lastName,
@@ -85,57 +37,6 @@ const upsertUser = async ({
       role,
     },
   });
-
-const upsertSkillDomain = async ({ name, slug, description, displayOrder }) =>
-  prisma.skillDomain.upsert({
-    where: { slug },
-    update: {
-      name,
-      description,
-      displayOrder,
-    },
-    create: {
-      name,
-      slug,
-      description,
-      displayOrder,
-    },
-  });
-
-const ensureSkillDomains = async () => {
-  const domainsBySlug = {};
-
-  for (const domain of SKILL_DOMAINS) {
-    const savedDomain = await upsertSkillDomain(domain);
-    domainsBySlug[domain.slug] = savedDomain;
-  }
-
-  return domainsBySlug;
-};
-
-const ensureTechnicalSkillCatalog = async (domainsBySlug) => {
-  for (const [domainSlug, skillNames] of Object.entries(TECHNICAL_SKILLS_BY_DOMAIN)) {
-    const domain = domainsBySlug[domainSlug];
-    if (!domain) continue;
-
-    for (const name of skillNames) {
-      await prisma.skill.upsert({
-        where: { name },
-        update: {
-          type: 'TECHNICAL',
-          description: `Compétence technique du domaine ${domain.name}.`,
-          domainId: domain.id,
-        },
-        create: {
-          name,
-          type: 'TECHNICAL',
-          description: `Compétence technique du domaine ${domain.name}.`,
-          domainId: domain.id,
-        },
-      });
-    }
-  }
-};
 
 const upsertAdministratorProfile = async (userId) =>
   prisma.administrator.upsert({
@@ -213,6 +114,7 @@ const upsertProfessionalProfile = async (
     },
   });
 
+<<<<<<< HEAD
 const upsertBadge = async ({ name, description, rule, tone = 'blue', iconUrl = '' }) =>
   prisma.badge.upsert({
     where: { name },
@@ -482,6 +384,8 @@ const upsertNotification = async ({
   });
 };
 
+=======
+>>>>>>> ec494d43e1efa6db5265096db1c1b6edae1faaa5
 async function main() {
   const passwordHash = await bcrypt.hash('Password123!', 10);
   const verifiedAt = new Date();
@@ -494,7 +398,7 @@ async function main() {
     accountStatus: 'ACTIVE',
     role: 'ADMINISTRATOR',
   });
-  const administratorProfile = await upsertAdministratorProfile(adminUser.id);
+  await upsertAdministratorProfile(adminUser.id);
 
   const studentUser = await upsertUser({
     email: 'etudiant@credencia.ma',
@@ -504,9 +408,7 @@ async function main() {
     accountStatus: 'ACTIVE',
     role: 'STUDENT',
   });
-  const studentProfile = await upsertStudentProfile(studentUser.id);
-  const skillDomains = await ensureSkillDomains();
-  await ensureTechnicalSkillCatalog(skillDomains);
+  await upsertStudentProfile(studentUser.id);
 
   const professorUser = await upsertUser({
     email: 'professeur@credencia.ma',
@@ -516,7 +418,7 @@ async function main() {
     accountStatus: 'ACTIVE',
     role: 'PROFESSOR',
   });
-  const professorProfile = await upsertProfessorProfile(professorUser.id);
+  await upsertProfessorProfile(professorUser.id);
 
   const activeProfessionalUser = await upsertUser({
     email: 'pro@entreprise.com',
@@ -550,59 +452,7 @@ async function main() {
     emailVerifiedAt: verifiedAt,
   });
 
-  const project = await ensureProject(studentProfile.id);
-  const internship = await ensureInternship(studentProfile.id, professorProfile.id);
-  const activity = await ensureActivity(studentProfile.id);
-  await ensureCertificate(activity.id);
-
-  await upsertBadge({
-    name: 'Web Developer',
-    description: 'Badge pour les étudiants actifs en développement web.',
-    rule: '3 projets web validés.',
-    tone: 'blue',
-  });
-
-  await upsertBadge({
-    name: 'Hackathon Participant',
-    description: "Badge attribué après validation d'une participation à un hackathon.",
-    rule: 'Une activité hackathon avec certificat valide.',
-    tone: 'orange',
-  });
-
-  const projectReport = await upsertReport({
-    reporterUserId: studentUser.id,
-    targetType: 'PROJECT',
-    targetId: project.id,
-    reason: 'Contenu inapproprié',
-    description: 'Le projet comporte une description qui doit être revérifiée.',
-  });
-
-  await upsertReport({
-    reporterUserId: studentUser.id,
-    targetType: 'OTHER',
-    reason: 'Probleme general',
-    description: 'Signalement de test pour le workflow admin.',
-  });
-
-  await upsertNotification({
-    administratorId: administratorProfile.id,
-    type: 'ACCESS_REQUEST',
-    title: 'Nouvelle demande professionnelle',
-    message: 'Une demande professionnelle est en attente de validation.',
-    relatedType: 'PROFESSIONAL',
-    relatedId: pendingProfessionalUser.id,
-  });
-
-  await upsertNotification({
-    administratorId: administratorProfile.id,
-    type: 'REPORT',
-    title: 'Nouveau signalement',
-    message: 'Un signalement de projet est en attente de traitement.',
-    relatedType: 'REPORT',
-    relatedId: projectReport.id,
-  });
-
-  console.log('Base de données seedée avec succès avec des données de rôles, validations, badges, reports et notifications.');
+  console.log('Base de donnees seedee avec succes avec les roles principaux et une demande pro en attente.');
 }
 
 main()

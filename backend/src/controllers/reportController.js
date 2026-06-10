@@ -13,7 +13,7 @@ exports.createReport = async (req, res, next) => {
       description: req.body.description,
     });
 
-    return success(res, 201, 'Signalement créé.', report);
+    return success(res, 201, 'Signalement cree.', report);
   } catch (err) {
     if (err.message === 'INVALID_REPORT_TARGET_TYPE') {
       return error(res, 400, 'Le type de cible du signalement est invalide.');
@@ -28,7 +28,7 @@ exports.createReport = async (req, res, next) => {
     }
 
     if (err.message === 'REPORT_ALREADY_EXISTS') {
-      return error(res, 409, 'Un signalement en attente existe déjà pour cette cible.');
+      return error(res, 409, 'Un signalement en attente existe deja pour cette cible.');
     }
 
     next(err);

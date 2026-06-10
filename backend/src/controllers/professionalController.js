@@ -14,7 +14,7 @@ const handleProfessionalError = (res, err) => {
 exports.getDashboard = async (req, res, next) => {
   try {
     const dashboard = await professionalService.getProfessionalDashboard(req.user.userId);
-    return success(res, 200, 'Tableau de bord professionnel chargé.', dashboard);
+    return success(res, 200, 'Tableau de bord professionnel charge.', dashboard);
   } catch (err) {
     if (handleProfessionalError(res, err)) return;
     next(err);
@@ -24,7 +24,7 @@ exports.getDashboard = async (req, res, next) => {
 exports.getProfile = async (req, res, next) => {
   try {
     const profile = await professionalService.getProfessionalProfile(req.user.userId);
-    return success(res, 200, 'Profil professionnel chargé.', profile);
+    return success(res, 200, 'Profil professionnel charge.', profile);
   } catch (err) {
     if (handleProfessionalError(res, err)) return;
     next(err);

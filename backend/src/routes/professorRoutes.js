@@ -4,8 +4,6 @@ const express = require('express');
 const authMiddleware = require('../middlewares/authMiddleware');
 const checkRoles = require('../middlewares/checkRoles');
 const professorController = require('../controllers/professorController');
-const notificationController = require('../controllers/userNotificationController');
-const uploadProfilePicture = require('../middlewares/uploadProfilePicture');
 
 const router = express.Router();
 
@@ -14,6 +12,7 @@ router.use(checkRoles('PROFESSOR'));
 
 router.get('/dashboard', professorController.getDashboard);
 router.get('/profile', professorController.getProfile);
+<<<<<<< HEAD
 router.post(
   '/profile-picture',
   uploadProfilePicture,
@@ -59,5 +58,7 @@ router.delete(
   '/notifications/:notificationId',
   notificationController.deleteNotification,
 );
+=======
+>>>>>>> ec494d43e1efa6db5265096db1c1b6edae1faaa5
 
 module.exports = router;
