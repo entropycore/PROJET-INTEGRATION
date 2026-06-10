@@ -7,6 +7,7 @@ const isStructureMissingError = (err) => err?.code === 'P2021' || err?.code === 
 
 const findExistingNotification = async ({
   administratorId = null,
+  userId = null,
   type,
   title,
   relatedType = null,
@@ -15,6 +16,7 @@ const findExistingNotification = async ({
   prisma.notification.findFirst({
     where: {
       administratorId,
+      userId,
       type,
       title,
       relatedType,
@@ -25,6 +27,7 @@ const findExistingNotification = async ({
 
 const createNotification = async ({
   administratorId = null,
+  userId = null,
   type,
   title,
   message,
@@ -34,6 +37,7 @@ const createNotification = async ({
   try {
     const existing = await findExistingNotification({
       administratorId,
+      userId,
       type,
       title,
       relatedType,
@@ -47,6 +51,7 @@ const createNotification = async ({
     return await prisma.notification.create({
       data: {
         administratorId,
+        userId,
         type,
         title,
         message,
@@ -77,8 +82,8 @@ const buildPendingItemNotificationPayload = (item) => {
     case 'ACCESS_REQUEST':
       return {
         type: 'ACCESS_REQUEST',
-        title: "Nouvelle demande d'acces",
-        message: `Une nouvelle demande d'acces professionnel a ete soumise par ${item.requesterName}.`,
+        title: "Nouvelle demande d'accès",
+        message: `Une nouvelle demande d'accès professionnel a été soumise par ${item.requesterName}.`,
         relatedType: 'ACCESS_REQUEST',
         relatedId: item.id,
       };
@@ -89,7 +94,7 @@ const buildPendingItemNotificationPayload = (item) => {
     case 'RECOMMENDATION_VALIDATION':
       return {
         type: item.type,
-        title: 'Nouvelle validation a traiter',
+        title: 'Nouvelle validation à traiter',
         message: `${item.label} en attente de traitement pour ${item.requesterName}.`,
         relatedType: item.type,
         relatedId: item.id,
@@ -99,7 +104,7 @@ const buildPendingItemNotificationPayload = (item) => {
       return {
         type: 'REPORT',
         title: 'Nouveau signalement',
-        message: `Un nouveau signalement a ete soumis${
+        message: `Un nouveau signalement a été soumis${
           item.requesterName ? ` par ${item.requesterName}` : ''
         }.`,
         relatedType: 'REPORT',
@@ -127,8 +132,8 @@ exports.ensurePendingItemNotification = async (item) => {
 exports.createAccessRequestNotification = async (user) =>
   createNotification({
     type: 'ACCESS_REQUEST',
-    title: "Nouvelle demande d'acces",
-    message: `Une nouvelle demande d'acces professionnel a ete soumise par ${user.firstName} ${user.lastName}.`,
+    title: "Nouvelle demande d'accès",
+    message: `Une nouvelle demande d'accès professionnel a été soumise par ${user.firstName} ${user.lastName}.`,
     relatedType: 'ACCESS_REQUEST',
     relatedId: user.id,
   });
