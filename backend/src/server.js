@@ -42,7 +42,21 @@ app.use(globalLimiter);
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(cookieParser());
-app.use(doubleCsrfProtection);
+const csrfExcludedRoutes = [
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/forgot-password',
+  '/api/auth/reset-password',
+  '/api/auth/refresh',
+  '/api/auth/csrf-token',
+];
+
+app.use((req, res, next) => {
+  if (csrfExcludedRoutes.some(route => req.path.startsWith(route))) {
+    return next();
+  }
+  return doubleCsrfProtection(req, res, next);
+});
 app.use(sanitizeInputs);
 
 app.get('/', (_req, res) => {
