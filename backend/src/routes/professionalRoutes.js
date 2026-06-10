@@ -6,6 +6,7 @@ const checkRoles = require('../middlewares/checkRoles');
 const professionalController = require('../controllers/professionalController');
 const notificationController = require('../controllers/userNotificationController');
 const uploadProfilePicture = require('../middlewares/uploadProfilePicture');
+const { updateProfessionalProfileRules, handleValidationErrors } = require('../middlewares/validationRules');
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ router.use(checkRoles('PROFESSIONAL'));
 
 router.get('/dashboard', professionalController.getDashboard);
 router.get('/profile', professionalController.getProfile);
-router.put('/profile', professionalController.updateProfile);
+router.put('/profile', updateProfessionalProfileRules, handleValidationErrors, professionalController.updateProfile);
 router.post('/profile-picture', uploadProfilePicture, professionalController.uploadProfilePicture);
 router.get('/profiles', professionalController.listProfiles);
 router.get('/notifications', notificationController.listNotifications);
