@@ -31,7 +31,7 @@ const emit = defineEmits(["read", "delete"]);
 .list {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.65rem;
 }
 
 .empty {

@@ -465,7 +465,7 @@
 
 .edit-warning-card {
   padding: 0.9rem 1rem;
-  border: 1px solid var(--app-warning-bg);
+  border: 1px solid var(--app-warning-border);
   border-radius: var(--app-radius-card);
   background: var(--app-warning-bg);
   color: var(--app-warning);

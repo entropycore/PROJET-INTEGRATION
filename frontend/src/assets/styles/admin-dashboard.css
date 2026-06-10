@@ -294,8 +294,8 @@
 }
 
 .request-type.orange {
-  background: #fff4df;
-  color: #c08a2e;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .request-type.green {
@@ -402,8 +402,8 @@
 }
 
 .urgent-item.orange .urgent-icon {
-  background: #fff4df;
-  color: #c08a2e;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .urgent-item.blue .urgent-icon,
