@@ -1261,6 +1261,12 @@ blockquote {
   font-size: 1.7rem;
 }
 
+.badge-card .badge-image {
+  width: 1.7rem;
+  height: 1.7rem;
+  object-fit: contain;
+}
+
 .badge-card strong {
   display: block;
   margin-top: 0.4rem;

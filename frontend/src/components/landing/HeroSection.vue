@@ -10,15 +10,14 @@
       </h1>
 
       <p class="hero-desc">
-        Créez un portfolio numérique adaptatif validé par vos enseignants.
-        Présentez vos projets, compétences et contributions avec une crédibilité
-        institutionnelle.
+        Centralisez vos projets, stages et activités. Faites valider vos
+        réalisations par votre institution, puis générez un portfolio crédible
+        et consultable par les professionnels.
       </p>
 
       <div class="hero-actions">
-        <!-- Redirection vers la page de connexion -->
         <router-link to="/login" class="btn-lg">
-          Créer mon portfolio
+          Accéder à Credencia
           <svg
             width="16"
             height="16"
@@ -32,66 +31,94 @@
             <path d="M5 12h14M12 5l7 7-7 7" />
           </svg>
         </router-link>
-        <a href="#demo" class="btn-outline">Voir la démo</a>
+        <a href="#workflow" class="btn-outline">Comprendre la validation</a>
       </div>
 
-      <div class="hero-stats">
-        <div>
-          <span class="hero-stat-num">4</span>
-          <span class="hero-stat-label">Rôles utilisateurs</span>
-        </div>
-        <div>
-          <span class="hero-stat-num">10+</span>
-          <span class="hero-stat-label">Modules fonctionnels</span>
-        </div>
-        <div>
-          <span class="hero-stat-num">100</span>
-          <span class="hero-stat-label">Score de crédibilité</span>
-        </div>
+      <div class="hero-proof-line">
+        <span>Réalisations documentées</span>
+        <span>Validation institutionnelle</span>
+        <span>Portfolio certifié</span>
       </div>
     </div>
 
     <div class="hero-right">
-      <!-- Indicateurs visuels flottants -->
-      <div class="float-card float-card-1">
-        <div class="float-dot"></div>
-        Projet validé par l'institution
-      </div>
-
-      <div class="float-card float-card-2">
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="rgba(153,174,173,0.8)"
-          stroke-width="2"
-        >
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-        </svg>
+      <div class="hero-validation-notice">
+        <span class="material-icons-round">verified</span>
         <div>
-          <div
-            style="
-              font-size: 11.5px;
-              color: rgba(255, 255, 255, 0.7);
-              font-weight: 500;
-            "
-          >
-            Nouveau commentaire
-          </div>
-          <div style="font-size: 10.5px; color: rgba(153, 174, 173, 0.6)">
-            Pr. Alami a validé votre stage
-          </div>
+          <strong>Validation effectuée</strong>
+          <small>Votre réalisation a été validée par l’institution.</small>
         </div>
       </div>
 
-      <!-- Image de prévisualisation principale -->
-      <img
-        src="../../assets/hero.png"
-        alt="Aperçu du portfolio Credencia"
-        class="portfolio-image-demo"
-      />
+      <article class="hero-product-preview">
+        <header class="hero-product-profile">
+          <img
+            class="hero-product-avatar"
+            src="/portfolio/profile.jpg"
+            alt="Photo de profil d’Amina Berrada"
+          />
+          <div class="hero-product-identity">
+            <span>Hello ! Je suis</span>
+            <h2>Amina Berrada</h2>
+            <p>Étudiante Ingénieure · Génie Informatique</p>
+            <small>ENSA Tanger</small>
+          </div>
+          <div class="hero-product-score">
+            <strong>96</strong>
+            <span>/100</span>
+            <small>Crédibilité</small>
+          </div>
+        </header>
+
+        <div class="hero-product-stats">
+          <span><i class="material-icons-round">emoji_events</i><strong>12</strong>Réalisations validées</span>
+          <span><i class="material-icons-round">workspace_premium</i><strong>6</strong>Badges obtenus</span>
+          <span><i class="material-icons-round">star</i><strong>4</strong>Recommandations</span>
+          <span><i class="material-icons-round">analytics</i><strong>96</strong>Score de crédibilité</span>
+        </div>
+
+        <section class="hero-product-project">
+          <img src="/portfolio/project-1.jpg" alt="Aperçu du projet Plateforme Credencia" />
+          <div class="hero-product-project-copy">
+            <header>
+              <span>Projet mis en avant</span>
+              <strong><i class="material-icons-round">verified</i>Validé</strong>
+            </header>
+            <h3>Plateforme Credencia</h3>
+            <p>
+              Application web de gestion académique permettant la documentation,
+              la validation et la valorisation des réalisations.
+            </p>
+            <div class="hero-product-technologies">
+              <span>Vue.js</span><span>Node.js</span><span>PostgreSQL</span>
+            </div>
+            <div class="hero-product-proofs">
+              <span><i class="material-icons-round">verified_user</i>Validation institutionnelle</span>
+              <span><i class="material-icons-round">language</i>Visible publiquement</span>
+            </div>
+          </div>
+        </section>
+
+        <div class="hero-product-bottom">
+          <section>
+            <header><span class="material-icons-round">code</span>Compétences principales</header>
+            <div class="hero-product-tags">
+              <span>Vue.js</span><span>JavaScript</span><span>Node.js</span>
+              <span>PostgreSQL</span><span>Docker</span><span>GitHub</span>
+            </div>
+          </section>
+
+          <section>
+            <header><span class="material-icons-round">workspace_premium</span>Badges obtenus</header>
+            <div class="hero-product-badges">
+              <span><i class="material-icons-round">terminal</i><small>Web Developer</small></span>
+              <span><i class="material-icons-round">developer_mode</i><small>Full Stack</small></span>
+              <span><i class="material-icons-round">cloud_sync</i><small>DevOps</small></span>
+              <span><i class="material-icons-round">groups</i><small>Hackathon</small></span>
+            </div>
+          </section>
+        </div>
+      </article>
     </div>
   </section>
 </template>

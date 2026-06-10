@@ -87,7 +87,7 @@ const closeCertificatePreview = () => {
 
       <span
         class="status-badge"
-        :class="activity.validationStatus.toLowerCase()"
+        :class="activity.validationStatus.toLowerCase().replace('_', '-')"
       >
         {{
           statusLabels[activity.validationStatus] || activity.validationStatus
@@ -284,36 +284,45 @@ h3 {
 }
 
 .status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  padding: 0.35rem 0.7rem;
-  font-size: 0.72rem;
-  font-weight: 800;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  font-size: 12.5px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
 .status-badge.draft {
-  background: #edf2f0;
-  color: #2f575d;
+  background: #f3f4f6;
+  color: #5f6368;
+  border-color: #dfe1e5;
 }
 
 .status-badge.pending {
-  background: #fff3d8;
-  color: #9a6200;
+  background: #fffaf0;
+  color: #b87518;
+  border-color: #f4e8d1;
 }
 
 .status-badge.approved {
-  background: #e4f6ec;
-  color: #1f7a45;
+  background: #edf7ed;
+  color: #2e7d32;
+  border-color: #c8e6c9;
 }
 
 .status-badge.rejected {
   background: #fdecea;
   color: #c62828;
+  border-color: #f5c6cb;
 }
 
-.status-badge.correction_required {
-  background: #eaf1ff;
-  color: #2457a6;
+.status-badge.correction-required {
+  background: #fffaf0;
+  color: #b87518;
+  border-color: #f4e8d1;
 }
 
 .organization {

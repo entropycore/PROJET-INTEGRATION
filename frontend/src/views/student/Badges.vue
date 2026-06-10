@@ -2,18 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 
 import { getStudentBadges } from "@/services/studentDashboardService";
+import { getBadgeIcon } from "@/utils/badges";
 
 const selectedFilter = ref("ALL");
 const isLoading = ref(false);
-
-const BADGE_ICONS = {
-  "Web Developer": "terminal",
-  "DevOps Explorer": "cloud_sync",
-  "Hackathon Participant": "groups",
-  "Full Stack Developer": "developer_mode",
-  "Security Aware": "security",
-  "AI / Data": "analytics",
-};
 
 const mockBadges = [
   {
@@ -90,12 +82,21 @@ const extractData = (response) => {
   return response.data?.data || response.data || [];
 };
 
+const mergeFallbackBadges = (items) => {
+  const existingNames = new Set(items.map((badge) => badge.name));
+  const fallbackBadges = mockBadges.filter(
+    (badge) => !existingNames.has(badge.name),
+  );
+
+  return [...items, ...fallbackBadges];
+};
+
 const fetchBadges = async () => {
   isLoading.value = true;
 
   try {
     const response = await getStudentBadges();
-    badges.value = extractData(response);
+    badges.value = mergeFallbackBadges(extractData(response));
   } catch (error) {
     console.warn("API badges indisponible, utilisation des mock data.");
     badges.value = mockBadges;
@@ -143,10 +144,6 @@ const progressPercent = (badge) => {
 const getBadgeStatus = (badge) => {
   if (badge.isObtained) return "obtained";
   return Number(badge.progress?.current || 0) > 0 ? "in-progress" : "locked";
-};
-
-const getBadgeIcon = (badge) => {
-  return badge.icon || BADGE_ICONS[badge.name] || "workspace_premium";
 };
 
 const getBadgeMessage = (badge) => {
@@ -308,6 +305,9 @@ const getBadgeMessage = (badge) => {
 
 <style scoped>
 .badges-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   padding: 0;
 }
 
@@ -316,7 +316,7 @@ const getBadgeMessage = (badge) => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .page-label {
@@ -389,11 +389,11 @@ const getBadgeMessage = (badge) => {
 
 .filters {
   width: fit-content;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 0.25rem;
   padding: 0.3rem;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0;
   border: 1px solid var(--app-border);
   border-radius: 0.9rem;
   background: var(--app-surface);
@@ -430,6 +430,7 @@ const getBadgeMessage = (badge) => {
   display: grid;
   grid-template-columns: repeat(3, minmax(15rem, 1fr));
   gap: 1.25rem;
+  margin-top: 0.35rem;
 }
 
 .badge-card {
@@ -497,6 +498,9 @@ const getBadgeMessage = (badge) => {
   font-size: 1.08rem;
   font-weight: 900;
   line-height: 1.25;
+  min-height: 2.7rem;
+  display: flex;
+  align-items: center;
 }
 
 .description {

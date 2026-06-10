@@ -2,12 +2,16 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
+import StatCard from "@/components/ui/StatCard.vue";
+import { DASHBOARD_ICONS } from "@/constants/dashboardIcons";
 import { getStudentDashboardData } from "@/services/studentDashboardService";
+import { getBadgeIcon } from "@/utils/badges";
 import "@/assets/styles/studentDashboard.css";
 const router = useRouter();
 
 const dashboard = ref(null);
 const isLoading = ref(true);
+const errorMessage = ref("");
 
 const animatedStats = ref([]);
 
@@ -44,19 +48,6 @@ const recentBadges = computed(() => {
     : [];
 });
 
-const BADGE_ICONS = {
-  "Web Developer": "terminal",
-  "DevOps Explorer": "cloud_sync",
-  "Hackathon Participant": "groups",
-  "Full Stack Developer": "developer_mode",
-  "Security Aware": "security",
-  "AI / Data": "analytics",
-};
-
-const getBadgeIcon = (badge) => {
-  return BADGE_ICONS[badge.name] || "workspace_premium";
-};
-
 const credibilityDetails = computed(() => {
   return Array.isArray(dashboard.value?.credibility?.details)
     ? dashboard.value.credibility.details
@@ -90,7 +81,7 @@ const initAnimatedStats = () => {
       label: "Projets validés",
       value: 0,
       target: stats.validatedProjects || 0,
-      icon: "folder_check",
+      icon: DASHBOARD_ICONS.projects,
       subtitle: "Expériences académiques validées",
     },
     {
@@ -98,7 +89,7 @@ const initAnimatedStats = () => {
       label: "Score crédibilité",
       value: 0,
       target: stats.credibilityScore || 0,
-      icon: "verified",
+      icon: DASHBOARD_ICONS.score,
       subtitle: credibility.label || "",
     },
     {
@@ -106,7 +97,7 @@ const initAnimatedStats = () => {
       label: "Badges obtenus",
       value: 0,
       target: stats.badgesCount || 0,
-      icon: "workspace_premium",
+      icon: DASHBOARD_ICONS.badges,
       subtitle: "Badges académiques gagnés",
     },
     {
@@ -114,7 +105,7 @@ const initAnimatedStats = () => {
       label: "Recommandations",
       value: 0,
       target: stats.recommendationsCount || 0,
-      icon: "thumb_up",
+      icon: DASHBOARD_ICONS.recommendations,
       subtitle: `${stats.pendingRecommendations || 0} en attente`,
     },
   ];
@@ -186,6 +177,9 @@ onMounted(async () => {
   try {
     dashboard.value = await getStudentDashboardData();
     initAnimatedStats();
+  } catch (error) {
+    console.error("Erreur dashboard étudiant :", error);
+    errorMessage.value = "Impossible de charger le dashboard.";
   } finally {
     isLoading.value = false;
   }
@@ -195,6 +189,10 @@ onMounted(async () => {
 <template>
   <section class="student-dashboard">
     <div v-if="isLoading" class="loading-card">Chargement du dashboard...</div>
+
+    <div v-else-if="errorMessage" class="loading-card">
+      {{ errorMessage }}
+    </div>
 
     <template v-else>
       <header class="dashboard-header">
@@ -206,24 +204,14 @@ onMounted(async () => {
       </header>
 
       <div class="stats-grid">
-        <article
-          v-for="(stat, index) in animatedStats"
+        <StatCard
+          v-for="stat in animatedStats"
           :key="stat.id"
-          class="stat-card"
-          :style="{ animationDelay: `${index * 0.08}s` }"
-        >
-          <p class="stat-label">
-            {{ stat.label }}
-          </p>
-
-          <h2>
-            {{ stat.value }}
-          </h2>
-
-          <p class="stat-subtitle">
-            {{ stat.subtitle }}
-          </p>
-        </article>
+          :value="stat.value"
+          :title="stat.label"
+          :subtitle="stat.subtitle"
+          :icon="stat.icon"
+        />
       </div>
 
       <div class="dashboard-grid">

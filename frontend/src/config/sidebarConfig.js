@@ -126,11 +126,6 @@ export const sidebarConfig = {
           path: "/student/recommendation-letters",
           icon: "history_edu",
         },
-        {
-          label: "Commentaires",
-          path: "/student/comments",
-          icon: "forum",
-        },
       ],
     },
 
@@ -157,10 +152,18 @@ export const sidebarConfig = {
       items: [
         { label: "Vue globale", path: "/professor", icon: "dashboard" },
         { label: "Mon profil", path: "/professor/profile", icon: "person" },
+  ]},{
+      section: "INTERACTIONS",
+      items: [
         {
           label: "Validations",
           path: "/professor/validations",
           icon: "fact_check",
+        },
+        {
+          label: "Lettres de reco.",
+          path: "/professor/recommendation-letters",
+          icon: "history_edu",
         },
       ],
     },

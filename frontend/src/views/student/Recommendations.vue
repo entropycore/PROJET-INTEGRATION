@@ -9,6 +9,7 @@ import { buildBackendUrl } from "@/services/backendUrl";
 
 const loading = ref(false);
 const actionLoadingId = ref(null);
+const selectedAuthor = ref(null);
 
 const recommendationsData = ref({
   stats: {
@@ -51,9 +52,12 @@ const formatDate = (date) => {
     year: "numeric",
   });
 };
-const viewAuthorProfile = (authorId) => {
-  // Plus tard : router.push(`/student/users/${authorId}`)
-  console.log("Voir profil auteur :", authorId);
+const viewAuthorProfile = (author) => {
+  selectedAuthor.value = author;
+};
+
+const closeAuthorProfile = () => {
+  selectedAuthor.value = null;
 };
 
 const decideRecommendation = async (id, status) => {
@@ -197,7 +201,7 @@ onMounted(() => {
           <div class="recommendation-actions">
             <button
               class="secondary-btn"
-              @click="viewAuthorProfile(recommendation.author.id)"
+              @click="viewAuthorProfile(recommendation.author)"
             >
               Voir profil
             </button>
@@ -222,6 +226,73 @@ onMounted(() => {
           </div>
         </div>
       </article>
+    </div>
+
+    <div
+      v-if="selectedAuthor"
+      class="profile-modal-overlay"
+      @click.self="closeAuthorProfile"
+    >
+      <section class="profile-modal" role="dialog" aria-modal="true">
+        <header class="profile-modal-header">
+          <span class="profile-modal-icon" aria-hidden="true">
+            <span class="material-icons-round">person</span>
+          </span>
+
+          <div>
+            <span class="profile-modal-label">AUTEUR DE LA RECOMMANDATION</span>
+            <h2>Profil du recommandant</h2>
+          </div>
+
+          <button type="button" aria-label="Fermer" @click="closeAuthorProfile">
+            <span class="material-icons-round">close</span>
+          </button>
+        </header>
+
+        <div class="profile-modal-person">
+          <div v-if="selectedAuthor.profilePicture" class="profile-modal-avatar">
+            <img
+              :src="buildBackendUrl(selectedAuthor.profilePicture)"
+              :alt="selectedAuthor.name"
+            />
+          </div>
+          <div v-else class="profile-modal-avatar fallback">
+            {{ selectedAuthor.initials }}
+          </div>
+
+          <div>
+            <h3>{{ selectedAuthor.name }}</h3>
+            <p>{{ selectedAuthor.role || "Professionnel" }}</p>
+          </div>
+        </div>
+
+        <div class="profile-modal-details">
+          <div>
+            <span>Fonction</span>
+            <strong>{{ selectedAuthor.role || "Non renseignée" }}</strong>
+          </div>
+          <div>
+            <span>Organisation</span>
+            <strong>{{ selectedAuthor.organization || "Non renseignée" }}</strong>
+          </div>
+          <div class="profile-modal-bio">
+            <span>Bio</span>
+            <strong>
+              {{
+                selectedAuthor.bio ||
+                "Aucune présentation professionnelle renseignée."
+              }}
+            </strong>
+          </div>
+        </div>
+
+        <footer class="profile-modal-footer">
+          <button type="button" @click="closeAuthorProfile">
+            <span class="material-icons-round">close</span>
+            Fermer
+          </button>
+        </footer>
+      </section>
     </div>
   </section>
 </template>
@@ -428,8 +499,8 @@ onMounted(() => {
 }
 
 .status-badge.pending {
-  background: #fff4e4;
-  color: #e67e22;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .status-badge.rejected {
@@ -508,6 +579,174 @@ onMounted(() => {
   background: #fdecea;
 }
 
+.profile-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(0.12rem);
+}
+
+.profile-modal {
+  width: min(100%, 34rem);
+  padding: 1.35rem;
+  display: grid;
+  gap: 1.1rem;
+  border: 1px solid #dee1dd;
+  border-top: 0.28rem solid #2f575d;
+  border-radius: 0.95rem;
+  background:
+    linear-gradient(180deg, #edf2f0 0, #ffffff 5rem),
+    #ffffff;
+  box-shadow: 0 1.2rem 3rem rgba(16, 42, 51, 0.18);
+}
+
+.profile-modal-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.profile-modal-icon {
+  width: 2.8rem;
+  height: 2.8rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #dce9e6;
+  color: #2f575d;
+}
+
+.profile-modal-header > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.profile-modal-label {
+  color: #6d9197;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.profile-modal-header h2 {
+  margin: 0.25rem 0 0;
+  color: #102a33;
+  font-family: serif;
+  font-size: 1.55rem;
+  line-height: 1.15;
+}
+
+.profile-modal-header button {
+  width: 2.45rem;
+  height: 2.45rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid #dee1dd;
+  border-radius: 0.65rem;
+  background: #ffffff;
+  color: #6d9197;
+  cursor: pointer;
+}
+
+.profile-modal-person {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem;
+  border: 1px solid #dee1dd;
+  border-radius: 0.75rem;
+  background: #f8f9f8;
+}
+
+.profile-modal-avatar {
+  width: 3.8rem;
+  height: 3.8rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #2f575d;
+  color: #ffffff;
+  font-weight: 800;
+}
+
+.profile-modal-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-modal-person h3 {
+  margin: 0;
+  color: #102a33;
+  font-size: 1.1rem;
+}
+
+.profile-modal-person p {
+  margin: 0.22rem 0 0;
+  color: #6d9197;
+}
+
+.profile-modal-details {
+  display: grid;
+  gap: 0;
+  border: 1px solid #dee1dd;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.profile-modal-details div {
+  display: grid;
+  grid-template-columns: 8rem 1fr;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  background: #ffffff;
+}
+
+.profile-modal-details div + div {
+  border-top: 1px solid #edf0ee;
+}
+
+.profile-modal-details span {
+  color: #2f575d;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.profile-modal-details strong {
+  color: #435b60;
+  overflow-wrap: anywhere;
+}
+
+.profile-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid #edf0ee;
+}
+
+.profile-modal-footer button {
+  min-height: 2.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid #2f575d;
+  border-radius: 0.65rem;
+  padding: 0 1rem;
+  background: #2f575d;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -551,6 +790,11 @@ onMounted(() => {
   .filters button {
     flex: 1;
     justify-content: center;
+  }
+
+  .profile-modal-details div {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
   }
 }
 </style>
