@@ -50,16 +50,16 @@ defineProps({
 <style scoped>
 .stat-card-ui {
   min-width: 0;
-  min-height: 8.5rem;
+  min-height: 6.8rem;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  column-gap: 1.15rem;
-  padding: 1.25rem 1.45rem;
+  column-gap: 1rem;
+  padding: 1rem 1.15rem;
   background: #ffffff;
   border: 1px solid #dee1dd;
   border-radius: 1rem;
-  box-shadow: 0 0.75rem 1.8rem rgba(47, 87, 93, 0.06);
+  box-shadow: 0 0.55rem 1.3rem rgba(47, 87, 93, 0.055);
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
@@ -67,14 +67,14 @@ defineProps({
 }
 
 .stat-card-ui:hover {
-  transform: translateY(-0.2rem);
-  border-color: rgba(47, 87, 93, 0.35);
-  box-shadow: 0 1rem 2rem rgba(47, 87, 93, 0.09);
+  transform: translateY(-0.12rem);
+  border-color: rgba(47, 87, 93, 0.3);
+  box-shadow: 0 0.8rem 1.6rem rgba(47, 87, 93, 0.085);
 }
 
 .stat-card-icon {
-  width: 3.6rem;
-  height: 3.6rem;
+  width: 3rem;
+  height: 3rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,7 +82,7 @@ defineProps({
   border-radius: 999px;
   background: rgba(47, 87, 93, 0.12);
   color: #2f575d;
-  font-size: 1.65rem;
+  font-size: 1.45rem;
   box-shadow: inset 0 0 0 1px rgba(47, 87, 93, 0.06);
 }
 
@@ -95,23 +95,23 @@ defineProps({
 
 .stat-card-title {
   order: 1;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.35rem;
   color: #2f575d;
   font-family: var(--app-font-body);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 1.2;
 }
 
 .stat-card-value {
   order: 2;
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.25rem;
   color: #102a33;
   font-family: var(--app-font-display);
-  font-size: clamp(2rem, 2.6vw, 2.7rem);
-  font-weight: 50;
+  font-size: clamp(2rem, 2.4vw, 2.55rem);
+  font-weight: 100;
   line-height: 0.95;
 }
 
@@ -119,8 +119,8 @@ defineProps({
   order: 3;
   margin: 0;
   color: #6d9197;
-  font-size: 0.9rem;
-  line-height: 1.4;
+  font-size: 0.86rem;
+  line-height: 1.35;
 }
 
 .skeleton {
@@ -132,25 +132,25 @@ defineProps({
 }
 
 .skeleton-icon {
-  width: 3.6rem;
-  height: 3.6rem;
+  width: 3rem;
+  height: 3rem;
   flex-shrink: 0;
   border-radius: 999px;
 }
 
 .skeleton-value {
   width: 35%;
-  height: 2.25rem;
+  height: 2rem;
 }
 
 .skeleton-title {
   width: 62%;
-  height: 1rem;
+  height: 0.9rem;
 }
 
 .skeleton-subtitle {
   width: 82%;
-  height: 0.8rem;
+  height: 0.75rem;
 }
 
 @keyframes skeleton-loading {
