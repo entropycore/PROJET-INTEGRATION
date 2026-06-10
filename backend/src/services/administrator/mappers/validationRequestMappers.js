@@ -18,6 +18,9 @@ const mapDashboardCertificateRequest = (certificate) => {
     raw: {
       certificateId: certificate.id,
       documentUrl: certificate.documentUrl,
+      fileName: certificate.fileName,
+      mimeType: certificate.mimeType,
+      fileSize: certificate.fileSize,
       submittedAt: certificate.submittedAt,
       activityId: certificate.activity?.id || null,
       activityTitle: certificate.activity?.title || null,
@@ -42,6 +45,9 @@ const mapCertificateRequestDetail = (certificate) => {
     raw: {
       certificateId: certificate.id,
       documentUrl: certificate.documentUrl,
+      fileName: certificate.fileName,
+      mimeType: certificate.mimeType,
+      fileSize: certificate.fileSize,
       submittedAt: certificate.submittedAt,
       activity: certificate.activity
         ? {
