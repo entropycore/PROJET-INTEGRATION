@@ -10,20 +10,12 @@ export const getProfessionalProfile = async () => {
   return response.data.data;
 };
 
-export const updateProfessionalProfile = async (payload) => {
-  const response = await api.put("/professional/profile", payload);
-  return response.data.data;
-};
-
-export const uploadProfessionalProfilePicture = async (file) => {
-  const formData = new FormData();
-  formData.append("profilePicture", file);
-
-  const response = await api.post("/professional/profile-picture", formData);
-  return response.data.data;
-};
-
 export const getProfessionalProfiles = async (params = {}) => {
   const response = await api.get("/professional/profiles", { params });
+  return response.data.data;
+};
+
+export const createProfessionalRecommendation = async (data) => {
+  const response = await api.post("/professional/recommendations", data);
   return response.data.data;
 };
