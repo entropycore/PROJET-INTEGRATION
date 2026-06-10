@@ -19,17 +19,10 @@ const sendEmail = async (to, subject, text) => {
     const transporter = nodemailer.createTransport(buildTransportConfig());
 
     const mailOptions = {
-<<<<<<< HEAD
       from: process.env.MAIL_FROM || `"Credencia Support" <${process.env.EMAIL_USER}>`,
       to,
       subject,
       text,
-=======
-      from: `"ValiDia Support" <${process.env.EMAIL_USER}>`,
-      to: to,
-      subject: subject,
-      text: text,
->>>>>>> ec494d43e1efa6db5265096db1c1b6edae1faaa5
     };
 
     await transporter.sendMail(mailOptions);
