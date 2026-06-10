@@ -16,11 +16,12 @@ describe('Navbar - Tests Unitaires', () => {
     })
 
     const links = wrapper.findAll('.nav-links a')
-    expect(links[0].attributes('href')).toBe('#features')
-    expect(links[1].attributes('href')).toBe('#workflow')
-    expect(links[2].attributes('href')).toBe('#roles')
-    expect(links[3].attributes('href')).toBe('#scoring')
-    expect(links[4].attributes('href')).toBe('#demo')
+    expect(links.map(link => link.attributes('href'))).toEqual([
+      '#workflow',
+      '#features',
+      '#demo',
+      '#professionals',
+    ])
   })
 
   it('gere correctement les redirections de la plateforme', async () => {

@@ -7,26 +7,31 @@ describe('Scoring - Tests UI', () => {
     const wrapper = mount(Scoring)
 
     expect(wrapper.find('section').attributes('id')).toBe('scoring')
-    expect(wrapper.find('.score-ring-container svg').exists()).toBe(true)
+    expect(wrapper.find('.preview-ring').exists()).toBe(true)
+    expect(wrapper.find('.preview-ring').text()).toContain('82')
 
-    const fillBars = wrapper.findAll('.score-bar-fill')
-    const fillBarStyles = fillBars.map((fillBar) => fillBar.attributes('style').replace(/\s/g, ''))
+    const fillBars = wrapper.findAll('.preview-progress-lines i')
+    const fillBarStyles = fillBars.map((fillBar) =>
+      fillBar.attributes('style').replace(/\s/g, ''),
+    )
 
-    expect(fillBars.length).toBe(6)
-    expect(fillBarStyles).toContain('width:85%;')
-    expect(fillBarStyles).toContain('width:60%;')
+    expect(fillBars.length).toBe(3)
+    expect(fillBarStyles).toContain('width:88%;')
+    expect(fillBarStyles).toContain('width:68%;')
   })
 
-  it('affiche la section des distinctions avec les six badges de competences', () => {
+  it('affiche les badges obtenus dans le dashboard étudiant', () => {
     const wrapper = mount(Scoring)
 
-    expect(wrapper.find('.section-label').text()).toBe('Score & Badges')
-    expect(wrapper.find('.badges-section-title').text()).toBe('Valorisez chaque compétence acquise')
+    expect(wrapper.find('.section-label').text()).toBe('Dashboard étudiant')
+    expect(wrapper.find('.dashboard-badges-card').exists()).toBe(true)
 
-    const badgeCards = wrapper.findAll('.badge-card')
-    expect(badgeCards.length).toBe(6)
-
-    const badgeIcons = wrapper.findAll('.badge-card svg')
-    expect(badgeIcons.length).toBe(6)
+    const badgeCards = wrapper.findAll('.dashboard-badge-row > span')
+    expect(badgeCards.length).toBe(3)
+    expect(badgeCards.map((badge) => badge.text())).toEqual([
+      'terminalWeb Developer',
+      'cloud_syncDevOps Explorer',
+      'groupsHackathon',
+    ])
   })
 })

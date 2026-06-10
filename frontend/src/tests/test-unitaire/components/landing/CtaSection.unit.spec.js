@@ -6,7 +6,8 @@ describe('CtaSection.vue - Tests Unitaires', () => {
   const globalOptions = {
     stubs: {
       RouterLink: {
-        template: '<a><slot /></a>',
+        props: ['to'],
+        template: '<a :href="to"><slot /></a>',
       },
     },
   }
@@ -15,16 +16,16 @@ describe('CtaSection.vue - Tests Unitaires', () => {
     const wrapper = mount(CtaSection, { global: globalOptions })
 
     expect(wrapper.find('.cta-title').text()).toContain('\u00c0 la recherche de')
-    expect(wrapper.find('.cta-title em').text()).toBe('nouveaux talents')
-    expect(wrapper.find('.cta-sub').text()).toContain("Rejoignez notre r\u00e9seau d'entreprises partenaires")
+    expect(wrapper.find('.cta-title em').text()).toBe('nouveaux talents ?')
+    expect(wrapper.find('.cta-sub').text()).toContain('Accédez à des portfolios certifiés')
   })
 
-  it('contient un lien de contact par email valide', () => {
+  it('contient un lien valide vers la connexion', () => {
     const wrapper = mount(CtaSection, { global: globalOptions })
-    const mailtoLink = wrapper.find('.btn-cta-ghost')
+    const loginLink = wrapper.find('.btn-cta-ghost')
 
-    expect(mailtoLink.exists()).toBe(true)
-    expect(mailtoLink.attributes('href')).toBe('mailto:contact@ensa.ma')
+    expect(loginLink.exists()).toBe(true)
+    expect(loginLink.attributes('href')).toBe('/login')
   })
 
   it('possede les classes CSS requises pour les animations/styles', () => {

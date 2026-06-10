@@ -6,25 +6,29 @@ describe('DemoSection - Tests UI', () => {
   it('affiche correctement le titre principal de la section', () => {
     const wrapper = mount(DemoSection)
 
-    expect(wrapper.text()).toContain('Le tableau de bord étudiant')
+    expect(wrapper.find('.section-label').text()).toBe('Portfolio certifié')
+    expect(wrapper.find('.section-title').text()).toContain(
+      'Le portfolio est le résultat de tout le parcours',
+    )
   })
 
-  it('affiche les trois onglets avec leurs intitules respectifs', () => {
+  it('affiche les sources utilisées pour générer le portfolio', () => {
     const wrapper = mount(DemoSection)
-    const buttons = wrapper.findAll('button')
-    const buttonTexts = buttons.map((button) => button.text())
+    const sources = wrapper.findAll('.portfolio-source-list > span')
 
-    expect(buttons.length).toBe(3)
-    expect(buttonTexts).toContain('Mes projets')
-    expect(buttonTexts).toContain('Stages')
-    expect(buttonTexts).toContain('Compétences')
+    expect(sources.length).toBe(3)
+    expect(sources.map((source) => source.text())).toEqual([
+      'verifiedInformations validées',
+      'auto_awesomeGénération automatique',
+      'languagePortfolio public',
+    ])
   })
 
-  it("affiche l'image de demonstration avec sa description alternative", () => {
+  it('affiche un aperçu structuré du portfolio public', () => {
     const wrapper = mount(DemoSection)
-    const image = wrapper.find('img')
 
-    expect(image.exists()).toBe(true)
-    expect(image.attributes('alt')).toBe('Aperçu du Tableau de Bord')
+    expect(wrapper.find('.compact-portfolio-window').exists()).toBe(true)
+    expect(wrapper.find('.compact-profile h3').text()).toBe('Amina Berrada')
+    expect(wrapper.findAll('.compact-achievement-stats > span').length).toBe(3)
   })
 })

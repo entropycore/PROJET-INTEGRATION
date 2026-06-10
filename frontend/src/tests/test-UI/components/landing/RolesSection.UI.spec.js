@@ -7,8 +7,10 @@ describe('Roles - Tests UI', () => {
     const wrapper = mount(Roles)
 
     expect(wrapper.find('section').attributes('id')).toBe('roles')
-    expect(wrapper.find('.section-label').text()).toBe('Acteurs du système')
-    expect(wrapper.find('.section-title').text()).toBe('Quatre rôles, une plateforme')
+    expect(wrapper.find('.section-label').text()).toBe('Écosystème de confiance')
+    expect(wrapper.find('.section-title').text()).toBe(
+      'Quatre rôles, une même plateforme',
+    )
     expect(wrapper.find('.section-sub').exists()).toBe(true)
 
     expect(wrapper.find('.roles-grid').exists()).toBe(true)

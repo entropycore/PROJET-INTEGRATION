@@ -11,11 +11,11 @@ describe('Workflow - Tests Unitaires', () => {
 
     const titles = steps.map(step => step.find('.step-title').text())
     expect(titles).toEqual([
-      'Soumission',
-      'V\u00e9rification',
-      'D\u00e9cision',
-      'Publication',
-      'Appr\u00e9ciation',
+      'Documenter',
+      'Soumettre',
+      'Vérifier',
+      'Valoriser',
+      'Partager',
     ])
   })
 
@@ -23,12 +23,14 @@ describe('Workflow - Tests Unitaires', () => {
     const wrapper = mount(Workflow)
     const circles = wrapper.findAll('.step-circle')
 
-    expect(circles[0].classes()).toContain('done')
-    expect(circles[0].text()).toBe('\u2713')
+    expect(circles[0].classes()).toContain('active')
+    expect(circles[0].text()).toBe('1')
 
-    expect(circles[1].classes()).toContain('active')
+    expect(circles[1].classes()).not.toContain('active')
     expect(circles[1].text()).toBe('2')
 
     expect(circles[2].text()).toBe('3')
+    expect(circles[4].classes()).toContain('done')
+    expect(circles[4].text()).toBe('5')
   })
 })

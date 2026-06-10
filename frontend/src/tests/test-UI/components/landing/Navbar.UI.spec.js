@@ -20,7 +20,13 @@ describe('Navbar - Tests UI', () => {
     expect(wrapper.find('.logo-text').text()).toBe('Credencia')
 
     const menuItems = wrapper.findAll('.nav-links li')
-    expect(menuItems.length).toBe(5)
+    expect(menuItems.length).toBe(4)
+    expect(menuItems.map((item) => item.text())).toEqual([
+      'Fonctionnement',
+      'Réalisations',
+      'Portfolio',
+      'Recruteurs',
+    ])
 
     expect(wrapper.find('.btn-ghost').text()).toBe('Connexion')
     expect(wrapper.find('.btn-primary').text()).toBe('Demander un acc\u00e8s')

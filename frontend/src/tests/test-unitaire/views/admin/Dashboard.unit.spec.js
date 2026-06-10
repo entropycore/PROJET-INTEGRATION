@@ -68,9 +68,9 @@ describe("Dashboard - Tests unitaires", () => {
   it("affiche les statistiques", async () => {
     const wrapper = await mountDashboard();
 
-    expect(wrapper.text()).toContain("UTILISATEURS");
-    expect(wrapper.text()).toContain("ÉTUDIANTS");
-    expect(wrapper.text()).toContain("PROFESSEURS");
+    expect(wrapper.text()).toContain("Utilisateurs");
+    expect(wrapper.text()).toContain("Étudiants");
+    expect(wrapper.text()).toContain("Professeurs");
   });
 
   it("redirige au clic sur une demande recente", async () => {

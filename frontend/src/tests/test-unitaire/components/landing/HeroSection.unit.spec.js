@@ -39,11 +39,9 @@ describe('Hero - Tests Unitaires', () => {
       },
     })
 
-    expect(wrapper.find('.btn-outline').attributes('href')).toBe('#demo')
+    expect(wrapper.find('.btn-outline').attributes('href')).toBe('#workflow')
 
-    const stats = wrapper.findAll('.hero-stat-num')
-    expect(stats[0].text()).toBe('4')
-    expect(stats[1].text()).toBe('10+')
-    expect(stats[2].text()).toBe('100')
+    const stats = wrapper.findAll('.hero-product-stats strong')
+    expect(stats.map(stat => stat.text())).toEqual(['12', '6', '4', '96'])
   })
 })

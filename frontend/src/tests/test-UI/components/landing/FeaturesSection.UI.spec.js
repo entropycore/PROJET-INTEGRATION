@@ -7,16 +7,21 @@ describe('Features - Tests UI', () => {
     const wrapper = mount(Features)
 
     expect(wrapper.find('section').attributes('id')).toBe('features')
-    expect(wrapper.find('.section-label').text()).toBe('Fonctionnalités')
-    expect(wrapper.find('.section-title').text()).toContain('Une plateforme complète')
+    expect(wrapper.find('.section-label').text()).toBe('Réalisations documentées')
+    expect(wrapper.find('.section-title').text()).toContain(
+      'Des expériences visibles, structurées et vérifiables',
+    )
 
-    expect(wrapper.find('.features-grid').exists()).toBe(true)
+    expect(wrapper.find('.product-evidence-grid').exists()).toBe(true)
 
-    const icons = wrapper.findAll('.feature-icon svg')
-    expect(icons.length).toBe(6)
+    const cards = wrapper.findAll('.evidence-card')
+    expect(cards.length).toBe(3)
 
-    const descriptions = wrapper.findAll('.feature-desc')
-    expect(descriptions.length).toBe(6)
-    expect(descriptions.some((description) => description.text().includes('Connexion à votre compte GitHub'))).toBe(true)
+    const images = wrapper.findAll('.evidence-media img')
+    expect(images.length).toBe(3)
+
+    const statuses = wrapper.findAll('.evidence-status.approved')
+    expect(statuses.length).toBe(3)
+    expect(cards.some((card) => card.text().includes('Plateforme de suivi académique'))).toBe(true)
   })
 })
