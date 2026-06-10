@@ -132,6 +132,7 @@ model User {
   recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
   reportsAuthored Report[] @relation("ReportAuthor")
+  uploadedFiles    UploadedFile[] @relation("UploadedFilesOwner")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -158,7 +159,6 @@ model RefreshTokenSession {
   @@map("refresh_token_sessions")
 }
 
-<<<<<<< HEAD
 model UploadedFile {
   id              String    @id @default(uuid()) @map("id_uploaded_file")
   ownerUserId     String?   @map("owner_user_id")
@@ -186,8 +186,6 @@ model UploadedFile {
   @@map("uploaded_files")
 }
 
-=======
->>>>>>> ec494d43e1efa6db5265096db1c1b6edae1faaa5
 model Student {
   id              String    @id @default(uuid()) @map("id_student")
   userId          String    @unique @map("user_id") // Doit être String pour correspondre à User.id
