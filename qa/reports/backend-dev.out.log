@@ -1,0 +1,34 @@
+
+> backend@1.0.0 dev
+> node --watch src/server.js
+
+◇ injected env (16) from .env // tip: ⌘ suppress logs { quiet: true }
+[2026-06-10 12:01:38] [32minfo[39m: Serveur démarré sur le port 3000 
+Serveur démarré avec succès sur http://localhost:3000
+[2026-06-10 12:03:37] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"GET","url":"/badges","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:03:38] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"GET","url":"/badges","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:03:41] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"POST","url":"/badges","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:03:41] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"GET","url":"/badges","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:03:42] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"GET","url":"/badges","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:03:43] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"PUT","url":"/badges/mock-web-developer","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:03:44] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"GET","url":"/badges","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:03:44] [32minfo[39m: Accès autorisé {"userId":"cypress-admin-user","role":"ADMINISTRATOR","method":"DELETE","url":"/badges/mock-web-developer","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:03] [32minfo[39m: Accès autorisé {"userId":"cypress-professor-user","role":"PROFESSOR","method":"GET","url":"/validations?type=ALL&status=PENDING&search=","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:03] [32minfo[39m: Accès autorisé {"userId":"cypress-professor-user","role":"PROFESSOR","method":"GET","url":"/validations/stats","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:14] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"GET","url":"/me","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:15] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"GET","url":"/dashboard?limitRecentProjects=4&limitNotifications=4","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:15] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"GET","url":"/validators","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:23] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"GET","url":"/me","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:25] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"GET","url":"/notifications","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:28] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"GET","url":"/me","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:30] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"GET","url":"/notifications","ip":"::ffff:127.0.0.1"}
+[2026-06-10 12:04:30] [32minfo[39m: Accès autorisé {"userId":"3757c6f3-2fb9-43af-a8c3-dfe111dcca5f","role":"STUDENT","method":"PATCH","url":"/notifications/read-all","ip":"::ffff:127.0.0.1"}
+Restarting 'src/server.js'
+◇ injected env (16) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+[2026-06-10 12:08:41] [32minfo[39m: Serveur démarré sur le port 3000 
+Serveur démarré avec succès sur http://localhost:3000
+Restarting 'src/server.js'
+◇ injected env (16) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+Restarting 'src/server.js'
+◇ injected env (16) from .env // tip: ⌘ override existing { override: true }
+Failed running 'src/server.js'. Waiting for file changes before restarting...
