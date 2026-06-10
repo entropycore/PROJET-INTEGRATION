@@ -98,4 +98,56 @@ describe("LoginPage.vue - Tests unitaires de la page de connexion", () => {
     expect(successBox.exists()).toBe(true);
     expect(successBox.text()).toBe("Connexion réussie.");
   });
+
+  it("doit afficher une erreur si la connexion échoue", async () => {
+    loginMock.mockRejectedValueOnce({
+      response: {
+        data: {
+          message: "Identifiants invalides",
+        },
+      },
+    });
+
+    await wrapper.find("#email").setValue("test@ensa.ac.ma");
+    await wrapper.find("#password").setValue("wrong-password");
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+
+    expect(getMeMock).not.toHaveBeenCalled();
+    expect(wrapper.find(".error-message").text()).toBe("Identifiants invalides");
+  });
+
+  it("doit afficher une erreur si le profil utilisateur ne se charge pas", async () => {
+    getMeMock.mockRejectedValueOnce(new Error("Profile failed"));
+
+    await wrapper.find("#email").setValue("test@ensa.ac.ma");
+    await wrapper.find("#password").setValue("password123");
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+
+    expect(loginMock).toHaveBeenCalled();
+    expect(getMeMock).toHaveBeenCalled();
+    expect(wrapper.find(".error-message").text()).toBe(
+      "Connexion impossible. Vérifiez vos identifiants."
+    );
+  });
+
+  it("doit rediriger selon le rôle utilisateur", async () => {
+    getMeMock.mockResolvedValueOnce({
+      data: {
+        data: {
+          id: 2,
+          email: "student@ensa.ac.ma",
+          role: "STUDENT",
+        },
+      },
+    });
+
+    await wrapper.find("#email").setValue("student@ensa.ac.ma");
+    await wrapper.find("#password").setValue("password123");
+    await wrapper.find("form").trigger("submit.prevent");
+    await flushPromises();
+
+    expect(mockRouter.push).toHaveBeenCalledWith("/student");
+  });
 });
