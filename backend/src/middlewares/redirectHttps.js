@@ -1,9 +1,11 @@
 'use strict';
 
-// Forcer HTTPS en production uniquement
+const hasHttps = process.env.HTTPS === 'true';
+
+// Forcer HTTPS uniquement en production ET si on a un certificat SSL
 const redirectHttps = (req, res, next) => {
-  // En développement → pas de redirection
-  if (process.env.NODE_ENV !== 'production') {
+  //  Double sécurité : Pas de redirection en Dév, NI en Staging (Prod sans SSL)
+  if (process.env.NODE_ENV !== 'production' || !hasHttps) {
     return next();
   }
 
@@ -12,7 +14,7 @@ const redirectHttps = (req, res, next) => {
     return next();
   }
 
-  // Sinon → rediriger vers HTTPS
+  // Sinon → rediriger vers HTTPS (Vrai Cloud)
   return res.redirect(301, `https://${req.headers.host}${req.url}`);
 };
 

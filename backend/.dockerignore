@@ -4,3 +4,7 @@ Dockerfile
 uploads/
 coverage/
 src/logs/*.log
+tests/
+.git/
+*.md
+npm-debug.log

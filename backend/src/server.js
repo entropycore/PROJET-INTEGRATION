@@ -1,8 +1,11 @@
 require('dotenv').config();
 
+// Métriques Prometheus 
+const client = require('prom-client');
+client.collectDefaultMetrics();
+
 const express = require('express');
 const cookieParser = require('cookie-parser');
-
 const corsOptions = require('./middlewares/corsOptions');
 const securityHeaders = require('./middlewares/securityHeaders');
 const redirectHttps = require('./middlewares/redirectHttps');
@@ -11,7 +14,6 @@ const { globalLimiter } = require('./middlewares/rateLimiter');
 const { doubleCsrfProtection } = require('./middlewares/csrfProtection');
 const { sanitizeInputs } = require('./middlewares/sanitize');
 const logger = require('./logs/logger');
-
 const authRoutes = require('./routes/authRoutes');
 const professionalRoutes = require('./routes/professionalRoutes');
 const studentRoutes = require('./routes/studentRoutes');
@@ -30,6 +32,7 @@ const fileRoutes = require('./routes/fileRoutes');
 
 const app = express();
 
+// trust proxy
 if (process.env.NODE_ENV === 'production' || process.env.TRUST_PROXY === 'true') {
   app.set('trust proxy', 1);
 }
@@ -38,7 +41,6 @@ app.use(securityHeaders);
 app.use(corsOptions);
 app.use(redirectHttps);
 app.use(globalLimiter);
-
 app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: process.env.JSON_BODY_LIMIT || '1mb' }));
 app.use(cookieParser());
@@ -65,6 +67,7 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/professional', professionalRoutes);
 app.use('/api/student', studentRoutes);
@@ -79,12 +82,20 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/profile-pictures', profilePictureRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/reports', reportRoutes);
-app.use('/api/files', fileRoutes);
+app.use('/api/files', fileRoutes); 
+
+
+app.get('/metrics', async (_req, res) => {
+  res.set('Content-Type', client.register.contentType);
+  res.end(await client.register.metrics());
+});
 
 app.use(notFound);
 app.use(handleErrors);
 
+
 const PORT = process.env.PORT || process.env.BACKEND_PORT || 5000;
+
 
 if (require.main === module && process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
