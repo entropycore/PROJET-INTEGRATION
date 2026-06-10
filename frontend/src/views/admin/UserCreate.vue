@@ -84,6 +84,88 @@ const copyTemporaryPassword = async () => {
   passwordCopied.value = true;
 };
 
+const trimValue = (value) => {
+  return typeof value === "string" ? value.trim() : value;
+};
+
+const getApiErrorMessage = (err) => {
+  return (
+    err.response?.data?.message ||
+    err.response?.data?.error ||
+    "Erreur lors de la création de l'utilisateur."
+  );
+};
+
+const validateForm = () => {
+  if (!trimValue(form.value.firstName) || !trimValue(form.value.lastName)) {
+    return "Le prénom et le nom sont obligatoires.";
+  }
+
+  if (!trimValue(form.value.email)) {
+    return "L'email est obligatoire.";
+  }
+
+  if (
+    form.value.role === "STUDENT" &&
+    (!trimValue(form.value.major) || !trimValue(form.value.level))
+  ) {
+    return "La filière et le niveau sont obligatoires pour un étudiant.";
+  }
+
+  return null;
+};
+
+const buildCreatePayload = () => {
+  const basePayload = {
+    firstName: trimValue(form.value.firstName),
+    lastName: trimValue(form.value.lastName),
+    email: trimValue(form.value.email),
+    phone: trimValue(form.value.phone),
+    role: form.value.role,
+    accountStatus: form.value.accountStatus,
+    password: trimValue(form.value.password),
+  };
+
+  if (form.value.role === "STUDENT") {
+    return {
+      ...basePayload,
+      apogeeCode: trimValue(form.value.apogeeCode),
+      cne: trimValue(form.value.cne),
+      major: trimValue(form.value.major),
+      level: trimValue(form.value.level),
+      city: trimValue(form.value.city),
+      linkedinUrl: trimValue(form.value.linkedinUrl),
+    };
+  }
+
+  if (form.value.role === "PROFESSOR") {
+    return {
+      ...basePayload,
+      employeeId: trimValue(form.value.employeeId),
+      grade: trimValue(form.value.grade),
+      specialty: trimValue(form.value.specialty),
+      department: trimValue(form.value.department),
+    };
+  }
+
+  if (form.value.role === "PROFESSIONAL") {
+    return {
+      ...basePayload,
+      company: trimValue(form.value.company),
+      jobTitle: trimValue(form.value.jobTitle),
+      sector: trimValue(form.value.sector),
+      bio: trimValue(form.value.bio),
+    };
+  }
+
+  return {
+    ...basePayload,
+    employeeId: trimValue(form.value.employeeId),
+    department: trimValue(form.value.department),
+    adminLevel: trimValue(form.value.adminLevel),
+  };
+};
+
 const continueToCreatedUser = () => {
   if (!createdUser.value) return;
 
@@ -100,8 +182,15 @@ const submitCreate = async () => {
   createdUser.value = null;
   passwordCopied.value = false;
 
+  const validationError = validateForm();
+  if (validationError) {
+    error.value = validationError;
+    saving.value = false;
+    return;
+  }
+
   try {
-    const res = await createAdminUser(form.value);
+    const res = await createAdminUser(buildCreatePayload());
 
     temporaryPassword.value = res.data.data.temporaryPassword;
     createdUser.value = res.data.data.user;
@@ -113,7 +202,7 @@ const submitCreate = async () => {
       query: { role: createdUser.value.role },
     });
   } catch (err) {
-    error.value = "Erreur lors de la création de l'utilisateur.";
+    error.value = getApiErrorMessage(err);
   } finally {
     saving.value = false;
   }

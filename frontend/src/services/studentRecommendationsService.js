@@ -1,5 +1,4 @@
 import api from "./api";
-import { studentRecommendationsMock } from "@/mockData/studentRecommendations.mock";
 
 export const getStudentRecommendations = (params = {}) => {
   return api.get("/student/recommendations", { params });
@@ -30,22 +29,15 @@ export const reportRecommendation = (id, reason) => {
 };
 
 export const getStudentRecommendationsData = async (params = {}) => {
-  try {
-    const response = await getStudentRecommendations(params);
-    const payload = response.data?.data ?? response.data;
+  const response = await getStudentRecommendations(params);
+  const payload = response.data?.data ?? response.data;
 
-    return {
-      ...studentRecommendationsMock,
-      ...payload,
-      stats: {
-        ...studentRecommendationsMock.stats,
-        ...(payload?.stats || {}),
-      },
-      recommendations:
-        payload?.recommendations || studentRecommendationsMock.recommendations,
-    };
-  } catch (error) {
-    console.warn("Mock recommendations utilisé.");
-    return studentRecommendationsMock;
-  }
+  return {
+    stats: {
+      received: payload?.stats?.received || 0,
+      pending: payload?.stats?.pending || 0,
+      rejected: payload?.stats?.rejected || 0,
+    },
+    recommendations: payload?.recommendations || [],
+  };
 };

@@ -169,7 +169,7 @@ watch(
               v-if="item.children"
               type="button"
               class="sidebar-link sidebar-dropdown-trigger"
-              :class="{ 'sidebar-link-exact-active': isDropdownActive(item) }"
+              :class="{ 'sidebar-dropdown-active': isDropdownActive(item) }"
               @click="toggleDropdown(item.label)"
             >
               <span class="sidebar-link-left">

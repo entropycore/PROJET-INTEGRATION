@@ -253,6 +253,7 @@ const loadPortfolioMediaDataUrls = async () => {
       try {
         const response = await api.get(buildApiRequestUrl(url), {
           responseType: "blob",
+          skipForbiddenRedirect: true,
         });
         return [url, await blobToDataUrl(response.data)];
       } catch {
