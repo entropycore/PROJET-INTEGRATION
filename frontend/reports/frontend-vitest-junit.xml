@@ -1,0 +1,1931 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="633" failures="0" errors="0" time="38.1283204">
+    <testsuite name="src/tests/test-UI/auth/LoginView.UI.spec.js" timestamp="2026-06-10T07:30:49.847Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.2541898">
+        <testcase classname="src/tests/test-UI/auth/LoginView.UI.spec.js" name="Tests UI et logique - Page de connexion &gt; doit respecter la conformité visuelle et structurelle" time="0.1389648">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/LoginView.UI.spec.js" name="Tests UI et logique - Page de connexion &gt; doit basculer la visibilité du mot de passe" time="0.0340071">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/LoginView.UI.spec.js" name="Tests UI et logique - Page de connexion &gt; doit afficher l&apos;indicateur d&apos;erreur rouge si les champs sont vides" time="0.0237">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/LoginView.UI.spec.js" name="Tests UI et logique - Page de connexion &gt; doit désactiver le bouton et changer le texte lors de clics rapides" time="0.0323354">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/LoginView.UI.spec.js" name="Tests UI et logique - Page de connexion &gt; doit naviguer vers la demande d&apos;accès via le lien dédié" time="0.0194415">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/auth/NotAuthorized.UI.spec.js" timestamp="2026-06-10T07:30:49.858Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.1994967">
+        <testcase classname="src/tests/test-UI/auth/NotAuthorized.UI.spec.js" name="NotAuthorized - Test UI &gt; devrait respecter la structure de mise en page" time="0.1336576">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/NotAuthorized.UI.spec.js" name="NotAuthorized - Test UI &gt; devrait afficher le badge &quot;Erreur 403&quot; avec les styles de danger" time="0.0142788">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/NotAuthorized.UI.spec.js" name="NotAuthorized - Test UI &gt; devrait avoir un titre H1 avec le style de police fluide (clamp)" time="0.0151262">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/NotAuthorized.UI.spec.js" name="NotAuthorized - Test UI &gt; devrait appliquer les classes de boutons primaires et secondaires" time="0.0132826">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/NotAuthorized.UI.spec.js" name="NotAuthorized - Test UI &gt; devrait avoir une section de message avec une largeur maximale définie" time="0.0095941">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/NotAuthorized.UI.spec.js" name="NotAuthorized - Test UI &gt; devrait vérifier que le conteneur d&apos;actions utilise une mise en page flexible" time="0.0080553">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/auth/RequestAccess.UI.spec.js" timestamp="2026-06-10T07:30:49.863Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.3273571">
+        <testcase classname="src/tests/test-UI/auth/RequestAccess.UI.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit afficher une erreur si un champ obligatoire est vide" time="0.1759656">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/RequestAccess.UI.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit valider que les mots de passe ne correspondent pas" time="0.0543699">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/RequestAccess.UI.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit basculer la visibilité du mot de passe" time="0.0218029">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/RequestAccess.UI.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit afficher un message de succès après une soumission valide" time="0.0691753">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/auth/VerifyEmailView.UI.spec.js" timestamp="2026-06-10T07:30:49.868Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1679969">
+        <testcase classname="src/tests/test-UI/auth/VerifyEmailView.UI.spec.js" name="VerifyEmail - Tests UI &gt; devrait afficher le spinner pendant le chargement" time="0.1327855">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/VerifyEmailView.UI.spec.js" name="VerifyEmail - Tests UI &gt; devrait appliquer la classe de succès quand l&apos;email est vérifié" time="0.0151926">
+        </testcase>
+        <testcase classname="src/tests/test-UI/auth/VerifyEmailView.UI.spec.js" name="VerifyEmail - Tests UI &gt; devrait afficher le bouton de retour seulement après le chargement" time="0.0148417">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/layouts/dashboardLayout.UI.spec.js" timestamp="2026-06-10T07:30:49.871Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2023332">
+        <testcase classname="src/tests/test-UI/layouts/dashboardLayout.UI.spec.js" name="DashboardLayout - Test UI &gt; affiche correctement Topbar et Sidebar" time="0.154874">
+        </testcase>
+        <testcase classname="src/tests/test-UI/layouts/dashboardLayout.UI.spec.js" name="DashboardLayout - Test UI &gt; bascule l&apos;etat reduit de la Sidebar quand l&apos;evenement est emis" time="0.0413478">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/ForgotPasswordView.UI.spec.js" timestamp="2026-06-10T07:30:49.872Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1961579">
+        <testcase classname="src/tests/test-UI/views/ForgotPasswordView.UI.spec.js" name="ForgotPassword.vue - Tests UI (Interface) &gt; doit afficher correctement les elements initiaux de la page" time="0.1347716">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/ForgotPasswordView.UI.spec.js" name="ForgotPassword.vue - Tests UI (Interface) &gt; doit lier le champ e-mail avec la variable reactive (v-model)" time="0.0275053">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/ForgotPasswordView.UI.spec.js" name="ForgotPassword.vue - Tests UI (Interface) &gt; doit desactiver le bouton et afficher &apos;Envoi...&apos; pendant la soumission" time="0.0277772">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/Notifications.UI.spec.js" timestamp="2026-06-10T07:30:49.874Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.23618">
+        <testcase classname="src/tests/test-UI/views/Notifications.UI.spec.js" name="Validations.vue - Tests UI &gt; filtre les validations via la barre de recherche" time="0.2036501">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/Notifications.UI.spec.js" name="Validations.vue - Tests UI &gt; ouvre la modale de details lors du clic sur voir" time="0.0271935">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/ResetPasswordView.UI.spec.js" timestamp="2026-06-10T07:30:49.875Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.2544476">
+        <testcase classname="src/tests/test-UI/views/ResetPasswordView.UI.spec.js" name="ResetPassword.vue - Tests UI (Interface) &gt; doit afficher les elements initiaux de la page lorsque le token est valide" time="0.1461531">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/ResetPasswordView.UI.spec.js" name="ResetPassword.vue - Tests UI (Interface) &gt; doit lier les inputs de mots de passe aux variables reactives (v-model)" time="0.0274201">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/ResetPasswordView.UI.spec.js" name="ResetPassword.vue - Tests UI (Interface) &gt; doit basculer le type de l&apos;input entre &apos;password&apos; et &apos;text&apos; lors du clic sur l&apos;icone de visibilite" time="0.0396164">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/ResetPasswordView.UI.spec.js" name="ResetPassword.vue - Tests UI (Interface) &gt; doit afficher l&apos;etat de chargement sur le bouton lors de la soumission" time="0.0353233">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/RolaDashboard.UI.spec.js" timestamp="2026-06-10T07:30:49.877Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.0094336">
+        <testcase classname="src/tests/test-UI/components/RolaDashboard.UI.spec.js" name="RoleDashboard - Tests UI &gt; contient une suite de test valide" time="0.0049876">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/auth/LoginView.smoke.spec.js" timestamp="2026-06-10T07:30:49.878Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.2276968">
+        <testcase classname="src/tests/test-smoke/auth/LoginView.smoke.spec.js" name="Test de fumee - Page de connexion &gt; doit confirmer que les éléments essentiels du DOM sont présents" time="0.1510751">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/auth/LoginView.smoke.spec.js" name="Test de fumee - Page de connexion &gt; doit vérifier la présence du lien de demande d&apos;accès" time="0.0150106">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/auth/LoginView.smoke.spec.js" name="Test de fumee - Page de connexion &gt; doit vérifier que les messages d&apos;erreur ne sont pas visibles par défaut" time="0.0563878">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/auth/NotAuthorized.smoke.spec.js" timestamp="2026-06-10T07:30:49.881Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1238428">
+        <testcase classname="src/tests/test-smoke/auth/NotAuthorized.smoke.spec.js" name="NotAuthorized - Test de fumee &gt; devrait monter le composant sans planter" time="0.1189334">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;NotAuthorized ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/auth/RequestAccess.smoke.spec.js" timestamp="2026-06-10T07:30:49.883Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2324001">
+        <testcase classname="src/tests/test-smoke/auth/RequestAccess.smoke.spec.js" name="Tests de fumee - Demande d&apos;acces &gt; doit afficher une erreur si les mots de passe ne correspondent pas" time="0.1859216">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-smoke/auth/RequestAccess.smoke.spec.js" name="Tests de fumee - Demande d&apos;acces &gt; doit changer le texte du bouton pendant l&apos;envoi" time="0.040167">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/auth/VerifyEmailView.smoke.spec.js" timestamp="2026-06-10T07:30:49.886Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.0871968">
+        <testcase classname="src/tests/test-smoke/auth/VerifyEmailView.smoke.spec.js" name="VerifyEmail - Tests de fumee &gt; devrait monter le composant sans erreur" time="0.0644362">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/auth/VerifyEmailView.smoke.spec.js" name="VerifyEmail - Tests de fumee &gt; devrait afficher le logo de l&apos;application" time="0.0190903">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/Applogo.smoke.spec.js" timestamp="2026-06-10T07:30:49.888Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1172334">
+        <testcase classname="src/tests/test-smoke/components/Applogo.smoke.spec.js" name="AppLogo - Test de fumee &gt; se monte et rend le logo" time="0.1095837">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/layouts/DashboardLayout.smoke.spec.js" timestamp="2026-06-10T07:30:49.889Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.039711">
+        <testcase classname="src/tests/test-smoke/layouts/DashboardLayout.smoke.spec.js" name="DashboardLayout - Test de fumee &gt; monte le composant sans planter" time="0.0362564">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/LandingView.smoke.spec.js" timestamp="2026-06-10T07:30:49.890Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.4879937">
+        <testcase classname="src/tests/test-smoke/Views/LandingView.smoke.spec.js" name="Test de fumee - Page d accueil &gt; doit monter le composant et afficher toutes les sections sans planter" time="0.3304103">
+            <system-err>
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Navbar&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;HeroSection&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;CtaSection&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/LandingView.smoke.spec.js" name="Test de fumee - Page d accueil &gt; doit initialiser l IntersectionObserver après le montage" time="0.076578">
+            <system-err>
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Navbar&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;HeroSection&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;CtaSection&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/LandingView.smoke.spec.js" name="Test de fumee - Page d accueil &gt; doit nettoyer l IntersectionObserver lors du demontage" time="0.0759086">
+            <system-err>
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Navbar&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;HeroSection&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: router-link
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;CtaSection&gt; 
+  at &lt;LandingView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/auth/LoginView.unit.spec.js" timestamp="2026-06-10T07:30:49.894Z" hostname="GhizlaneRB" tests="8" failures="0" errors="0" skipped="0" time="0.5322898">
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit afficher une erreur si les champs e-mail ou mot de passe sont vides" time="0.1273948">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit changer le type de l&apos;input mot de passe lors du clic sur l&apos;icône" time="0.0234006">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit désactiver le bouton et afficher &quot;Connexion...&quot; pendant le chargement" time="0.0735068">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit rediriger l&apos;utilisateur vers la page de demande d&apos;accès" time="0.0683701">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit afficher un message de succès après une connexion réussie" time="0.0433439">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit afficher une erreur si la connexion échoue" time="0.0424412">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit afficher une erreur si le profil utilisateur ne se charge pas" time="0.0781764">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/LoginView.unit.spec.js" name="LoginPage.vue - Tests unitaires de la page de connexion &gt; doit rediriger selon le rôle utilisateur" time="0.0497203">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/auth/NotAuthorized.unit.spec.js" timestamp="2026-06-10T07:30:49.898Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.0830268">
+        <testcase classname="src/tests/test-unitaire/auth/NotAuthorized.unit.spec.js" name="NotAuthorized - Tests Unitaires &gt; devrait calculer le chemin correct pour le role ADMINISTRATOR" time="0.067395">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;NotAuthorized ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/NotAuthorized.unit.spec.js" name="NotAuthorized - Tests Unitaires &gt; devrait retourner a la connexion si l&apos;utilisateur n&apos;est pas authentifie" time="0.0106579">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;NotAuthorized ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/auth/RequestAccess.unit.spec.js" timestamp="2026-06-10T07:30:49.900Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.4034847">
+        <testcase classname="src/tests/test-unitaire/auth/RequestAccess.unit.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit afficher une erreur si un champ obligatoire est vide" time="0.1557226">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/RequestAccess.unit.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit valider que les mots de passe ne correspondent pas" time="0.0790306">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/RequestAccess.unit.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit afficher un message de succès après une soumission valide" time="0.0385264">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/RequestAccess.unit.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit afficher une erreur si l&apos;API refuse la demande" time="0.036149">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/RequestAccess.unit.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit afficher la première erreur de validation retournée par l&apos;API" time="0.0363852">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/RequestAccess.unit.spec.js" name="Tests Unitaires - Page Demande d&apos;accès &gt; doit désactiver le bouton pendant l&apos;envoi" time="0.0512927">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;RequestAccessView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/auth/VerifyEmailView.unit.spec.js" timestamp="2026-06-10T07:30:49.904Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.1299588">
+        <testcase classname="src/tests/test-unitaire/auth/VerifyEmailView.unit.spec.js" name="VerifyEmail - Tests Unitaires &gt; devrait afficher une erreur si le token est manquant" time="0.1079448">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;VerifyEmailView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/auth/VerifyEmailView.unit.spec.js" name="VerifyEmail - Tests Unitaires &gt; devrait afficher le message d&apos;erreur quand la vérification échoue" time="0.0163543">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;VerifyEmailView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/ForgotPasswordView.unit.spec.js" timestamp="2026-06-10T07:30:49.907Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.2270356">
+        <testcase classname="src/tests/test-unitaire/views/ForgotPasswordView.unit.spec.js" name="ForgotPassword.vue - Tests Unitaires (Logique) &gt; doit rediriger vers la page de connexion lors du clic sur &apos;Retour à la connexion&apos;" time="0.1323464">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/ForgotPasswordView.unit.spec.js" name="ForgotPassword.vue - Tests Unitaires (Logique) &gt; doit bloquer la soumission et afficher un message d&apos;erreur si l&apos;e-mail est vide" time="0.0440223">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/ForgotPasswordView.unit.spec.js" name="ForgotPassword.vue - Tests Unitaires (Logique) &gt; doit afficher un message de succès suite à une réponse API positive" time="0.0259807">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/ForgotPasswordView.unit.spec.js" name="ForgotPassword.vue - Tests Unitaires (Logique) &gt; doit traiter et afficher l&apos;erreur renvoyée par le serveur en cas d&apos;échec" time="0.0190228">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/ResetPasswordView.unit.spec.js" timestamp="2026-06-10T07:30:49.909Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.2653006">
+        <testcase classname="src/tests/test-unitaire/views/ResetPasswordView.unit.spec.js" name="ResetPassword.vue - Tests Unitaires (Logique) &gt; doit afficher une erreur et bloquer le formulaire si le token est manquant dans l&apos;URL" time="0.1280927">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/ResetPasswordView.unit.spec.js" name="ResetPassword.vue - Tests Unitaires (Logique) &gt; doit afficher une erreur si les deux mots de passe ne correspondent pas" time="0.0510244">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/ResetPasswordView.unit.spec.js" name="ResetPassword.vue - Tests Unitaires (Logique) &gt; doit appeler l&apos;API et rediriger vers la connexion avec un parametre de requete en cas de succes" time="0.03131">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/ResetPasswordView.unit.spec.js" name="ResetPassword.vue - Tests Unitaires (Logique) &gt; doit recuperer et afficher l&apos;erreur retournee par l&apos;API en cas d&apos;echec de la reinitialisation" time="0.0488259">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Activities.UI.spec.js" timestamp="2026-06-10T07:30:49.911Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.3709231">
+        <testcase classname="src/tests/test-UI/views/student/Activities.UI.spec.js" name="StudentActivities - UI &gt; affiche le titre et le bouton ajouter" time="0.2035688">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Activities.UI.spec.js" name="StudentActivities - UI &gt; affiche les filtres" time="0.0940648">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Activities.UI.spec.js" name="StudentActivities - UI &gt; affiche les activités récupérées" time="0.0231598">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Activities.UI.spec.js" name="StudentActivities - UI &gt; affiche le message vide si aucune activité" time="0.0165227">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Activities.UI.spec.js" name="StudentActivities - UI &gt; navigue vers la création d&apos;une activité" time="0.0280801">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/ActivityCreate.UI.spec.js" timestamp="2026-06-10T07:30:49.913Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1843177">
+        <testcase classname="src/tests/test-UI/views/student/ActivityCreate.UI.spec.js" name="ActivityCreatePage - UI &gt; affiche le titre et la description" time="0.1239928">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityCreate.UI.spec.js" name="ActivityCreatePage - UI &gt; affiche le formulaire avec le bon label" time="0.032887">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityCreate.UI.spec.js" name="ActivityCreatePage - UI &gt; retourne vers la liste des activités" time="0.0216987">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/ActivityDetails.UI.spec.js" timestamp="2026-06-10T07:30:49.916Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.3486915">
+        <testcase classname="src/tests/test-UI/views/student/ActivityDetails.UI.spec.js" name="ActivityDetailsPage - UI &gt; affiche les informations principales" time="0.161014">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityDetails.UI.spec.js" name="ActivityDetailsPage - UI &gt; affiche les sections importantes" time="0.0268542">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityDetails.UI.spec.js" name="ActivityDetailsPage - UI &gt; affiche les boutons importants" time="0.0234047">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityDetails.UI.spec.js" name="ActivityDetailsPage - UI &gt; affiche l&apos;attestation si elle existe" time="0.0326638">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityDetails.UI.spec.js" name="ActivityDetailsPage - UI &gt; affiche message si aucune attestation" time="0.0373578">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityDetails.UI.spec.js" name="ActivityDetailsPage - UI &gt; retourne vers la liste des activités" time="0.0610862">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/ActivityEdit.UI.spec.js" timestamp="2026-06-10T07:30:49.919Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.3180723">
+        <testcase classname="src/tests/test-UI/views/student/ActivityEdit.UI.spec.js" name="EditActivity UI Tests &gt; displays page title" time="0.1995398">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityEdit.UI.spec.js" name="EditActivity UI Tests &gt; displays return button" time="0.0347695">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityEdit.UI.spec.js" name="EditActivity UI Tests &gt; displays page header" time="0.0152721">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityEdit.UI.spec.js" name="EditActivity UI Tests &gt; has correct css class on return button" time="0.0148849">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityEdit.UI.spec.js" name="EditActivity UI Tests &gt; shows loading state" time="0.0191516">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/ActivityEdit.UI.spec.js" name="EditActivity UI Tests &gt; shows error message" time="0.0263096">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Badges.UI.spec.js" timestamp="2026-06-10T07:30:49.921Z" hostname="GhizlaneRB" tests="7" failures="0" errors="0" skipped="0" time="0.3551545">
+        <testcase classname="src/tests/test-UI/views/student/Badges.UI.spec.js" name="MesBadges UI Tests &gt; displays page title" time="0.1095309">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Badges.UI.spec.js" name="MesBadges UI Tests &gt; displays filters section" time="0.1684577">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Badges.UI.spec.js" name="MesBadges UI Tests &gt; displays page header" time="0.0172956">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Badges.UI.spec.js" name="MesBadges UI Tests &gt; displays badges summary" time="0.0143927">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Badges.UI.spec.js" name="MesBadges UI Tests &gt; contains filter buttons" time="0.0123011">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Badges.UI.spec.js" name="MesBadges UI Tests &gt; shows loading state" time="0.0135122">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Badges.UI.spec.js" name="MesBadges UI Tests &gt; has badges grid container" time="0.0127756">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/comperances.UI.spec.js" timestamp="2026-06-10T07:30:49.925Z" hostname="GhizlaneRB" tests="8" failures="0" errors="0" skipped="0" time="0.2986749">
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; displays page title" time="0.1412708">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; displays page header" time="0.048239">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; displays technical skills section" time="0.020318">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; displays soft skills section" time="0.0194531">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; displays radar section" time="0.0183084">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; displays suggestions section" time="0.0154795">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; shows loading message" time="0.0163373">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/comperances.UI.spec.js" name="MesCompetences UI Tests &gt; shows error message" time="0.012991">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Dashboard.UI.spec.js" timestamp="2026-06-10T07:30:49.928Z" hostname="GhizlaneRB" tests="8" failures="0" errors="0" skipped="0" time="0.4422941">
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; renders component" time="0.205548">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; contains dashboard header" time="0.0615936">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; contains statistics section" time="0.0355016">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; contains projects section" time="0.0259326">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; contains badges section" time="0.0146286">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; contains credibility section" time="0.0192152">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; contains notifications section" time="0.0565291">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Dashboard.UI.spec.js" name="Dashboard UI Tests &gt; shows loading message" time="0.0169022">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Github.UI.spec.js" timestamp="2026-06-10T07:30:49.932Z" hostname="GhizlaneRB" tests="10" failures="0" errors="0" skipped="0" time="0.3026385">
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; renders component" time="0.1307639">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; displays page title" time="0.0291663">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; displays github header" time="0.0426654">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; shows loading message" time="0.0146248">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; shows github connect section" time="0.0139748">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; shows connect button" time="0.0128995">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; shows benefits section" time="0.0131784">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; shows import projects benefit" time="0.0129925">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; shows contributions benefit" time="0.0139754">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Github.UI.spec.js" name="Github UI Tests &gt; shows error message" time="0.0124075">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Profile.UI.spec.js" timestamp="2026-06-10T07:30:49.935Z" hostname="GhizlaneRB" tests="9" failures="0" errors="0" skipped="0" time="0.2852916">
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; renders component" time="0.1436616">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; shows loading message" time="0.0297583">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; shows error message" time="0.0174778">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; shows success message" time="0.0157655">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; contains personal information section" time="0.0195237">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; contains career goal section" time="0.014012">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; contains soft skills section" time="0.011603">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; contains academic path section" time="0.0111708">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Profile.UI.spec.js" name="Profile UI Tests &gt; contains add button" time="0.0154984">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Settings.UI.spec.js" timestamp="2026-06-10T07:30:49.938Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1258362">
+        <testcase classname="src/tests/test-UI/views/student/Settings.UI.spec.js" name="Settings UI Test &gt; displays all main sections" time="0.1207912">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/admin/Badges.UI.spec.js" timestamp="2026-06-10T07:30:49.939Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.4066611">
+        <testcase classname="src/tests/test-UI/views/admin/Badges.UI.spec.js" name="Badges - Tests UI &gt; affiche les badges" time="0.2153817">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Badges.UI.spec.js" name="Badges - Tests UI &gt; envoie la creation d&apos;un nouveau badge" time="0.1508715">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Badges.UI.spec.js" name="Badges - Tests UI &gt; envoie la modification d&apos;un badge" time="0.0346249">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/admin/Dashboard.UI.spec.js" timestamp="2026-06-10T07:30:49.940Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.3168348">
+        <testcase classname="src/tests/test-UI/views/admin/Dashboard.UI.spec.js" name="Dashboard - Tests UI &gt; affiche les demandes recentes" time="0.2234567">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Dashboard.UI.spec.js" name="Dashboard - Tests UI &gt; affiche les actions urgentes" time="0.0293043">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Dashboard.UI.spec.js" name="Dashboard - Tests UI &gt; affiche le bouton consulter" time="0.0580803">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/admin/Reports.UI.spec.js" timestamp="2026-06-10T07:30:49.941Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.4053983">
+        <testcase classname="src/tests/test-UI/views/admin/Reports.UI.spec.js" name="Reports - Tests UI &gt; affiche les signalements" time="0.2059867">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Reports.UI.spec.js" name="Reports - Tests UI &gt; affiche les statistiques et la table" time="0.079905">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Reports.UI.spec.js" name="Reports - Tests UI &gt; filtre les signalements par recherche" time="0.0443748">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Reports.UI.spec.js" name="Reports - Tests UI &gt; charge les signalements avec le service mocke" time="0.0521768">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/admin/UserCreate.UI.spec.js" timestamp="2026-06-10T07:30:49.943Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.3116286">
+        <testcase classname="src/tests/test-UI/views/admin/UserCreate.UI.spec.js" name="UserCreate - Tests UI &gt; affiche le formulaire" time="0.1888882">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/UserCreate.UI.spec.js" name="UserCreate - Tests UI &gt; affiche le bouton créer utilisateur" time="0.0179616">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/UserCreate.UI.spec.js" name="UserCreate - Tests UI &gt; remplit les champs du formulaire" time="0.046297">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/UserCreate.UI.spec.js" name="UserCreate - Tests UI &gt; affiche les champs recruteur" time="0.0309552">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/UserCreate.UI.spec.js" name="UserCreate - Tests UI &gt; affiche les champs administrateur" time="0.0212532">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/admin/UserDetails.UI.spec.js" timestamp="2026-06-10T07:30:49.945Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.4246529">
+        <testcase classname="src/tests/test-UI/views/admin/UserDetails.UI.spec.js" name="AdminUserDetails - Tests UI &gt; affiche correctement les informations utilisateur" time="0.2394149">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/UserDetails.UI.spec.js" name="AdminUserDetails - Tests UI &gt; affiche le bouton de modification" time="0.0467705">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/UserDetails.UI.spec.js" name="AdminUserDetails - Tests UI &gt; ouvre la fenetre de reinitialisation du mot de passe" time="0.1041223">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/UserDetails.UI.spec.js" name="AdminUserDetails - Tests UI &gt; affiche les details du role etudiant" time="0.0288199">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/admin/Users.UI.spec.js" timestamp="2026-06-10T07:30:49.946Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2823327">
+        <testcase classname="src/tests/test-UI/views/admin/Users.UI.spec.js" name="Users.vue - Tests UI &gt; devrait adapter dynamiquement les colonnes du tableau pour un Étudiant" time="0.1836606">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/Users.UI.spec.js" name="Users.vue - Tests UI &gt; devrait ouvrir et fermer le menu action lors du clic" time="0.0929991">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/admin/validations.UI.spec.js" timestamp="2026-06-10T07:30:49.948Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2643573">
+        <testcase classname="src/tests/test-UI/views/admin/validations.UI.spec.js" name="Validations.vue - Tests UI et integration &gt; filtre dynamiquement les validations selon la recherche" time="0.2005228">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/admin/validations.UI.spec.js" name="Validations.vue - Tests UI et integration &gt; ouvre la modale de details lors de l&apos;evenement view" time="0.0583786">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" timestamp="2026-06-10T07:30:49.950Z" hostname="GhizlaneRB" tests="14" failures="0" errors="0" skipped="0" time="0.4582122">
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Bloc utilisateur &gt; affiche l&apos;initiale de l&apos;utilisateur dans l&apos;avatar" time="0.1430872">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Bloc utilisateur &gt; affiche le prenom, le nom et le role" time="0.0229978">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Navigation &gt; affiche les liens et le dropdown" time="0.0205761">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Navigation &gt; rend les liens simples (sans enfants)" time="0.0150353">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Navigation &gt; rend le bouton dropdown pour les items avec enfants" time="0.0111871">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Navigation &gt; n&apos;affiche pas le sous-menu avant d&apos;ouvrir le dropdown" time="0.0116339">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Dropdown &gt; ouvre le sous-menu au clic sur le trigger" time="0.0340914">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Dropdown &gt; affiche les liens enfants une fois le sous-menu ouvert" time="0.0187388">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Dropdown &gt; ferme le sous-menu au second clic (toggle)" time="0.0261673">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Dropdown &gt; change le chevron selon l&apos;état ouvert/fermé" time="0.0282807">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Propriete collapsed &gt; gere la classe collapsed et l&apos;evenement toggle-sidebar" time="0.0238579">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Deconnexion &gt; appelle logout(), vide la session et redirige vers /login" time="0.071265">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Deconnexion &gt; redirige quand logout() rejette" time="0.0144263">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/dashboard/sidebar.UI.spec.js" name="Sidebar - Tests UI &gt; Sections par role &gt; n&apos;affiche aucune section si le role est inconnu" time="0.0081601">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/CtaSection.UI.spec.js" timestamp="2026-06-10T07:30:49.956Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1643451">
+        <testcase classname="src/tests/test-UI/components/landing/CtaSection.UI.spec.js" name="CtaSection.vue - Tests UI &amp; Integration Router &gt; redirige vers &apos;/request-access&apos; lors du clic sur le bouton principal" time="0.1591127">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/DemoSection.UI.spec.js" timestamp="2026-06-10T07:30:49.956Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1938129">
+        <testcase classname="src/tests/test-UI/components/landing/DemoSection.UI.spec.js" name="DemoSection - Tests UI &gt; affiche correctement le titre principal de la section" time="0.0905236">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/landing/DemoSection.UI.spec.js" name="DemoSection - Tests UI &gt; affiche les trois onglets avec leurs intitules respectifs" time="0.0818124">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/landing/DemoSection.UI.spec.js" name="DemoSection - Tests UI &gt; affiche l&apos;image de demonstration avec sa description alternative" time="0.016126">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/FeaturesSection.UI.spec.js" timestamp="2026-06-10T07:30:49.958Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.3356201">
+        <testcase classname="src/tests/test-UI/components/landing/FeaturesSection.UI.spec.js" name="Features - Tests UI &gt; structure correctement l&apos;en-tete et la grille de presentation" time="0.3271436">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/FooterSection.UI.spec.js" timestamp="2026-06-10T07:30:49.958Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1585831">
+        <testcase classname="src/tests/test-UI/components/landing/FooterSection.UI.spec.js" name="Footer - Tests UI &gt; structure le rendu visuel et la liste des liens correctement" time="0.1521713">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/HeroSection.UI.spec.js" timestamp="2026-06-10T07:30:49.959Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.2222636">
+        <testcase classname="src/tests/test-UI/components/landing/HeroSection.UI.spec.js" name="Hero - Tests UI &gt; affiche correctement tous les blocs visuels de la section principale" time="0.2167796">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/Navbar.UI.spec.js" timestamp="2026-06-10T07:30:49.960Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1929269">
+        <testcase classname="src/tests/test-UI/components/landing/Navbar.UI.spec.js" name="Navbar - Tests UI &gt; affiche correctement l&apos;identite de marque et les options du menu" time="0.1866799">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/RolesSection.UI.spec.js" timestamp="2026-06-10T07:30:49.961Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.2046661">
+        <testcase classname="src/tests/test-UI/components/landing/RolesSection.UI.spec.js" name="Roles - Tests UI &gt; structure le rendu visuel de la grille des roles correctement" time="0.1991936">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/ScoringSection.UI.spec.js" timestamp="2026-06-10T07:30:49.962Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.5939223">
+        <testcase classname="src/tests/test-UI/components/landing/ScoringSection.UI.spec.js" name="Scoring - Tests UI &gt; structure correctement l&apos;affichage graphique du score et des barres" time="0.5440746">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/landing/ScoringSection.UI.spec.js" name="Scoring - Tests UI &gt; affiche la section des distinctions avec les six badges de competences" time="0.044629">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/landing/WorkflowSection.UI.spec.js" timestamp="2026-06-10T07:30:49.965Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1447363">
+        <testcase classname="src/tests/test-UI/components/landing/WorkflowSection.UI.spec.js" name="Workflow - Tests UI &gt; structure le rendu visuel de la section processus correctement" time="0.1387223">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/notifications/NotificationItem.UI.spec.js" timestamp="2026-06-10T07:30:49.967Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.2273883">
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationItem.UI.spec.js" name="NotificationItem - Tests UI et Interactions &gt; affiche les textes de la notification correctement" time="0.1614628">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationItem.UI.spec.js" name="NotificationItem - Tests UI et Interactions &gt; ajoute la classe &apos;unread&apos; et montre le bouton de lecture quand la notification n&apos;est pas lue" time="0.0217182">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationItem.UI.spec.js" name="NotificationItem - Tests UI et Interactions &gt; retire la classe &apos;unread&apos; et cache le bouton de lecture quand la notification est lue" time="0.0101282">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationItem.UI.spec.js" name="NotificationItem - Tests UI et Interactions &gt; émet l&apos;événement &apos;read&apos; lors du clic sur le bouton Lu" time="0.0180543">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationItem.UI.spec.js" name="NotificationItem - Tests UI et Interactions &gt; émet l&apos;événement &apos;delete&apos; lors du clic sur le bouton Supprimer" time="0.0101387">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/notifications/NotificationList.UI.spec.js" timestamp="2026-06-10T07:30:49.970Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2007367">
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationList.UI.spec.js" name="NotificationList - Test UI &gt; emet l&apos;evenement read quand NotificationItem emet read" time="0.1782508">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationList.UI.spec.js" name="NotificationList - Test UI &gt; emet l&apos;evenement delete avec l&apos;identifiant de notification" time="0.0163793">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/notifications/NotificationToolbar.UI.spec.js" timestamp="2026-06-10T07:30:49.971Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1759527">
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationToolbar.UI.spec.js" name="Toolbar - Tests UI &gt; l&apos;utilisateur peut changer le filtre" time="0.1349775">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationToolbar.UI.spec.js" name="Toolbar - Tests UI &gt; le bouton est visible avec le bon texte" time="0.0135891">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/notifications/NotificationToolbar.UI.spec.js" name="Toolbar - Tests UI &gt; les éléments principaux existent dans l&apos;UI" time="0.0209752">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/dashboard/Sidebar.smoke.spec.js" timestamp="2026-06-10T07:30:49.972Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.2501145">
+        <testcase classname="src/tests/test-smoke/components/dashboard/Sidebar.smoke.spec.js" name="Sidebar - Tests de fumee &gt; se monte sans erreur" time="0.1269739">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Sidebar.smoke.spec.js" name="Sidebar - Tests de fumee &gt; rend un element &lt;aside&gt;" time="0.0314678">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Sidebar.smoke.spec.js" name="Sidebar - Tests de fumee &gt; affiche le bouton de deconnexion" time="0.0264562">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Sidebar.smoke.spec.js" name="Sidebar - Tests de fumee &gt; affiche la navigation" time="0.0347284">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Sidebar.smoke.spec.js" name="Sidebar - Tests de fumee &gt; accepte la propriete collapsed sans planter" time="0.0237978">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" timestamp="2026-06-10T07:30:49.975Z" hostname="GhizlaneRB" tests="11" failures="0" errors="0" skipped="0" time="0.267336">
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; se monte sans erreur avec un utilisateur null" time="0.1405642">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; se monte sans erreur avec un STUDENT" time="0.0139573">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; se monte sans erreur avec un ADMINISTRATOR" time="0.013993">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; se monte sans erreur avec un PROFESSOR" time="0.0111879">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; se monte sans erreur avec un PROFESSIONAL" time="0.0102288">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; se monte sans erreur avec un role inconnu" time="0.0076888">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; rend un element &lt;header class=&quot;topbar&quot;&gt;" time="0.0252598">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; contient la section topbar-left" time="0.0100747">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; contient la section topbar-right" time="0.0092617">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; rend le lien de notification" time="0.0098701">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/dashboard/Topbar.smoke.spec.js" name="TopBar - Tests de fumee &gt; rend le lien avatar" time="0.0085643">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/notifications/NotificationList.smoke.spec.js" timestamp="2026-06-10T07:30:49.981Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.0501587">
+        <testcase classname="src/tests/test-smoke/components/notifications/NotificationList.smoke.spec.js" name="NotificationList - Test de fumee &gt; monte le composant avec succes sans planter" time="0.0468893">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/admin/Badges.smoke.spec.js" timestamp="2026-06-10T07:30:49.983Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.2506581">
+        <testcase classname="src/tests/test-smoke/Views/admin/Badges.smoke.spec.js" name="Badges - Tests de fumee &gt; monte le composant sans erreur" time="0.1972978">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/Badges.smoke.spec.js" name="Badges - Tests de fumee &gt; affiche le titre principal" time="0.0179904">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/Badges.smoke.spec.js" name="Badges - Tests de fumee &gt; affiche le bouton Nouveau badge" time="0.0299178">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/admin/Dashboard.smoke.spec.js" timestamp="2026-06-10T07:30:49.984Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.3430194">
+        <testcase classname="src/tests/test-smoke/Views/admin/Dashboard.smoke.spec.js" name="Dashboard - Tests de fumee &gt; monte le composant sans erreur" time="0.2298205">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/Dashboard.smoke.spec.js" name="Dashboard - Tests de fumee &gt; affiche la section dashboard" time="0.0759767">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/Dashboard.smoke.spec.js" name="Dashboard - Tests de fumee &gt; affiche les cartes statistiques" time="0.0299785">
+            <system-err>
+[Vue warn]: injection &quot;Symbol(router)&quot; not found. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+[Vue warn]: Failed to resolve component: RouterLink
+If this is a native custom element, make sure to exclude it from component resolution via compilerOptions.isCustomElement. 
+  at &lt;Dashboard ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/admin/Reports.smoke.spec.js" timestamp="2026-06-10T07:30:49.987Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.2519191">
+        <testcase classname="src/tests/test-smoke/Views/admin/Reports.smoke.spec.js" name="Reports - Tests de fumee &gt; monte le composant sans erreur" time="0.1529658">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/Reports.smoke.spec.js" name="Reports - Tests de fumee &gt; affiche la page des rapports" time="0.0708208">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/Reports.smoke.spec.js" name="Reports - Tests de fumee &gt; affiche les cartes statistiques" time="0.0225518">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/admin/UserCreate.smoke.spec.js" timestamp="2026-06-10T07:30:49.989Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.1865693">
+        <testcase classname="src/tests/test-smoke/Views/admin/UserCreate.smoke.spec.js" name="UserCreate - Tests de fumee &gt; monte le composant sans erreur" time="0.1023993">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/UserCreate.smoke.spec.js" name="UserCreate - Tests de fumee &gt; affiche la page de creation utilisateur" time="0.0406855">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/UserCreate.smoke.spec.js" name="UserCreate - Tests de fumee &gt; affiche les cartes du formulaire" time="0.0193575">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/admin/UserCreate.smoke.spec.js" name="UserCreate - Tests de fumee &gt; affiche le bouton retour" time="0.0168042">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/admin/UserDetails.smoke.spec.js" timestamp="2026-06-10T07:30:49.991Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.2910014">
+        <testcase classname="src/tests/test-smoke/Views/admin/UserDetails.smoke.spec.js" name="AdminUserDetails - Test de fumee &gt; monte le composant sans planter" time="0.2856859">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/admin/Users.smoke.spec.js" timestamp="2026-06-10T07:30:49.992Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1683741">
+        <testcase classname="src/tests/test-smoke/Views/admin/Users.smoke.spec.js" name="Users.vue - Test de fumee &gt; devrait monter le composant avec succès et afficher le titre par défaut" time="0.1628806">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/admin/validations.smoke.spec.js" timestamp="2026-06-10T07:30:49.993Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.130103">
+        <testcase classname="src/tests/test-smoke/Views/admin/validations.smoke.spec.js" name="Validations.vue - Test de fumee &gt; devrait monter le composant de gestion des validations sans planter" time="0.1243489">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/landing/CtaSection.unit.spec.js" timestamp="2026-06-10T07:30:49.994Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1426603">
+        <testcase classname="src/tests/test-unitaire/components/landing/CtaSection.unit.spec.js" name="CtaSection.vue - Tests Unitaires &gt; rend correctement le titre et le sous-titre" time="0.111263">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/landing/CtaSection.unit.spec.js" name="CtaSection.vue - Tests Unitaires &gt; contient un lien de contact par email valide" time="0.0123659">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/landing/CtaSection.unit.spec.js" name="CtaSection.vue - Tests Unitaires &gt; possede les classes CSS requises pour les animations/styles" time="0.0132951">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/landing/FooterSection.unit.spec.js" timestamp="2026-06-10T07:30:49.996Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1125107">
+        <testcase classname="src/tests/test-unitaire/components/landing/FooterSection.unit.spec.js" name="Footer - Tests Unitaires &gt; valide le contenu des textes et les attributs des liens" time="0.1076548">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/landing/HeroSection.unit.spec.js" timestamp="2026-06-10T07:30:49.998Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.3104746">
+        <testcase classname="src/tests/test-unitaire/components/landing/HeroSection.unit.spec.js" name="Hero - Tests Unitaires &gt; redirige vers la page de connexion lors du clic sur le bouton principal" time="0.2463176">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/landing/HeroSection.unit.spec.js" name="Hero - Tests Unitaires &gt; contient les bonnes valeurs pour les statistiques et les ancres de navigation" time="0.0590514">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/landing/Navbar.unit.spec.js" timestamp="2026-06-10T07:30:50.000Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2320388">
+        <testcase classname="src/tests/test-unitaire/components/landing/Navbar.unit.spec.js" name="Navbar - Tests Unitaires &gt; contient des liens internes valides pour le defilement de la page" time="0.1491786">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/landing/Navbar.unit.spec.js" name="Navbar - Tests Unitaires &gt; gere correctement les redirections de la plateforme" time="0.0777913">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/landing/WorlflowSection.unit.spec.js" timestamp="2026-06-10T07:30:50.002Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.1447343">
+        <testcase classname="src/tests/test-unitaire/components/landing/WorlflowSection.unit.spec.js" name="Workflow - Tests Unitaires &gt; valide le contenu textuel et l ordre des 5 etapes du processus" time="0.11816">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/landing/WorlflowSection.unit.spec.js" name="Workflow - Tests Unitaires &gt; attribue les bons indicateurs d etat aux cercles des etapes" time="0.0213613">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/notifications/NotificationItem.unit.spec.js" timestamp="2026-06-10T07:30:50.003Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.2201332">
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationItem.unit.spec.js" name="NotificationItem - Tests Unitaires (Logique) &gt; gère correctement la configuration des types connus (INFO)" time="0.1806988">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationItem.unit.spec.js" name="NotificationItem - Tests Unitaires (Logique) &gt; gère un type inconnu en affichant sa valeur brute sans planter" time="0.0105183">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationItem.unit.spec.js" name="NotificationItem - Tests Unitaires (Logique) &gt; formate correctement la date au format fr-FR" time="0.0231039">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/notifications/NotificationList.unit.spec.js" timestamp="2026-06-10T07:30:50.006Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.0624364">
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationList.unit.spec.js" name="NotificationList - Test unitaire &gt; affiche un NotificationItem pour chaque notification" time="0.0513083">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationList.unit.spec.js" name="NotificationList - Test unitaire &gt; affiche le message vide quand la liste des notifications est vide" time="0.0073301">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/notifications/NotificationToolbar.unit.spec.js" timestamp="2026-06-10T07:30:50.007Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.1475163">
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationToolbar.unit.spec.js" name="NotificationToolbar.vue &gt; affiche correctement les proprietes" time="0.0972221">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationToolbar.unit.spec.js" name="NotificationToolbar.vue &gt; emet update:selectedType quand le champ de selection change" time="0.0216571">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationToolbar.unit.spec.js" name="NotificationToolbar.vue &gt; emet read-all quand on clique sur le bouton" time="0.0132892">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/notifications/NotificationToolbar.unit.spec.js" name="NotificationToolbar.vue &gt; affiche toutes les options du champ de selection" time="0.0097245">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/admin/Badges.unit.spec.js" timestamp="2026-06-10T07:30:50.010Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.3892989">
+        <testcase classname="src/tests/test-unitaire/views/admin/Badges.unit.spec.js" name="Badges - Tests unitaires &gt; ouvre le modal quand on clique sur Nouveau badge" time="0.3222392">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Badges.unit.spec.js" name="Badges - Tests unitaires &gt; ferme le modal quand on clique sur Annuler" time="0.0342948">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Badges.unit.spec.js" name="Badges - Tests unitaires &gt; affiche une alerte si les champs sont vides" time="0.0272662">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/admin/Dashboard.unit.spec.js" timestamp="2026-06-10T07:30:50.012Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.3051032">
+        <testcase classname="src/tests/test-unitaire/views/admin/Dashboard.unit.spec.js" name="Dashboard - Tests unitaires &gt; affiche le titre principal" time="0.1931721">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Dashboard.unit.spec.js" name="Dashboard - Tests unitaires &gt; affiche les statistiques" time="0.0450879">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Dashboard.unit.spec.js" name="Dashboard - Tests unitaires &gt; redirige au clic sur une demande recente" time="0.0611163">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/admin/Reports.unit.spec.js" timestamp="2026-06-10T07:30:50.015Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.271953">
+        <testcase classname="src/tests/test-unitaire/views/admin/Reports.unit.spec.js" name="Reports - Tests unitaires &gt; affiche le titre principal" time="0.1893991">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Reports.unit.spec.js" name="Reports - Tests unitaires &gt; ouvre et ferme les details d&apos;un signalement" time="0.0767931">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/admin/UserCreate.unit.spec.js" timestamp="2026-06-10T07:30:50.017Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.2471057">
+        <testcase classname="src/tests/test-unitaire/views/admin/UserCreate.unit.spec.js" name="UserCreate - Tests unitaires &gt; affiche le titre de création" time="0.1017547">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/UserCreate.unit.spec.js" name="UserCreate - Tests unitaires &gt; change le rôle correctement" time="0.0687805">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/UserCreate.unit.spec.js" name="UserCreate - Tests unitaires &gt; affiche les champs étudiant par défaut" time="0.0164493">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/UserCreate.unit.spec.js" name="UserCreate - Tests unitaires &gt; affiche les champs professeur quand le rôle change" time="0.0252042">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/UserCreate.unit.spec.js" name="UserCreate - Tests unitaires &gt; bascule la visibilite du mot de passe" time="0.028799">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/admin/UserDetails.unit.spec.js" timestamp="2026-06-10T07:30:50.022Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.3900768">
+        <testcase classname="src/tests/test-unitaire/views/admin/UserDetails.unit.spec.js" name="Tests unitaires UserDetails &gt; affiche correctement les informations utilisateur" time="0.2426266">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/UserDetails.unit.spec.js" name="Tests unitaires UserDetails &gt; charge correctement les données étudiant" time="0.0438276">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/UserDetails.unit.spec.js" name="Tests unitaires UserDetails &gt; ouvre la fenêtre de réinitialisation du mot de passe" time="0.0450659">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/UserDetails.unit.spec.js" name="Tests unitaires UserDetails &gt; active le mode édition" time="0.0494892">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/admin/Users.unit.spec.js" timestamp="2026-06-10T07:30:50.024Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.0085809">
+        <testcase classname="src/tests/test-unitaire/views/admin/Users.unit.spec.js" name="Users.vue - Tests unitaires &gt; fullName() - devrait concaténer correctement le prénom et le nom" time="0.0035471">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Users.unit.spec.js" name="Users.vue - Tests unitaires &gt; initials() - devrait retourner les initiales en lettres majuscules" time="0.0006462">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Users.unit.spec.js" name="Users.vue - Tests unitaires &gt; formatLastActive() - devrait calculer et renvoyer le bon texte de temps écoulé" time="0.0006946">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/Users.unit.spec.js" name="Users.vue - Tests unitaires &gt; statusLabel() - devrait retourner le libellé propre au statut anglais/français" time="0.0005265">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/admin/validations.unit.spec.js" timestamp="2026-06-10T07:30:50.027Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.2057283">
+        <testcase classname="src/tests/test-unitaire/views/admin/validations.unit.spec.js" name="Validations.vue - Tests unitaires &gt; charge les validations depuis le service" time="0.1408746">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/validations.unit.spec.js" name="Validations.vue - Tests unitaires &gt; handleApprove() appelle le service si l&apos;utilisateur confirme" time="0.025822">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/validations.unit.spec.js" name="Validations.vue - Tests unitaires &gt; handleReject() appelle le service si un motif est saisi" time="0.0175425">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/admin/validations.unit.spec.js" name="Validations.vue - Tests unitaires &gt; handleRequestChanges() appelle le service si un motif est fourni" time="0.0149467">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Activities.unit.spec.js" timestamp="2026-06-10T07:30:50.030Z" hostname="GhizlaneRB" tests="12" failures="0" errors="0" skipped="0" time="0.5875291">
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; filtre les activités par recherche" time="0.1865897">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; affiche un état vide si aucune activité n&apos;est retournée" time="0.0173131">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; affiche une erreur si le chargement des activités échoue" time="0.0209237">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; filtre les activités par statut" time="0.0183926">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; filtre les activités par type" time="0.0181996">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; supprime une activité après confirmation" time="0.0600759">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; ne supprime pas si l&apos;utilisateur annule" time="0.0229974">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; affiche une erreur si la suppression échoue" time="0.0352908">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; soumet une activité valide à la validation" time="0.072555">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; affiche une erreur si la soumission de l&apos;activité échoue" time="0.0930903">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; affiche message si activité sans attestation" time="0.014046">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Activities.unit.spec.js" name="StudentActivities - Unit &gt; affiche message si activité pas en brouillon" time="0.0213198">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" timestamp="2026-06-10T07:30:50.039Z" hostname="GhizlaneRB" tests="7" failures="0" errors="0" skipped="0" time="0.3558856">
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" name="ActivityCreatePage - Unit &gt; crée une activité sans envoyer certificate dans le payload principal" time="0.1617304">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" name="ActivityCreatePage - Unit &gt; upload l&apos;attestation si certificate est un File" time="0.0337142">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" name="ActivityCreatePage - Unit &gt; n&apos;upload pas d&apos;attestation si certificate n&apos;est pas un File" time="0.0382109">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" name="ActivityCreatePage - Unit &gt; redirige vers la page détail après création" time="0.0395167">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" name="ActivityCreatePage - Unit &gt; affiche un message d&apos;erreur si la création échoue" time="0.0185729">
+            <system-err>
+Erreur création activité : { response: { data: { message: &apos;Titre obligatoire&apos; } } }
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" name="ActivityCreatePage - Unit &gt; affiche un message d&apos;erreur si l&apos;upload de l&apos;attestation échoue" time="0.0277477">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityCreate.unit.spec.js" name="ActivityCreatePage - Unit &gt; retourne vers la liste si le formulaire annule" time="0.0304774">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" timestamp="2026-06-10T07:30:50.043Z" hostname="GhizlaneRB" tests="16" failures="0" errors="0" skipped="0" time="0.9860674">
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche le bon message pour une activité brouillon" time="0.2075485">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche le bon message pour une activité validée" time="0.0279085">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; redirige vers la page modification" time="0.1014212">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; supprime l&apos;activité après confirmation" time="0.0593299">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; ne supprime pas si l&apos;utilisateur annule" time="0.0473873">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; soumet l&apos;activité à validation si elle est valide" time="0.1889067">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche message si activité sans attestation" time="0.0262149">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche une erreur si le chargement de l&apos;activité échoue" time="0.0172929">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; masque les actions si les règles métier ne les autorisent pas" time="0.0212849">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche une erreur si la suppression échoue" time="0.0498173">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche le message d&apos;erreur de l&apos;API si la soumission échoue" time="0.0481897">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; prévisualise l&apos;attestation PDF" time="0.0585395">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche une erreur si la prévisualisation reçoit une réponse invalide" time="0.0638871">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; affiche l&apos;historique généré si validationHistory est vide" time="0.0221654">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; trie l&apos;historique de validation du plus récent au plus ancien" time="0.0228489">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityDetails.unit.spec.js" name="ActivityDetailsPage - Unit &gt; vérifie les vraies règles métier des activités" time="0.0133369">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/ActivityEdit.unit.spec.js" timestamp="2026-06-10T07:30:50.053Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.0113215">
+        <testcase classname="src/tests/test-unitaire/views/student/ActivityEdit.unit.spec.js" name="EditActivity Unit Tests &gt; should remove certificate fields from payload" time="0.0064514">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Badges.unit.spec.js" timestamp="2026-06-10T07:30:50.054Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.014045">
+        <testcase classname="src/tests/test-unitaire/views/student/Badges.unit.spec.js" name="MesBadges Unit Tests &gt; returns 100 when badge is obtained" time="0.005401">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Badges.unit.spec.js" name="MesBadges Unit Tests &gt; calculates progress percentage correctly" time="0.0008181">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Badges.unit.spec.js" name="MesBadges Unit Tests &gt; returns obtained status" time="0.0009299">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Badges.unit.spec.js" name="MesBadges Unit Tests &gt; returns in-progress status" time="0.0009261">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Badges.unit.spec.js" name="MesBadges Unit Tests &gt; returns locked status" time="0.0007369">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/comperances.unit.spec.js" timestamp="2026-06-10T07:30:50.057Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.0107068">
+        <testcase classname="src/tests/test-unitaire/views/student/comperances.unit.spec.js" name="MesCompetences Unit Tests &gt; normalizes score correctly" time="0.0039572">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/comperances.unit.spec.js" name="MesCompetences Unit Tests &gt; limits score to 100" time="0.0004718">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/comperances.unit.spec.js" name="MesCompetences Unit Tests &gt; limits score to 0" time="0.0003585">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/comperances.unit.spec.js" name="MesCompetences Unit Tests &gt; returns null for invalid value" time="0.0003311">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/comperances.unit.spec.js" name="MesCompetences Unit Tests &gt; gets score from level" time="0.0005794">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/comperances.unit.spec.js" name="MesCompetences Unit Tests &gt; gets score from masteryLevel" time="0.0004149">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Dashboard.unit.spec.js" timestamp="2026-06-10T07:30:50.061Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.0861902">
+        <testcase classname="src/tests/test-unitaire/views/student/Dashboard.unit.spec.js" name="Dashboard Unit Tests &gt; returns correct status label" time="0.0052485">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Dashboard.unit.spec.js" name="Dashboard Unit Tests &gt; returns correction label" time="0.000687">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Dashboard.unit.spec.js" name="Dashboard Unit Tests &gt; returns notification class" time="0.0006075">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Dashboard.unit.spec.js" name="Dashboard Unit Tests &gt; returns default notification class" time="0.0005479">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Dashboard.unit.spec.js" name="Dashboard Unit Tests &gt; formats date correctly" time="0.0734762">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Dashboard.unit.spec.js" name="Dashboard Unit Tests &gt; returns empty string for null date" time="0.0006381">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Github.unit.spec.js" timestamp="2026-06-10T07:30:50.063Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.0781475">
+        <testcase classname="src/tests/test-unitaire/views/student/Github.unit.spec.js" name="Github Unit Tests &gt; returns true when repo is imported" time="0.0052714">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Github.unit.spec.js" name="Github Unit Tests &gt; returns true when repo exists in imported list" time="0.0007697">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Github.unit.spec.js" name="Github Unit Tests &gt; returns false when repo is not imported" time="0.0008971">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Github.unit.spec.js" name="Github Unit Tests &gt; formats date correctly" time="0.0651442">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Github.unit.spec.js" name="Github Unit Tests &gt; returns dash for empty date" time="0.0007334">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Profile.unit.spec.js" timestamp="2026-06-10T07:30:50.067Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.0710956">
+        <testcase classname="src/tests/test-unitaire/views/student/Profile.unit.spec.js" name="Profile Unit Tests &gt; generates initials" time="0.0053689">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Profile.unit.spec.js" name="Profile Unit Tests &gt; returns empty initials when names are missing" time="0.0007681">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Profile.unit.spec.js" name="Profile Unit Tests &gt; formats profile date" time="0.0543235">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Profile.unit.spec.js" name="Profile Unit Tests &gt; returns empty string for invalid date" time="0.0006969">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Profile.unit.spec.js" name="Profile Unit Tests &gt; formats date range" time="0.0015958">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Profile.unit.spec.js" name="Profile Unit Tests &gt; normalizes soft skills" time="0.0030865">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Recommendations.unit.spec.js" timestamp="2026-06-10T07:30:50.069Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1476573">
+        <testcase classname="src/tests/test-unitaire/views/student/Recommendations.unit.spec.js" name="StudentRecommendations Unit Test &gt; filters recommendations correctly" time="0.1426288">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Settings.unit.spec.js" timestamp="2026-06-10T07:30:50.070Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.16408">
+        <testcase classname="src/tests/test-unitaire/views/student/Settings.unit.spec.js" name="Settings Unit Test &gt; shows error when passwords do not match" time="0.1580552">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/portfolio/PortfolioFullView.UI.spec.js" timestamp="2026-06-10T07:30:50.070Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.2581274">
+        <testcase classname="src/tests/test-UI/views/student/portfolio/PortfolioFullView.UI.spec.js" name="PortfolioFullView - Tests UI &amp; Interactions &gt; devrait correspondre a la structure du template HTML avec les bonnes classes CSS de theme dynamique" time="0.1638601">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/portfolio/PortfolioFullView.UI.spec.js" name="PortfolioFullView - Tests UI &amp; Interactions &gt; devrait afficher dynamiquement les badges de competences sur les lignes de la mise en page" time="0.0239205">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/portfolio/PortfolioFullView.UI.spec.js" name="PortfolioFullView - Tests UI &amp; Interactions &gt; devrait derouler correctement le cycle d&apos;ouverture de la boite modale de details lors du clic" time="0.0612033">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/portfolio/ProtfolioPreview.UI.spec.js" timestamp="2026-06-10T07:30:50.072Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.3372576">
+        <testcase classname="src/tests/test-UI/views/student/portfolio/ProtfolioPreview.UI.spec.js" name="PortfolioGenerator - Tests UI &gt; affiche les sections UI principales" time="0.1499516">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/portfolio/ProtfolioPreview.UI.spec.js" name="PortfolioGenerator - Tests UI &gt; affiche le thème actif avec la classe active" time="0.0427477">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/portfolio/ProtfolioPreview.UI.spec.js" name="PortfolioGenerator - Tests UI &gt; affiche le bouton plein écran si le portfolio est généré" time="0.038589">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/portfolio/ProtfolioPreview.UI.spec.js" name="PortfolioGenerator - Tests UI &gt; vérifie les classes importantes liées au style" time="0.0959406">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Projects/ProjectEdit.UI.spec.js" timestamp="2026-06-10T07:30:50.073Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.2439917">
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectEdit.UI.spec.js" name="ProjectEdit UI Tests &gt; affiche le layout principal" time="0.168491">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectEdit.UI.spec.js" name="ProjectEdit UI Tests &gt; affiche les sections importantes" time="0.0268221">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectEdit.UI.spec.js" name="ProjectEdit UI Tests &gt; affiche les boutons principaux" time="0.0217874">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectEdit.UI.spec.js" name="ProjectEdit UI Tests &gt; affiche le warning si aucun validateur" time="0.0203973">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Projects/Projects.UI.spec.js" timestamp="2026-06-10T07:30:50.075Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.4039395">
+        <testcase classname="src/tests/test-UI/views/student/Projects/Projects.UI.spec.js" name="StudentProjects - Tests UI &gt; affiche la structure principale de la page" time="0.251125">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/Projects.UI.spec.js" name="StudentProjects - Tests UI &gt; affiche la barre de recherche et les filtres" time="0.0533507">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/Projects.UI.spec.js" name="StudentProjects - Tests UI &gt; affiche une carte projet avec ses éléments UI" time="0.0312503">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/Projects.UI.spec.js" name="StudentProjects - Tests UI &gt; affiche le bouton nouveau projet" time="0.0502663">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/Projects.UI.spec.js" name="StudentProjects - Tests UI &gt; affiche le message aucun projet si la liste est vide" time="0.0122644">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Projects/ProjectsCreate.UI.spec.js" timestamp="2026-06-10T07:30:50.077Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.3790995">
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsCreate.UI.spec.js" name="ProjectCreate - Tests UI &gt; affiche la structure principale de l’interface" time="0.2271516">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsCreate.UI.spec.js" name="ProjectCreate - Tests UI &gt; affiche les cartes importantes" time="0.0374205">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsCreate.UI.spec.js" name="ProjectCreate - Tests UI &gt; affiche la liste des validateurs au focus" time="0.0631701">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsCreate.UI.spec.js" name="ProjectCreate - Tests UI &gt; affiche le message warning quand le formulaire est incomplet" time="0.0451108">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" timestamp="2026-06-10T07:30:50.080Z" hostname="GhizlaneRB" tests="7" failures="0" errors="0" skipped="0" time="0.2974912">
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" name="ProjectDetailsView - UI &gt; affiche les informations principales du projet" time="0.1749917">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" name="ProjectDetailsView - UI &gt; affiche les sections importantes de la page" time="0.0248246">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" name="ProjectDetailsView - UI &gt; affiche les technologies utilisées" time="0.0201234">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" name="ProjectDetailsView - UI &gt; affiche le bouton Modifier si le projet est modifiable" time="0.0174596">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" name="ProjectDetailsView - UI &gt; n&apos;affiche pas Modifier si le projet est en attente" time="0.0167252">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" name="ProjectDetailsView - UI &gt; affiche le message vide quand aucun fichier n&apos;est ajouté" time="0.0155888">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/Projects/ProjectsDetails.UI.spec.js" name="ProjectDetailsView - UI &gt; affiche les liens du projet" time="0.0197348">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/stages/Recommendatons.UI.spec.js" timestamp="2026-06-10T07:30:50.084Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1236158">
+        <testcase classname="src/tests/test-UI/views/student/stages/Recommendatons.UI.spec.js" name="StudentRecommendations UI Test &gt; displays page title and recommendation content" time="0.1179873">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" timestamp="2026-06-10T07:30:50.085Z" hostname="GhizlaneRB" tests="7" failures="0" errors="0" skipped="0" time="0.2778691">
+        <testcase classname="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" name="StageDetailsView - UI &gt; affiche les informations principales du stage" time="0.1125544">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" name="StageDetailsView - UI &gt; affiche les sections importantes" time="0.0209511">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" name="StageDetailsView - UI &gt; affiche les technologies et missions" time="0.0168222">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" name="StageDetailsView - UI &gt; affiche le bouton Modifier si le stage est modifiable" time="0.0532154">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" name="StageDetailsView - UI &gt; n&apos;affiche pas Modifier si le stage est validé" time="0.0164635">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" name="StageDetailsView - UI &gt; affiche message vide si aucune image" time="0.0125485">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageDetailsView.UI.spec.js" name="StageDetailsView - UI &gt; affiche le bouton voir toutes les images si plus de 4 images" time="0.0393088">
+            <system-err>
+Erreur chargement image de stage : TypeError: Cannot read properties of undefined (reading &apos;data&apos;)
+    at C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:77:56
+    at async Promise.all (index 0)
+    at hydrateStageMedia (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:68:27)
+    at fetchStage (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:34:5)
+Erreur chargement image de stage : TypeError: Cannot read properties of undefined (reading &apos;data&apos;)
+    at C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:77:56
+    at async Promise.all (index 1)
+    at hydrateStageMedia (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:68:27)
+    at fetchStage (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:34:5)
+Erreur chargement image de stage : TypeError: Cannot read properties of undefined (reading &apos;data&apos;)
+    at C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:77:56
+    at async Promise.all (index 2)
+    at hydrateStageMedia (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:68:27)
+    at fetchStage (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:34:5)
+Erreur chargement image de stage : TypeError: Cannot read properties of undefined (reading &apos;data&apos;)
+    at C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:77:56
+    at async Promise.all (index 3)
+    at hydrateStageMedia (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:68:27)
+    at fetchStage (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:34:5)
+Erreur chargement image de stage : TypeError: Cannot read properties of undefined (reading &apos;data&apos;)
+    at C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:77:56
+    at async Promise.all (index 4)
+    at hydrateStageMedia (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:68:27)
+    at fetchStage (C:/Users/ghizl/PROJET-INTEGRATION/frontend/src/views/student/stages/StageDetailsView.vue:34:5)
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/stages/StageFormView.UI.spec.js" timestamp="2026-06-10T07:30:50.087Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.1751708">
+        <testcase classname="src/tests/test-UI/views/student/stages/StageFormView.UI.spec.js" name="StageFormPage - UI &gt; affiche la page ajout stage en mode création" time="0.1172332">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageFormView.UI.spec.js" name="StageFormPage - UI &gt; affiche la page modification stage en mode édition" time="0.0167108">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageFormView.UI.spec.js" name="StageFormPage - UI &gt; affiche le loading au début" time="0.009885">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageFormView.UI.spec.js" name="StageFormPage - UI &gt; affiche le composant StageForm après chargement" time="0.0103738">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StageFormView.UI.spec.js" name="StageFormPage - UI &gt; retourne vers la liste des stages au clic sur retour" time="0.0151618">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/views/student/stages/StagesView.UI.spec.js" timestamp="2026-06-10T07:30:50.090Z" hostname="GhizlaneRB" tests="6" failures="0" errors="0" skipped="0" time="0.2225396">
+        <testcase classname="src/tests/test-UI/views/student/stages/StagesView.UI.spec.js" name="StudentStages - UI &gt; affiche le titre et le bouton ajouter" time="0.113903">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StagesView.UI.spec.js" name="StudentStages - UI &gt; affiche les filtres" time="0.0399451">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StagesView.UI.spec.js" name="StudentStages - UI &gt; affiche les stages récupérés" time="0.0142364">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StagesView.UI.spec.js" name="StudentStages - UI &gt; affiche le nombre de stages" time="0.0129794">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StagesView.UI.spec.js" name="StudentStages - UI &gt; affiche un message vide si aucun stage trouvé" time="0.012889">
+        </testcase>
+        <testcase classname="src/tests/test-UI/views/student/stages/StagesView.UI.spec.js" name="StudentStages - UI &gt; navigue vers la création d&apos;un stage" time="0.021575">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" timestamp="2026-06-10T07:30:50.091Z" hostname="GhizlaneRB" tests="8" failures="0" errors="0" skipped="0" time="0.341637">
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; affiche les informations principales du signalement" time="0.159461">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; traduit targetType PROJECT" time="0.0127123">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; traduit targetType PORTFOLIO" time="0.0107141">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; traduit targetType COMMENT" time="0.0126293">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; traduit targetType USER" time="0.0105295">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; affiche le targetType brut si inconnu" time="0.0092684">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; affiche les boutons d&apos;action uniquement pour PENDING" time="0.042054">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportDetailsModal.UI.spec.js" name="ReportDetailModal &gt; emet les evenements attendus" time="0.0763553">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/reports/ReportsStats.UI.spec.js" timestamp="2026-06-10T07:30:50.094Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.1485054">
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsStats.UI.spec.js" name="ReportStats &gt; affiche les quatre valeurs dans l&apos;ordre" time="0.0923278">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsStats.UI.spec.js" name="ReportStats &gt; affiche les labels actuels" time="0.0108119">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsStats.UI.spec.js" name="ReportStats &gt; rend exactement 4 stat-cards" time="0.0138762">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsStats.UI.spec.js" name="ReportStats &gt; affiche les valeurs zero" time="0.0088586">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsStats.UI.spec.js" name="ReportStats &gt; met a jour les valeurs quand la prop stats change" time="0.0154084">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/reports/ReportsTable.UI.spec.js" timestamp="2026-06-10T07:30:50.097Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.3667918">
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsTable.UI.spec.js" name="ReportsTable - Tests UI &amp; Composant &gt; affiche le message vide lorsque la liste est vide" time="0.0876218">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsTable.UI.spec.js" name="ReportsTable - Tests UI &amp; Composant &gt; affiche correctement les donnees et les badges traduits" time="0.0854898">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsTable.UI.spec.js" name="ReportsTable - Tests UI &amp; Composant &gt; ouvre le menu actions et masque les actions de resolution si le statut est RESOLVED" time="0.0586305">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsTable.UI.spec.js" name="ReportsTable - Tests UI &amp; Composant &gt; emet les evenements depuis le menu actions" time="0.1051829">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/reports/ReportsToolbar.UI.spec.js" timestamp="2026-06-10T07:30:50.100Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.208403">
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsToolbar.UI.spec.js" name="ReportsToolbar - Tests UI &gt; doit initialiser les champs avec les valeurs des props" time="0.1430785">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsToolbar.UI.spec.js" name="ReportsToolbar - Tests UI &gt; doit émettre l&apos;événement de recherche lors de la saisie" time="0.0244732">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsToolbar.UI.spec.js" name="ReportsToolbar - Tests UI &gt; doit émettre l&apos;événement de changement de type" time="0.0170318">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/reports/ReportsToolbar.UI.spec.js" name="ReportsToolbar - Tests UI &gt; doit émettre l&apos;événement de changement de statut" time="0.0177847">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/validations/validationsDetailModal.UI.spec.js" timestamp="2026-06-10T07:30:50.102Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2105091">
+        <testcase classname="src/tests/test-UI/components/admin/validations/validationsDetailModal.UI.spec.js" name="ValidationDetailsModal - Tests UI &gt; affiche les informations principales" time="0.1397665">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/validations/validationsDetailModal.UI.spec.js" name="ValidationDetailsModal - Tests UI &gt; emet les actions utilisateur" time="0.0651796">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/validations/validationsTable.UI.spec.js" timestamp="2026-06-10T07:30:50.104Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2041795">
+        <testcase classname="src/tests/test-UI/components/admin/validations/validationsTable.UI.spec.js" name="ValidationsTable - Tests UI &gt; affiche un etat vide" time="0.0839112">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/validations/validationsTable.UI.spec.js" name="ValidationsTable - Tests UI &gt; affiche les donnees et emet les actions" time="0.1140096">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/validations/validationStats.UI.spec.js" timestamp="2026-06-10T07:30:50.106Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1258381">
+        <testcase classname="src/tests/test-UI/components/admin/validations/validationStats.UI.spec.js" name="ValidationStats - Tests UI &gt; affiche les cinq cartes de statistiques" time="0.1197819">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/admin/validations/validationToolbar.UI.spec.js" timestamp="2026-06-10T07:30:50.107Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.1889221">
+        <testcase classname="src/tests/test-UI/components/admin/validations/validationToolbar.UI.spec.js" name="ValidationToolbar - Tests UI &gt; initialise les champs avec les proprietes" time="0.1464588">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/admin/validations/validationToolbar.UI.spec.js" name="ValidationToolbar - Tests UI &gt; emet les mises a jour des filtres" time="0.0367654">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/activities/ActivityCard.UI.spec.js" timestamp="2026-06-10T07:30:50.109Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.3716902">
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityCard.UI.spec.js" name="ActivityCard.vue - Tests Intégration UI &gt; doit afficher correctement les détails de l&apos;activité avec les labels mappés" time="0.1373356">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityCard.UI.spec.js" name="ActivityCard.vue - Tests Intégration UI &gt; doit appliquer dynamiquement les classes CSS appropriées selon le statut de validation" time="0.0657543">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityCard.UI.spec.js" name="ActivityCard.vue - Tests Intégration UI &gt; doit afficher ou masquer les boutons d&apos;action selon les permissions CSS/v-if" time="0.0263767">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityCard.UI.spec.js" name="ActivityCard.vue - Tests Intégration UI &gt; doit émettre l&apos;événement delete-activity lors du clic sur supprimer" time="0.0206257">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityCard.UI.spec.js" name="ActivityCard.vue - Tests Intégration UI &gt; doit basculer l&apos;affichage de la modal et afficher l&apos;iframe ou l&apos;image selon le fichier" time="0.1151397">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/activities/ActivityFilters.UI.spec.js" timestamp="2026-06-10T07:30:50.112Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.233492">
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityFilters.UI.spec.js" name="ActivityFilters.vue - Tests Intégration UI &gt; doit lier correctement les valeurs des props aux éléments HTML" time="0.1617245">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityFilters.UI.spec.js" name="ActivityFilters.vue - Tests Intégration UI &gt; doit émettre l&apos;événement update:search lors de la saisie utilisateur" time="0.0261041">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityFilters.UI.spec.js" name="ActivityFilters.vue - Tests Intégration UI &gt; doit émettre l&apos;événement update:status lors du changement du filtre statut" time="0.016285">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityFilters.UI.spec.js" name="ActivityFilters.vue - Tests Intégration UI &gt; doit émettre l&apos;événement update:type lors du changement du filtre type" time="0.0234298">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/activities/ActivityForm.UI.spec.js" timestamp="2026-06-10T07:30:50.116Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.3000093">
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityForm.UI.spec.js" name="ActivityForm.vue - Tests Intégration UI &gt; doit pré-remplir les champs si une activité initiale est fournie" time="0.1784241">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityForm.UI.spec.js" name="ActivityForm.vue - Tests Intégration UI &gt; doit émettre save-activity avec les données saisies lors de la soumission" time="0.0777458">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityForm.UI.spec.js" name="ActivityForm.vue - Tests Intégration UI &gt; doit émettre l&apos;événement cancel lors du clic sur le bouton Annuler" time="0.0193707">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/activities/ActivityForm.UI.spec.js" name="ActivityForm.vue - Tests Intégration UI &gt; doit afficher le nom de l&apos;attestation si elle est présente dans le formulaire" time="0.0167779">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/portfolio/PortfolioHero.UI.spec.js" timestamp="2026-06-10T07:30:50.119Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.2553782">
+        <testcase classname="src/tests/test-UI/components/student/portfolio/PortfolioHero.UI.spec.js" name="StudentHero.vue - Tests Intégration UI &gt; doit afficher correctement les informations de l&apos;étudiant et appliquer le thème CSS" time="0.1459025">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/PortfolioHero.UI.spec.js" name="StudentHero.vue - Tests Intégration UI &gt; doit basculer entre l&apos;image de profil et les initiales selon la présence de profilePicture" time="0.0339146">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/PortfolioHero.UI.spec.js" name="StudentHero.vue - Tests Intégration UI &gt; doit masquer les liens de réseaux sociaux si les URLs sont vides" time="0.0187319">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/PortfolioHero.UI.spec.js" name="StudentHero.vue - Tests Intégration UI &gt; doit mettre à jour le style CSS de la jauge après l&apos;écoulement du timeout d&apos;animation" time="0.0513436">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" timestamp="2026-06-10T07:30:50.121Z" hostname="GhizlaneRB" tests="14" failures="0" errors="0" skipped="0" time="0.7378489">
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Visibilité des éléments &gt; le titre est visible dans le DOM" time="0.3916592">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Visibilité des éléments &gt; l&apos;icône Material est visible" time="0.0779568">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Visibilité des éléments &gt; le contenu du slot est visible" time="0.0531751">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Classes CSS — thème &gt; la section porte à la fois &apos;.portfolio-section&apos; et la classe theme" time="0.0115793">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Classes CSS — thème &gt; le changement de theme met à jour la classe CSS" time="0.0178279">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Réactivité — mise à jour des props &gt; le titre se met à jour dans le DOM après setProps" time="0.0142937">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Réactivité — mise à jour des props &gt; l&apos;icône se met à jour dans le DOM après setProps" time="0.0385771">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Accessibilité &gt; utilise une balise sémantique &lt;section&gt;" time="0.0176898">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Accessibilité &gt; utilise un &lt;h2&gt; pour le titre (hiérarchie heading)" time="0.0052665">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Accessibilité &gt; le span d&apos;icône est aria-cachable (pas de rôle sémantique fort)" time="0.0056751">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Slot — composition UI &gt; rend une liste ul/li dans le slot" time="0.0153618">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Slot — composition UI &gt; rend des composants imbriqués dans le slot" time="0.0136801">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Slot — composition UI &gt; le slot peut être mis à jour dynamiquement" time="0.0177149">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/portfolio/portfolioSection.UI.spec.js" name="PortfolioSection — Tests UI &gt; Snapshot &gt; correspond au snapshot de référence (structure stable)" time="0.0487071">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/stages/StageCard.UI.spec.js" timestamp="2026-06-10T07:30:50.127Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.1648831">
+        <testcase classname="src/tests/test-UI/components/student/stages/StageCard.UI.spec.js" name="StageCard.vue - Tests UI et d&apos;interaction &gt; devrait émettre l&apos;événement &quot;delete-stage&quot; avec l&apos;ID correct lorsque le bouton supprimer est cliqué" time="0.113629">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageCard.UI.spec.js" name="StageCard.vue - Tests UI et d&apos;interaction &gt; devrait afficher le bouton Modifier uniquement si le stage est à l&apos;état DRAFT" time="0.0457375">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/stages/StageFilters.UI.spec.js" timestamp="2026-06-10T07:30:50.129Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1945322">
+        <testcase classname="src/tests/test-UI/components/student/stages/StageFilters.UI.spec.js" name="StageFilters.vue - Tests UI et d&apos;interaction &gt; devrait émettre &quot;update:search&quot; quand l&apos;utilisateur tape dans le champ de recherche" time="0.1521712">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageFilters.UI.spec.js" name="StageFilters.vue - Tests UI et d&apos;interaction &gt; devrait émettre &quot;update:status&quot; lorsque l&apos;utilisateur change le statut" time="0.0219435">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageFilters.UI.spec.js" name="StageFilters.vue - Tests UI et d&apos;interaction &gt; devrait émettre &quot;update:visibility&quot; lorsque l&apos;utilisateur change la visibilité" time="0.0149339">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/stages/StageForm.UI.spec.js" timestamp="2026-06-10T07:30:50.131Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.2175598">
+        <testcase classname="src/tests/test-UI/components/student/stages/StageForm.UI.spec.js" name="StageForm.vue - Tests d&apos;Interface et d&apos;Interaction &gt; devrait ajouter une technologie à la liste lors du clic sur le bouton Ajouter" time="0.1512245">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageForm.UI.spec.js" name="StageForm.vue - Tests d&apos;Interface et d&apos;Interaction &gt; devrait afficher la liste des suggestions d&apos;encadrants lors du focus sur le champ" time="0.0389785">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageForm.UI.spec.js" name="StageForm.vue - Tests d&apos;Interface et d&apos;Interaction &gt; devrait émettre l&apos;événement &quot;save-draft&quot; avec le bon payload lors du clic sur Sauvegarder" time="0.0216635">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/stages/StageImagesModal.UI.spec.js" timestamp="2026-06-10T07:30:50.133Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.119296">
+        <testcase classname="src/tests/test-UI/components/student/stages/StageImagesModal.UI.spec.js" name="StageImagesModal.vue - Tests d&apos;Interface et d&apos;Interaction &gt; devrait émettre l&apos;événement &quot;close&quot; lors du clic sur le bouton de fermeture" time="0.0924122">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageImagesModal.UI.spec.js" name="StageImagesModal.vue - Tests d&apos;Interface et d&apos;Interaction &gt; devrait émettre l&apos;événement &quot;close&quot; lors du clic sur l&apos;overlay d&apos;arrière-plan" time="0.0126105">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageImagesModal.UI.spec.js" name="StageImagesModal.vue - Tests d&apos;Interface et d&apos;Interaction &gt; ne devrait PAS émettre l&apos;événement &quot;close&quot; si le clic provient d&apos;un élément enfant à l&apos;intérieur de la carte" time="0.0091638">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-UI/components/student/stages/StageValidationBadge.UI.spec.js" timestamp="2026-06-10T07:30:50.135Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.0887715">
+        <testcase classname="src/tests/test-UI/components/student/stages/StageValidationBadge.UI.spec.js" name="ValidationBadge.vue - Tests d&apos;Interface (Rendu du badge) &gt; devrait appliquer la classe &quot;approved&quot; et afficher &quot;Validé&quot; pour le statut APPROVED" time="0.0701897">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageValidationBadge.UI.spec.js" name="ValidationBadge.vue - Tests d&apos;Interface (Rendu du badge) &gt; devrait appliquer la classe &quot;draft&quot; et afficher &quot;Brouillon&quot; pour le statut DRAFT" time="0.0089473">
+        </testcase>
+        <testcase classname="src/tests/test-UI/components/student/stages/StageValidationBadge.UI.spec.js" name="ValidationBadge.vue - Tests d&apos;Interface (Rendu du badge) &gt; devrait afficher &quot;Correction demandée&quot; avec la classe &quot;correction&quot; pour le statut CHANGES_REQUESTED" time="0.0057666">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" timestamp="2026-06-10T07:30:50.137Z" hostname="GhizlaneRB" tests="10" failures="0" errors="0" skipped="0" time="0.2667758">
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; monte sans erreur avec les props minimales requises" time="0.095014">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; rend l&apos;élément racine .hero-section" time="0.0466274">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; affiche au moins un nœud de texte non vide" time="0.0292088">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; rend sans erreur quand le score est 0" time="0.0098271">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; rend sans erreur quand le score est 100" time="0.0112773">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; rend sans erreur avec un theme personnalisé" time="0.0101123">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; rend sans erreur avec une profilePicture fournie" time="0.012026">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; rend sans erreur avec GitHub et LinkedIn fournis" time="0.0143245">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; contient le bloc .score-card" time="0.024166">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioHero.smoke.spec.js" name="HeroSection — Smoke Tests &gt; contient le bloc .hero-profile" time="0.0085633">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" timestamp="2026-06-10T07:30:50.143Z" hostname="GhizlaneRB" tests="10" failures="0" errors="0" skipped="0" time="0.2064071">
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; monte sans erreur avec la prop title uniquement" time="0.0703818">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; monte sans erreur avec toutes les props fournies" time="0.0085094">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; rend l&apos;élément racine .portfolio-section" time="0.0314299">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; rend un h2 visible" time="0.0207462">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; rend sans erreur avec un slot complexe" time="0.0317315">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; rend sans erreur avec un theme vide" time="0.0048295">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; rend sans erreur avec un titre vide" time="0.004311">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; rend sans erreur avec une icône inconnue" time="0.0047262">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; produit du texte non vide quand title est fourni" time="0.0054164">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/components/student/portfolio/PortfolioSection.smoke.spec.js" name="PortfolioSection — Smoke Tests &gt; monte plusieurs fois de suite sans fuite mémoire apparente" time="0.0182755">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/student/stages/StageCard.smoke.spec.js" timestamp="2026-06-10T07:30:50.149Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1328639">
+        <testcase classname="src/tests/test-smoke/components/student/stages/StageCard.smoke.spec.js" name="StageCard.vue - Test de fumée &gt; devrait se monter correctement et afficher les informations de base sans planter" time="0.1274208">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/student/stages/StageFilters.smoke.spec.js" timestamp="2026-06-10T07:30:50.151Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1687223">
+        <testcase classname="src/tests/test-smoke/components/student/stages/StageFilters.smoke.spec.js" name="StageFilters.vue - Test de fumée &gt; devrait rendre tous les éléments de filtre sans planter" time="0.163452">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/student/stages/StageForm.smoke.spec.js" timestamp="2026-06-10T07:30:50.152Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.2323166">
+        <testcase classname="src/tests/test-smoke/components/student/stages/StageForm.smoke.spec.js" name="StageForm.vue - Smoke Test &gt; devrait instancier le formulaire et charger toutes les sections sans planter" time="0.2261745">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/student/stages/StageImagesModal.smoke.spec.js" timestamp="2026-06-10T07:30:50.153Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1263184">
+        <testcase classname="src/tests/test-smoke/components/student/stages/StageImagesModal.smoke.spec.js" name="StageImagesModal.vue - Smoke Test &gt; devrait monter la modale avec succès et afficher la structure de la grille sans planter" time="0.1204794">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/components/student/stages/StageValidationBadge.smoke.spec.js" timestamp="2026-06-10T07:30:50.154Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.0542601">
+        <testcase classname="src/tests/test-smoke/components/student/stages/StageValidationBadge.smoke.spec.js" name="ValidationBadge.vue - Smoke Test &gt; devrait monter le badge avec sa valeur par défaut sans planter" time="0.0505539">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/student/portfolio/PortfolioFullView.smoke.spec.js" timestamp="2026-06-10T07:30:50.156Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1915967">
+        <testcase classname="src/tests/test-smoke/Views/student/portfolio/PortfolioFullView.smoke.spec.js" name="PortfolioFullView - Smoke Tests &gt; affiche le loading pendant le chargement" time="0.1089267">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/student/portfolio/PortfolioFullView.smoke.spec.js" name="PortfolioFullView - Smoke Tests &gt; affiche la structure principale après chargement des données" time="0.0442518">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/student/portfolio/PortfolioFullView.smoke.spec.js" name="PortfolioFullView - Smoke Tests &gt; copie le lien et affiche une alerte" time="0.032859">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/student/portfolio/PotfolioPreview.smoke.spec.js" timestamp="2026-06-10T07:30:50.157Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.14399">
+        <testcase classname="src/tests/test-smoke/Views/student/portfolio/PotfolioPreview.smoke.spec.js" name="PortfolioGenerator - Smoke &gt; monte la page sans erreur et affiche les données principales" time="0.1385185">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/student/Projects/ProjectCreate.smoke.spec.js" timestamp="2026-06-10T07:30:50.158Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1266365">
+        <testcase classname="src/tests/test-smoke/Views/student/Projects/ProjectCreate.smoke.spec.js" name="ProjectCreate - Smoke &gt; monte la page sans erreur" time="0.1235558">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-smoke/Views/student/Projects/ProjectsDetails.smoke.spec.js" timestamp="2026-06-10T07:30:50.159Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.1801006">
+        <testcase classname="src/tests/test-smoke/Views/student/Projects/ProjectsDetails.smoke.spec.js" name="ProjectDetailsView - Smoke Test &gt; monte la page sans erreur" time="0.1529008">
+        </testcase>
+        <testcase classname="src/tests/test-smoke/Views/student/Projects/ProjectsDetails.smoke.spec.js" name="ProjectDetailsView - Smoke Test &gt; affiche les sections principales" time="0.0212854">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" timestamp="2026-06-10T07:30:50.161Z" hostname="GhizlaneRB" tests="9" failures="0" errors="0" skipped="0" time="0.3224914">
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; affiche le contenu du signalement" time="0.1661107">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; traduit le type PROJECT" time="0.0199946">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; traduit le type PORTFOLIO" time="0.0220081">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; traduit le type COMMENT" time="0.0071467">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; traduit le type USER" time="0.0110925">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; affiche le type brut si inconnu" time="0.0086382">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; affiche les infos du signalant et gere fullName null" time="0.033769">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; masque les actions quand le statut n&apos;est pas PENDING" time="0.0252887">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsDetailsModal.unit.spec.js" name="[UNIT] ReportDetailsModal &gt; emet les evenements avec le rapport complet" time="0.0218674">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/admin/reports/ReportsTable.unit.spec.js" timestamp="2026-06-10T07:30:50.165Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1782453">
+        <testcase classname="src/tests/test-unitaire/components/admin/reports/ReportsTable.unit.spec.js" name="ReportsTable - Tests Unitaires &gt; doit formater correctement la date au style fr-FR" time="0.1730676">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/admin/validations/validationsDetailModal.unit.spec.js" timestamp="2026-06-10T07:30:50.167Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.1377314">
+        <testcase classname="src/tests/test-unitaire/components/admin/validations/validationsDetailModal.unit.spec.js" name="ValidationDetailsModal - Tests unitaires &gt; affiche les details du stage" time="0.0936299">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/validations/validationsDetailModal.unit.spec.js" name="ValidationDetailsModal - Tests unitaires &gt; affiche un message quand aucun fichier n est fourni" time="0.0383588">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/admin/validations/validationsTable.unit.spec.js" timestamp="2026-06-10T07:30:50.168Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2259267">
+        <testcase classname="src/tests/test-unitaire/components/admin/validations/validationsTable.unit.spec.js" name="ValidationsTable - Tests unitaires &gt; traduit le type et le statut" time="0.1830071">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/admin/validations/validationsTable.unit.spec.js" name="ValidationsTable - Tests unitaires &gt; formate la date de soumission" time="0.0365715">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/activities/Activity.Form.unit.spec.js" timestamp="2026-06-10T07:30:50.169Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1899665">
+        <testcase classname="src/tests/test-unitaire/components/student/activities/Activity.Form.unit.spec.js" name="ActivityForm.vue - Tests Unitaires de la logique &gt; doit mettre à jour la réactivité du formulaire via le watch quand initialActivity change" time="0.1424602">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/activities/Activity.Form.unit.spec.js" name="ActivityForm.vue - Tests Unitaires de la logique &gt; doit réinitialiser toutes les valeurs du formulaire lors de l&apos;appel à resetForm" time="0.0212402">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/activities/Activity.Form.unit.spec.js" name="ActivityForm.vue - Tests Unitaires de la logique &gt; doit traiter correctement le fichier téléversé via handleCertificateUpload" time="0.0205934">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/activities/ActivityCard.unit.spec.js" timestamp="2026-06-10T07:30:50.171Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.1890572">
+        <testcase classname="src/tests/test-unitaire/components/student/activities/ActivityCard.unit.spec.js" name="ActivityCard.vue - Tests Unitaires isolés &gt; Propriété calculée - certificateExtension &gt; doit renvoyer &quot;pdf&quot; si le type contient du PDF" time="0.1302499">
+            <system-err>
+[Vue warn]: Extraneous non-props attributes (class) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous class=&quot;action-btn&quot; to=&quot;/student/activities/1&quot; &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;,
+  certificateType: &apos;application/pdf&apos;,
+  certificateName: &apos;document.pdf&apos;,
+  certificateUrl: &apos;https://link.com/file.pdf&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Extraneous non-props attributes (class, title) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous key=0 class=&quot;action-btn icon-only&quot; to=&quot;/student/activities/1/edit&quot;  ... &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;,
+  certificateType: &apos;application/pdf&apos;,
+  certificateName: &apos;document.pdf&apos;,
+  certificateUrl: &apos;https://link.com/file.pdf&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/activities/ActivityCard.unit.spec.js" name="ActivityCard.vue - Tests Unitaires isolés &gt; Propriété calculée - certificateExtension &gt; doit renvoyer &quot;image&quot; pour les extensions PNG ou JPG/JPEG (Insensibilité à la casse)" time="0.0167162">
+            <system-err>
+[Vue warn]: Extraneous non-props attributes (class) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous class=&quot;action-btn&quot; to=&quot;/student/activities/1&quot; &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;,
+  certificateType: &apos;image/png&apos;,
+  certificateName: &apos;MON_ATTESTATION.PNG&apos;,
+  certificateUrl: &apos;https://link.com/photo.jpg&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Extraneous non-props attributes (class, title) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous key=0 class=&quot;action-btn icon-only&quot; to=&quot;/student/activities/1/edit&quot;  ... &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;,
+  certificateType: &apos;image/png&apos;,
+  certificateName: &apos;MON_ATTESTATION.PNG&apos;,
+  certificateUrl: &apos;https://link.com/photo.jpg&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/activities/ActivityCard.unit.spec.js" name="ActivityCard.vue - Tests Unitaires isolés &gt; Propriété calculée - certificateExtension &gt; doit retourner une chaîne vide si le format n&apos;est pas pris en charge" time="0.0171056">
+            <system-err>
+[Vue warn]: Extraneous non-props attributes (class) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous class=&quot;action-btn&quot; to=&quot;/student/activities/1&quot; &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;,
+  certificateType: &apos;unknown/format&apos;,
+  certificateName: &apos;archive.zip&apos;,
+  certificateUrl: &apos;&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Extraneous non-props attributes (class, title) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous key=0 class=&quot;action-btn icon-only&quot; to=&quot;/student/activities/1/edit&quot;  ... &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;,
+  certificateType: &apos;unknown/format&apos;,
+  certificateName: &apos;archive.zip&apos;,
+  certificateUrl: &apos;&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/activities/ActivityCard.unit.spec.js" name="ActivityCard.vue - Tests Unitaires isolés &gt; Gestion des états et fonctions internes &gt; doit initialiser la prévisualisation à false et se fermer correctement" time="0.0186427">
+            <system-err>
+[Vue warn]: Extraneous non-props attributes (class) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous class=&quot;action-btn&quot; to=&quot;/student/activities/1&quot; &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+[Vue warn]: Extraneous non-props attributes (class, title) were passed to component but could not be automatically inherited because component renders fragment or text or teleport root nodes. 
+  at &lt;Anonymous key=0 class=&quot;action-btn icon-only&quot; to=&quot;/student/activities/1/edit&quot;  ... &gt; 
+  at &lt;ActivityCard activity= {
+  id: 1,
+  title: &apos;Activité Test&apos;,
+  type: &apos;CLUB&apos;,
+  validationStatus: &apos;DRAFT&apos;,
+  organization: &apos;ENSA Tangier&apos;
+} ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" timestamp="2026-06-10T07:30:50.174Z" hostname="GhizlaneRB" tests="26" failures="0" errors="0" skipped="0" time="0.5068574">
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; initials &gt; génère les initiales en majuscules depuis firstName et lastName" time="0.1431349">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; initials &gt; retourne une chaîne vide si firstName et lastName sont absents" time="0.0311317">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; initials &gt; gère un firstName absent (seulement lastName)" time="0.0134714">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; initials &gt; gère un lastName absent (seulement firstName)" time="0.0453967">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; normalizedScore &gt; retourne le score tel quel quand il est entre 0 et 100" time="0.0119926">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; normalizedScore &gt; clamp à 100 si le score dépasse 100" time="0.0090122">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; normalizedScore &gt; clamp à 0 si le score est négatif" time="0.0089855">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; normalizedScore &gt; retourne 0 si score est absent" time="0.0079966">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; scoreStyle &gt; retourne un conic-gradient en fonction de animatedScoreProgress" time="0.0090748">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; scoreStyle &gt; calcule les degrés = progress * 3.6" time="0.022023">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — affichage du profil &gt; affiche le nom complet dans le h1" time="0.0316734">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — affichage du profil &gt; affiche le rôle et la filière" time="0.0129198">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — affichage du profil &gt; affiche l&apos;école et la ville" time="0.010495">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — affichage du profil &gt; affiche l&apos;email, le téléphone et la ville dans hero-contact" time="0.0094487">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — affichage du profil &gt; affiche le badge &apos;Certifié&apos;" time="0.0093375">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — avatar &gt; affiche l&apos;image si profilePicture est fournie" time="0.0164591">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — avatar &gt; affiche les initiales si aucune photo n&apos;est fournie" time="0.0088731">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — liens sociaux &gt; affiche le lien GitHub si githubUrl est fourni" time="0.0124026">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — liens sociaux &gt; n&apos;affiche pas le lien GitHub si githubUrl est absent" time="0.0094402">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — liens sociaux &gt; affiche le lien LinkedIn si linkedinUrl est fourni" time="0.0238922">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — liens sociaux &gt; n&apos;affiche pas le lien LinkedIn si linkedinUrl est absent" time="0.0084282">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — liens sociaux &gt; les liens s&apos;ouvrent dans un nouvel onglet (target=_blank)" time="0.007383">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — score card &gt; affiche le label de crédibilité" time="0.0071553">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Template — score card &gt; affiche &apos;Score crédibilité&apos;" time="0.0116017">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Props — theme &gt; applique la classe theme par défaut &apos;theme-modern-academic&apos;" time="0.0092818">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioHero.unit.spec.js" name="HeroSection — Tests Unitaires &gt; Props — theme &gt; applique un theme personnalisé" time="0.0076244">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" timestamp="2026-06-10T07:30:50.186Z" hostname="GhizlaneRB" tests="17" failures="0" errors="0" skipped="0" time="0.305013">
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — title &gt; affiche le title dans le h2" time="0.0936671">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — title &gt; affiche un title avec des caractères spéciaux" time="0.0079014">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — title &gt; affiche un title long sans troncature" time="0.0070908">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — icon &gt; affiche l&apos;icône par défaut &apos;folder&apos; si non fournie" time="0.0151197">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — icon &gt; affiche l&apos;icône fournie via la prop" time="0.0087907">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — icon &gt; affiche une icône quelconque correctement" time="0.0083261">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — theme &gt; applique la classe &apos;theme-modern-academic&apos; par défaut" time="0.0208469">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — theme &gt; applique la classe theme personnalisée" time="0.0326195">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Props — theme &gt; préfixe toujours le theme avec &apos;theme-&apos;" time="0.0082007">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Slot — contenu &gt; rend le contenu du slot par défaut" time="0.0500966">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Slot — contenu &gt; rend plusieurs éléments dans le slot" time="0.0117305">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Slot — contenu &gt; rend sans erreur si le slot est vide" time="0.0055304">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Slot — contenu &gt; le contenu du slot est bien enfant de .portfolio-section" time="0.0075012">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Structure HTML &gt; l&apos;élément racine est une balise &lt;section&gt;" time="0.0038875">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Structure HTML &gt; possède la classe &apos;portfolio-section&apos;" time="0.0043054">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Structure HTML &gt; le h2 contient bien le span.material-icons-round" time="0.0046549">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/portfolio/PortfolioSection.unit.spec.js" name="PortfolioSection — Tests Unitaires &gt; Structure HTML &gt; le span d&apos;icône est positionné avant le texte dans le h2" time="0.005837">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/stages/StageCard.unit.spec.js" timestamp="2026-06-10T07:30:50.193Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.1617178">
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageCard.unit.spec.js" name="StageCard.vue - Tests unitaires (Logique) &gt; devrait normaliser le statut CORRECTION_REQUIRED en CHANGES_REQUESTED" time="0.1288833">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageCard.unit.spec.js" name="StageCard.vue - Tests unitaires (Logique) &gt; devrait retourner true pour canEditStage quand le statut est DRAFT" time="0.0135967">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageCard.unit.spec.js" name="StageCard.vue - Tests unitaires (Logique) &gt; devrait retourner false pour isStageCompleteForSubmission si reportUrl est manquant" time="0.013442">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/stages/stageFilters.unit.spec.js" timestamp="2026-06-10T07:30:50.194Z" hostname="GhizlaneRB" tests="1" failures="0" errors="0" skipped="0" time="0.1972733">
+        <testcase classname="src/tests/test-unitaire/components/student/stages/stageFilters.unit.spec.js" name="StageFilters.vue - Tests unitaires (liaison de props) &gt; devrait lier correctement les valeurs des props aux éléments input et select" time="0.1918615">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/stages/StageForm.unit.spec.js" timestamp="2026-06-10T07:30:50.195Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.182566">
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageForm.unit.spec.js" name="StageForm.vue - Tests Unitaires (Logique interne) &gt; devrait calculer correctement la durée en mois entre deux dates" time="0.1319356">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageForm.unit.spec.js" name="StageForm.vue - Tests Unitaires (Logique interne) &gt; devrait identifier les champs manquants requis pour la soumission" time="0.0249421">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageForm.unit.spec.js" name="StageForm.vue - Tests Unitaires (Logique interne) &gt; devrait retourner le bon libellé de bouton selon le statut initial du stage" time="0.0198385">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/stages/StageImagesModal.unit.spec.js" timestamp="2026-06-10T07:30:50.197Z" hostname="GhizlaneRB" tests="2" failures="0" errors="0" skipped="0" time="0.2620764">
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageImagesModal.unit.spec.js" name="StageImagesModal.vue - Tests Unitaires &gt; devrait afficher correctement le nombre total d&apos;images dans le sous-titre" time="0.2227811">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageImagesModal.unit.spec.js" name="StageImagesModal.vue - Tests Unitaires &gt; devrait initialiser une liste vide sans planter si aucune image n&apos;est fournie" time="0.03409">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/components/student/stages/StageValidationBadge.unit.spec.js" timestamp="2026-06-10T07:30:50.198Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.0557181">
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageValidationBadge.unit.spec.js" name="ValidationBadge.vue - Tests Unitaires (Logique de configuration) &gt; devrait normaliser correctement le statut &quot;CORRECTION_REQUIRED&quot; en &quot;CHANGES_REQUESTED&quot;" time="0.0390594">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageValidationBadge.unit.spec.js" name="ValidationBadge.vue - Tests Unitaires (Logique de configuration) &gt; devrait nettoyer les espaces et passer en majuscules le statut fourni" time="0.0059211">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/components/student/stages/StageValidationBadge.unit.spec.js" name="ValidationBadge.vue - Tests Unitaires (Logique de configuration) &gt; devrait retourner la configuration par défaut (PENDING) si le statut est inconnu" time="0.0061219">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Portfolio/PortfolioFullView.unit.spec.js" timestamp="2026-06-10T07:30:50.200Z" hostname="GhizlaneRB" tests="3" failures="0" errors="0" skipped="0" time="0.2096633">
+        <testcase classname="src/tests/test-unitaire/views/student/Portfolio/PortfolioFullView.unit.spec.js" name="PortfolioFullView - Unit Tests (Logic) &gt; should normalize themes from minimal-recruiter to code-dark" time="0.0929014">
+            <system-err>
+[Vue warn]: Invalid prop: type check failed for prop &quot;credibilityScore&quot;. Expected Object, got Undefined  
+  at &lt;PortfolioHero student= { name: &apos;Ghizlane&apos;, bio: &apos;Engineering Student&apos; } credibility-score=undefined theme=&quot;code-dark&quot; &gt; 
+  at &lt;PortfolioFullView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Portfolio/PortfolioFullView.unit.spec.js" name="PortfolioFullView - Unit Tests (Logic) &gt; should filter listed projects strictly based on portfolioConfig" time="0.0214544">
+            <system-err>
+[Vue warn]: Invalid prop: type check failed for prop &quot;credibilityScore&quot;. Expected Object, got Undefined  
+  at &lt;PortfolioHero student= { name: &apos;Ghizlane&apos;, bio: &apos;Engineering Student&apos; } credibility-score=undefined theme=&quot;code-dark&quot; &gt; 
+  at &lt;PortfolioFullView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Portfolio/PortfolioFullView.unit.spec.js" name="PortfolioFullView - Unit Tests (Logic) &gt; should format academic years correctly or fallback properly" time="0.0899915">
+            <system-err>
+[Vue warn]: Invalid prop: type check failed for prop &quot;credibilityScore&quot;. Expected Object, got Undefined  
+  at &lt;PortfolioHero student= { name: &apos;Ghizlane&apos;, bio: &apos;Engineering Student&apos; } credibility-score=undefined theme=&quot;code-dark&quot; &gt; 
+  at &lt;PortfolioFullView ref=&quot;VTU_COMPONENT&quot; &gt; 
+  at &lt;VTUROOT&gt;
+
+            </system-err>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Portfolio/PortfolioPreview.unit.spec.js" timestamp="2026-06-10T07:30:50.202Z" hostname="GhizlaneRB" tests="4" failures="0" errors="0" skipped="0" time="0.3072287">
+        <testcase classname="src/tests/test-unitaire/views/student/Portfolio/PortfolioPreview.unit.spec.js" name="PortfolioGenerator - Tests unitaires &gt; sélectionne tous les éléments par défaut si aucun portfolio sauvegardé" time="0.1490976">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Portfolio/PortfolioPreview.unit.spec.js" name="PortfolioGenerator - Tests unitaires &gt; désélectionne un projet après clic" time="0.0662811">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Portfolio/PortfolioPreview.unit.spec.js" name="PortfolioGenerator - Tests unitaires &gt; change le thème quand on clique sur une carte thème" time="0.0394871">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Portfolio/PortfolioPreview.unit.spec.js" name="PortfolioGenerator - Tests unitaires &gt; appelle generateStudentPortfolio avec le payload correct" time="0.0466297">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" timestamp="2026-06-10T07:30:50.204Z" hostname="GhizlaneRB" tests="9" failures="0" errors="0" skipped="0" time="0.5435443">
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; désactive le bouton soumettre si le formulaire est incomplet" time="0.1706642">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; continue l&apos;affichage si le chargement des validateurs échoue" time="0.0239983">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; ajoute une technologie" time="0.0406878">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; ajoute un lien personnalisé" time="0.0386875">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; sélectionne un validateur" time="0.057633">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; crée un brouillon et redirige vers la liste des projets" time="0.0293074">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; affiche une erreur si la création du brouillon échoue" time="0.0431871">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; crée et soumet le projet si formulaire valide" time="0.0663187">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectCreate.unit.spec.js" name="ProjectCreate - Tests unitaires &gt; affiche une erreur si la soumission du projet échoue" time="0.0652336">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" timestamp="2026-06-10T07:30:50.209Z" hostname="GhizlaneRB" tests="9" failures="0" errors="0" skipped="0" time="0.6422474">
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; affiche l&apos;état de chargement si le projet ne se charge pas" time="0.1861114">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; continue si le chargement des validateurs échoue" time="0.093336">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; ajoute une technologie" time="0.0603143">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; supprime une technologie" time="0.0377491">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; ajoute un lien personnalisé" time="0.0381712">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; sauvegarde le projet" time="0.0261833">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; affiche une erreur si la sauvegarde échoue" time="0.0548159">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; soumet le projet" time="0.0530781">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectEdit.unitaire.spec.js" name="ProjectEdit Unit Tests &gt; affiche une erreur si la soumission échoue" time="0.0851483">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Projects/Projects.unit.spec.js" timestamp="2026-06-10T07:30:50.212Z" hostname="GhizlaneRB" tests="5" failures="0" errors="0" skipped="0" time="0.5750208">
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/Projects.unit.spec.js" name="StudentProjects - Tests unitaires &gt; affiche les projets récupérés depuis l&apos;API" time="0.2198026">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/Projects.unit.spec.js" name="StudentProjects - Tests unitaires &gt; filtre les projets par recherche" time="0.1436068">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/Projects.unit.spec.js" name="StudentProjects - Tests unitaires &gt; filtre les projets par type" time="0.0847783">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/Projects.unit.spec.js" name="StudentProjects - Tests unitaires &gt; filtre les projets par statut" time="0.0322596">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/Projects.unit.spec.js" name="StudentProjects - Tests unitaires &gt; soumet un projet brouillon valide" time="0.0876415">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" timestamp="2026-06-10T07:30:50.214Z" hostname="GhizlaneRB" tests="10" failures="0" errors="0" skipped="0" time="0.5669807">
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; affiche le bon message pour un projet brouillon" time="0.2810075">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; ne rend pas les détails si le chargement du projet échoue" time="0.039898">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; affiche le bon message pour un projet validé" time="0.0210705">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; affiche le bon message pour corrections demandées" time="0.0198155">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; trie l&apos;historique de validation du plus récent au plus ancien" time="0.0191853">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; affiche un message si l&apos;historique est vide" time="0.016071">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; affiche la date formatée" time="0.0162981">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; supprime le projet si l&apos;utilisateur confirme" time="0.0906874">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; ne supprime pas le projet si l&apos;utilisateur annule" time="0.0206157">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/Projects/ProjectsDetails.unit.spec.js" name="ProjectDetailsView - Unit &gt; ne redirige pas si la suppression du projet échoue" time="0.0340579">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" timestamp="2026-06-10T07:30:50.218Z" hostname="GhizlaneRB" tests="8" failures="0" errors="0" skipped="0" time="0.2787446">
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; normalise CORRECTION_REQUIRED vers CHANGES_REQUESTED" time="0.1216134">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; affiche le statut Validé par l&apos;encadrant si APPROVED" time="0.02728">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; affiche Brouillon si le statut est DRAFT" time="0.0175884">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; affiche les dates au format yyyy-mm-dd" time="0.0141225">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; affiche la visibilité privée" time="0.0158826">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; navigue vers la liste des stages au clic sur Retour" time="0.0477824">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; navigue vers la page modification au clic sur Modifier" time="0.0159153">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageDetailsView.unit.spec.js" name="StageDetailsView - Unit &gt; affiche l&apos;historique de validation" time="0.0120034">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" timestamp="2026-06-10T07:30:50.220Z" hostname="GhizlaneRB" tests="13" failures="0" errors="0" skipped="0" time="0.8474189">
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; charge les validateurs au montage" time="0.1406271">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; continue l&apos;affichage si le chargement des validateurs échoue" time="0.0352005">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; capture l&apos;erreur si le chargement du stage échoue en mode édition" time="0.097799">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; crée un stage brouillon en mode création" time="0.1234472">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; ne redirige pas si la création du stage échoue" time="0.0237793">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; modifie un stage brouillon en mode édition" time="0.0496527">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; ne redirige pas si la modification du stage échoue" time="0.0362132">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; crée puis soumet un stage à la validation" time="0.0602047">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; ne soumet pas si l&apos;upload du rapport échoue" time="0.0428085">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; modifie puis soumet un stage à la validation en mode édition" time="0.0662741">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; supprime une image après confirmation" time="0.0900207">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; ne supprime pas l&apos;image si l&apos;utilisateur annule" time="0.0480158">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StageFormView.unit.spec.js" name="StageFormPage - Unit &gt; capture l&apos;erreur si la suppression d&apos;image échoue" time="0.0253685">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" timestamp="2026-06-10T07:30:50.225Z" hostname="GhizlaneRB" tests="11" failures="0" errors="0" skipped="0" time="0.8014727">
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; filtre les stages par recherche" time="0.4038479">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; affiche un état vide si aucun stage n&apos;est retourné" time="0.0507421">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; capture l&apos;erreur si le chargement des stages échoue" time="0.0367373">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; filtre les stages par statut" time="0.0363134">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; filtre les stages par visibilité" time="0.0272739">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; normalise CORRECTION_REQUIRED vers CHANGES_REQUESTED" time="0.0436448">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; supprime un stage après confirmation" time="0.0646766">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; ne supprime pas si l&apos;utilisateur annule" time="0.034007">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; capture l&apos;erreur si la suppression du stage échoue" time="0.0437961">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; soumet un stage à la validation" time="0.0273929">
+        </testcase>
+        <testcase classname="src/tests/test-unitaire/views/student/stages/StagesView.unit.spec.js" name="StudentStages - Unit &gt; capture l&apos;erreur si la soumission du stage échoue" time="0.0257179">
+        </testcase>
+    </testsuite>
+</testsuites>
