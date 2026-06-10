@@ -18,13 +18,17 @@ describe('Hero - Tests UI', () => {
     expect(wrapper.find('.hero-title').text()).toContain('Votre portfolio,certifi\u00e9 &reconnu.')
     expect(wrapper.find('.hero-desc').exists()).toBe(true)
 
-    const cards = wrapper.findAll('.float-card')
-    expect(cards.length).toBe(2)
-    expect(cards[0].text()).toContain("Projet valid\u00e9 par l'institution")
-    expect(cards[1].text()).toContain('Pr. Alami a valid\u00e9 votre stage')
+    expect(wrapper.find('.hero-validation-notice').text()).toContain(
+      'Validation effectuée',
+    )
 
-    const image = wrapper.find('.portfolio-image-demo')
+    const image = wrapper.find('.hero-product-project img')
     expect(image.exists()).toBe(true)
-    expect(image.attributes('alt')).toBe('Aper\u00e7u du portfolio Credencia')
+    expect(image.attributes('alt')).toBe(
+      'Aperçu du projet Plateforme Credencia',
+    )
+
+    expect(wrapper.find('.hero-product-preview').exists()).toBe(true)
+    expect(wrapper.findAll('.hero-product-stats > span').length).toBe(4)
   })
 })

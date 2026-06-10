@@ -66,7 +66,7 @@ describe('ActivityCard.vue - Tests Intégration UI', () => {
       { code: 'PENDING', label: 'En attente', expectedClass: 'pending' },
       { code: 'APPROVED', label: 'Validée', expectedClass: 'approved' },
       { code: 'REJECTED', label: 'Refusée', expectedClass: 'rejected' },
-      { code: 'CORRECTION_REQUIRED', label: 'Correction demandée', expectedClass: 'correction_required' }
+      { code: 'CORRECTION_REQUIRED', label: 'Correction demandée', expectedClass: 'correction-required' }
     ]
 
     for (const scenario of statusScenarios) {
