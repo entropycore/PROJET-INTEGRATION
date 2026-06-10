@@ -1455,6 +1455,152 @@ html {
   box-shadow: 0 18px 46px rgba(47, 87, 93, 0.09);
 }
 
+.landing-profile-card {
+  padding: 20px;
+  border: 1px solid var(--lightest);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.landing-profile-header,
+.landing-profile-identity,
+.landing-profile-line,
+.landing-profile-actions,
+.landing-certified-badge {
+  display: flex;
+  align-items: center;
+}
+
+.landing-profile-header {
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.landing-profile-identity {
+  min-width: 0;
+  gap: 14px;
+}
+
+.landing-profile-identity img {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  border: 2px solid #d8e1de;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.landing-profile-identity h3 {
+  margin: 0;
+  color: var(--ink);
+  font-family: "DM Serif Display", serif;
+  font-size: 20px;
+  font-weight: 400;
+}
+
+.landing-profile-identity p,
+.landing-profile-bio {
+  color: var(--secondary, #6d9197);
+}
+
+.landing-profile-identity p {
+  margin: 3px 0 0;
+  font-size: 11px;
+}
+
+.landing-certified-badge {
+  gap: 5px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #e8f4ec;
+  color: #217a36;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.landing-certified-badge .material-icons-round {
+  font-size: 15px;
+}
+
+.landing-profile-bio {
+  display: -webkit-box;
+  margin: 17px 0;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.65;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.landing-profile-details {
+  display: grid;
+  gap: 11px;
+  padding-top: 16px;
+  border-top: 1px solid var(--lightest);
+}
+
+.landing-profile-line {
+  flex-wrap: wrap;
+  gap: 6px;
+  color: var(--secondary, #6d9197);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.landing-profile-line strong {
+  color: var(--accent, #2f575d);
+  font-weight: 700;
+}
+
+.landing-profile-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.landing-profile-tags small {
+  padding: 4px 8px;
+  border: 1px solid var(--lightest);
+  border-radius: 999px;
+  background: #f8faf9;
+  color: var(--accent, #2f575d);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.landing-profile-actions {
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.landing-profile-actions > span {
+  min-height: 39px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  border: 1px solid var(--accent, #2f575d);
+  border-radius: 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.landing-profile-actions .material-icons-round {
+  font-size: 15px;
+}
+
+.landing-profile-primary {
+  background: var(--accent, #2f575d);
+  color: #fff;
+}
+
+.landing-profile-secondary {
+  background: #fff;
+  color: var(--accent, #2f575d);
+}
+
 .talent-search-header {
   display: flex;
   align-items: flex-start;
@@ -1643,6 +1789,20 @@ html {
 
   .professional-section {
     padding: 80px 24px;
+  }
+
+  .professional-preview,
+  .landing-profile-card {
+    padding: 16px;
+  }
+
+  .landing-profile-header {
+    align-items: flex-start;
+  }
+
+  .landing-certified-badge {
+    padding: 6px;
+    font-size: 0;
   }
 
   .talent-card {
