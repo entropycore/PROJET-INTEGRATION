@@ -182,8 +182,8 @@
 }
 
 .status-chip.PENDING {
-  background: #fff4e4;
-  color: #e67e22;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .status-chip.DRAFT {
@@ -193,8 +193,8 @@
 
 .status-chip.CORRECTION_REQUIRED,
 .status-chip.CHANGES_REQUESTED {
-  background: #fff1e6;
-  color: #e65100;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .status-chip.REJECTED {
@@ -410,13 +410,13 @@
 }
 
 .notification-icon.warning {
-  background: #fff4e4;
-  color: #e67e22;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .notification-icon.badge {
-  background: #f1ecfa;
-  color: #7b4dbb;
+  background: var(--app-active-bg);
+  color: var(--app-primary);
 }
 
 .notification-icon.alert {

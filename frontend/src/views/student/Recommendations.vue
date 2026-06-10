@@ -499,8 +499,8 @@ onMounted(() => {
 }
 
 .status-badge.pending {
-  background: #fff4e4;
-  color: #e67e22;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .status-badge.rejected {

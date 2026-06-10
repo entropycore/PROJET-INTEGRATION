@@ -58,7 +58,7 @@ const MOCK_BADGES = [
     description: "Badge attribué après validation d'une participation.",
     rule: "Déclarer une activité de type hackathon validée.",
     iconFallback: "HP",
-    tone: "purple",
+    tone: "green",
   },
   {
     id: "mock-full-stack-developer",
@@ -100,7 +100,6 @@ const BADGE_ICON_BY_NAME = {
 const BADGE_ICON_BY_TONE = {
   blue: "code_blocks",
   cyan: "cloud_sync",
-  purple: "groups",
   green: "layers",
   red: "verified_user",
   orange: "psychology",
