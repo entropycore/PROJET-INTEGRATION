@@ -30,6 +30,17 @@ const formatDate = (date) => {
   });
 };
 
+const formatDescription = (value) => {
+  if (!value) return "-";
+
+  try {
+    const content = JSON.parse(value);
+    return content?.description || value;
+  } catch {
+    return value;
+  }
+};
+
 const canAct = (validation) => validation.status === "PENDING";
 </script>
 
@@ -51,7 +62,7 @@ const canAct = (validation) => validation.status === "PENDING";
     >
       <div class="title-cell">
         <strong>{{ validation.title }}</strong>
-        <p>{{ validation.description }}</p>
+        <p>{{ formatDescription(validation.description) }}</p>
       </div>
 
       <div class="student-cell">

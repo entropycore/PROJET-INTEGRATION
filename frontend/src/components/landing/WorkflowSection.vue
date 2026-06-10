@@ -1,49 +1,58 @@
 <template>
-  <section class="workflow" id="workflow">
-    <div class="section-label">Processus de validation</div>
-    <h2 class="section-title reveal">De la soumission à la certification</h2>
-    <p class="section-sub reveal">
-      Chaque projet académique suit un processus rigoureux avant d'apparaître
-      dans votre portfolio public.
-    </p>
+  <section class="workflow lifecycle-section" id="workflow">
+    <div class="lifecycle-heading">
+      <div>
+        <div class="section-label">Comment fonctionne Credencia ?</div>
+        <h2 class="section-title reveal">
+          Transformez vos réalisations en preuves certifiées
+        </h2>
+        <p class="section-sub reveal">
+          Chaque projet, stage, activité ou recommandation suit un processus de
+          validation avant d’être valorisé dans un portfolio certifié.
+        </p>
+      </div>
+    </div>
 
-    <div class="workflow-steps">
-      <div class="workflow-step reveal">
-        <div class="step-circle done">✓</div>
-        <div class="step-title">Soumission</div>
+    <div class="workflow-steps lifecycle-steps">
+      <article class="workflow-step reveal">
+        <div class="step-circle active">1</div>
+        <div class="step-title">Documenter</div>
         <div class="step-desc">
-          L'étudiant soumet son projet avec titre, description, technologies et
-          liens.
+          Ajoute projets, stages, activités et compétences.
         </div>
-      </div>
-      <div class="workflow-step reveal">
-        <div class="step-circle active">2</div>
-        <div class="step-title">Vérification</div>
+      </article>
+
+      <article class="workflow-step reveal">
+        <div class="step-circle">2</div>
+        <div class="step-title">Soumettre</div>
         <div class="step-desc">
-          L'enseignant consulte le projet et ses pièces jointes.
+          Envoie les réalisations pour validation.
         </div>
-      </div>
-      <div class="workflow-step reveal">
+      </article>
+
+      <article class="workflow-step reveal">
         <div class="step-circle">3</div>
-        <div class="step-title">Décision</div>
+        <div class="step-title">Vérifier</div>
         <div class="step-desc">
-          Validation ou demande de correction avec commentaires détaillés.
+          Le professeur examine et valide les preuves.
         </div>
-      </div>
-      <div class="workflow-step reveal">
+      </article>
+
+      <article class="workflow-step reveal">
         <div class="step-circle">4</div>
-        <div class="step-title">Publication</div>
+        <div class="step-title">Valoriser</div>
         <div class="step-desc">
-          Le projet validé est publié dans le portfolio avec le label certifié.
+          Badges, compétences et recommandations sont mis en avant.
         </div>
-      </div>
-      <div class="workflow-step reveal">
-        <div class="step-circle">5</div>
-        <div class="step-title">Appréciation</div>
+      </article>
+
+      <article class="workflow-step reveal">
+        <div class="step-circle done">5</div>
+        <div class="step-title">Partager</div>
         <div class="step-desc">
-          Le professeur ajoute son appréciation visible par les recruteurs.
+          Le portfolio certifié devient consultable par les professionnels.
         </div>
-      </div>
+      </article>
     </div>
   </section>
 </template>
