@@ -9,8 +9,8 @@ const parseBoolean = (value, fallback) => {
 
 const cookieOptions = {
   httpOnly: true,
-  secure: parseBoolean(process.env.COOKIE_SECURE, isProduction),
-  sameSite: process.env.COOKIE_SAME_SITE || 'strict',
+  secure: parseBoolean(process.env.HTTPS, isProduction), // false local, true cloud
+  sameSite: 'lax',  
   path: '/',
 };
 
@@ -19,7 +19,6 @@ const setCookies = (res, accessToken, refreshToken) => {
     ...cookieOptions,
     maxAge: 15 * 60 * 1000,
   });
-
   res.cookie('refreshToken', refreshToken, {
     ...cookieOptions,
     maxAge: 7 * 24 * 60 * 60 * 1000,

@@ -6,6 +6,15 @@ const checkRoles = require('../middlewares/checkRoles');
 const professorController = require('../controllers/professorController');
 const notificationController = require('../controllers/userNotificationController');
 const uploadProfilePicture = require('../middlewares/uploadProfilePicture');
+const {
+  updatePasswordRules,
+  updatePrivacyRules,
+  updateNotificationsRules,
+  approveValidationRules,
+  rejectValidationRules,
+  requestChangesRules,
+  handleValidationErrors,
+} = require('../middlewares/validationRules');
 
 const router = express.Router();
 
@@ -20,10 +29,12 @@ router.post(
   professorController.uploadProfilePicture,
 );
 router.get('/settings', professorController.getSettings);
-router.put('/settings/password', professorController.updateSettingsPassword);
-router.put('/settings/privacy', professorController.updateSettingsPrivacy);
+router.put('/settings/password', updatePasswordRules, handleValidationErrors, professorController.updateSettingsPassword);
+router.put('/settings/privacy', updatePrivacyRules, handleValidationErrors, professorController.updateSettingsPrivacy);
 router.put(
   '/settings/notifications',
+  updateNotificationsRules,
+  handleValidationErrors,
   professorController.updateSettingsNotifications,
 );
 router.get('/validations/stats', professorController.getValidationStats);
@@ -39,14 +50,20 @@ router.get(
 );
 router.patch(
   '/validations/:itemType/:itemId/approve',
+  approveValidationRules,
+  handleValidationErrors,
   professorController.approveValidation,
 );
 router.patch(
   '/validations/:itemType/:itemId/reject',
+  rejectValidationRules,
+  handleValidationErrors,
   professorController.rejectValidation,
 );
 router.patch(
   '/validations/:itemType/:itemId/request-changes',
+  requestChangesRules,
+  handleValidationErrors,
   professorController.requestValidationChanges,
 );
 router.get('/notifications', notificationController.listNotifications);
