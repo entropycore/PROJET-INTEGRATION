@@ -53,7 +53,7 @@
       id: 3,
       name: "Hackathon Participant",
       icon: "groups",
-      tone: "purple",
+      tone: "green",
     },
     {
       id: 4,

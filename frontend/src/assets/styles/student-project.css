@@ -263,38 +263,44 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 88px;
-  padding: 0.35rem 0.7rem;
+  min-width: 0;
+  padding: 6px 14px;
   border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 800;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid transparent;
   text-align: center;
   white-space: nowrap;
 }
 
 .project-status-pill.draft {
-  background: #eeeeea;
-  color: #99aead;
+  background: #f3f4f6;
+  color: #5f6368;
+  border-color: #dfe1e5;
 }
 
 .project-status-pill.pending {
-  background: #f4e8d1;
+  background: #fffaf0;
   color: #b87518;
+  border-color: #f4e8d1;
 }
 
 .project-status-pill.approved {
-  background: #dfeee6;
-  color: #2f575d;
+  background: #edf7ed;
+  color: #2e7d32;
+  border-color: #c8e6c9;
 }
 
 .project-status-pill.rejected {
-  background: #f4e4e1;
-  color: #c0392b;
+  background: #fdecea;
+  color: #c62828;
+  border-color: #f5c6cb;
 }
 
 .project-status-pill.changes-requested {
-  background: #fff1dc;
+  background: #fffaf0;
   color: #b87518;
+  border-color: #f4e8d1;
 }
 
 .project-card-content {
@@ -463,6 +469,26 @@
   color: #99aead;
   font-size: 13px;
   font-weight: 400;
+}
+
+.student-projects-page .count-line {
+  display: flex;
+  align-items: center;
+  gap: 1.125rem;
+  margin-top: 1.75rem;
+  color: #6d9197;
+}
+
+.student-projects-page .count-line span {
+  height: 1px;
+  flex: 1;
+  background: #dee1dd;
+}
+
+.student-projects-page .count-line p {
+  color: #6d9197;
+  font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {

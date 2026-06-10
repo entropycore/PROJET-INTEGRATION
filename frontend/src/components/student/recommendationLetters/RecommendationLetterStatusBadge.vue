@@ -40,9 +40,9 @@ const labels = {
 }
 
 .pending {
-  border-color: #ffe0b2;
-  background: #fff8e1;
-  color: #ef6c00;
+  border-color: #f4e8d1;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .draft {
@@ -58,8 +58,8 @@ const labels = {
 }
 
 .changes_requested {
-  border-color: #ffcc80;
-  background: #fff3e0;
-  color: #e65100;
+  border-color: #f4e8d1;
+  background: #fffaf0;
+  color: #b87518;
 }
 </style>

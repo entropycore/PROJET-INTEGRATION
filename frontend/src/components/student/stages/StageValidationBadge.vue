@@ -77,9 +77,9 @@ const getStatusConfig = (status) => {
 }
 
 .pending {
-  background: #fff8e1;
-  color: #ef6c00;
-  border-color: #ffe0b2;
+  background: #fffaf0;
+  color: #b87518;
+  border-color: #f4e8d1;
 }
 
 .rejected {
@@ -95,8 +95,8 @@ const getStatusConfig = (status) => {
 }
 
 .correction {
-  background: #fff3e0;
-  color: #e65100;
-  border-color: #ffcc80;
+  background: #fffaf0;
+  color: #b87518;
+  border-color: #f4e8d1;
 }
 </style>

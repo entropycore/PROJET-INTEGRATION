@@ -99,20 +99,20 @@ const formatDate = (date) => {
 
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 1rem;
+  gap: 1.2rem;
   align-items: center;
 
-  padding: 0.9rem 1rem;
+  padding: 1.05rem 1.2rem;
 
   background: var(--app-surface);
 
   border: 1px solid var(--app-border);
-  border-left: 0.32rem solid transparent;
+  border-left: 0.24rem solid transparent;
   border-radius: var(--app-radius-card);
 
   font-family: var(--app-font-body);
 
-  box-shadow: 0 0.2rem 0.7rem rgba(47, 87, 93, 0.025);
+  box-shadow: 0 0.65rem 1.4rem rgba(47, 87, 93, 0.035);
 
   transition:
     background 0.2s ease,
@@ -139,7 +139,7 @@ const formatDate = (date) => {
 .item.unread {
   border-left-color: var(--notif-color);
   border-color: color-mix(in srgb, var(--notif-color) 20%, var(--app-border));
-  box-shadow: 0 0.3rem 0.9rem rgba(47, 87, 93, 0.04);
+  box-shadow: 0 0.75rem 1.7rem rgba(47, 87, 93, 0.055);
 }
 
 .item:hover {
@@ -151,7 +151,7 @@ const formatDate = (date) => {
 }
 
 .item:not(.unread) {
-  opacity: 0.78;
+  opacity: 0.88;
 }
 
 .content {
@@ -161,7 +161,7 @@ const formatDate = (date) => {
 .title-row {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.6rem;
   min-width: 0;
 }
 
@@ -176,9 +176,10 @@ const formatDate = (date) => {
 h3 {
   margin: 0;
   color: var(--app-heading);
-  font-size: var(--app-text-md);
-  font-weight: 760;
-  line-height: var(--app-leading-tight);
+  font-family: var(--app-font-body);
+  font-size: 0.98rem;
+  font-weight: 850;
+  line-height: 1.25;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -190,22 +191,23 @@ h3 {
 
 .item:not(.unread) h3 {
   color: var(--app-text);
-  font-weight: 650;
+  font-weight: 760;
 }
 
 p {
-  margin: 0.22rem 0 0;
+  margin: 0.32rem 0 0;
   color: var(--app-muted);
-  font-size: var(--app-text-sm);
-  line-height: 1.4;
+  font-size: 0.93rem;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
 small {
   display: block;
-  margin-top: 0.32rem;
+  margin-top: 0.35rem;
   color: var(--app-subtle);
   font-size: var(--app-text-xs);
-  font-weight: 650;
+  font-weight: 800;
 }
 
 .actions {
@@ -216,14 +218,14 @@ small {
 }
 
 .action-btn {
-  min-height: 2rem;
+  min-height: 2.15rem;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-sm);
   padding: 0 0.75rem;
   background: var(--app-surface);
   font-family: var(--app-font-body);
   font-size: var(--app-text-xs);
-  font-weight: 780;
+  font-weight: 850;
   cursor: pointer;
   white-space: nowrap;
   transition:
