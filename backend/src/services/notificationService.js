@@ -7,6 +7,7 @@ const isStructureMissingError = (err) => err?.code === 'P2021' || err?.code === 
 
 const findExistingNotification = async ({
   administratorId = null,
+  userId = null,
   type,
   title,
   relatedType = null,
@@ -15,6 +16,7 @@ const findExistingNotification = async ({
   prisma.notification.findFirst({
     where: {
       administratorId,
+      userId,
       type,
       title,
       relatedType,
@@ -25,6 +27,7 @@ const findExistingNotification = async ({
 
 const createNotification = async ({
   administratorId = null,
+  userId = null,
   type,
   title,
   message,
@@ -34,6 +37,7 @@ const createNotification = async ({
   try {
     const existing = await findExistingNotification({
       administratorId,
+      userId,
       type,
       title,
       relatedType,
@@ -47,6 +51,7 @@ const createNotification = async ({
     return await prisma.notification.create({
       data: {
         administratorId,
+        userId,
         type,
         title,
         message,
