@@ -24,7 +24,8 @@
   --app-active-bg: #e6f1ee;
   --app-active: var(--app-primary);
   --app-active-border: #c9d6d1;
-  --app-warning-bg: #fff4e4;
+  --app-warning-bg: #fffaf0;
+  --app-warning-border: #f4e8d1;
   --app-warning: #b87518;
   --app-error-bg: #fdecea;
   --app-error: #c62828;

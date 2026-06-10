@@ -311,5 +311,11 @@ const submitProject = async (projectId) => {
 
       <div v-else class="projects-state">Aucun projet trouvé.</div>
     </section>
+
+    <div class="count-line">
+      <span></span>
+      <p>{{ filteredProjects.length }} projets</p>
+      <span></span>
+    </div>
   </section>
 </template>

@@ -37,6 +37,27 @@ const projectTypes = [
   { value: "Stage", label: "Stage" },
 ];
 
+const screenshotMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const attachmentMimeTypes = new Set([
+  "application/pdf",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+]);
+
+const filterAllowedFiles = (files, allowedTypes, message) => {
+  const acceptedFiles = files.filter((file) => allowedTypes.has(file.type));
+  const rejectedFiles = files.filter((file) => !allowedTypes.has(file.type));
+
+  if (rejectedFiles.length) {
+    errorMessage.value = message;
+  }
+
+  return acceptedFiles;
+};
+
 const normalizeProjectType = (type) => {
   const value = String(type || "Module").trim();
   const normalized = value
@@ -233,7 +254,11 @@ const removeCustomLink = (id) => {
 };
 
 const handleScreenshotsUpload = (event) => {
-  const files = Array.from(event.target.files || []);
+  const files = filterAllowedFiles(
+    Array.from(event.target.files || []),
+    screenshotMimeTypes,
+    "Format de capture non autorisé. Utilisez PNG, JPG ou WEBP.",
+  );
 
   if (!projectForm.value.screenshots) {
     projectForm.value.screenshots = [];
@@ -255,7 +280,11 @@ const handleScreenshotsUpload = (event) => {
 };
 
 const handleAttachmentsUpload = (event) => {
-  const files = Array.from(event.target.files || []);
+  const files = filterAllowedFiles(
+    Array.from(event.target.files || []),
+    attachmentMimeTypes,
+    "Format de pièce jointe non autorisé. Utilisez PDF, ZIP, DOC, DOCX ou TXT.",
+  );
 
   if (!projectForm.value.attachments) {
     projectForm.value.attachments = [];
@@ -623,7 +652,7 @@ onMounted(async () => {
 
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp"
                 multiple
                 @change="handleScreenshotsUpload"
               />
@@ -650,9 +679,14 @@ onMounted(async () => {
             <label class="file-upload-box">
               <span class="material-icons-round">attach_file</span>
               <strong>Ajouter des fichiers</strong>
-              <small>PDF, image ou document</small>
+              <small>PDF, ZIP, DOC, DOCX ou TXT</small>
 
-              <input type="file" multiple @change="handleAttachmentsUpload" />
+              <input
+                type="file"
+                accept="application/pdf,application/zip,application/x-zip-compressed,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain"
+                multiple
+                @change="handleAttachmentsUpload"
+              />
             </label>
 
             <div v-if="projectForm.attachments?.length" class="uploaded-list">

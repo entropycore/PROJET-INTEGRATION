@@ -40,11 +40,12 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
   align-items: center;
   justify-content: space-between;
   gap: 0.8rem;
-  padding: 0.65rem 0.8rem;
+  padding: 0.85rem 1rem;
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-card);
   font-family: var(--app-font-body);
+  box-shadow: 0 0.65rem 1.6rem rgba(47, 87, 93, 0.04);
 }
 
 .unread-count {
@@ -52,8 +53,8 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
   align-items: center;
   gap: 0.45rem;
   color: var(--app-muted);
-  font-size: var(--app-text-xs);
-  font-weight: 700;
+  font-size: var(--app-text-sm);
+  font-weight: 800;
 }
 
 .unread-count strong {
@@ -66,7 +67,7 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
   background: var(--app-active-bg);
   color: var(--app-active);
   font-size: var(--app-text-xs);
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .toolbar-actions {
@@ -80,7 +81,7 @@ const emit = defineEmits(["read-all", "update:selectedType"]);
 }
 
 select {
-  height: 2.15rem;
+  height: 2.5rem;
   min-width: 12rem;
   border: 1px solid var(--app-border);
   border-radius: var(--app-radius-md);
@@ -89,7 +90,7 @@ select {
   color: var(--app-text);
   font-family: var(--app-font-body);
   font-size: var(--app-text-sm);
-  font-weight: 500;
+  font-weight: 650;
   outline: none;
   cursor: pointer;
 }
@@ -100,7 +101,7 @@ select:focus {
 }
 
 button {
-  height: 2.15rem;
+  height: 2.5rem;
   border: 1px solid var(--app-primary);
   border-radius: var(--app-radius-md);
   padding: 0 0.85rem;
@@ -108,7 +109,7 @@ button {
   color: var(--app-surface);
   font-family: var(--app-font-body);
   font-size: var(--app-text-sm);
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
   transition:

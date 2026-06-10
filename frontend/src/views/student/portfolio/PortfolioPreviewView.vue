@@ -650,7 +650,7 @@ onMounted(fetchPortfolio);
 }
 
 .info-note .material-icons-round {
-  color: #e67e22;
+  color: #b87518;
   font-size: 1.2rem;
 }
 

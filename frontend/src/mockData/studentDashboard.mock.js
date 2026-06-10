@@ -84,7 +84,7 @@ export const studentDashboardMock = {
       rule: "Participation à un hackathon validé",
       iconUrl: "",
       iconFallback: "👥",
-      tone: "purple",
+      tone: "green",
       isObtained: true,
       obtainedAt: "Fév 2025",
     },

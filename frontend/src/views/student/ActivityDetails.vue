@@ -131,9 +131,6 @@ const certificateDownloadUrl = computed(
     buildBackendUrl(activity.value?.certificateUrl || ""),
 );
 const certificatePreviewSource = computed(() => certificatePreviewUrl.value);
-const activityMedia = computed(
-  () => activity.value?.screenshots || activity.value?.media || [],
-);
 
 const validationHistory = computed(() => {
   const history = activity.value?.validationHistory;
@@ -160,8 +157,11 @@ const validationHistory = computed(() => {
       id: "submitted",
       title: "Soumis à validation",
       comment: "L’activité est en attente de vérification.",
-      createdAt: activity.value?.submittedAt || activity.value?.updatedAt,
-      actorName: "Vous",
+      createdAt:
+        activity.value?.submittedAt ||
+        activity.value?.certificate?.submittedAt ||
+        activity.value?.updatedAt,
+      actorName: "Administration",
       tone: "pending",
     });
   }
@@ -477,34 +477,6 @@ const formatDate = (date) => {
             <div v-else class="empty-section">
               <span class="material-icons-round">upload_file</span>
               <p>Aucune attestation ajoutée pour cette activité.</p>
-            </div>
-          </section>
-
-          <section class="details-card">
-            <h2 class="section-title">Captures / médias de l’activité</h2>
-
-            <div v-if="activityMedia.length" class="screenshots-grid">
-              <button
-                v-for="media in activityMedia"
-                :key="media.id || media.imageUrl || media"
-                type="button"
-                class="screenshot-card"
-              >
-                <img
-                  v-if="
-                    media.imageUrl || media.url || typeof media === 'string'
-                  "
-                  :src="buildBackendUrl(media.imageUrl || media.url || media)"
-                  :alt="media.title || 'Média de l’activité'"
-                />
-              </button>
-            </div>
-
-            <div v-else class="empty-section">
-              <span class="material-icons-round">photo_library</span>
-              <p>
-                Les photos ou captures de l’événement pourront apparaître ici.
-              </p>
             </div>
           </section>
 
@@ -879,8 +851,8 @@ const formatDate = (date) => {
 }
 
 .status-badge.pending {
-  background: #fff3d8;
-  color: #9a6200;
+  background: #fffaf0;
+  color: #b87518;
 }
 
 .status-badge.approved {
@@ -1211,30 +1183,6 @@ const formatDate = (date) => {
   font-size: 0.82rem;
 }
 
-.screenshots-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem;
-}
-
-.screenshot-card {
-  min-height: 105px;
-  border: 0.1px solid #eeeeea;
-  border-radius: 0.4rem;
-  padding: 0;
-  overflow: hidden;
-  cursor: default;
-  background: transparent;
-}
-
-.screenshot-card img {
-  width: 100%;
-  height: 100%;
-  min-height: 105px;
-  object-fit: cover;
-  display: block;
-}
-
 .project-status-card {
   display: flex;
   align-items: flex-start;
@@ -1326,7 +1274,7 @@ const formatDate = (date) => {
 }
 
 .project-status-card.changes-requested .status-card-icon {
-  background: #fff1dc;
+  background: #f8ecd6;
   color: #b87518;
 }
 
@@ -1377,7 +1325,7 @@ const formatDate = (date) => {
 }
 
 .header-status.pending {
-  color: #9a6200;
+  color: #b87518;
 }
 
 .header-status.rejected {
@@ -1708,7 +1656,7 @@ const formatDate = (date) => {
   padding: 0.8rem;
   border-radius: 0.65rem;
   background: #fffaf0;
-  color: #9a6200;
+  color: #b87518;
   font-size: 0.82rem;
   line-height: 1.5;
 }
@@ -1995,8 +1943,7 @@ const formatDate = (date) => {
     grid-template-columns: 1fr;
   }
 
-  .project-about-meta,
-  .screenshots-grid {
+  .project-about-meta {
     grid-template-columns: 1fr;
   }
 
