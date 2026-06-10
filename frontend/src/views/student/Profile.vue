@@ -30,6 +30,8 @@ const showAddSkill = ref(false);
 const newSkillName = ref("");
 const pictureInput = ref(null);
 const isUploadingPicture = ref(false);
+const profilePictureFailed = ref(false);
+const profilePictureVersion = ref(Date.now());
 
 const careerGoals = [
   { value: "WEB_DEVELOPER", label: "Développeur Web" },
@@ -56,6 +58,24 @@ const newPath = ref({
 });
 
 const unwrapData = (response) => response?.data ?? response ?? null;
+
+const syncAuthUser = (updates = {}) => {
+  if (!authStore.user) return;
+
+  authStore.setAuthSession({
+    ...authStore.user,
+    ...updates,
+  });
+};
+
+const getProfilePictureUrl = (profilePicture) => {
+  if (!profilePicture || profilePictureFailed.value) return "";
+
+  const url = buildBackendUrl(profilePicture);
+  const separator = url.includes("?") ? "&" : "?";
+
+  return `${url}${separator}v=${profilePictureVersion.value}`;
+};
 
 const normalizeSoftSkills = (payload) => {
   const items = Array.isArray(payload)
@@ -108,6 +128,13 @@ const loadAll = async () => {
       getCareerGoal(),
     ]);
     profile.value = unwrapData(profileRes);
+    profilePictureFailed.value = false;
+    syncAuthUser({
+      firstName: profile.value?.firstName,
+      lastName: profile.value?.lastName,
+      phone: profile.value?.phone,
+      profilePicture: profile.value?.profilePicture,
+    });
     academicPaths.value = unwrapData(pathsRes) || [];
     softSkills.value = normalizeSoftSkills(unwrapData(skillsRes));
     careerGoal.value = unwrapData(goalRes)?.careerGoal || "";
@@ -123,6 +150,7 @@ const loadAll = async () => {
       city: "",
       bio: "",
       linkedinUrl: "",
+      profilePicture: user.profilePicture || "",
     };
     academicPaths.value = [];
     softSkills.value = [];
@@ -249,6 +277,9 @@ const handleProfilePictureChange = async (event) => {
       ...profile.value,
       profilePicture: data?.profilePicture || profile.value.profilePicture,
     };
+    profilePictureFailed.value = false;
+    profilePictureVersion.value = Date.now();
+    syncAuthUser({ profilePicture: profile.value.profilePicture });
 
     successMessage.value = "Photo de profil mise à jour.";
   } catch (error) {
@@ -280,9 +311,11 @@ onMounted(loadAll);
       <div class="student-profile-header">
         <div class="profile-avatar">
           <img
-            v-if="profile.profilePicture"
-            :src="buildBackendUrl(profile.profilePicture)"
+            v-if="getProfilePictureUrl(profile.profilePicture)"
+            :key="`${profile.profilePicture}-${profilePictureVersion}`"
+            :src="getProfilePictureUrl(profile.profilePicture)"
             alt=""
+            @error="profilePictureFailed = true"
           />
           <span v-else>
             {{ getInitials(profile.firstName, profile.lastName) }}
