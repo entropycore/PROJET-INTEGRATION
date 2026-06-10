@@ -7,6 +7,10 @@ const router = express.Router();
 
 router.get('/validations/pending', validationController.listPendingValidationsLegacy);
 router.get('/validations/pending-count', validationController.getPendingValidationCountsLegacy);
+router.get(
+  '/validations/:itemType/:itemId/files/:fileId/:action',
+  validationController.downloadValidationFile,
+);
 router.get('/validations/:validationId', validationController.getLegacyValidationDetail);
 router.patch('/validations/:validationId/approve', validationController.approveLegacyValidationItem);
 router.patch('/validations/:validationId/reject', validationController.rejectLegacyValidationItem);
