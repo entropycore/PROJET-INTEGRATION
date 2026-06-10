@@ -6,6 +6,7 @@ import {
 } from "vitest";
 
 import { mount } from "@vue/test-utils";
+import { getGithubStats } from "@/services/studentGithub";
 
 import Github from "@/views/student/Github.vue";
 
@@ -18,7 +19,31 @@ vi.mock(
   })
 );
 
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+const githubStatsResponse = {
+  data: {
+    data: {
+      connected: false,
+      repositories: [],
+      languages: [],
+    },
+  },
+};
+
+const mountLoadedGithub = async () => {
+  const wrapper = mount(Github);
+  await flushPromises();
+  await wrapper.vm.$nextTick();
+  return wrapper;
+};
+
 describe("Github UI Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getGithubStats).mockResolvedValue(githubStatsResponse);
+  });
+
   it("renders component", () => {
     const wrapper = mount(Github);
 
@@ -59,8 +84,8 @@ describe("Github UI Tests", () => {
     );
   });
 
-  it("shows github connect section", () => {
-    const wrapper = mount(Github);
+  it("shows github connect section", async () => {
+    const wrapper = await mountLoadedGithub();
 
     expect(
       wrapper.text()
@@ -69,8 +94,8 @@ describe("Github UI Tests", () => {
     );
   });
 
-  it("shows connect button", () => {
-    const wrapper = mount(Github);
+  it("shows connect button", async () => {
+    const wrapper = await mountLoadedGithub();
 
     expect(
       wrapper.text()
@@ -79,8 +104,8 @@ describe("Github UI Tests", () => {
     );
   });
 
-  it("shows benefits section", () => {
-    const wrapper = mount(Github);
+  it("shows benefits section", async () => {
+    const wrapper = await mountLoadedGithub();
 
     expect(
       wrapper.text()
@@ -89,8 +114,8 @@ describe("Github UI Tests", () => {
     );
   });
 
-  it("shows import projects benefit", () => {
-    const wrapper = mount(Github);
+  it("shows import projects benefit", async () => {
+    const wrapper = await mountLoadedGithub();
 
     expect(
       wrapper.text()
@@ -99,8 +124,8 @@ describe("Github UI Tests", () => {
     );
   });
 
-  it("shows contributions benefit", () => {
-    const wrapper = mount(Github);
+  it("shows contributions benefit", async () => {
+    const wrapper = await mountLoadedGithub();
 
     expect(
       wrapper.text()
@@ -110,7 +135,7 @@ describe("Github UI Tests", () => {
   });
 
   it("shows error message", async () => {
-    const wrapper = mount(Github);
+    const wrapper = await mountLoadedGithub();
 
     wrapper.vm.errorMessage =
       "Connexion GitHub impossible pour le moment.";

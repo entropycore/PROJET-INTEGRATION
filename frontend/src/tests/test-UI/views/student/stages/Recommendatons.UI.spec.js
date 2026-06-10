@@ -1,6 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { describe, it, expect, vi } from "vitest";
-import StudentRecommendations from "@/views/StudentRecommendations.vue";
+import StudentRecommendations from "@/views/student/Recommendations.vue";
 
 vi.mock("@/services/studentRecommendationsService", () => ({
   getStudentRecommendationsData: vi.fn().mockResolvedValue({

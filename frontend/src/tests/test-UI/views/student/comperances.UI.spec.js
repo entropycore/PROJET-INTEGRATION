@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 
-import MesCompetences from "@/views/student/MesCompetences.vue";
+import MesCompetences from "@/views/student/competances.vue";
 
 vi.mock(
   "@/services/studentSkillsService",

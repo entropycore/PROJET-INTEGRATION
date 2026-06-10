@@ -6,6 +6,12 @@ import {
 } from "vitest";
 
 import { mount } from "@vue/test-utils";
+import {
+  getAcademicPaths,
+  getCareerGoal,
+  getSoftSkills,
+  getStudentProfile,
+} from "@/services/studentProfileService";
 
 import Profile from "@/views/student/Profile.vue";
 
@@ -36,7 +42,28 @@ vi.mock(
   })
 );
 
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+const mountLoadedProfile = async () => {
+  const wrapper = mount(Profile);
+  await flushPromises();
+  await wrapper.vm.$nextTick();
+  return wrapper;
+};
+
 describe("Profile UI Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getStudentProfile).mockResolvedValue({
+      firstName: "Sara",
+      lastName: "Ali",
+      email: "sara@example.com",
+    });
+    vi.mocked(getAcademicPaths).mockResolvedValue([]);
+    vi.mocked(getSoftSkills).mockResolvedValue([]);
+    vi.mocked(getCareerGoal).mockResolvedValue(null);
+  });
+
   it("renders component", () => {
     const wrapper =
       mount(Profile);
@@ -93,9 +120,9 @@ describe("Profile UI Tests", () => {
     );
   });
 
-  it("contains personal information section", () => {
+  it("contains personal information section", async () => {
     const wrapper =
-      mount(Profile);
+      await mountLoadedProfile();
 
     expect(
       wrapper.text()
@@ -104,9 +131,9 @@ describe("Profile UI Tests", () => {
     );
   });
 
-  it("contains career goal section", () => {
+  it("contains career goal section", async () => {
     const wrapper =
-      mount(Profile);
+      await mountLoadedProfile();
 
     expect(
       wrapper.text()
@@ -115,9 +142,9 @@ describe("Profile UI Tests", () => {
     );
   });
 
-  it("contains soft skills section", () => {
+  it("contains soft skills section", async () => {
     const wrapper =
-      mount(Profile);
+      await mountLoadedProfile();
 
     expect(
       wrapper.text()
@@ -126,9 +153,9 @@ describe("Profile UI Tests", () => {
     );
   });
 
-  it("contains academic path section", () => {
+  it("contains academic path section", async () => {
     const wrapper =
-      mount(Profile);
+      await mountLoadedProfile();
 
     expect(
       wrapper.text()
@@ -137,9 +164,9 @@ describe("Profile UI Tests", () => {
     );
   });
 
-  it("contains add button", () => {
+  it("contains add button", async () => {
     const wrapper =
-      mount(Profile);
+      await mountLoadedProfile();
 
     expect(
       wrapper.text()
