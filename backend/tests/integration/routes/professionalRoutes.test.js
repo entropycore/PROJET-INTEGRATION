@@ -15,6 +15,17 @@ const mockProfessionalService = {
 
 jest.mock('../../../src/services/professionalService', () => mockProfessionalService);
 
+const mockUserNotificationService = {
+  listUserNotifications: jest.fn(),
+  getUnreadCount: jest.fn(),
+  getUnreadNotifications: jest.fn(),
+  markAsRead: jest.fn(),
+  markAllAsRead: jest.fn(),
+  deleteNotification: jest.fn()
+};
+
+jest.mock('../../../src/services/userNotificationService', () => mockUserNotificationService);
+
 jest.mock('../../../src/logs/logger', () => ({
   info: jest.fn(),
   warn: jest.fn(),
@@ -140,6 +151,7 @@ describe("Tests d'Intégration Complets - Routes Professionnel", () => {
 
   describe('Notifications Endpoints', () => {
     it('TC-PRO-NTF-01 : listNotifications → 200', async () => {
+      mockUserNotificationService.listUserNotifications.mockResolvedValue({ items: [], total: 0 });
       const res = await request(app)
         .get('/api/professional/notifications')
         .set('Cookie', `accessToken=${professionalToken}`);
@@ -149,6 +161,7 @@ describe("Tests d'Intégration Complets - Routes Professionnel", () => {
     });
 
     it('TC-PRO-NTF-02 : getUnreadCount → 200', async () => {
+      mockUserNotificationService.getUnreadCount.mockResolvedValue(0);
       const res = await request(app)
         .get('/api/professional/notifications/unread-count')
         .set('Cookie', `accessToken=${professionalToken}`);
@@ -158,6 +171,7 @@ describe("Tests d'Intégration Complets - Routes Professionnel", () => {
     });
 
     it('TC-PRO-NTF-03 : markAllAsRead → 200', async () => {
+      mockUserNotificationService.markAllAsRead.mockResolvedValue({ count: 0 });
       const res = await request(app)
         .patch('/api/professional/notifications/read-all')
         .set('Cookie', `accessToken=${professionalToken}`);
@@ -166,6 +180,7 @@ describe("Tests d'Intégration Complets - Routes Professionnel", () => {
     });
 
     it('TC-PRO-NTF-04 : markAsRead → 200', async () => {
+      mockUserNotificationService.markAsRead.mockResolvedValue({ notificationId: 'notif-456' });
       const res = await request(app)
         .patch('/api/professional/notifications/notif-456/read')
         .set('Cookie', `accessToken=${professionalToken}`);
@@ -175,6 +190,7 @@ describe("Tests d'Intégration Complets - Routes Professionnel", () => {
     });
 
     it('TC-PRO-NTF-05 : deleteNotification → 200', async () => {
+      mockUserNotificationService.deleteNotification.mockResolvedValue({ notificationId: 'notif-456' });
       const res = await request(app)
         .delete('/api/professional/notifications/notif-456')
         .set('Cookie', `accessToken=${professionalToken}`);

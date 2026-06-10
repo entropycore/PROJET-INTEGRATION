@@ -27,6 +27,17 @@ const mockProfessorService = {
 
 jest.mock('../../../src/services/professorService', () => mockProfessorService);
 
+const mockUserNotificationService = {
+  listUserNotifications: jest.fn(),
+  getUnreadCount: jest.fn(),
+  getUnreadNotifications: jest.fn(),
+  markAsRead: jest.fn(),
+  markAllAsRead: jest.fn(),
+  deleteNotification: jest.fn()
+};
+
+jest.mock('../../../src/services/userNotificationService', () => mockUserNotificationService);
+
 // Mock the upload middleware so we don't need to upload real files
 jest.mock('../../../src/middlewares/uploadProfilePicture', () => (req, res, next) => {
   if (req.headers['x-test-empty-upload']) {
@@ -368,6 +379,7 @@ describe("Tests d'Intégration Complets - Routes Professeur", () => {
 
   describe('Notifications Endpoints', () => {
     it('TC-PRF-NTF-01 : listNotifications → 200', async () => {
+      mockUserNotificationService.listUserNotifications.mockResolvedValue({ items: [], total: 0 });
       const res = await request(app)
         .get('/api/professor/notifications')
         .set('Cookie', `accessToken=${professorToken}`);
@@ -377,6 +389,7 @@ describe("Tests d'Intégration Complets - Routes Professeur", () => {
     });
 
     it('TC-PRF-NTF-02 : getUnreadCount → 200', async () => {
+      mockUserNotificationService.getUnreadCount.mockResolvedValue(0);
       const res = await request(app)
         .get('/api/professor/notifications/unread-count')
         .set('Cookie', `accessToken=${professorToken}`);
@@ -386,6 +399,7 @@ describe("Tests d'Intégration Complets - Routes Professeur", () => {
     });
 
     it('TC-PRF-NTF-03 : markAllAsRead → 200', async () => {
+      mockUserNotificationService.markAllAsRead.mockResolvedValue({ count: 0 });
       const res = await request(app)
         .patch('/api/professor/notifications/read-all')
         .set('Cookie', `accessToken=${professorToken}`);
@@ -394,6 +408,7 @@ describe("Tests d'Intégration Complets - Routes Professeur", () => {
     });
 
     it('TC-PRF-NTF-04 : markAsRead → 200', async () => {
+      mockUserNotificationService.markAsRead.mockResolvedValue({ notificationId: 'notif-123' });
       const res = await request(app)
         .patch('/api/professor/notifications/notif-123/read')
         .set('Cookie', `accessToken=${professorToken}`);
@@ -403,6 +418,7 @@ describe("Tests d'Intégration Complets - Routes Professeur", () => {
     });
 
     it('TC-PRF-NTF-05 : deleteNotification → 200', async () => {
+      mockUserNotificationService.deleteNotification.mockResolvedValue({ notificationId: 'notif-123' });
       const res = await request(app)
         .delete('/api/professor/notifications/notif-123')
         .set('Cookie', `accessToken=${professorToken}`);
