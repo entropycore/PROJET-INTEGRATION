@@ -1,5 +1,4 @@
 import api from "./api";
-import { studentDashboardMock } from "@/mockData/studentDashboard.mock";
 
 export const getStudentDashboard = (params = {}) => {
   return api.get("/student/dashboard", { params });
@@ -30,15 +29,10 @@ export const getStudentUnreadNotifications = () => {
 };
 
 export const getStudentDashboardData = async () => {
-  try {
-    const response = await getStudentDashboard({
-      limitRecentProjects: 4,
-      limitNotifications: 4,
-    });
+  const response = await getStudentDashboard({
+    limitRecentProjects: 4,
+    limitNotifications: 4,
+  });
 
-    return response.data?.data || studentDashboardMock;
-  } catch (error) {
-    console.warn("Dashboard backend indisponible, utilisation du mock data.");
-    return studentDashboardMock;
-  }
+  return response.data?.data;
 };

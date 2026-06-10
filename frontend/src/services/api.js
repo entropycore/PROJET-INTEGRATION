@@ -3,10 +3,46 @@ import { useAuthStore } from "../stores/auth";
 
 const backendBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiBaseUrl = `${backendBaseUrl.replace(/\/$/, "")}/api`;
+const csrfClient = axios.create({
+  baseURL: apiBaseUrl,
+  withCredentials: true,
+});
 
 const api = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
+});
+
+let csrfToken = null;
+let csrfTokenRequest = null;
+
+const getCsrfToken = async () => {
+  if (csrfToken) return csrfToken;
+
+  if (!csrfTokenRequest) {
+    csrfTokenRequest = csrfClient
+      .get("/auth/csrf-token")
+      .then((response) => {
+        csrfToken = response.data.csrfToken;
+        return csrfToken;
+      })
+      .finally(() => {
+        csrfTokenRequest = null;
+      });
+  }
+
+  return csrfTokenRequest;
+};
+
+api.interceptors.request.use(async (config) => {
+  const method = config.method?.toUpperCase();
+
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    config.headers = config.headers || {};
+    config.headers["x-csrf-token"] = await getCsrfToken();
+  }
+
+  return config;
 });
 
 api.interceptors.response.use(
@@ -30,6 +66,7 @@ api.interceptors.response.use(
 
       try {
         await api.post("/auth/refresh-token");
+        csrfToken = null;
         return api(originalRequest);
       } catch {
         authStore.clearAuthSession();
@@ -44,6 +81,7 @@ api.interceptors.response.use(
       !isRegisterRequest &&
       !isRefreshRequest
     ) {
+      csrfToken = null;
       window.location.href = "/403";
     }
 

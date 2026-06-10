@@ -793,7 +793,7 @@ h3 .material-icons-round {
 }
 
 .status-info.PENDING {
-  color: #e67e22;
+  color: #b87518;
 }
 
 .status-info.DRAFT {
@@ -806,7 +806,7 @@ h3 .material-icons-round {
 
 .status-info.CORRECTION_REQUIRED,
 .status-info.CHANGES_REQUESTED {
-  color: #e65100;
+  color: #b87518;
 }
 
 /* TIMELINE */
@@ -868,7 +868,7 @@ h3 .material-icons-round {
 }
 
 .timeline-icon.PENDING {
-  color: #e67e22;
+  color: #b87518;
 }
 
 .timeline-icon.DRAFT {
@@ -881,7 +881,7 @@ h3 .material-icons-round {
 
 .timeline-icon.CORRECTION_REQUIRED,
 .timeline-icon.CHANGES_REQUESTED {
-  color: #e65100;
+  color: #b87518;
 }
 
 .timeline-card {

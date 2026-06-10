@@ -10,11 +10,10 @@
     </a>
 
     <ul class="nav-links">
-      <li><a href="#features">Fonctionnalités</a></li>
-      <li><a href="#workflow">Processus</a></li>
-      <li><a href="#roles">Acteurs</a></li>
-      <li><a href="#scoring">Scoring</a></li>
-      <li><a href="#demo">Démo</a></li>
+      <li><a href="#workflow">Fonctionnement</a></li>
+      <li><a href="#features">Réalisations</a></li>
+      <li><a href="#demo">Portfolio</a></li>
+      <li><a href="#professionals">Recruteurs</a></li>
     </ul>
 
     <div class="nav-cta">

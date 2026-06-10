@@ -19,15 +19,15 @@ const role = computed(() => route.meta.role || "STUDENT");
 const ROLE_NOTIFICATION_UI = {
   ADMINISTRATOR: {
     label: "ADMINISTRATION",
-    description: "Surveillez et gerez les alertes de votre plateforme",
+    description: "Surveillez et gérez les alertes de votre plateforme",
   },
   STUDENT: {
-    label: "ETUDIANT",
-    description: "Consultez les alertes liees a votre espace etudiant",
+    label: "ÉTUDIANT",
+    description: "Consultez les alertes liées à votre espace étudiant",
   },
   PROFESSOR: {
     label: "PROFESSEUR",
-    description: "Consultez vos validations et interactions academiques",
+    description: "Consultez vos validations et interactions académiques",
   },
   PROFESSIONAL: {
     label: "PROFESSIONNEL",
@@ -163,27 +163,35 @@ onMounted(fetchData);
   font-family: var(--app-font-body);
 }
 
+.page-header {
+  margin: 0;
+}
+
 .page-header span {
   display: block;
   margin-bottom: 0.4rem;
   color: var(--app-subtle);
-  font-size: 0.8rem;
+  font-family: serif;
+  font-size: clamp(0.7rem, 0.8vw, 0.85rem);
   font-style: italic;
+  letter-spacing: 0;
 }
 
 .page-header h1 {
   margin: 0;
   color: var(--app-heading);
-  font-family: var(--app-font-display);
-  font-size: clamp(1.6rem, 2.2vw, 2.1rem);
-  font-weight: 300;
-  line-height: var(--app-leading-tight);
+  font-family: serif;
+  font-size: clamp(1.9rem, 2.4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .page-header p {
-  margin: 0.5rem 0 0;
+  margin: 0.45rem 0 0;
   color: var(--app-muted);
-  font-size: clamp(0.85rem, 1vw, 1rem);
+  font-family: var(--app-font-body);
+  font-size: clamp(0.95rem, 1.05vw, 1.05rem);
+  font-weight: 500;
 }
 
 .state-box {

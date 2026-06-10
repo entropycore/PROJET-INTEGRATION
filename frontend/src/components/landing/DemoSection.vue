@@ -1,58 +1,86 @@
 <template>
-  <section class="portfolio-demo" id="demo">
-    <div class="section-label">Démo interactive</div>
-    <h2 class="section-title reveal">Le tableau de bord étudiant</h2>
-    <p class="section-sub reveal" style="margin-bottom: 32px">
-      Gérez tous vos projets, stages et compétences depuis une interface
-      unifiée.
-    </p>
+  <section class="portfolio-demo portfolio-generation" id="demo">
+    <div class="portfolio-showcase-copy">
+      <div class="section-label">Portfolio certifié</div>
+      <h2 class="section-title reveal">
+        Le portfolio est le résultat de tout le parcours
+      </h2>
+      <p class="section-sub reveal">
+        Credencia génère automatiquement un portfolio structuré à partir des
+        informations validées de l’étudiant : profil, compétences, badges,
+        projets, stages, activités et recommandations.
+      </p>
 
-    <div class="tabs reveal">
-      <button
-        :class="['tab-btn', { active: activeTab === 'projects' }]"
-        @click="activeTab = 'projects'"
-      >
-        Mes projets
-      </button>
-      <button
-        :class="['tab-btn', { active: activeTab === 'stages' }]"
-        @click="activeTab = 'stages'"
-      >
-        Stages
-      </button>
-      <button
-        :class="['tab-btn', { active: activeTab === 'competences' }]"
-        @click="activeTab = 'competences'"
-      >
-        Compétences
-      </button>
+      <div class="portfolio-source-list reveal">
+        <span><i class="material-icons-round">verified</i>Informations validées</span>
+        <span><i class="material-icons-round">auto_awesome</i>Génération automatique</span>
+        <span><i class="material-icons-round">language</i>Portfolio public</span>
+      </div>
     </div>
 
-    <div class="reveal">
-      <img
-        src="../../assets/demo.png"
-        alt="Aperçu du Tableau de Bord"
-        class="demo-image-replacement"
-      />
-    </div>
+    <article class="compact-portfolio-window reveal">
+      <header class="compact-window-bar">
+        <div class="window-controls"><i></i><i></i><i></i></div>
+        <span>portfolio.credencia.ma/amina-berrada</span>
+        <strong><span class="material-icons-round">verified</span>Certifié</strong>
+      </header>
+
+      <div class="compact-portfolio-content">
+        <section class="compact-profile">
+          <div class="compact-avatar">AB</div>
+          <div>
+            <span>Bonjour, je suis</span>
+            <h3>Amina Berrada</h3>
+            <p>Étudiante ingénieure · Développement Full Stack</p>
+          </div>
+          <div class="compact-score">
+            <strong>82</strong>
+            <span>/100</span>
+            <small>Crédibilité</small>
+          </div>
+        </section>
+
+        <section class="compact-portfolio-grid">
+          <article class="compact-bio">
+            <header><span class="material-icons-round">format_quote</span>Biographie</header>
+            <p>
+              Étudiante en génie informatique, engagée dans des projets web et
+              des expériences validées.
+            </p>
+          </article>
+
+          <article class="compact-skills">
+            <header><span class="material-icons-round">code</span>Compétences</header>
+            <div><span>Vue.js</span><span>Node.js</span><span>PostgreSQL</span><span>Leadership</span></div>
+          </article>
+
+          <article class="compact-badges">
+            <header><span class="material-icons-round">workspace_premium</span>Badges obtenus</header>
+            <div>
+              <span><i class="material-icons-round">terminal</i>Web Developer</span>
+              <span><i class="material-icons-round">groups</i>Hackathon</span>
+            </div>
+          </article>
+
+          <article class="compact-achievements">
+            <header>
+              <span><i class="material-icons-round">verified</i>Réalisations validées</span>
+              <small>Voir le portfolio</small>
+            </header>
+            <div class="compact-achievement-stats">
+              <span><strong>6</strong>Projets</span>
+              <span><strong>2</strong>Stages</span>
+              <span><strong>4</strong>Activités</span>
+            </div>
+            <div class="compact-achievement-list">
+              <span>Plateforme de suivi académique</span>
+              <span>Stage chez Capgemini</span>
+            </div>
+          </article>
+        </section>
+      </div>
+    </article>
   </section>
 </template>
 
-<script setup>
-import { ref } from "vue";
-
-const activeTab = ref("projects");
-</script>
-
-<style scoped>
-/* Style special pour image */
-.demo-image-replacement {
-  width: 70%;
-  max-width: 80%;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  display: block; /* Bach maykhalich l'espace lte7t */
-}
-</style>
+<script setup></script>

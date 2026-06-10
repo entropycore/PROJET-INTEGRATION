@@ -40,6 +40,17 @@ const formatFileSize = (size) => {
 
   return `${(size / (1024 * 1024)).toFixed(1)} Mo`;
 };
+
+const formatDescription = (value) => {
+  if (!value) return "-";
+
+  try {
+    const content = JSON.parse(value);
+    return content?.description || value;
+  } catch {
+    return value;
+  }
+};
 </script>
 
 <template>
@@ -130,7 +141,11 @@ const formatFileSize = (size) => {
           <div class="detail-row">
             <span>Description</span>
             <p>
-              {{ validation.content?.description || validation.description }}
+              {{
+                formatDescription(
+                  validation.content?.description || validation.description,
+                )
+              }}
             </p>
           </div>
 

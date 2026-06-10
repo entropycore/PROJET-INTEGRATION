@@ -21,9 +21,38 @@ const authStore = useAuthStore();
 const router = useRouter();
 //pour les routes enfqnts de gestions utilisateurs
 const route = useRoute();
-const isChildActive = (child) => {
-  return route.fullPath === child.path;
+
+const exactRootPaths = new Set([
+  "/admin",
+  "/student",
+  "/professor",
+  "/professional",
+]);
+
+const normalizePath = (path) => String(path || "").replace(/\/$/, "") || "/";
+
+const isRouteTargetActive = (targetPath) => {
+  const [targetBasePath, targetQuery] = String(targetPath || "").split("?");
+  const targetBase = normalizePath(targetBasePath);
+  const currentPath = normalizePath(route.path);
+
+  if (targetQuery) {
+    return normalizePath(route.fullPath) === normalizePath(targetPath);
+  }
+
+  if (exactRootPaths.has(targetBase)) {
+    return currentPath === targetBase;
+  }
+
+  return currentPath === targetBase || currentPath.startsWith(`${targetBase}/`);
 };
+
+const isItemActive = (item) => isRouteTargetActive(item.path);
+
+const isChildActive = (child) => isRouteTargetActive(child.path);
+
+const isDropdownActive = (item) =>
+  item.children?.some((child) => isChildActive(child));
 
 const user = computed(() => authStore.user);
 const avatarFailed = ref(false);
@@ -82,6 +111,20 @@ const openDropdown = ref(null);
 const toggleDropdown = (label) => {
   openDropdown.value = openDropdown.value === label ? null : label;
 };
+
+watch(
+  () => route.fullPath,
+  () => {
+    const activeDropdown = sections.value
+      .flatMap((section) => section.items)
+      .find((item) => item.children && isDropdownActive(item));
+
+    if (activeDropdown) {
+      openDropdown.value = activeDropdown.label;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -126,6 +169,7 @@ const toggleDropdown = (label) => {
               v-if="item.children"
               type="button"
               class="sidebar-link sidebar-dropdown-trigger"
+              :class="{ 'sidebar-link-exact-active': isDropdownActive(item) }"
               @click="toggleDropdown(item.label)"
             >
               <span class="sidebar-link-left">
@@ -162,8 +206,7 @@ const toggleDropdown = (label) => {
               v-else-if="!item.children"
               :to="item.path"
               class="sidebar-link"
-              active-class="sidebar-link-active"
-              exact-active-class="sidebar-link-exact-active"
+              :class="{ 'sidebar-link-exact-active': isItemActive(item) }"
             >
               <span class="sidebar-icon material-icons-round">
                 {{ item.icon }}
