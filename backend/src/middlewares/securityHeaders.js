@@ -5,9 +5,6 @@ const helmet = require('helmet');
 // Headers de sécurité configurés manuellement
 // Plus précis que helmet() par défaut
 const securityHeaders = helmet({
-  // Protection XSS
-  xssFilter: true,
-
   // Empêche le navigateur de deviner le type MIME
   noSniff: true,
 
