@@ -11,6 +11,7 @@ const {
 } = require('./helpers');
 const {
   mapInternshipValidationItem,
+  mapStudentSummary,
   mapProjectValidationItem,
 } = require('./mappers');
 const {
@@ -38,6 +39,51 @@ const validationSearchMatches = (item, search) => {
 
   return values.some((entry) => entry.includes(value));
 };
+
+const historySearchMatches = (item, search) => {
+  const value = normalizeSearch(search);
+  if (!value) return true;
+
+  const values = [
+    item.title,
+    item.description,
+    item.student?.fullName,
+    item.student?.email,
+    item.comment,
+    item.actionLabel,
+  ]
+    .filter(Boolean)
+    .map((entry) => String(entry).toLowerCase());
+
+  return values.some((entry) => entry.includes(value));
+};
+
+const historyStudentSelect = {
+  id: true,
+  apogeeCode: true,
+  cne: true,
+  major: true,
+  level: true,
+  city: true,
+  user: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      phone: true,
+      profilePicture: true,
+    },
+  },
+};
+
+const decisionLabels = {
+  APPROVED: 'Validation approuvee',
+  REJECTED: 'Validation refusee',
+  CHANGES_REQUESTED: 'Correction demandee',
+};
+
+const getDecisionLabel = (decision) => decisionLabels[decision] || decision;
 
 const buildProjectWhere = (professorId, status) => ({
   validatorProfessorId: professorId,
@@ -235,6 +281,140 @@ const getProjectValidationFile = async (professorId, projectId, fileId, action) 
     }),
     downloadName: media.fileName || media.description || 'fichier-projet',
     mimeType: media.mimeType || 'application/octet-stream',
+  };
+};
+
+const mapProjectHistoryItem = (validation) => ({
+  id: validation.id,
+  itemType: 'PROJECT',
+  targetType: 'PROJECT',
+  targetId: validation.project?.id || null,
+  title: validation.project?.title || 'Projet',
+  description: validation.project?.description || '',
+  student: mapStudentSummary(validation.project?.student),
+  status: validation.decision,
+  decision: validation.decision,
+  actionLabel: getDecisionLabel(validation.decision),
+  comment: validation.comment || validation.professorFeedback || null,
+  decisionDate: validation.decisionDate,
+  actionDate: validation.decisionDate,
+  submittedAt: validation.project?.submittedAt || validation.project?.createdAt,
+  targetStatus: validation.project?.validationStatus || null,
+});
+
+const mapInternshipHistoryItem = (validation) => ({
+  id: validation.id,
+  itemType: 'INTERNSHIP',
+  targetType: 'INTERNSHIP',
+  targetId: validation.internship?.id || null,
+  title: validation.internship?.hostOrganization
+    ? `Stage - ${validation.internship.hostOrganization}`
+    : 'Stage',
+  description: validation.internship?.missions || '',
+  student: mapStudentSummary(validation.internship?.student),
+  status: validation.decision,
+  decision: validation.decision,
+  actionLabel: getDecisionLabel(validation.decision),
+  comment: validation.comment || null,
+  decisionDate: validation.decisionDate,
+  actionDate: validation.decisionDate,
+  submittedAt: validation.internship?.startDate || validation.internship?.endDate,
+  targetStatus: validation.internship?.validationStatus || null,
+});
+
+const sortHistoryByDecisionDate = (items) =>
+  [...items].sort(
+    (left, right) =>
+      new Date(right.decisionDate || 0) - new Date(left.decisionDate || 0),
+  );
+
+const listProfessorValidationHistory = async (userId, filters = {}) => {
+  const professor = await getProfessorByUserId(userId);
+  const type = normalizeValidationType(filters.type);
+  const status = normalizeValidationStatus(filters.status);
+  const limit = Math.min(Math.max(Number(filters.limit) || 80, 1), 200);
+
+  const where = {
+    professorId: professor.id,
+    ...(status ? { decision: status } : {}),
+  };
+
+  const loaders = [];
+
+  if (!type || type === 'PROJECT') {
+    loaders.push(
+      prisma.projectValidation.findMany({
+        where,
+        orderBy: { decisionDate: 'desc' },
+        take: limit,
+        select: {
+          id: true,
+          decision: true,
+          comment: true,
+          professorFeedback: true,
+          decisionDate: true,
+          project: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              validationStatus: true,
+              submittedAt: true,
+              createdAt: true,
+              student: {
+                select: historyStudentSelect,
+              },
+            },
+          },
+        },
+      }).then((items) => items.map(mapProjectHistoryItem)),
+    );
+  }
+
+  if (!type || type === 'INTERNSHIP') {
+    loaders.push(
+      prisma.internshipValidation.findMany({
+        where,
+        orderBy: { decisionDate: 'desc' },
+        take: limit,
+        select: {
+          id: true,
+          decision: true,
+          comment: true,
+          decisionDate: true,
+          internship: {
+            select: {
+              id: true,
+              hostOrganization: true,
+              missions: true,
+              startDate: true,
+              endDate: true,
+              validationStatus: true,
+              student: {
+                select: historyStudentSelect,
+              },
+            },
+          },
+        },
+      }).then((items) => items.map(mapInternshipHistoryItem)),
+    );
+  }
+
+  const items = sortHistoryByDecisionDate(
+    (await Promise.all(loaders)).flat(),
+  )
+    .filter((item) => historySearchMatches(item, filters.search))
+    .slice(0, limit);
+
+  return {
+    filters: {
+      type,
+      status,
+      search: filters.search || null,
+      limit,
+    },
+    count: items.length,
+    items,
   };
 };
 
@@ -447,6 +627,7 @@ module.exports = {
   getProfessorValidationFile,
   getProfessorValidationDetail,
   getProfessorValidationStats,
+  listProfessorValidationHistory,
   listProfessorValidations,
   rejectProfessorValidation,
   requestProfessorValidationChanges,
