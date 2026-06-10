@@ -3,10 +3,25 @@ import { useAuthStore } from "../stores/auth";
 
 const backendBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const apiBaseUrl = `${backendBaseUrl.replace(/\/$/, "")}/api`;
+const csrfClient = axios.create({
+  baseURL: apiBaseUrl,
+  withCredentials: true,
+});
 
 const api = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
+});
+
+api.interceptors.request.use(async (config) => {
+  const method = config.method?.toUpperCase();
+
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+    const response = await csrfClient.get("/auth/csrf-token");
+    config.headers["x-csrf-token"] = response.data.csrfToken;
+  }
+
+  return config;
 });
 
 api.interceptors.response.use(
