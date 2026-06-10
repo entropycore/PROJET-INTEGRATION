@@ -1,13 +1,44 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { getStudentBadges } from "@/services/studentDashboardService";
 
-import MesBadges from "@/views/student/MesBadges.vue";
+import MesBadges from "@/views/student/Badges.vue";
 
 vi.mock("@/services/studentDashboardService", () => ({
   getStudentBadges: vi.fn(),
 }));
 
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+const badgesResponse = {
+  data: {
+    data: [
+      {
+        id: 1,
+        name: "Web Developer",
+        description: "Badge web",
+        rule: "3 projets web validés",
+        isObtained: true,
+        obtainedAt: "Mars 2025",
+        progress: { current: 3, target: 3 },
+      },
+    ],
+  },
+};
+
+const mountLoadedBadges = async () => {
+  const wrapper = mount(MesBadges);
+  await flushPromises();
+  await wrapper.vm.$nextTick();
+  return wrapper;
+};
+
 describe("MesBadges UI Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getStudentBadges).mockResolvedValue(badgesResponse);
+  });
+
   it("displays page title", () => {
     const wrapper = mount(MesBadges);
 
@@ -60,8 +91,8 @@ describe("MesBadges UI Tests", () => {
     );
   });
 
-  it("has badges grid container", () => {
-    const wrapper = mount(MesBadges);
+  it("has badges grid container", async () => {
+    const wrapper = await mountLoadedBadges();
 
     expect(
       wrapper.find(".badges-grid").exists()

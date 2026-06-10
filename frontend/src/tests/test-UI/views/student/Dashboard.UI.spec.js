@@ -6,6 +6,7 @@ import {
 } from "vitest";
 
 import { mount } from "@vue/test-utils";
+import { getStudentDashboardData } from "@/services/studentDashboardService";
 
 import Dashboard from "@/views/student/Dashboard.vue";
 
@@ -22,7 +23,36 @@ vi.mock(
   })
 );
 
+const dashboardData = {
+  user: { firstName: "Sara" },
+  stats: {
+    validatedProjects: 2,
+    credibilityScore: 80,
+    badgesCount: 1,
+    recommendationsCount: 3,
+    pendingRecommendations: 0,
+  },
+  credibility: { score: 80, label: "Fort", details: [] },
+  recentProjects: [],
+  badges: [],
+  notifications: [],
+};
+
+const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+const mountLoadedDashboard = async () => {
+  const wrapper = mount(Dashboard);
+  await flushPromises();
+  await wrapper.vm.$nextTick();
+  return wrapper;
+};
+
 describe("Dashboard UI Tests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getStudentDashboardData).mockResolvedValue(dashboardData);
+  });
+
   it("renders component", () => {
     const wrapper = mount(Dashboard);
 
@@ -31,8 +61,8 @@ describe("Dashboard UI Tests", () => {
     ).toBe(true);
   });
 
-  it("contains dashboard header", () => {
-    const wrapper = mount(Dashboard);
+  it("contains dashboard header", async () => {
+    const wrapper = await mountLoadedDashboard();
 
     expect(
       wrapper.find(
@@ -41,8 +71,8 @@ describe("Dashboard UI Tests", () => {
     ).toBe(true);
   });
 
-  it("contains statistics section", () => {
-    const wrapper = mount(Dashboard);
+  it("contains statistics section", async () => {
+    const wrapper = await mountLoadedDashboard();
 
     expect(
       wrapper.find(
@@ -51,8 +81,8 @@ describe("Dashboard UI Tests", () => {
     ).toBe(true);
   });
 
-  it("contains projects section", () => {
-    const wrapper = mount(Dashboard);
+  it("contains projects section", async () => {
+    const wrapper = await mountLoadedDashboard();
 
     expect(
       wrapper.text()
@@ -61,8 +91,8 @@ describe("Dashboard UI Tests", () => {
     );
   });
 
-  it("contains badges section", () => {
-    const wrapper = mount(Dashboard);
+  it("contains badges section", async () => {
+    const wrapper = await mountLoadedDashboard();
 
     expect(
       wrapper.text()
@@ -71,8 +101,8 @@ describe("Dashboard UI Tests", () => {
     );
   });
 
-  it("contains credibility section", () => {
-    const wrapper = mount(Dashboard);
+  it("contains credibility section", async () => {
+    const wrapper = await mountLoadedDashboard();
 
     expect(
       wrapper.text()
@@ -81,8 +111,8 @@ describe("Dashboard UI Tests", () => {
     );
   });
 
-  it("contains notifications section", () => {
-    const wrapper = mount(Dashboard);
+  it("contains notifications section", async () => {
+    const wrapper = await mountLoadedDashboard();
 
     expect(
       wrapper.text()
@@ -92,11 +122,8 @@ describe("Dashboard UI Tests", () => {
   });
 
   it("shows loading message", async () => {
+    vi.mocked(getStudentDashboardData).mockReturnValue(new Promise(() => {}));
     const wrapper = mount(Dashboard);
-
-    wrapper.vm.isLoading = true;
-
-    await wrapper.vm.$nextTick();
 
     expect(
       wrapper.text()
