@@ -27,6 +27,7 @@ router.put(
   professorController.updateSettingsNotifications,
 );
 router.get('/validations/stats', professorController.getValidationStats);
+router.get('/validations/history', professorController.listValidationHistory);
 router.get('/validations', professorController.listValidations);
 router.get(
   '/validations/:itemType/:itemId/files/:fileId/:action',

@@ -2,6 +2,7 @@
 
 const administratorService = require('../../services/administratorService');
 const { success, error } = require('../../utils/apiResponse');
+const sendStoredFile = require('../../utils/sendStoredFile');
 const {
   VALID_LEGACY_VALIDATION_TYPES,
   VALID_VALIDATION_STATUSES,
@@ -95,6 +96,22 @@ exports.getLegacyValidationDetail = async (req, res, next) => {
   try {
     const item = await administratorService.getLegacyValidationDetail(req.params.validationId);
     return success(res, 200, 'Validation récupérée.', item);
+  } catch (err) {
+    if (handleAdminError(res, err)) return;
+    next(err);
+  }
+};
+
+exports.downloadValidationFile = async (req, res, next) => {
+  try {
+    const file = await administratorService.getAdminValidationFile(
+      req.params.itemType,
+      req.params.itemId,
+      req.params.fileId,
+      req.params.action,
+    );
+
+    return sendStoredFile(res, file, next);
   } catch (err) {
     if (handleAdminError(res, err)) return;
     next(err);
