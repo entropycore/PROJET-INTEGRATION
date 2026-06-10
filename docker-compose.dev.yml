@@ -81,6 +81,7 @@ services:
       DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
       DIRECT_URL: postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}?schema=public
       PORT: 3000
+      CSRF_SECRET: ${CSRF_SECRET:-dev_csrf_secret_change_me_2026}
       STORAGE_DRIVER: ${STORAGE_DRIVER:-s3}
       LOCAL_UPLOAD_DIR: /app/uploads
       UPLOAD_MAX_MB: ${UPLOAD_MAX_MB:-10}
