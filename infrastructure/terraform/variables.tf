@@ -4,7 +4,7 @@ variable "aws_region" {
   default     = "eu-west-3"
 }
 variable "my_ip" {
-  description = "192.168.1.0/24"
+  description = "192.168.3.59/24"
   type        = string
   sensitive   = true
  
@@ -12,4 +12,10 @@ variable "my_ip" {
 variable "key_name" {
   description = "Credencia-key"
   type        = string
+}
+
+variable "db_username" {
+  description = "UserRDS"
+  type        = string
+  default     = "admin"
 }

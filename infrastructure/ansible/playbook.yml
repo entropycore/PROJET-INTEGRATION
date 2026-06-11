@@ -1,59 +1,127 @@
 ---
-- name: Configurer le serveur applicatif
-  hosts: web
+- name: Configuration des serveurs Backend sur AWS
+  hosts: backend
   become: yes
   vars:
-    dockerhub_username: "votre-utilisateur" # laissez-les vides si l’image est publique.
-    dockerhub_password: "votre-motdepasse-ou-token"
-    app_image: "votreutilisateur/backend:latest"
-    app_port: "3000"
+    db_host: "{{ lookup('aws_ssm', '/projet/rds/endpoint') }}"
+    db_password: "{{ lookup('aws_ssm', '/projet/rds/password') }}"
 
   tasks:
-    # 1. Pré-requis système
-    - name: Installer les paquets nécessaires (Docker, Git)
-      yum:
+
+    
+    - name: Configuration des serveurs Backend sur AWS
+      apt:
         name:
-          - docker
-          - git
+          - docker.io
+          - docker-compose
+          - python3-pip
         state: present
+
+    - name: Install Docker SDK for Python
+      pip:
+        name: docker
+        state: present
+
+    - name: Create app directory
+      file:
+        path: /app
+        state: directory
+
+    - name: Deploy docker-compose.yml
+      copy:
+        src: ../files/docker-compose.yml
+        dest: /app/docker-compose.yml
+
+    - name: Create .env file from template
+      template:
+        src: ../templates/env.j2
+        dest: /app/.env
+
+    - name: Start Docker Compose stack
+      docker_compose:
+        project_src: /app
+        state: present
+        restarted: yes
+
+---
+- name: Configurer les serveurs backend sur AWS 
+  hosts: backend
+  become: yes                     
+  vars:
+    # Variables de connexion Docker Hub (laisser vides si l'image est publique)
+    dockerhub_username: "votre-utilisateur"
+    dockerhub_password: "votre-token-ou-motdepasse"
+    # Image Docker de l'application
+    app_image: "votre-utilisateur/backend:latest"
+    # Port d'écoute de l'application dans le conteneur
+    app_port: "3000"
+    # Ces variables seront remplies dynamiquement via AWS SSM
+    db_host: "{{ lookup('aws_ssm', '/credencia/db/endpoint', region='eu-west-3') }}"
+    db_password: "{{ lookup('aws_ssm', '/credencia/db/password', region='eu-west-3') }}"
+    db_name: "CredenciaDB"
+    db_user: "admin"
+
+  tasks:
+    - name: Mettre à jour les paquets APT
+      apt:
         update_cache: yes
 
-    - name: Démarrer et activer Docker au démarrage
+    - name: Installer les paquets nécessaires (Docker, Git, etc.)
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+          - git
+          - python3-pip   
+        state: present
+        update_cache: yes  
+
+    - name: S'assurer que le service Docker est actif et activé au démarrage
       systemd:
         name: docker
         state: started
         enabled: yes
 
-    - name: Ajouter l'utilisateur ec2-user au groupe docker
+    - name: Ajouter l'utilisateur devops2 au groupe docker
       user:
-        name: ec2-user
+        name: devops2
         groups: docker
         append: yes
-      # Le changement de groupe ne prend effet qu'à la prochaine connexion
-      # mais Docker CLI peut être utilisé avec become: yes par la suite.
 
-    # 2. Authentification Docker Hub (si images privées)
+    - name: Installer la bibliothèque Python Docker
+      pip:
+        name: docker
+        state: present
+
     - name: Se connecter à Docker Hub
       docker_login:
         username: "{{ dockerhub_username }}"
         password: "{{ dockerhub_password }}"
       when: dockerhub_username != "" and dockerhub_password != ""
 
-    # 3. Pull de l'image et lancement du conteneur
-    - name: Puller l'image applicative depuis Docker Hub
+    - name: Puller l'image Docker depuis le registre
       docker_image:
         name: "{{ app_image }}"
         source: pull
-        force_source: yes
+        force_source: yes  
 
-    - name: Lancer (ou redéployer) le conteneur applicatif
+    - name: Créer le répertoire de l'application si nécessaire
+      file:
+        path: /app
+        state: directory
+        mode: '0755'
+
+    - name: Lancer (ou mettre à jour) le conteneur applicatif
       docker_container:
-        name: mon-app
+        name: credencia-backend
         image: "{{ app_image }}"
         state: started
         restart_policy: unless-stopped
         ports:
-          - "{{ app_port }}:3000"  # hôte:conteneur
+          - "{{ app_port }}:3000"         
         env:
           NODE_ENV: "production"
-        # Ajoutez d'autres variables d'environnement si nécessaire
+          DATABASE_URL: "postgresql://{{ db_user }}:{{ db_password }}@{{ db_host }}/{{ db_name }}"
+          # Ajoutez ici toute autre variable d'environnement nécessaire
+        # Pour faciliter les migrations, on peut monter un volume avec le code ou utiliser une commande.
+        # Nous exécuterons les migrations Prisma séparément (voir plus bas).
