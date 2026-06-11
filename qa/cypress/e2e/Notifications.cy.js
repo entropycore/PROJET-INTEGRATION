@@ -21,7 +21,7 @@ describe("Centre de notifications - Tests E2E avec backend reel", () => {
 
     it("affiche l'en-tete et charge l'etat des notifications", () => {
       cy.get(".notifications-page").should("be.visible");
-      cy.get(".page-header span").should("contain.text", "ETUDIANT");
+      cy.get(".page-header span").should("contain.text", "ÉTUDIANT");
       cy.get(".notifications-page").should(($page) => {
         expect($page.text()).to.match(/notification|Aucune|Erreur/i);
       });

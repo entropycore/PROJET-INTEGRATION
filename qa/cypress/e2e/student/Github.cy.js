@@ -1,13 +1,6 @@
 describe("E2E - Mon GitHub", () => {
   beforeEach(() => {
-    cy.visit("/login");
-
-    cy.get('input[type="email"]').type(Cypress.env("E2E_EMAIL"));
-    cy.get('input[type="password"]').type(Cypress.env("E2E_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-
-    cy.visit("/student/github");
+    cy.loginAsStudent("/student/github");
   });
 
   it("affiche la page GitHub", () => {

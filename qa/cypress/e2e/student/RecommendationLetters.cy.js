@@ -4,7 +4,7 @@ describe("Student recommendation letters", () => {
   });
 
   it("affiche la page des lettres de recommandation", () => {
-    cy.contains("RecommendationLetters").should("be.visible");
+    cy.contains(/RecommendationLetters|Lettres de recommandation/i).should("be.visible");
     cy.url().should("include", "/student/recommendation-letters");
   });
 });

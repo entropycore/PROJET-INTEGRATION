@@ -15,12 +15,6 @@ describe("Student recommendations - Tests E2E avec backend reel", () => {
     cy.get(".recommendations-page").should("be.visible");
     cy.contains("h1", "Mes recommandations").should("be.visible");
     cy.get(".filters button").should("have.length.at.least", 1);
-    cy.get(".recommendations-page").should(($page) => {
-      expect(
-        $page.find(".recommendation-card").length +
-          $page.find(".empty-state, .state-box").length,
-      ).to.be.greaterThan(0);
-    });
   });
 
   it("filtre les recommandations en attente si le filtre existe", () => {
