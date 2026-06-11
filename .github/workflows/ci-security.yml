@@ -123,7 +123,7 @@ jobs:
         with:
           languages: javascript-typescript
           paths-ignore: 
-            - **/tests/**
+            - "**/tests/**"
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@v3

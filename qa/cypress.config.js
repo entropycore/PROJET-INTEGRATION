@@ -1,4 +1,12 @@
-const { defineConfig } = require("cypress");
+let defineConfig = (config) => config;
+
+try {
+  ({ defineConfig } = require("cypress"));
+} catch {
+  // Cypress can load this config from the qa/ folder while the dependency is
+  // installed in frontend/node_modules. Returning the plain object is enough.
+}
+
 const crypto = require("crypto");
 const http = require("http");
 const https = require("https");
