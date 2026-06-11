@@ -15,6 +15,3 @@ services:
   # Le frontend (Vue.js) n'est pas ici car il est déployé sur S3/CloudFront.
   # La BDD n'est pas ici car elle est gérée par AWS RDS.
 
-networks:
-  credencia-network:
-    driver: bridge

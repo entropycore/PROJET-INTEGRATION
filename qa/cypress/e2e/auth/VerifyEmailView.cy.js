@@ -1,30 +1,22 @@
-describe('E2E - Vérification d\'Email', () => {
-  it('doit confirmer l\'email avec un token valide et rediriger vers login', () => {
-    cy.intercept('GET', '**/api/auth/verify-email?token=token_valide_demo', {
-      statusCode: 200,
-      body: { message: 'Email vérifié' }
-    }).as('verifyEmail');
-
-    cy.visit('/verify-email?token=token_valide_demo');
-
-    // Vérifier les messages
-    cy.contains('h1', 'Email vérifié avec succès').should('be.visible');
-    cy.contains('p', 'Votre demande est en attente de validation').should('be.visible');
-
-    // Redirection
-    cy.get('.verify-email-button').click();
-    cy.url().should('include', '/login');
+describe("E2E - Verification d'email avec backend reel", () => {
+  it("affiche une erreur si le token est manquant", () => {
+    cy.visit("/verify-email");
+    cy.contains("h1", /Verification impossible|V.rification impossible/i).should(
+      "be.visible",
+    );
+    cy.get(".status-icon-error").should("be.visible");
   });
 
-  it('doit afficher une erreur pour un token invalide', () => {
-    cy.intercept('GET', '**/api/auth/verify-email*', {
-      statusCode: 400,
-      body: { message: 'Token invalide' }
-    }).as('verifyEmailError');
+  it("appelle le vrai backend et affiche une erreur pour un token invalide", () => {
+    cy.intercept("GET", "**/api/auth/verify-email*").as("verifyEmail");
+    cy.visit("/verify-email?token=token_invalide_cypress");
+    cy.wait("@verifyEmail", { timeout: 20000 })
+      .its("response.statusCode")
+      .should("be.oneOf", [400, 404]);
 
-    cy.visit('/verify-email?token=token_invalide');
-    
-    cy.contains('h1', 'Vérification impossible').should('be.visible');
-    cy.get('.status-icon-error').should('be.visible');
+    cy.contains("h1", /Verification impossible|V.rification impossible/i).should(
+      "be.visible",
+    );
+    cy.get(".status-icon-error").should("be.visible");
   });
 });

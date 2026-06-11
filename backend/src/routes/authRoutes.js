@@ -4,11 +4,17 @@ const authController = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authMiddleware');
 const verifyRefreshToken = require('../middlewares/verifyRefreshToken');
 
-const { authLimiter, forgotPasswordLimiter } = require('../middlewares/rateLimiter'); 
+const { authLimiter, forgotPasswordLimiter, resetPasswordLimiter } = require('../middlewares/rateLimiter');
 
 
 const { validationRules, handleValidationErrors } = require('../middlewares/validationRules');
+const { generateCsrfToken } = require('../middlewares/csrfProtection');
 
+// GET endpoint — frontend must call this before any POST/PUT/DELETE to get a CSRF token
+router.get('/csrf-token', (req, res) => {
+  const csrfToken = generateCsrfToken(req, res);
+  res.json({ csrfToken });
+});
 
 router.post('/register', authLimiter, validationRules('register'), handleValidationErrors, authController.register);
 router.post(
@@ -20,6 +26,7 @@ router.post(
 );
 router.post(
   '/reset-password',
+  resetPasswordLimiter,
   validationRules('resetPassword'),
   handleValidationErrors,
   authController.resetPassword
@@ -31,6 +38,6 @@ router.get('/verify-email', authController.verifyEmail);
 
 
 router.get('/me', authMiddleware, authController.getMe);
-router.post('/logout', authMiddleware, authController.logout);//j ai supprimer aauthMiddleware car notre but et de supprimer cookie et pâs de verifier token
+router.post('/logout', authController.logout);
 
 module.exports = router;

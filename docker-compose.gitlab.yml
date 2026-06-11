@@ -1,0 +1,73 @@
+services:
+
+
+  gitlab:
+    image: gitlab/gitlab-ce:latest
+    container_name: gitlab_ce
+    restart: unless-stopped
+    hostname: gitlab.local
+    env_file:
+      - .env.gitlab
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://localhost:${GITLAB_HTTP_PORT}'
+
+        # ── SSO Keycloak ──────────────────────────────
+        # Permet de se connecter à GitLab avec le même
+        # compte que l'application (Single Sign-On)
+        gitlab_rails['omniauth_enabled'] = true
+        gitlab_rails['omniauth_allow_single_sign_on'] = ['openid_connect']
+        gitlab_rails['omniauth_block_auto_created_users'] = false
+        gitlab_rails['omniauth_providers'] = [
+          {
+            name: 'openid_connect',
+            label: 'Keycloak SSO',
+            args: {
+              name: 'openid_connect',
+              scope: ['openid', 'profile', 'email'],
+              response_type: 'code',
+              issuer: 'http://keycloak_sec:8080/realms/${KEYCLOAK_REALM:-credencia}',
+              discovery: true,
+              client_auth_method: 'query',
+              uid_field: 'preferred_username',
+              client_options: {
+                identifier: '${GITLAB_KEYCLOAK_CLIENT_ID:-gitlab}',
+                secret: '${GITLAB_KEYCLOAK_CLIENT_SECRET}',
+                redirect_uri: 'http://localhost:${GITLAB_HTTP_PORT}/users/auth/openid_connect/callback'
+              }
+            }
+          }
+        ]
+    ports:
+      - "${GITLAB_HTTP_PORT:-8929}:8929"
+      - "${GITLAB_SSH_PORT:-2224}:22"
+    volumes:
+      - gitlab_config:/etc/gitlab
+      - gitlab_logs:/var/log/gitlab
+      - gitlab_data:/var/opt/gitlab
+    shm_size: '256m'
+    networks:
+      - credencia_net
+
+ 
+  gitlab_runner:
+    image: gitlab/gitlab-runner:latest
+    container_name: gitlab_runner
+    restart: unless-stopped
+    depends_on:
+      - gitlab
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - gitlab_runner_config:/etc/gitlab-runner
+    networks:
+      - credencia_net
+
+volumes:
+  gitlab_config:
+  gitlab_logs:
+  gitlab_data:
+  gitlab_runner_config:
+
+networks:
+  credencia_net:
+    external: true
