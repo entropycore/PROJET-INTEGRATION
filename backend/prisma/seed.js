@@ -345,21 +345,38 @@ const buildCertificateUrl = (activityId) =>
   `/api/student/activities/${activityId}/certificate/download`;
 
 const storeSeedCertificateFile = async () => {
-  const storedFile = await storageService.uploadObject({
-    objectKey: SEED_CERTIFICATE_OBJECT_KEY,
-    buffer: SEED_CERTIFICATE_BUFFER,
-    mimeType: 'application/pdf',
-    metadata: {
-      source: 'seed',
-      name: SEED_CERTIFICATE_FILE_NAME,
-    },
-  });
+  try {
+    const storedFile = await storageService.uploadObject({
+      objectKey: SEED_CERTIFICATE_OBJECT_KEY,
+      buffer: SEED_CERTIFICATE_BUFFER,
+      mimeType: 'application/pdf',
+      metadata: {
+        source: 'seed',
+        name: SEED_CERTIFICATE_FILE_NAME,
+      },
+    });
+
+    return {
+      fileName: SEED_CERTIFICATE_FILE_NAME,
+      mimeType: 'application/pdf',
+      fileSize: SEED_CERTIFICATE_BUFFER.length,
+      storagePath: storedFile.objectKey,
+    };
+  } catch (error) {
+    if (!['test', 'e2e'].includes(process.env.NODE_ENV)) {
+      throw error;
+    }
+
+    console.warn(
+      `Stockage objet indisponible pendant le seed ${process.env.NODE_ENV}; certificat seed cree sans fichier stocke.`,
+    );
+  }
 
   return {
     fileName: SEED_CERTIFICATE_FILE_NAME,
     mimeType: 'application/pdf',
     fileSize: SEED_CERTIFICATE_BUFFER.length,
-    storagePath: storedFile.objectKey,
+    storagePath: null,
   };
 };
 

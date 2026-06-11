@@ -106,6 +106,7 @@ e2e:cypress:
     - npm ci
     - npx prisma generate
     - npx prisma migrate deploy
+    - npx prisma db seed
     - npm run start > ../backend-e2e.log 2>&1 &
     - cd ../frontend
     - npm ci

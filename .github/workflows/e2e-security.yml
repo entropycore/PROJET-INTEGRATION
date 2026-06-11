@@ -70,6 +70,10 @@ jobs:
         working-directory: backend
         run: npx prisma migrate deploy
 
+      - name: Seed E2E database
+        working-directory: backend
+        run: npx prisma db seed
+
       - name: Start backend
         working-directory: backend
         run: npm run start > ../backend-e2e.log 2>&1 &

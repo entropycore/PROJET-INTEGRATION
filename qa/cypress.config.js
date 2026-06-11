@@ -181,7 +181,9 @@ module.exports = defineConfig({
       E2E_PROJECT_ID: "",
       E2E_EDIT_STAGE_ID: "",
       E2E_EDIT_PROJECT_ID: "",
-      ACCESS_TOKEN_SECRET: "un_code_secret_tres_long_et_complexe_pour_access_2026!",
+      ACCESS_TOKEN_SECRET:
+        process.env.ACCESS_TOKEN_SECRET ||
+        "un_code_secret_tres_long_et_complexe_pour_access_2026!",
       DELAI_INTERFACE: 700,
       DELAI_SAISIE: 45,
     },
