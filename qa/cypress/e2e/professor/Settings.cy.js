@@ -1,6 +1,79 @@
 describe("E2E - Paramètres professeur", () => {
   beforeEach(() => {
+    cy.intercept("GET", "**/api/auth/csrf-token", {
+      statusCode: 200,
+      body: { csrfToken: "csrf-cypress-token" },
+    }).as("getCsrfToken");
+
+    cy.intercept("GET", "**/api/professor/profile", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          user: {
+            fullName: "prof ghailani",
+            firstName: "prof",
+            lastName: "ghailani",
+            email: "prof.ghailani@ensat.ma",
+            phone: "",
+            accountStatus: "ACTIVE",
+            lastLoginAt: null,
+            createdAt: null,
+            profilePicture: "",
+          },
+          profile: {
+            employeeId: "PROF-CYPRESS",
+            grade: "Professeur",
+            specialty: "Genie logiciel",
+            department: "Informatique",
+          },
+        },
+      },
+    }).as("getProfessorProfile");
+
+    cy.intercept("GET", "**/api/professor/settings", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          privacy: {
+            profileVisibility: "PUBLIC",
+            showEmail: true,
+            showPhone: false,
+          },
+          notifications: {
+            email: true,
+            push: false,
+            validationAssignments: true,
+            validationUpdates: true,
+            weeklyDigest: false,
+          },
+        },
+      },
+    }).as("getProfessorSettings");
+
+    cy.intercept("PUT", "**/api/professor/settings/password", {
+      statusCode: 200,
+      body: { success: true, data: {} },
+    }).as("updateProfessorPassword");
+
+    cy.intercept("PUT", "**/api/professor/settings/privacy", {
+      statusCode: 200,
+      body: { success: true, data: {} },
+    }).as("updateProfessorPrivacy");
+
+    cy.intercept("PUT", "**/api/professor/settings/notifications", {
+      statusCode: 200,
+      body: { success: true, data: {} },
+    }).as("updateProfessorNotifications");
+
+    cy.intercept("POST", "**/api/auth/forgot-password", {
+      statusCode: 200,
+      body: { success: true, message: "Lien envoye" },
+    }).as("sendProfessorPasswordReset");
+
     cy.loginAsRoleSession("PROFESSOR", "/professor/settings");
+    cy.wait(["@getProfessorProfile", "@getProfessorSettings"]);
   });
 
   it("affiche la page paramètres", () => {

@@ -5,7 +5,7 @@ describe("E2E - Dashboard professeur", () => {
       body: {
         success: true,
         data: {
-          profileSnapshot: { fullName: "Professor Cypress" },
+          profileSnapshot: { fullName: "prof ghailani" },
           summaryCards: {
             pendingProjects: { value: 0 },
             pendingInternships: { value: 0 },

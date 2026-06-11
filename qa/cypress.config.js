@@ -1,5 +1,7 @@
 const { defineConfig } = require("cypress");
 const crypto = require("crypto");
+const http = require("http");
+const https = require("https");
 
 const base64Url = (value) =>
   Buffer.from(value)
@@ -30,6 +32,43 @@ const signJwt = (payload, secret) => {
   return `${unsignedToken}.${signature}`;
 };
 
+const isBackendAvailable = (apiBaseUrl) => {
+  const healthUrl = new URL("/api/health", apiBaseUrl);
+  return checkUrl(healthUrl);
+};
+
+const isCsrfAvailable = (apiBaseUrl) => {
+  const csrfUrl = new URL("/api/auth/csrf-token", apiBaseUrl);
+  return checkUrl(csrfUrl);
+};
+
+const checkUrl = (url) => {
+  const healthUrl = url instanceof URL ? url : new URL(url);
+  const client = healthUrl.protocol === "https:" ? https : http;
+
+  return new Promise((resolve) => {
+    const request = client.get(
+      healthUrl,
+      {
+        timeout: 2000,
+      },
+      (response) => {
+        response.resume();
+        resolve(response.statusCode >= 200 && response.statusCode < 500);
+      },
+    );
+
+    request.on("timeout", () => {
+      request.destroy();
+      resolve(false);
+    });
+
+    request.on("error", () => {
+      resolve(false);
+    });
+  });
+};
+
 module.exports = defineConfig({
   allowCypressEnv: true,
 
@@ -43,6 +82,12 @@ module.exports = defineConfig({
       on("task", {
         signAccessToken(payload) {
           return signJwt(payload, config.env.ACCESS_TOKEN_SECRET);
+        },
+        isBackendAvailable(apiBaseUrl = config.env.API_BASE_URL) {
+          return isBackendAvailable(apiBaseUrl);
+        },
+        isCsrfAvailable(apiBaseUrl = config.env.API_BASE_URL) {
+          return isCsrfAvailable(apiBaseUrl);
         },
       });
       return config;

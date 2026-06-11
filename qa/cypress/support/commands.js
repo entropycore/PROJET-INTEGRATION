@@ -20,9 +20,10 @@ const usersByRole = {
   },
   PROFESSOR: {
     id: "cypress-professor-user",
-    firstName: "Professor",
-    lastName: "Cypress",
-    email: "professor.test@ensat.ma",
+    firstName: "pasprof",
+    lastName: "ghailani",
+    fullName: "pasprof ghailani",
+    email: "pasprof.ghailani@ensat.ma",
     role: "PROFESSOR",
     accountStatus: "ACTIVE",
   },
@@ -131,11 +132,26 @@ Cypress.Commands.add("loginAsRoleApi", (role, path = "/") => {
   cy.clearLocalStorage();
 
   return cy.request({
-    method: "POST",
-    url: `${apiBaseUrl}/api/auth/login`,
-    body: { email: credentials.email, password: credentials.password },
+    method: "GET",
+    url: `${apiBaseUrl}/api/auth/csrf-token`,
     timeout: 20000,
     failOnStatusCode: false,
+  }).then((csrfResponse) => {
+    expect(
+      csrfResponse.status,
+      `GET ${apiBaseUrl}/api/auth/csrf-token doit reussir avant le login ${normalizedRole}. Reponse: ${JSON.stringify(csrfResponse.body)}`,
+    ).to.eq(200);
+
+    return cy.request({
+      method: "POST",
+      url: `${apiBaseUrl}/api/auth/login`,
+      headers: {
+        "x-csrf-token": csrfResponse.body?.csrfToken,
+      },
+      body: { email: credentials.email, password: credentials.password },
+      timeout: 20000,
+      failOnStatusCode: false,
+    });
   }).then((loginResponse) => {
     expect(
       loginResponse.status,

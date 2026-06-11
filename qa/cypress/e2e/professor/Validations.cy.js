@@ -1,6 +1,111 @@
 describe("E2E - Validations professeur", () => {
   beforeEach(() => {
+    cy.intercept("GET", "**/api/auth/csrf-token", {
+      statusCode: 200,
+      body: { csrfToken: "csrf-cypress-token" },
+    }).as("getCsrfToken");
+
+    const validation = {
+      targetId: "project-cypress-1",
+      targetType: "PROJECT",
+      title: "Projet Cypress",
+      description: JSON.stringify({
+        description: "Projet utilise comme donnees de test Cypress.",
+      }),
+      status: "PENDING",
+      submittedAt: "2026-06-01T10:00:00.000Z",
+      student: {
+        fullName: "Student Cypress",
+        email: "student.test@credencia.ma",
+        field: "Genie informatique",
+        level: "5A",
+        city: "Tanger",
+      },
+      targetDetails: {
+        projectType: "Application web",
+        teamRole: "Developpeur",
+        teamSize: 2,
+        technologies: ["Vue", "Node"],
+      },
+      content: {
+        description: "Projet utilise comme donnees de test Cypress.",
+        files: [
+          {
+            id: "file-cypress-1",
+            name: "rapport-projet.pdf",
+            size: 240000,
+            url: "/uploads/rapport-projet.pdf",
+          },
+        ],
+      },
+    };
+
+    cy.intercept("GET", "**/api/professor/validations?*", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          items: [validation],
+          total: 1,
+        },
+      },
+    }).as("getProfessorValidations");
+
+    cy.intercept("GET", "**/api/professor/validations/stats", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          count: 1,
+          projects: 1,
+          internships: 0,
+          approved: 0,
+          rejected: 0,
+          changesRequested: 0,
+        },
+      },
+    }).as("getProfessorValidationStats");
+
+    cy.intercept("GET", "**/api/professor/validations/PROJECT/project-cypress-1", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: validation,
+      },
+    }).as("getProfessorValidationDetails");
+
+    cy.intercept(
+      "PATCH",
+      "**/api/professor/validations/PROJECT/project-cypress-1/approve",
+      {
+        statusCode: 200,
+        body: { success: true, data: { ...validation, status: "APPROVED" } },
+      },
+    ).as("approveProfessorValidation");
+
+    cy.intercept(
+      "PATCH",
+      "**/api/professor/validations/PROJECT/project-cypress-1/reject",
+      {
+        statusCode: 200,
+        body: { success: true, data: { ...validation, status: "REJECTED" } },
+      },
+    ).as("rejectProfessorValidation");
+
+    cy.intercept(
+      "PATCH",
+      "**/api/professor/validations/PROJECT/project-cypress-1/request-changes",
+      {
+        statusCode: 200,
+        body: {
+          success: true,
+          data: { ...validation, status: "CHANGES_REQUESTED" },
+        },
+      },
+    ).as("requestProfessorValidationChanges");
+
     cy.loginAsRoleSession("PROFESSOR", "/professor/validations");
+    cy.wait(["@getProfessorValidations", "@getProfessorValidationStats"]);
   });
 
   it("affiche la page validations professeur", () => {

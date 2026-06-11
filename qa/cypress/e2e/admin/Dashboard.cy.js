@@ -18,7 +18,7 @@ describe("Admin Dashboard - Tests E2E avec backend reel", () => {
 
     cy.contains("Chargement...", { timeout: 15000 }).should("not.exist");
     cy.contains("Erreur lors du chargement du dashboard").should("not.exist");
-    cy.get(".stats-grid .stat-card", { timeout: 15000 }).should("have.length", 4);
+    cy.get(".stats-grid .stat-card-ui", { timeout: 15000 }).should("have.length", 4);
   };
 
   beforeEach(() => {
@@ -31,16 +31,19 @@ describe("Admin Dashboard - Tests E2E avec backend reel", () => {
     cy.get("h1").should("contain.text", "Administration de platform");
     cy.get(".admin-subtitle").should("be.visible");
 
-    cy.get(".stat-card").eq(0).within(() => {
-      cy.get(".stat-label").should("contain.text", "UTILISATEURS");
-      cy.get(".stat-value")
+    cy.get(".stat-card-ui").eq(0).within(() => {
+      cy.get(".stat-card-title").invoke("text").should("match", /utilisateurs/i);
+      cy.get(".stat-card-value")
         .invoke("text")
         .should("match", /^\d+$/);
     });
 
-    cy.get(".stat-card").eq(1).should("contain.text", "TUDIANTS");
-    cy.get(".stat-card").eq(2).should("contain.text", "PROFESSEURS");
-    cy.get(".stat-card.warning").should("contain.text", "Demandes En Attente");
+    cy.get(".stat-card-ui").eq(1).invoke("text").should("match", /tudiants/i);
+    cy.get(".stat-card-ui").eq(2).invoke("text").should("match", /professeurs/i);
+    cy.get(".stat-card-ui")
+      .eq(3)
+      .invoke("text")
+      .should("match", /demandes en attente/i);
   });
 
   it("affiche la zone d'activite recente ou son etat vide", () => {

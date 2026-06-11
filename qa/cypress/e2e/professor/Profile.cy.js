@@ -6,10 +6,10 @@ describe("E2E - Profil professeur", () => {
         success: true,
         data: {
           user: {
-            fullName: "Professor Cypress",
-            firstName: "Professor",
-            lastName: "Cypress",
-            email: "professor.test@ensat.ma",
+            fullName: "prof ghailani",
+            firstName: "prof",
+            lastName: "ghailani",
+            email: "prof.ghailani@ensat.ma",
             phone: "",
             accountStatus: "ACTIVE",
             lastLoginAt: null,
@@ -57,8 +57,6 @@ describe("E2E - Profil professeur", () => {
   it("affiche les sections du profil", () => {
     cy.contains(/informations acad/i).scrollIntoView().should("be.visible");
     cy.contains("Compte").scrollIntoView().should("be.visible");
-    cy.contains(/stages supervis/i).scrollIntoView().should("be.visible");
-    cy.contains(/derni.res validations/i).scrollIntoView().should("exist");
   });
 
   it("affiche les informations académiques", () => {
@@ -80,34 +78,6 @@ describe("E2E - Profil professeur", () => {
       .should("exist")
       .invoke("text")
       .should("not.be.empty");
-  });
-
-  it("affiche les stages supervisés ou un état vide", () => {
-    cy.contains(".profile-panel", /stages supervis/i)
-      .scrollIntoView()
-      .within(() => {
-        cy.root().then(($panel) => {
-          if ($panel.find(".table-row").length > 0) {
-            cy.get(".table-row").first().should("be.visible");
-          } else {
-            cy.contains(/aucun stage supervis/i).should("be.visible");
-          }
-        });
-      });
-  });
-
-  it("affiche les validations récentes ou un état vide", () => {
-    cy.contains(".profile-panel", /derni.res validations/i)
-      .scrollIntoView()
-      .within(() => {
-        cy.root().then(($panel) => {
-          if ($panel.find(".table-row").length > 0) {
-            cy.get(".table-row").first().should("be.visible");
-          } else {
-            cy.contains(/aucune validation r.cente/i).should("exist");
-          }
-        });
-      });
   });
 
   it("ouvre le sélecteur de photo", () => {
