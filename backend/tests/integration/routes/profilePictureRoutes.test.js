@@ -14,6 +14,8 @@ jest.mock('../../../src/logs/logger', () => ({
 jest.mock('../../../src/services/student/profilePictureStorage');
 const { getProfilePicturePath } = require('../../../src/services/student/profilePictureStorage');
 
+const fs = require('fs');
+
 const profilePictureRouter = require('../../../src/routes/profilePictureRoutes');
 
 const app = express();
@@ -35,8 +37,12 @@ describe("Tests d'Intégration - Routes Photos de Profil (profilePictureRoutes)"
   describe('Endpoints Logic', () => {
 
     it('TC-PIC-01 : getProfilePicture -> 200', async () => {
-      // Use __filename (which is this test file) as a valid path to verify res.sendFile works
-      getProfilePicturePath.mockReturnValue(__filename);
+      // Return a valid target object with a readable stream for sendStoredFile
+      getProfilePicturePath.mockResolvedValue({
+        mode: 'stream',
+        contentDisposition: 'inline',
+        stream: fs.createReadStream(__filename),
+      });
 
       const res = await request(app).get('/api/profile-pictures/test.jpg');
 
