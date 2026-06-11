@@ -30,6 +30,10 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      mailpit:
+        image: axllent/mailpit:latest
+        ports:
+          - 1025:1025
 
     env:
       NODE_ENV: e2e
@@ -44,6 +48,9 @@ jobs:
       EMAIL_TOKEN_SECRET: ci_email_token_secret
       CSRF_SECRET: ci_csrf_secret
       HTTPS: "true"
+      EMAIL_HOST: localhost
+      EMAIL_PORT: 1025
+      EMAIL_SECURE: "false"
 
     steps:
       - name: Checkout repository

@@ -99,8 +99,13 @@ e2e:cypress:
   services:
     - name: postgres:15-alpine
       alias: postgres
+    - name: axllent/mailpit:latest
+      alias: mailpit
   variables:
     NODE_ENV: e2e
+    EMAIL_HOST: mailpit
+    EMAIL_PORT: "1025"
+    EMAIL_SECURE: "false"
   script:
     - cd backend
     - npm ci

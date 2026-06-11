@@ -3,6 +3,23 @@
 const nodemailer = require('nodemailer');
 
 const buildTransportConfig = () => {
+  if (process.env.EMAIL_HOST) {
+    const config = {
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT || 1025),
+      secure: process.env.EMAIL_SECURE === 'true',
+    };
+
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      config.auth = {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      };
+    }
+
+    return config;
+  }
+
   const service = process.env.EMAIL_SERVICE || 'gmail';
 
   return {

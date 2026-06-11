@@ -15,10 +15,18 @@ describe("E2E - Mes compétences", () => {
 
   it("affiche la page compétences", () => {
     cy.contains("Mes compétences").should("be.visible");
-    cy.contains("Compétences techniques").should("be.visible");
-    cy.contains("Compétences comportementales").should("be.visible");
-    cy.contains("Aperçu du profil technique").should("be.visible");
-    cy.contains("Suggestions d'amélioration").should("be.visible");
+    cy.contains(".content-card", "Compétences techniques")
+      .scrollIntoView()
+      .should("be.visible");
+    cy.contains(".content-card", "Compétences comportementales")
+      .scrollIntoView()
+      .should("be.visible");
+    cy.contains(".content-card", "Aperçu du profil technique")
+      .scrollIntoView()
+      .should("be.visible");
+    cy.contains(".content-card", "Suggestions d'amélioration")
+      .scrollIntoView()
+      .should("be.visible");
   });
 
   it.skip("ouvre le formulaire ajout compétence technique", () => {

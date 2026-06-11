@@ -35,7 +35,9 @@ describe("E2E - Modification activité étudiant", () => {
       if ($body.text().includes("Modification indisponible")) {
         cy.contains(/modification indisponible/i).should("be.visible");
       } else {
-        cy.contains("button", /enregistrer les modifications/i).should("be.visible");
+        cy.contains("button", /enregistrer les modifications/i)
+          .scrollIntoView()
+          .should("be.visible");
       }
     });
   });
@@ -56,7 +58,9 @@ describe("E2E - Modification activité étudiant", () => {
         .clear()
         .type("Description modifiée par test E2E");
 
-      cy.contains("button", /enregistrer les modifications/i).click();
+      cy.contains("button", /enregistrer les modifications/i)
+        .scrollIntoView()
+        .click();
 
       cy.url().should("match", new RegExp(`/student/activities/${activityId}$`));
     });

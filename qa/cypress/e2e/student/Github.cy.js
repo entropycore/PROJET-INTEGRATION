@@ -12,6 +12,10 @@ describe("E2E - Mon GitHub", () => {
   });
 
   it("affiche soit l'état non connecté soit l'état connecté", () => {
+    cy.contains(/lier votre compte github|compte connecté/i, {
+      timeout: 15000,
+    }).should("be.visible");
+
     cy.get("body").then(($body) => {
       if ($body.text().includes("Lier votre compte GitHub")) {
         cy.contains("Lier votre compte GitHub").should("be.visible");
