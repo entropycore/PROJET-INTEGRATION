@@ -1,13 +1,6 @@
 describe("E2E - Dashboard étudiant", () => {
   beforeEach(() => {
-    cy.visit("/login");
-
-    cy.get('input[type="email"]').type(Cypress.env("E2E_EMAIL"));
-    cy.get('input[type="password"]').type(Cypress.env("E2E_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-
-    cy.visit("/student");
+    cy.loginAsStudent("/student");
   });
 
   it("affiche le dashboard", () => {
@@ -21,7 +14,7 @@ describe("E2E - Dashboard étudiant", () => {
     cy.contains("Badges obtenus").should("be.visible");
     cy.contains("Recommandations").should("be.visible");
 
-    cy.get(".stat-card").should("have.length", 4);
+    cy.get(".stat-card-ui").should("have.length", 4);
   });
 
   it("affiche les projets récents", () => {
@@ -47,11 +40,12 @@ describe("E2E - Dashboard étudiant", () => {
   it("affiche les badges récents", () => {
     cy.visit("/student");
 
-    cy.contains("Badges obtenus").should("be.visible");
+    cy.contains(".dashboard-card h2", "Badges obtenus").scrollIntoView().should("be.visible");
 
     cy.get("body").then(($body) => {
-      if ($body.find(".badge-card").length > 0) {
-        cy.get(".badge-card").first().should("be.visible");
+      const dashboardBadges = $body.find(".dashboard-card .badge-card");
+      if (dashboardBadges.length > 0) {
+        cy.get(".dashboard-card .badge-card").first().should("be.visible");
       }
     });
   });
@@ -59,8 +53,8 @@ describe("E2E - Dashboard étudiant", () => {
   it("redirige vers la page badges", () => {
     cy.visit("/student");
 
-    cy.contains("Badges obtenus")
-      .parents(".dashboard-card")
+    cy.contains(".dashboard-card", "Badges obtenus")
+      .scrollIntoView()
       .within(() => {
         cy.contains("Voir tout").click();
       });
@@ -84,7 +78,7 @@ describe("E2E - Dashboard étudiant", () => {
   });
 
   it("affiche les notifications récentes", () => {
-    cy.contains("Notifications récentes").should("be.visible");
+    cy.contains(".dashboard-card h2", "Notifications récentes").scrollIntoView().should("be.visible");
 
     cy.get("body").then(($body) => {
       if ($body.find(".notification-row").length > 0) {
@@ -94,8 +88,8 @@ describe("E2E - Dashboard étudiant", () => {
   });
 
   it("redirige vers les notifications", () => {
-    cy.contains("Notifications récentes")
-      .parents(".dashboard-card")
+    cy.contains(".dashboard-card", "Notifications récentes")
+      .scrollIntoView()
       .within(() => {
         cy.contains("Voir tout").click();
       });
@@ -114,7 +108,7 @@ describe("E2E - Dashboard étudiant", () => {
   });
 
   it("vérifie que les animations statistiques sont chargées", () => {
-    cy.get(".stat-card h2").each(($value) => {
+    cy.get(".stat-card-ui .stat-card-value").each(($value) => {
       cy.wrap($value)
         .invoke("text")
         .should("not.be.empty");

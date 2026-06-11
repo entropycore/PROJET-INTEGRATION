@@ -39,7 +39,12 @@ const isBackendAvailable = (apiBaseUrl) => {
 
 const isCsrfAvailable = (apiBaseUrl) => {
   const csrfUrl = new URL("/api/auth/csrf-token", apiBaseUrl);
-  return checkUrl(csrfUrl);
+  return checkExactOkUrl(csrfUrl);
+};
+
+const isApiEndpointAvailable = (apiBaseUrl, path) => {
+  const endpointUrl = new URL(path, apiBaseUrl);
+  return checkApiEndpoint(endpointUrl);
 };
 
 const checkUrl = (url) => {
@@ -55,6 +60,60 @@ const checkUrl = (url) => {
       (response) => {
         response.resume();
         resolve(response.statusCode >= 200 && response.statusCode < 500);
+      },
+    );
+
+    request.on("timeout", () => {
+      request.destroy();
+      resolve(false);
+    });
+
+    request.on("error", () => {
+      resolve(false);
+    });
+  });
+};
+
+const checkExactOkUrl = (url) => {
+  const healthUrl = url instanceof URL ? url : new URL(url);
+  const client = healthUrl.protocol === "https:" ? https : http;
+
+  return new Promise((resolve) => {
+    const request = client.get(
+      healthUrl,
+      {
+        timeout: 2000,
+      },
+      (response) => {
+        response.resume();
+        resolve(response.statusCode === 200);
+      },
+    );
+
+    request.on("timeout", () => {
+      request.destroy();
+      resolve(false);
+    });
+
+    request.on("error", () => {
+      resolve(false);
+    });
+  });
+};
+
+const checkApiEndpoint = (url) => {
+  const endpointUrl = url instanceof URL ? url : new URL(url);
+  const client = endpointUrl.protocol === "https:" ? https : http;
+
+  return new Promise((resolve) => {
+    const request = client.get(
+      endpointUrl,
+      {
+        timeout: 2000,
+      },
+      (response) => {
+        response.resume();
+        resolve(response.statusCode !== 404 && response.statusCode < 500);
       },
     );
 
@@ -89,6 +148,16 @@ module.exports = defineConfig({
         isCsrfAvailable(apiBaseUrl = config.env.API_BASE_URL) {
           return isCsrfAvailable(apiBaseUrl);
         },
+        areApiEndpointsAvailable(paths, apiBaseUrl = config.env.API_BASE_URL) {
+          return Promise.all(
+            paths.map((path) => isApiEndpointAvailable(apiBaseUrl, path)),
+          ).then((results) =>
+            paths.reduce((availability, path, index) => {
+              availability[path] = results[index];
+              return availability;
+            }, {}),
+          );
+        },
       });
       return config;
     },
@@ -98,8 +167,8 @@ module.exports = defineConfig({
       ADMIN_PASSWORD: "Password123!",
       E2E_EMAIL: "etudiant@credencia.ma",
       E2E_PASSWORD: "Password123!",
-      E2E_PROF_EMAIL: "professor.test@ensat.ma",
-      E2E_PROF_PASSWORD: "PasswordValid123!",
+      E2E_PROF_EMAIL: "professeur@credencia.ma",
+      E2E_PROF_PASSWORD: "Password123!",
       E2E_STAGE_ID: "",
       E2E_PROJECT_ID: "",
       E2E_EDIT_STAGE_ID: "",

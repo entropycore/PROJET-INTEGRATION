@@ -164,8 +164,8 @@ describe("E2E - Validations professeur", () => {
 
   it("affiche la table ou un état vide", () => {
     cy.get("body").then(($body) => {
-      if ($body.find("table").length > 0) {
-        cy.get("table").should("be.visible");
+      if ($body.text().includes("Projet Cypress")) {
+        cy.contains("Projet Cypress").should("be.visible");
       } else {
         cy.contains(/aucune validation|chargement|impossible de charger/i).should("exist");
       }

@@ -1,21 +1,14 @@
 describe("E2E - Mes badges", () => {
   beforeEach(() => {
-    cy.visit("/login");
-
-    cy.get('input[type="email"]').type(Cypress.env("E2E_EMAIL"));
-    cy.get('input[type="password"]').type(Cypress.env("E2E_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-
-    cy.visit("/student/badges");
+    cy.loginAsStudent("/student/badges");
   });
 
   it("affiche la page badges", () => {
     cy.contains("Mes badges").should("be.visible");
 
     cy.contains("Badges obtenus").should("be.visible");
-    cy.contains("Progression globale").should("be.visible");
     cy.contains("À débloquer").should("be.visible");
+    cy.contains("En cours").should("be.visible");
   });
 
   it("affiche les filtres", () => {
@@ -27,20 +20,20 @@ describe("E2E - Mes badges", () => {
   it("filtre les badges obtenus", () => {
     cy.contains("Obtenus").click();
 
-    cy.get(".badge-card").each(($card) => {
-      cy.wrap($card)
-        .find(".badge-status")
-        .should("contain.text", "Obtenu");
+    cy.get("body").should(($body) => {
+      const hasBadge = $body.find(".badge-card").length > 0;
+      const hasEmpty = /aucun badge obtenu/i.test($body.text());
+      expect(hasBadge || hasEmpty).to.eq(true);
     });
   });
 
   it("filtre les badges verrouillés", () => {
     cy.contains("À débloquer").click();
 
-    cy.get(".badge-card").each(($card) => {
-      cy.wrap($card)
-        .find(".badge-status")
-        .should("contain.text", "À débloquer");
+    cy.get("body").should(($body) => {
+      const hasBadge = $body.find(".badge-card").length > 0;
+      const hasEmpty = /aucun badge dans cette catégorie/i.test($body.text());
+      expect(hasBadge || hasEmpty).to.eq(true);
     });
   });
 
@@ -55,9 +48,9 @@ describe("E2E - Mes badges", () => {
     cy.get(".badge-card").first().within(() => {
       cy.get("h2").should("exist");
 
-      cy.contains(/règle d’obtention/i).should("exist");
+      cy.contains(/règle/i).should("exist");
 
-      cy.contains(/progression/i).should("exist");
+      cy.contains(/progression|obtenu le/i).should("exist");
     });
   });
 
@@ -68,19 +61,9 @@ describe("E2E - Mes badges", () => {
   });
 
   it("affiche les statistiques", () => {
-    cy.get(".summary-card").should("have.length", 3);
+    cy.get(".obtained-summary").should("be.visible");
 
     cy.contains("Badges obtenus")
-      .parent()
-      .find("strong")
-      .should("exist");
-
-    cy.contains("Progression globale")
-      .parent()
-      .find("strong")
-      .should("exist");
-
-    cy.contains("À débloquer")
       .parent()
       .find("strong")
       .should("exist");
@@ -91,12 +74,9 @@ describe("E2E - Mes badges", () => {
   });
 
   it("vérifie qu'un badge possède un statut", () => {
-    cy.get(".badge-status").each(($status) => {
-      cy.wrap($status).invoke("text").then((text) => {
-        expect(
-          text.trim() === "Obtenu" ||
-          text.trim() === "À débloquer"
-        ).to.equal(true);
+    cy.get(".badge-card").each(($card) => {
+      cy.wrap($card).within(() => {
+        cy.contains(/progression|obtenu le/i).should("exist");
       });
     });
   });

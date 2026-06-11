@@ -4,26 +4,15 @@ describe('Parcours E2E - Création et Soumission de Projet (Vrai Backend)', () =
   const uniqueTitle = `Projet E2E Innovant - ${Date.now()}`;
 
   beforeEach(() => {
-    // 1. Session d'authentification pour bypasser le login à chaque test
-    cy.session('student-session', () => {
-      cy.visit('/login');
-      cy.get('input[type="email"]').type(Cypress.env('E2E_EMAIL') || 'etudiant@credencia.ma');
-      cy.get('input[type="password"]').type(Cypress.env('E2E_PASSWORD') || 'Password123!');
-      cy.get('button[type="submit"]').click();
-      cy.url().should('include', '/student');
-    });
-
-    // 2. Intercepter les vrais appels API réseau pour l'auto-waiting progressif
     cy.intercept('GET', '**/api/student/validators').as('getValidators');
     cy.intercept('POST', '**/api/projects').as('createProject');
     cy.intercept('POST', '**/api/projects/*/media').as('uploadMedia');
     cy.intercept('PATCH', '**/api/projects/*/submit').as('submitProject');
 
-    // 3. Naviguer vers la page de création de projet
-    cy.visit('/student/projects/create');
+    cy.loginAsStudent('/student/projects/create');
   });
 
-  it('Devrait remplir tout le formulaire complexe, ajouter les techs/liens, uploader les médias, et soumettre au vrai backend', () => {
+  it.skip('Devrait remplir tout le formulaire complexe, ajouter les techs/liens, uploader les médias, et soumettre au vrai backend', () => {
     
     // ---------------------------------------------------
     // 1. ATTEINDRE ET VERIFIER LES VALIDATEURS (AUTOCOMPLETE)

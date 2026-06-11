@@ -1,28 +1,25 @@
-const ACTIVITY_ID = Cypress.env("E2E_ACTIVITY_ID") || "1";
-
 describe("E2E - Modification activité étudiant", () => {
+  let activityId;
+
   beforeEach(() => {
-    cy.visit("/login");
+    cy.loginAsStudent("/student");
 
-    cy.contains(/email/i).parent().find("input").type(Cypress.env("E2E_EMAIL"));
-    cy.contains(/mot de passe|password/i)
-      .parent()
-      .find("input")
-      .type(Cypress.env("E2E_PASSWORD"));
-
-    cy.contains("button", /connexion|login/i).click();
-    cy.url().should("include", "/student");
+    cy.apiRequest("GET", "/api/student/activities").then((response) => {
+      const activities = response.body.data?.items || response.body.data || response.body.items || [];
+      expect(activities, "activites existantes pour le test edition").to.have.length.greaterThan(0);
+      activityId = Cypress.env("E2E_ACTIVITY_ID") || activities[0].id;
+    });
   });
 
   it("affiche la page modification activité", () => {
-    cy.visit(`/student/activities/${ACTIVITY_ID}/edit`);
+    cy.visit(`/student/activities/${activityId}/edit`);
 
     cy.contains("h1", /modifier une activité/i).should("be.visible");
     cy.contains(/ajustez les informations/i).should("be.visible");
   });
 
   it("bouton retour redirige vers la liste des activités", () => {
-    cy.visit(`/student/activities/${ACTIVITY_ID}/edit`);
+    cy.visit(`/student/activities/${activityId}/edit`);
 
     cy.contains("button", /retour/i).click();
 
@@ -30,7 +27,9 @@ describe("E2E - Modification activité étudiant", () => {
   });
 
   it("affiche le formulaire si activité modifiable", () => {
-    cy.visit(`/student/activities/${ACTIVITY_ID}/edit`);
+    cy.visit(`/student/activities/${activityId}/edit`);
+
+    cy.contains(/modification indisponible|enregistrer les modifications/i).should("be.visible");
 
     cy.get("body").then(($body) => {
       if ($body.text().includes("Modification indisponible")) {
@@ -42,7 +41,9 @@ describe("E2E - Modification activité étudiant", () => {
   });
 
   it("modifie une activité", () => {
-    cy.visit(`/student/activities/${ACTIVITY_ID}/edit`);
+    cy.visit(`/student/activities/${activityId}/edit`);
+
+    cy.contains(/modification indisponible|enregistrer les modifications/i).should("be.visible");
 
     cy.get("body").then(($body) => {
       if ($body.text().includes("Modification indisponible")) return;
@@ -57,12 +58,12 @@ describe("E2E - Modification activité étudiant", () => {
 
       cy.contains("button", /enregistrer les modifications/i).click();
 
-      cy.url().should("match", new RegExp(`/student/activities/${ACTIVITY_ID}$`));
+      cy.url().should("match", new RegExp(`/student/activities/${activityId}$`));
     });
   });
 
   it("annule la modification", () => {
-    cy.visit(`/student/activities/${ACTIVITY_ID}/edit`);
+    cy.visit(`/student/activities/${activityId}/edit`);
 
     cy.get("body").then(($body) => {
       if ($body.text().includes("Annuler")) {

@@ -2,15 +2,9 @@ describe("E2E - Details activite etudiant", () => {
   let activityId;
 
   beforeEach(() => {
-    cy.session("student-session", () => {
-      cy.visit("/login");
-      cy.get('input[type="email"]').type(Cypress.env("E2E_EMAIL") || "etudiant@credencia.ma");
-      cy.get('input[type="password"]').type(Cypress.env("E2E_PASSWORD") || "Password123!");
-      cy.get('button[type="submit"]').click();
-      cy.url().should("include", "/student");
-    });
+    cy.loginAsStudent("/student");
 
-    cy.request("/api/student/activities").then((response) => {
+    cy.apiRequest("GET", "/api/student/activities").then((response) => {
       const activities = response.body.data?.items || response.body.data || response.body.items || [];
       expect(activities, "activites existantes pour le test details").to.have.length.greaterThan(0);
       activityId = activities[0].id;

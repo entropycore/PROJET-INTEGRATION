@@ -31,7 +31,7 @@ describe("E2E - Dashboard professeur", () => {
   });
 
   it("affiche les cartes résumé", () => {
-    cy.get(".summary-card").should("have.length", 4);
+    cy.get(".stat-card-ui").should("have.length", 4);
 
     cy.contains(/projets . valider/i).should("be.visible");
     cy.contains(/stages . valider/i).should("be.visible");
@@ -40,7 +40,7 @@ describe("E2E - Dashboard professeur", () => {
   });
 
   it("redirige vers validations depuis le bouton principal", () => {
-    cy.contains("a", /voir les validations/i).click();
+    cy.contains("a, button", /tout voir|voir les validations/i).click();
 
     cy.url().should("include", "/professor/validations");
   });
@@ -96,8 +96,8 @@ describe("E2E - Dashboard professeur", () => {
   });
 
   it("vérifie les valeurs des cartes résumé", () => {
-    cy.get(".summary-card").each(($card) => {
-      cy.wrap($card).find("strong").invoke("text").should("match", /^[0-9]+$/);
+    cy.get(".stat-card-ui").each(($card) => {
+      cy.wrap($card).find(".stat-card-value").invoke("text").should("match", /^[0-9]+$/);
     });
   });
 
