@@ -31,6 +31,7 @@ variables:
   ACCESS_TOKEN_SECRET: ci_access_token_secret
   REFRESH_TOKEN_SECRET: ci_refresh_token_secret
   EMAIL_TOKEN_SECRET: ci_email_token_secret
+  CSRF_SECRET: ci_csrf_secret
 
 sonarqube-check:
   stage: test
@@ -74,6 +75,7 @@ backend:test:
       alias: postgres
   variables:
     NODE_ENV: test
+    HTTPS: "true"
   script:
     - cd backend
     - npm ci
