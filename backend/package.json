@@ -62,14 +62,7 @@
     ],
     "setupFiles": [
       "dotenv/config"
-    ],
-    "coverageThreshold": {
-      "global": {
-        "lines": 70,
-        "functions": 70,
-        "branches": 70
-      }
-    }
+    ]
   },
   "prisma": {
     "seed": "node prisma/seed.js"

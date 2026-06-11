@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import ProjectCreate from "@/views/student/projects/ProjectCreate.vue";
+import ProjectCreate from "@/views/student/Projects/ProjectCreate.vue";
 import {
   getStudentProjectValidators,
   createStudentProject,

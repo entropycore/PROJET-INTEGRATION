@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import StudentProjects from "@/views/student/projects/Projects.vue";
+import StudentProjects from "@/views/student/Projects/Projects.vue";
 
 import {
   getStudentProjects,
