@@ -322,6 +322,8 @@ const ensureActivity = async (studentId) => {
         organization: 'ENSA Tanger',
         startDate: new Date('2026-04-15'),
         endDate: new Date('2026-04-17'),
+        duration: '3 jours',
+        location: 'Tanger',
         visibility: 'PUBLIC',
       },
     });
@@ -336,6 +338,8 @@ const ensureActivity = async (studentId) => {
       organization: 'ENSA Tanger',
       startDate: new Date('2026-04-15'),
       endDate: new Date('2026-04-17'),
+      duration: '3 jours',
+      location: 'Tanger',
       visibility: 'PUBLIC',
     },
   });

@@ -57,6 +57,10 @@ describe("E2E - Modification activité étudiant", () => {
     assertEditableOrUnavailable().then((canEdit) => {
       if (!canEdit) return;
 
+      cy.intercept("PUT", `**/api/student/activities/${activityId}`).as(
+        "updateActivityApi",
+      );
+
       cy.contains(".form-group", /titre de l’activité/i)
         .find("input")
         .clear()
@@ -69,6 +73,13 @@ describe("E2E - Modification activité étudiant", () => {
 
       cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
       getEditableButton().click();
+
+      cy.wait("@updateActivityApi", { timeout: 30000 }).then((interception) => {
+        expect(
+          interception.response?.statusCode,
+          `Reponse modification activite: ${JSON.stringify(interception.response?.body)}`,
+        ).to.eq(200);
+      });
 
       cy.url().should("match", new RegExp(`/student/activities/${activityId}$`));
     });
