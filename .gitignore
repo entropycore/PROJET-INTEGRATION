@@ -1,9 +1,34 @@
 node_modules/
-.env
 dist/
+dist/backend/reports/
+backend/scripts/reports/
+reports/
 
 # Environments
 .env
 .env.*
 !.env.example
 !.env.*.example
+
+
+# Fichiers d'environnement réels (contiennent les mots de passe)
+.env
+.env.prod
+.env.sec
+.env.mon
+.env.gitlab
+ 
+# Garder les exemples (sans mots de passe)
+!.env.example
+!.env.prod.example
+!.env.sec.example
+!.env.mon.example
+!.env.gitlab.example
+ 
+# Données Docker persistées
+gitlab/
+postgres_data/
+ 
+# OS
+.DS_Store
+Thumbs.db

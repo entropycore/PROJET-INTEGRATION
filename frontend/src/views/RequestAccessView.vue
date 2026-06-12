@@ -1,44 +1,43 @@
 <script setup>
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { requestAccess } from '../services/requestAccessService'
-import '../assets/styles/request-access.css'
-import AppLogo from '../components/AppLogo.vue'
+import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { requestAccess } from "../services/requestAccessService";
+import "../assets/styles/request-access.css";
+import AppLogo from "../components/AppLogo.vue";
 
-
-const router = useRouter()
+const router = useRouter();
 
 const form = reactive({
-  lastName: '',
-  firstName: '',
-  email: '',
-  company: '',
-  jobTitle: '',
-  password: '',
-  passwordConfirmation: '',
-})
+  lastName: "",
+  firstName: "",
+  email: "",
+  company: "",
+  jobTitle: "",
+  password: "",
+  passwordConfirmation: "",
+});
 
-const errorMessage = ref('')
-const successMessage = ref('')
-const isSubmitting = ref(false)
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
+const errorMessage = ref("");
+const successMessage = ref("");
+const isSubmitting = ref(false);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const goToLogin = () => {
-  router.push('/login')
-}
+  router.push("/login");
+};
 
 const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
+  showPassword.value = !showPassword.value;
+};
 
 const toggleConfirmPassword = () => {
-  showConfirmPassword.value = !showConfirmPassword.value
-}
+  showConfirmPassword.value = !showConfirmPassword.value;
+};
 
 const validateForm = () => {
-  errorMessage.value = ''
-  successMessage.value = ''
+  errorMessage.value = "";
+  successMessage.value = "";
 
   if (
     !form.lastName.trim() ||
@@ -49,34 +48,38 @@ const validateForm = () => {
     !form.password.trim() ||
     !form.passwordConfirmation.trim()
   ) {
-    errorMessage.value = 'Veuillez remplir tous les champs.'
-    return false
+    errorMessage.value = "Veuillez remplir tous les champs.";
+    return false;
   }
 
   if (form.password !== form.passwordConfirmation) {
-    errorMessage.value = 'Les mots de passe ne correspondent pas.'
-    return false
+    errorMessage.value = "Les mots de passe ne correspondent pas.";
+    return false;
   }
 
-  return true
-}
+  return true;
+};
 
 const getRequestAccessErrorMessage = (error) => {
-  const apiError = error?.response?.data
+  const apiError = error?.response?.data;
 
   if (Array.isArray(apiError?.errors) && apiError.errors.length > 0) {
-    return apiError.errors[0]?.message || apiError?.message || "Impossible d'envoyer la demande."
+    return (
+      apiError.errors[0]?.message ||
+      apiError?.message ||
+      "Impossible d'envoyer la demande."
+    );
   }
 
-  return apiError?.message || "Impossible d'envoyer la demande."
-}
+  return apiError?.message || "Impossible d'envoyer la demande.";
+};
 
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) return;
 
-  isSubmitting.value = true
+  isSubmitting.value = true;
 
-  try { 
+  try {
     const response = await requestAccess({
       email: form.email.trim(),
       password: form.password,
@@ -84,43 +87,44 @@ const handleSubmit = async () => {
       firstName: form.firstName.trim(),
       company: form.company.trim(),
       jobTitle: form.jobTitle.trim(),
-    })
+    });
 
     successMessage.value =
       response?.message ||
-      "Demande envoyee. Veuillez verifier votre boite de reception pour valider votre email."
+      "Demande envoyée. Veuillez vérifier votre boîte de réception pour valider votre email.";
   } catch (error) {
-    errorMessage.value = getRequestAccessErrorMessage(error)
+    errorMessage.value = getRequestAccessErrorMessage(error);
   } finally {
-    isSubmitting.value = false
+    isSubmitting.value = false;
   }
-}
+};
 </script>
 
 <template>
-  <div class="auth-page">
+  <div class="auth-page request-access-page">
     <section class="auth-left">
+      <div class="hero-lines" aria-hidden="true"></div>
+
       <div class="brand-block">
-        <div class="brand-logo-row">
+        <div class="brand-identity">
           <AppLogo />
+          <span class="brand-title">Credencia</span>
         </div>
 
         <div class="hero-text">
           <h1>
-            Recrutez des profils<br />
-            vérifiés et<br />
-            <span>certifiés.</span>
+            Recrutez les talents<br />
+            <span>de demain.</span>
           </h1>
 
-
           <p>
-            Découvrez une sélection de portfolios académiques validés, offrant une
-            visibilité claire et fiable sur les compétences des candidats.
+            Accédez à des profils vérifiés. Ne vous fiez plus uniquement aux CV
+            : consultez des portfolios certifiés, construits à partir
+            d’expériences, de projets et de réalisations validées.
           </p>
 
           <p>
-            Chaque réalisation présentée est certifiée par son institution, pour un
-            recrutement basé sur des données authentiques.
+            Soyez parmi les premiers à identifier les talents de demain.
           </p>
         </div>
       </div>
@@ -129,7 +133,7 @@ const handleSubmit = async () => {
     <section class="auth-right">
       <div class="auth-card auth-card-request">
         <div class="auth-form-block">
-          <h2>Rejoignez ValiDia</h2>
+          <h2>Rejoignez Credencia</h2>
           <p class="subtitle">
             Envoyez votre demande d'accès à notre plateforme
           </p>
@@ -197,13 +201,27 @@ const handleSubmit = async () => {
                     :type="showPassword ? 'text' : 'password'"
                     placeholder="••••••••"
                   />
-                  <img
-                    class="toggle-icon"
-                    :src="showPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
-                    alt=""
-                    aria-hidden="true"
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    :aria-label="
+                      showPassword
+                        ? 'Masquer le mot de passe'
+                        : 'Afficher le mot de passe'
+                    "
                     @click="togglePassword"
-                  />
+                  >
+                    <img
+                      class="toggle-icon"
+                      :src="
+                        showPassword
+                          ? '/src/assets/Button.png'
+                          : '/src/assets/icon.png'
+                      "
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
               </div>
 
@@ -216,13 +234,27 @@ const handleSubmit = async () => {
                     :type="showConfirmPassword ? 'text' : 'password'"
                     placeholder="••••••••"
                   />
-                  <img
-                    class="toggle-icon"
-                    :src="showConfirmPassword ? '/src/assets/Button.png' : '/src/assets/icon.png'"
-                    alt=""
-                    aria-hidden="true"
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    :aria-label="
+                      showConfirmPassword
+                        ? 'Masquer la confirmation du mot de passe'
+                        : 'Afficher la confirmation du mot de passe'
+                    "
                     @click="toggleConfirmPassword"
-                  />
+                  >
+                    <img
+                      class="toggle-icon"
+                      :src="
+                        showConfirmPassword
+                          ? '/src/assets/Button.png'
+                          : '/src/assets/icon.png'
+                      "
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </button>
                 </div>
               </div>
             </div>
@@ -244,7 +276,7 @@ const handleSubmit = async () => {
             </p>
 
             <button class="submit-btn" type="submit" :disabled="isSubmitting">
-              {{ isSubmitting ? 'Envoi...' : 'Envoyer une demande' }}
+              {{ isSubmitting ? "Envoi..." : "Envoyer une demande" }}
             </button>
 
             <p class="login-link">

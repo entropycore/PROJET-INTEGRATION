@@ -46,6 +46,7 @@ enum Visibility {
 }
 
 enum ValidationStatus {
+  DRAFT
   PENDING
   APPROVED
   REJECTED
@@ -59,6 +60,9 @@ enum ActivityType {
   COMPETITION
   ASSOCIATIVE_ENGAGEMENT
   CONFERENCE
+  VOLUNTEERING
+  TRAINING
+  OTHER
 }
 
 enum RecommendationLetterType {
@@ -77,6 +81,32 @@ enum PortfolioStatus {
   ARCHIVED
 }
 
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReportTargetType {
+  PORTFOLIO
+  COMMENT
+  RECOMMENDATION
+  PROJECT
+  INTERNSHIP
+  USER
+  OTHER
+}
+
+enum NotificationType {
+  ACCESS_REQUEST
+  CERTIFICATE_VALIDATION
+  RECOMMENDATION_LETTER_VALIDATION
+  COMMENT_VALIDATION
+  RECOMMENDATION_VALIDATION
+  REPORT
+  SYSTEM
+}
+
 
 
 model User {
@@ -90,6 +120,7 @@ model User {
   profilePicture  String?       @map("profile_picture")
   accountStatus   AccountStatus @default(PENDING) @map("account_status")
   role            UserRole
+  preferences     Json          @default("{\"schema_version\": 1}")
   createdAt       DateTime      @default(now()) @map("created_at")
   lastLoginAt     DateTime?     @map("last_login_at")
 
@@ -104,6 +135,9 @@ model User {
   commentsValidated Comment[] @relation("CommentValidator")
   recommendationsAuthored Recommendation[] @relation("RecommendationAuthor")
   recommendationsValidated Recommendation[] @relation("RecommendationValidator")
+  reportsAuthored Report[] @relation("ReportAuthor")
+  uploadedFiles UploadedFile[] @relation("UploadedFilesOwner")
+  notifications Notification[] @relation("UserNotifications")
 
   @@index([role, accountStatus])
   @@index([createdAt])
@@ -130,6 +164,33 @@ model RefreshTokenSession {
   @@map("refresh_token_sessions")
 }
 
+model UploadedFile {
+  id              String    @id @default(uuid()) @map("id_uploaded_file")
+  ownerUserId     String?   @map("owner_user_id")
+  ownerUser       User?     @relation("UploadedFilesOwner", fields: [ownerUserId], references: [id], onDelete: SetNull)
+  storageProvider String    @default("s3") @map("storage_provider") @db.VarChar(50)
+  bucket          String    @db.VarChar(120)
+  objectKey       String    @unique @map("object_key") @db.Text
+  originalName    String    @map("original_name") @db.VarChar(255)
+  mimeType        String    @map("mime_type") @db.VarChar(150)
+  sizeBytes       Int       @map("size_bytes")
+  checksumSha256  String?   @map("checksum_sha256") @db.VarChar(64)
+  access          String    @default("PRIVATE") @db.VarChar(30)
+  entityType      String?   @map("entity_type") @db.VarChar(80)
+  entityId        String?   @map("entity_id")
+  purpose         String?   @db.VarChar(80)
+  publicUrl       String?   @map("public_url") @db.Text
+  metadata        Json      @default("{}")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  deletedAt       DateTime? @map("deleted_at")
+
+  @@index([ownerUserId])
+  @@index([entityType, entityId])
+  @@index([purpose])
+  @@index([deletedAt])
+  @@map("uploaded_files")
+}
+
 model Student {
   id              String    @id @default(uuid()) @map("id_student")
   userId          String    @unique @map("user_id") // Doit être String pour correspondre à User.id
@@ -145,7 +206,11 @@ model Student {
   bio             String?   @db.Text
   careerObjective String?   @map("career_objective") @db.Text
   linkedinUrl     String?   @map("linkedin_url") @db.Text
+  githubAccessToken String? @map("github_access_token") @db.Text
+  
   academicPaths   AcademicPath[]
+  academicTimelineEntries AcademicTimelineEntry[]
+
   studentSkills   StudentSkill[]
   projects        Project[]
   internships     Internship[]
@@ -153,6 +218,7 @@ model Student {
   recommendationLetters RecommendationLetter[]
   portfolio       Portfolio?
   recommendations Recommendation[]
+  studentBadges   StudentBadge[]
 
   @@map("students")
 }
@@ -167,6 +233,7 @@ model Professor {
   specialty       String?   @db.VarChar(150)
   department      String?   @db.VarChar(150)
   projectValidations ProjectValidation[]
+  projectsToValidate Project[] @relation("ProjectAssignedValidator")
   supervisedInternships Internship[]        @relation("InternshipSupervisor")
   internshipValidations InternshipValidation[]
 
@@ -185,6 +252,8 @@ model Administrator {
   approvedProfessionals Professional[] @relation("ProfessionalApprovedBy")
   rejectedProfessionals Professional[] @relation("ProfessionalRejectedBy")
   suspendedProfessionals Professional[] @relation("ProfessionalSuspendedBy")
+  reviewedReports Report[]
+  notifications Notification[]
 
   @@map("administrators")
 }
@@ -237,13 +306,29 @@ model AcademicPath {
   @@map("academic_paths")
 }
 
+model SkillDomain {
+  id           String  @id @default(uuid()) @map("id_skill_domain")
+  name         String  @unique @db.VarChar(120)
+  slug         String  @unique @db.VarChar(120)
+  description  String? @db.Text
+  displayOrder Int     @default(0) @map("display_order")
+
+  skills Skill[]
+
+  @@index([displayOrder])
+  @@map("skill_domains")
+}
+
 model Skill {
   id          String       @id @default(uuid()) @map("id_skill")
   name        String       @unique @map("name") @db.VarChar(120)
   type        SkillType
   description String?      @db.Text
+  domainId    String?      @map("domain_id")
+  domain      SkillDomain? @relation(fields: [domainId], references: [id], onDelete: SetNull)
   studentSkills StudentSkill[]
 
+  @@index([domainId])
   @@map("skills")
 }
 
@@ -283,13 +368,16 @@ model Project {
   description       String               @db.Text
   type              ProjectType
   teamRole          String?              @map("team_role") @db.VarChar(120)
+  teamSize          String?              @map("team_size") @db.VarChar(80)
+  validatorProfessorId String?           @map("validator_professor_id")
+  validatorProfessor Professor?          @relation("ProjectAssignedValidator", fields: [validatorProfessorId], references: [id], onDelete: SetNull)
   githubUrl         String?              @map("github_url") @db.Text
   youtubeUrl        String?              @map("youtube_url") @db.Text
   result            String?              @db.Text
   generalFeedback   String?              @map("general_feedback") @db.Text
   createdAt         DateTime             @default(now()) @map("created_at")
   submittedAt       DateTime?            @map("submitted_at")
-  validationStatus  ValidationStatus     @default(PENDING) @map("validation_status")
+  validationStatus  ValidationStatus     @default(DRAFT) @map("validation_status")
   visibility        Visibility           @default(PRIVATE)
   media             ProjectMedia[]
   technologies      ProjectTechnology[]
@@ -298,6 +386,7 @@ model Project {
   @@index([studentId])
   @@index([validationStatus])
   @@index([studentId, validationStatus])
+  @@index([validatorProfessorId])
   @@map("projects")
 }
 
@@ -308,6 +397,10 @@ model ProjectMedia {
   mediaType   String    @map("media_type") @db.VarChar(50)
   mediaUrl    String    @map("media_url") @db.Text
   description String?   @db.Text
+  fileName    String?   @map("file_name") @db.VarChar(255)
+  mimeType    String?   @map("mime_type") @db.VarChar(120)
+  fileSize    Int?      @map("file_size")
+  storagePath String?   @map("storage_path") @db.Text
 
   @@index([projectId])
   @@map("project_media")
@@ -354,8 +447,13 @@ model Internship {
   endDate             DateTime?             @map("end_date") @db.Date
   missions            String?               @db.Text
   reportUrl           String?               @map("report_url") @db.Text
+  reportFileName      String?               @map("report_file_name") @db.VarChar(255)
+  reportMimeType      String?               @map("report_mime_type") @db.VarChar(120)
+  reportFileSize      Int?                  @map("report_file_size")
+  reportStoragePath   String?               @map("report_storage_path") @db.Text
   validationStatus    ValidationStatus      @default(PENDING) @map("validation_status")
   visibility          Visibility            @default(PRIVATE)
+  media               InternshipMedia[]
   technologies        InternshipTechnology[]
   validations         InternshipValidation[]
 
@@ -364,6 +462,22 @@ model Internship {
   @@index([validationStatus])
   @@index([studentId, validationStatus])
   @@map("internships")
+}
+
+model InternshipMedia {
+  id           String     @id @default(uuid()) @map("id_internship_media")
+  internshipId String     @map("internship_id")
+  internship   Internship @relation(fields: [internshipId], references: [id], onDelete: Cascade)
+  mediaType    String     @map("media_type") @db.VarChar(50)
+  mediaUrl     String     @map("media_url") @db.Text
+  description  String?    @db.Text
+  fileName     String?    @map("file_name") @db.VarChar(255)
+  mimeType     String?    @map("mime_type") @db.VarChar(120)
+  fileSize     Int?       @map("file_size")
+  storagePath  String?    @map("storage_path") @db.Text
+
+  @@index([internshipId])
+  @@map("internship_media")
 }
 
 model InternshipTechnology {
@@ -404,10 +518,14 @@ model ExtracurricularActivity {
   organization String?     @db.VarChar(150)
   startDate    DateTime?   @map("start_date") @db.Date
   endDate      DateTime?   @map("end_date") @db.Date
+  duration     String?     @db.VarChar(100)
+  location     String?     @db.VarChar(150)
+  validationStatus ValidationStatus @default(DRAFT) @map("validation_status")
   visibility   Visibility  @default(PRIVATE)
   certificates Certificate[]
 
   @@index([studentId])
+  @@index([validationStatus])
   @@map("extracurricular_activities")
 }
 
@@ -416,6 +534,10 @@ model Certificate {
   activityId       String                 @map("activity_id")
   activity         ExtracurricularActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
   documentUrl      String                 @map("document_url") @db.Text
+  fileName         String?                @map("file_name") @db.VarChar(255)
+  mimeType         String?                @map("mime_type") @db.VarChar(120)
+  fileSize         Int?                   @map("file_size")
+  storagePath      String?                @map("storage_path") @db.Text
   validationStatus ValidationStatus       @default(PENDING) @map("validation_status")
   submittedAt      DateTime               @default(now()) @map("submitted_at")
   validations      CertificateValidation[]
@@ -476,6 +598,9 @@ model Portfolio {
   visibility     Visibility       @default(PRIVATE)
   status         PortfolioStatus  @default(DRAFT)
   targetDomain   String?          @map("target_domain") @db.VarChar(120)
+  theme          String           @default("modern-academic") @db.VarChar(80)
+  includedSections Json           @default("[]") @map("included_sections")
+  includedItems  Json             @default("{}") @map("included_items")
   generatedAt    DateTime         @default(now()) @map("generated_at")
   updatedAt      DateTime         @updatedAt @map("updated_at")
   comments       Comment[]
@@ -535,4 +660,122 @@ model Recommendation {
   @@index([validatorUserId])
   @@index([status])
   @@map("recommendations")
+}
+model AcademicTimelineEntry {
+  id          Int       @id @default(autoincrement())
+  studentId   String    @map("student_id") 
+  title       String    @db.VarChar(255)
+  institution String    @db.VarChar(255)
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  description String?   @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("academic_timeline")
+}
+
+model Report {
+  id                          String          @id @default(uuid()) @map("id_report")
+  reporterUserId              String?         @map("reporter_user_id")
+  reporterUser                User?           @relation("ReportAuthor", fields: [reporterUserId], references: [id], onDelete: SetNull)
+  reviewedByAdministratorId   String?         @map("reviewed_by_administrator_id")
+  reviewedByAdministrator     Administrator?  @relation(fields: [reviewedByAdministratorId], references: [id], onDelete: SetNull)
+  targetType                  ReportTargetType @map("target_type")
+  targetId                    String?         @map("target_id")
+  reason                      String          @db.VarChar(200)
+  description                 String?         @db.Text
+  status                      ReportStatus    @default(PENDING)
+  createdAt                   DateTime        @default(now()) @map("created_at")
+  reviewedAt                  DateTime?       @map("reviewed_at")
+  resolutionNote              String?         @map("resolution_note") @db.Text
+
+  @@index([status])
+  @@index([targetType, targetId])
+  @@index([reporterUserId])
+  @@index([reviewedByAdministratorId])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model Notification {
+  id              String           @id @default(uuid()) @map("id_notification")
+  administratorId String?          @map("administrator_id")
+  administrator   Administrator?   @relation(fields: [administratorId], references: [id], onDelete: SetNull)
+  userId          String?          @map("user_id")
+  user            User?            @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  type            NotificationType
+  title           String           @db.VarChar(200)
+  message         String           @db.Text
+  relatedType     String?          @map("related_type") @db.VarChar(100)
+  relatedId       String?          @map("related_id")
+  isRead          Boolean          @default(false) @map("is_read")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  readAt          DateTime?        @map("read_at")
+
+  @@index([administratorId])
+  @@index([userId])
+  @@index([type])
+  @@index([isRead, createdAt])
+  @@index([userId, isRead, createdAt])
+  @@index([relatedType, relatedId])
+  @@map("notifications")
+}
+
+model Badge {
+  id          String   @id @default(uuid()) @map("id_badge")
+  name        String   @unique @db.VarChar(120)
+  description String?  @db.Text
+  rule        String   @db.Text
+  iconUrl     String?  @map("icon_url") @db.Text
+  tone        String   @default("blue") @db.VarChar(50)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  studentBadges StudentBadge[]
+
+  @@index([createdAt])
+  @@map("badges")
+}
+
+model StudentBadge {
+  id              String    @id @default(uuid()) @map("id_student_badge")
+  studentId       String    @map("student_id")
+  student         Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  badgeId         String    @map("badge_id")
+  badge           Badge     @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  isObtained      Boolean   @default(false) @map("is_obtained")
+  progressCurrent Int       @default(0) @map("progress_current")
+  progressTarget  Int       @default(1) @map("progress_target")
+  obtainedAt      DateTime? @map("obtained_at")
+  lastEvaluatedAt DateTime  @default(now()) @map("last_evaluated_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@unique([studentId, badgeId])
+  @@index([studentId])
+  @@index([badgeId])
+  @@index([isObtained])
+  @@map("student_badges")
+}
+
+model SystemSettings {
+  id                       String   @id @default(uuid()) @map("id_system_settings")
+  
+  // Branding & Établissement
+  institutionName          String   @default("ENSA Tanger") @map("institution_name") @db.VarChar(150)
+  emailDomain              String   @default("@ensa.ac.ma") @map("email_domain") @db.VarChar(100)
+  
+  // Règles de Gouvernance
+  requireProjectValidation Boolean  @default(true) @map("require_project_validation")
+  enableGithubSync         Boolean  @default(true) @map("enable_github_sync")
+  allowProRegistration     Boolean  @default(true) @map("allow_pro_registration")
+  
+  // Poids du Score (Stocké en JSON )
+  scoreWeights             Json     @default("{\"projects\": 30, \"internships\": 25, \"github\": 10, \"recos\": 20, \"certs\": 15}") @map("score_weights")
+  
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
 }

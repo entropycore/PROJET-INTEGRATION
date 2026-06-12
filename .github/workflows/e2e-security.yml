@@ -30,12 +30,27 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+      mailpit:
+        image: axllent/mailpit:latest
+        ports:
+          - 1025:1025
 
     env:
-      NODE_ENV: test
+      NODE_ENV: e2e
+      BACKEND_PORT: 3000
+      PORT: 3000
+      CLIENT_URL: http://localhost:5173
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
       DIRECT_URL: postgresql://postgres:postgres@localhost:5432/credencia_test
       VITE_API_BASE_URL: http://localhost:3000
+      ACCESS_TOKEN_SECRET: ci_access_token_secret
+      REFRESH_TOKEN_SECRET: ci_refresh_token_secret
+      EMAIL_TOKEN_SECRET: ci_email_token_secret
+      CSRF_SECRET: ci_csrf_secret
+      HTTPS: "true"
+      EMAIL_HOST: 127.0.0.1
+      EMAIL_PORT: 1025
+      EMAIL_SECURE: "false"
 
     steps:
       - name: Checkout repository
@@ -48,11 +63,11 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: backend
-        run: npm install
+        run: npm ci
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm install
+        run: npm ci
 
       - name: Generate Prisma client
         working-directory: backend
@@ -62,17 +77,28 @@ jobs:
         working-directory: backend
         run: npx prisma migrate deploy
 
+      - name: Seed E2E database
+        working-directory: backend
+        run: npx prisma db seed
+
+      - name: Wait for SMTP test server
+        run: |
+          until node -e "const net = require('net'); const socket = net.connect(1025, '127.0.0.1'); socket.on('connect', () => { socket.end(); process.exit(0); }); socket.on('error', () => process.exit(1)); setTimeout(() => process.exit(1), 1000);"; do
+            echo "Waiting for Mailpit SMTP..."
+            sleep 2
+          done
+
       - name: Start backend
         working-directory: backend
-        run: npm run start &
+        run: npm run start > ../backend-e2e.log 2>&1 &
 
       - name: Start frontend
         working-directory: frontend
-        run: npm run dev -- --host 0.0.0.0 &
+        run: npm run dev -- --host 0.0.0.0 > ../frontend-e2e.log 2>&1 &
 
       - name: Wait for backend
         run: |
-          until curl -s http://localhost:3000/api/auth/login > /dev/null; do
+          until curl -fsS http://localhost:3000/api/health > /dev/null; do
             echo "Waiting for backend..."
             sleep 2
           done
@@ -91,8 +117,29 @@ jobs:
       - name: Run OWASP ZAP scan
         run: bash scripts/zap-scan.sh 
 
+      - name: Upload Cypress artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            qa/cypress/screenshots/
+            qa/cypress/videos/
+          if-no-files-found: ignore
+
       - name: Upload ZAP reports
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: zap-security-reports
           path: scripts/reports/
+
+      - name: Upload E2E service logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-service-logs
+          path: |
+            backend-e2e.log
+            frontend-e2e.log
+          if-no-files-found: ignore
