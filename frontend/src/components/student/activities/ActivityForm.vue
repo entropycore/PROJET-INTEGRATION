@@ -103,8 +103,13 @@ const submitForm = () => {
           <select v-model="form.type" required>
             <option value="CLUB">Club</option>
             <option value="EVENT">Événement</option>
+            <option value="HACKATHON">Hackathon</option>
             <option value="VOLUNTEERING">Bénévolat</option>
             <option value="COMPETITION">Compétition</option>
+            <option value="ASSOCIATIVE_ENGAGEMENT">
+              Engagement associatif
+            </option>
+            <option value="CONFERENCE">Conférence</option>
             <option value="TRAINING">Formation</option>
             <option value="OTHER">Autre</option>
           </select>

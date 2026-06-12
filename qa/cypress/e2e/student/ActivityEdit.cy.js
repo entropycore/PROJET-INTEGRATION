@@ -67,8 +67,9 @@ describe("E2E - Modification activité étudiant", () => {
   it("affiche le formulaire si activité modifiable", () => {
     cy.visit(`/student/activities/${activityId}/edit`);
 
-    cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
-    getEditableButton().should("be.visible");
+    cy.get("form.activity-form").should("be.visible");
+    cy.get("form.activity-form select").should("have.value", "HACKATHON");
+    getEditableButton().scrollIntoView().should("be.visible");
   });
 
   it("modifie une activité", () => {
@@ -88,14 +89,13 @@ describe("E2E - Modification activité étudiant", () => {
       .clear()
       .type("Description modifiée par test E2E");
 
-    cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
     cy.get("form.activity-form").then(($form) => {
       expect(
         $form[0].checkValidity(),
         "le formulaire de modification doit etre valide avant soumission",
       ).to.eq(true);
     });
-    getEditableButton().click();
+    getEditableButton().scrollIntoView().should("be.visible").click();
 
     cy.wait("@updateActivityApi", { timeout: 30000 }).then((interception) => {
       expect(
@@ -104,7 +104,10 @@ describe("E2E - Modification activité étudiant", () => {
       ).to.eq(200);
     });
 
-    cy.url().should("match", new RegExp(`/student/activities/${activityId}$`));
+    cy.location("pathname", { timeout: 30000 }).should(
+      "eq",
+      `/student/activities/${activityId}`,
+    );
   });
 
   it("annule la modification", () => {
