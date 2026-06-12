@@ -112,6 +112,7 @@ e2e:cypress:
     - npx prisma generate
     - npx prisma migrate deploy
     - npx prisma db seed
+    - until node -e "const net = require('net'); const socket = net.connect(1025, 'mailpit'); socket.on('connect', () => { socket.end(); process.exit(0); }); socket.on('error', () => process.exit(1)); setTimeout(() => process.exit(1), 1000);"; do echo "Waiting for Mailpit SMTP..."; sleep 2; done
     - npm run start > ../backend-e2e.log 2>&1 &
     - cd ../frontend
     - npm ci

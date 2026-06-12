@@ -21,7 +21,10 @@ describe("Creation utilisateur - Admin avec backend reel", () => {
 
     cy.get(".primary-btn").contains("utilisateur").click();
     cy.wait("@createUserApi", { timeout: 30000 }).then((interception) => {
-      expect(interception.response?.statusCode).to.be.oneOf([201, 409, 422]);
+      expect(
+        interception.response?.statusCode,
+        `Reponse creation utilisateur: ${JSON.stringify(interception.response?.body)}`,
+      ).to.be.oneOf([201, 409, 422]);
     });
     cy.get("body").should("be.visible");
   });

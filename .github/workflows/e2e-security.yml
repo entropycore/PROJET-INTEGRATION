@@ -48,7 +48,7 @@ jobs:
       EMAIL_TOKEN_SECRET: ci_email_token_secret
       CSRF_SECRET: ci_csrf_secret
       HTTPS: "true"
-      EMAIL_HOST: localhost
+      EMAIL_HOST: 127.0.0.1
       EMAIL_PORT: 1025
       EMAIL_SECURE: "false"
 
@@ -80,6 +80,13 @@ jobs:
       - name: Seed E2E database
         working-directory: backend
         run: npx prisma db seed
+
+      - name: Wait for SMTP test server
+        run: |
+          until node -e "const net = require('net'); const socket = net.connect(1025, '127.0.0.1'); socket.on('connect', () => { socket.end(); process.exit(0); }); socket.on('error', () => process.exit(1)); setTimeout(() => process.exit(1), 1000);"; do
+            echo "Waiting for Mailpit SMTP..."
+            sleep 2
+          done
 
       - name: Start backend
         working-directory: backend

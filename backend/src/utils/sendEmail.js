@@ -34,9 +34,13 @@ const buildTransportConfig = () => {
 const sendEmail = async (to, subject, text) => {
   try {
     const transporter = nodemailer.createTransport(buildTransportConfig());
+    const fromAddress =
+      process.env.MAIL_FROM ||
+      process.env.EMAIL_USER ||
+      'no-reply@credencia.test';
 
     const mailOptions = {
-      from: process.env.MAIL_FROM || `"Credencia Support" <${process.env.EMAIL_USER}>`,
+      from: `"Credencia Support" <${fromAddress}>`,
       to,
       subject,
       text,

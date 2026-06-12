@@ -1,5 +1,24 @@
 describe("E2E - Modification activité étudiant", () => {
   let activityId;
+  const editableButtonLabel = /enregistrer les modifications/i;
+
+  const getEditableButton = () =>
+    cy.contains("button", editableButtonLabel, { timeout: 15000 });
+
+  const assertEditableOrUnavailable = () => {
+    cy.contains(/modification indisponible|enregistrer les modifications/i, {
+      timeout: 15000,
+    }).should("exist");
+
+    return cy.get("body").then(($body) => {
+      if ($body.text().includes("Modification indisponible")) {
+        return cy.contains(/modification indisponible/i).should("be.visible").then(() => false);
+      }
+
+      cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
+      return getEditableButton().should("be.visible").then(() => true);
+    });
+  };
 
   beforeEach(() => {
     cy.loginAsStudent("/student");
@@ -29,26 +48,14 @@ describe("E2E - Modification activité étudiant", () => {
   it("affiche le formulaire si activité modifiable", () => {
     cy.visit(`/student/activities/${activityId}/edit`);
 
-    cy.contains(/modification indisponible|enregistrer les modifications/i).should("be.visible");
-
-    cy.get("body").then(($body) => {
-      if ($body.text().includes("Modification indisponible")) {
-        cy.contains(/modification indisponible/i).should("be.visible");
-      } else {
-        cy.contains("button", /enregistrer les modifications/i)
-          .scrollIntoView()
-          .should("be.visible");
-      }
-    });
+    assertEditableOrUnavailable();
   });
 
   it("modifie une activité", () => {
     cy.visit(`/student/activities/${activityId}/edit`);
 
-    cy.contains(/modification indisponible|enregistrer les modifications/i).should("be.visible");
-
-    cy.get("body").then(($body) => {
-      if ($body.text().includes("Modification indisponible")) return;
+    assertEditableOrUnavailable().then((canEdit) => {
+      if (!canEdit) return;
 
       cy.get('input[name="title"], input[placeholder*="titre" i]').first()
         .clear()
@@ -58,9 +65,8 @@ describe("E2E - Modification activité étudiant", () => {
         .clear()
         .type("Description modifiée par test E2E");
 
-      cy.contains("button", /enregistrer les modifications/i)
-        .scrollIntoView()
-        .click();
+      cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
+      getEditableButton().click();
 
       cy.url().should("match", new RegExp(`/student/activities/${activityId}$`));
     });
