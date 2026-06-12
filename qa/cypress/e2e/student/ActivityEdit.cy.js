@@ -57,11 +57,13 @@ describe("E2E - Modification activité étudiant", () => {
     assertEditableOrUnavailable().then((canEdit) => {
       if (!canEdit) return;
 
-      cy.get('input[name="title"], input[placeholder*="titre" i]').first()
+      cy.contains(".form-group", /titre de l’activité/i)
+        .find("input")
         .clear()
         .type(`Activité E2E modifiée ${Date.now()}`);
 
-      cy.get('textarea[name="description"], textarea[placeholder*="description" i]').first()
+      cy.contains(".form-group", /description/i)
+        .find("textarea")
         .clear()
         .type("Description modifiée par test E2E");
 
