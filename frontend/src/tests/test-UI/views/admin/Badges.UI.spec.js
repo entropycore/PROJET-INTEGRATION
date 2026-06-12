@@ -72,8 +72,11 @@ describe("Badges - Tests UI", () => {
 
   it("envoie la modification d'un badge", async () => {
     const wrapper = await mountBadges();
+    const webBadgeCard = wrapper
+      .findAll(".badge-card")
+      .find((card) => card.text().includes("Web Developer"));
 
-    await wrapper.findAll(".edit-btn")[0].trigger("click");
+    await webBadgeCard.find(".edit-btn").trigger("click");
     await wrapper.findAll("input")[1].setValue("Senior Web Developer");
     await wrapper.find(".create-btn").trigger("click");
 

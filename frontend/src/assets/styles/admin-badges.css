@@ -105,10 +105,11 @@
 
 .badge-card {
   position: relative;
-  min-height: 16.5rem;
+  min-height: 20rem;
   display: flex;
   flex-direction: column;
-  padding: 1.35rem;
+  gap: 1.2rem;
+  padding: 1.5rem;
   background: var(--app-surface);
   border: 0.0625rem solid var(--app-border);
   border-radius: var(--app-radius-panel);
@@ -127,14 +128,14 @@
 
 .badge-main {
   display: grid;
-  grid-template-columns: 4.2rem minmax(0, 1fr);
+  grid-template-columns: 4.8rem minmax(0, 1fr);
   gap: 1rem;
   align-items: start;
 }
 
 .badge-icon {
-  width: 4.2rem;
-  height: 4.2rem;
+  width: 4.8rem;
+  height: 4.8rem;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -158,6 +159,7 @@
 
 .badge-copy {
   min-width: 0;
+  padding-top: 0.15rem;
 }
 
 .badge-card h3 {
@@ -184,8 +186,8 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.55rem;
   align-items: start;
-  margin-top: 1.65rem;
-  padding: 0.85rem 0.95rem;
+  margin-top: 0;
+  padding: 1rem 1.1rem;
   border-radius: var(--app-radius-md);
   background: linear-gradient(
     90deg,

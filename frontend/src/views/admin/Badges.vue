@@ -6,6 +6,7 @@ import {
   getBadges,
   updateBadge,
 } from "@/services/adminBadgesApi";
+import { getBadgeIcon as resolveBadgeIcon } from "@/utils/badges";
 import "../../assets/styles/admin-badges.css";
 
 /*
@@ -23,29 +24,10 @@ import "../../assets/styles/admin-badges.css";
 const loading = ref(false);
 const error = ref(null);
 
-const FALLBACK_BADGE_ICON = "*";
-
-const BADGE_ICON_BY_NAME = {
-  "Web Developer": "terminal",
-  "DevOps Explorer": "cloud_sync",
-  "Hackathon Participant": "emoji_events",
-  "Full Stack Developer": "layers",
-  "Security Aware": "verified_user",
-  "AI / Data": "psychology",
-};
-
-const BADGE_ICON_BY_TONE = {
-  blue: "code_blocks",
-  cyan: "cloud_sync",
-  green: "layers",
-  red: "verified_user",
-  orange: "psychology",
-};
-
 const normalizeBadge = (badge) => ({
   ...badge,
   iconUrl: badge.iconUrl || "",
-  iconFallback: badge.iconFallback || FALLBACK_BADGE_ICON,
+  iconFallback: badge.iconFallback || "workspace_premium",
   tone: badge.tone || "blue",
   attributionCount: badge.attributionCount ?? 0,
 });
@@ -54,11 +36,20 @@ const badges = ref([]);
 const brokenIconIds = ref(new Set());
 
 const getBadgeIcon = (badge) => {
-  return (
-    BADGE_ICON_BY_NAME[badge.name] ||
-    BADGE_ICON_BY_TONE[badge.tone] ||
-    "workspace_premium"
-  );
+  return resolveBadgeIcon(badge);
+};
+
+const sortBadgesLikeStudentView = (items) => {
+  return [...items].sort((first, second) => {
+    const firstCreatedAt = new Date(first.createdAt || 0).getTime();
+    const secondCreatedAt = new Date(second.createdAt || 0).getTime();
+
+    if (firstCreatedAt !== secondCreatedAt) {
+      return firstCreatedAt - secondCreatedAt;
+    }
+
+    return String(first.name || "").localeCompare(String(second.name || ""));
+  });
 };
 
 const extractBadgeItems = (response) => {
@@ -83,9 +74,9 @@ const fetchBadges = async () => {
   error.value = null;
 
   try {
-    const response = await getBadges();
+    const response = await getBadges({ limit: 50 });
     const items = extractBadgeItems(response);
-    badges.value = items.map(normalizeBadge);
+    badges.value = sortBadgesLikeStudentView(items.map(normalizeBadge));
     brokenIconIds.value = new Set();
   } catch (e) {
     console.error("Erreur badges:", e);
@@ -324,7 +315,10 @@ const markIconAsBroken = (badgeId) => {
             placeholder="https://exemple.com/badge.svg"
           />
 
-          <div v-if="isValidIconUrl(newBadge.iconUrl) && newBadge.iconUrl" class="icon-preview">
+          <div
+            v-if="isValidIconUrl(newBadge.iconUrl) && newBadge.iconUrl"
+            class="icon-preview"
+          >
             <img :src="newBadge.iconUrl" alt="Aperçu icône" />
           </div>
         </div>
