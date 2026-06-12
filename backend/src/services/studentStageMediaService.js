@@ -130,7 +130,10 @@ const uploadStageImages = async (userId, internshipId, files = []) => {
         mediaType: 'IMAGE',
         mediaUrl: buildImageUrl(internshipId, id),
         description: storedFile.fileName,
-        ...storedFile,
+        fileName: storedFile.fileName,
+        fileSize: storedFile.fileSize,
+        mimeType: storedFile.mimeType,
+        storagePath: storedFile.storagePath,
       });
     }
 

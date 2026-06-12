@@ -101,7 +101,10 @@ const storeFiles = async (projectId, files, mediaType, action) => {
         mediaType,
         mediaUrl: buildMediaUrl(projectId, id, action),
         description: storedFile.fileName,
-        ...storedFile,
+        fileName: storedFile.fileName,
+        fileSize: storedFile.fileSize,
+        mimeType: storedFile.mimeType,
+        storagePath: storedFile.storagePath,
       });
     }
   } catch (err) {
