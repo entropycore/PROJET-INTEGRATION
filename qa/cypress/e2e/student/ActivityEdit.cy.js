@@ -5,28 +5,47 @@ describe("E2E - Modification activité étudiant", () => {
   const getEditableButton = () =>
     cy.contains("button", editableButtonLabel, { timeout: 15000 });
 
-  const assertEditableOrUnavailable = () => {
-    cy.contains(/modification indisponible|enregistrer les modifications/i, {
-      timeout: 15000,
-    }).should("exist");
+  const createEditableActivity = () => {
+    const timestamp = Date.now();
 
-    return cy.get("body").then(($body) => {
-      if ($body.text().includes("Modification indisponible")) {
-        return cy.contains(/modification indisponible/i).should("be.visible").then(() => false);
-      }
+    return cy.apiRequest({
+      method: "POST",
+      url: "/api/student/activities",
+      body: {
+        title: `Activité E2E édition ${timestamp}`,
+        type: "HACKATHON",
+        organization: "ENSA Tanger",
+        date: "2026-04-15",
+        duration: "3 jours",
+        location: "Tanger",
+        description: "Activité complète créée pour le test de modification.",
+        visibility: "PRIVATE",
+      },
+    }).then((response) => {
+      expect(
+        response.status,
+        `Creation activite de test: ${JSON.stringify(response.body)}`,
+      ).to.eq(201);
 
-      cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
-      return getEditableButton().should("be.visible").then(() => true);
+      activityId = response.body.data?.id || response.body.id;
+      expect(activityId, "id de l'activite de test").to.be.a("string").and.not.be.empty;
     });
   };
 
   beforeEach(() => {
+    activityId = null;
     cy.loginAsStudent("/student");
+    createEditableActivity();
+  });
 
-    cy.apiRequest("GET", "/api/student/activities").then((response) => {
-      const activities = response.body.data?.items || response.body.data || response.body.items || [];
-      expect(activities, "activites existantes pour le test edition").to.have.length.greaterThan(0);
-      activityId = Cypress.env("E2E_ACTIVITY_ID") || activities[0].id;
+  afterEach(() => {
+    if (!activityId) return;
+
+    cy.apiRequest({
+      method: "DELETE",
+      url: `/api/student/activities/${activityId}`,
+    }).then((response) => {
+      expect(response.status).to.be.oneOf([200, 404]);
     });
   });
 
@@ -48,41 +67,44 @@ describe("E2E - Modification activité étudiant", () => {
   it("affiche le formulaire si activité modifiable", () => {
     cy.visit(`/student/activities/${activityId}/edit`);
 
-    assertEditableOrUnavailable();
+    cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
+    getEditableButton().should("be.visible");
   });
 
   it("modifie une activité", () => {
     cy.visit(`/student/activities/${activityId}/edit`);
 
-    assertEditableOrUnavailable().then((canEdit) => {
-      if (!canEdit) return;
+    cy.intercept("PUT", `**/api/student/activities/${activityId}`).as(
+      "updateActivityApi",
+    );
 
-      cy.intercept("PUT", `**/api/student/activities/${activityId}`).as(
-        "updateActivityApi",
-      );
+    cy.contains(".form-group", /titre de l’activité/i)
+      .find("input")
+      .clear()
+      .type(`Activité E2E modifiée ${Date.now()}`);
 
-      cy.contains(".form-group", /titre de l’activité/i)
-        .find("input")
-        .clear()
-        .type(`Activité E2E modifiée ${Date.now()}`);
+    cy.contains(".form-group", /description/i)
+      .find("textarea")
+      .clear()
+      .type("Description modifiée par test E2E");
 
-      cy.contains(".form-group", /description/i)
-        .find("textarea")
-        .clear()
-        .type("Description modifiée par test E2E");
-
-      cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
-      getEditableButton().click();
-
-      cy.wait("@updateActivityApi", { timeout: 30000 }).then((interception) => {
-        expect(
-          interception.response?.statusCode,
-          `Reponse modification activite: ${JSON.stringify(interception.response?.body)}`,
-        ).to.eq(200);
-      });
-
-      cy.url().should("match", new RegExp(`/student/activities/${activityId}$`));
+    cy.get(".dashboard-content").scrollTo("bottom", { ensureScrollable: false });
+    cy.get("form.activity-form").then(($form) => {
+      expect(
+        $form[0].checkValidity(),
+        "le formulaire de modification doit etre valide avant soumission",
+      ).to.eq(true);
     });
+    getEditableButton().click();
+
+    cy.wait("@updateActivityApi", { timeout: 30000 }).then((interception) => {
+      expect(
+        interception.response?.statusCode,
+        `Reponse modification activite: ${JSON.stringify(interception.response?.body)}`,
+      ).to.eq(200);
+    });
+
+    cy.url().should("match", new RegExp(`/student/activities/${activityId}$`));
   });
 
   it("annule la modification", () => {
