@@ -95,7 +95,9 @@ backend:test:
 
 e2e:cypress:
   stage: e2e
-  image: cypress/included:15.14.2
+  image:
+    name: cypress/included:15.14.2
+    entrypoint: [""]
   services:
     - name: postgres:15-alpine
       alias: postgres
