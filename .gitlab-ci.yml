@@ -120,8 +120,8 @@ e2e:cypress:
     - npm ci
     - npm run dev -- --host 0.0.0.0 > ../frontend-e2e.log 2>&1 &
     - cd ..
-    - until curl -fsS http://localhost:3000/api/health > /dev/null; do echo "Waiting for backend..."; sleep 2; done
-    - until curl -fsS http://localhost:5173 > /dev/null; do echo "Waiting for frontend..."; sleep 2; done
+    - until node -e "fetch('http://localhost:3000/api/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"; do echo "Waiting for backend..."; sleep 2; done
+    - until node -e "fetch('http://localhost:5173').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"; do echo "Waiting for frontend..."; sleep 2; done
     - cd frontend
     - npx cypress run --project ../qa --env API_BASE_URL=http://localhost:3000
   artifacts:
