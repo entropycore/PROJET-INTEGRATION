@@ -1,0 +1,291 @@
+<script setup>
+import { reactive, ref } from "vue";
+import { useRouter } from "vue-router";
+import { requestAccess } from "../services/requestAccessService";
+import "../assets/styles/request-access.css";
+import AppLogo from "../components/AppLogo.vue";
+
+const router = useRouter();
+
+const form = reactive({
+  lastName: "",
+  firstName: "",
+  email: "",
+  company: "",
+  jobTitle: "",
+  password: "",
+  passwordConfirmation: "",
+});
+
+const errorMessage = ref("");
+const successMessage = ref("");
+const isSubmitting = ref(false);
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
+
+const goToLogin = () => {
+  router.push("/login");
+};
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value;
+};
+
+const toggleConfirmPassword = () => {
+  showConfirmPassword.value = !showConfirmPassword.value;
+};
+
+const validateForm = () => {
+  errorMessage.value = "";
+  successMessage.value = "";
+
+  if (
+    !form.lastName.trim() ||
+    !form.firstName.trim() ||
+    !form.email.trim() ||
+    !form.company.trim() ||
+    !form.jobTitle.trim() ||
+    !form.password.trim() ||
+    !form.passwordConfirmation.trim()
+  ) {
+    errorMessage.value = "Veuillez remplir tous les champs.";
+    return false;
+  }
+
+  if (form.password !== form.passwordConfirmation) {
+    errorMessage.value = "Les mots de passe ne correspondent pas.";
+    return false;
+  }
+
+  return true;
+};
+
+const getRequestAccessErrorMessage = (error) => {
+  const apiError = error?.response?.data;
+
+  if (Array.isArray(apiError?.errors) && apiError.errors.length > 0) {
+    return (
+      apiError.errors[0]?.message ||
+      apiError?.message ||
+      "Impossible d'envoyer la demande."
+    );
+  }
+
+  return apiError?.message || "Impossible d'envoyer la demande.";
+};
+
+const handleSubmit = async () => {
+  if (!validateForm()) return;
+
+  isSubmitting.value = true;
+
+  try {
+    const response = await requestAccess({
+      email: form.email.trim(),
+      password: form.password,
+      lastName: form.lastName.trim(),
+      firstName: form.firstName.trim(),
+      company: form.company.trim(),
+      jobTitle: form.jobTitle.trim(),
+    });
+
+    successMessage.value =
+      response?.message ||
+      "Demande envoyée. Veuillez vérifier votre boîte de réception pour valider votre email.";
+  } catch (error) {
+    errorMessage.value = getRequestAccessErrorMessage(error);
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+</script>
+
+<template>
+  <div class="auth-page request-access-page">
+    <section class="auth-left">
+      <div class="hero-lines" aria-hidden="true"></div>
+
+      <div class="brand-block">
+        <div class="brand-identity">
+          <AppLogo />
+          <span class="brand-title">Credencia</span>
+        </div>
+
+        <div class="hero-text">
+          <h1>
+            Recrutez les talents<br />
+            <span>de demain.</span>
+          </h1>
+
+          <p>
+            Accédez à des profils vérifiés. Ne vous fiez plus uniquement aux CV
+            : consultez des portfolios certifiés, construits à partir
+            d’expériences, de projets et de réalisations validées.
+          </p>
+
+          <p>
+            Soyez parmi les premiers à identifier les talents de demain.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-right">
+      <div class="auth-card auth-card-request">
+        <div class="auth-form-block">
+          <h2>Rejoignez Credencia</h2>
+          <p class="subtitle">
+            Envoyez votre demande d'accès à notre plateforme
+          </p>
+
+          <form class="auth-form" @submit.prevent="handleSubmit">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="lastName">Nom</label>
+                <input
+                  id="lastName"
+                  v-model="form.lastName"
+                  type="text"
+                  placeholder="Berrada"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="firstName">Prénom</label>
+                <input
+                  id="firstName"
+                  v-model="form.firstName"
+                  type="text"
+                  placeholder="Amina"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Adresse email</label>
+              <input
+                id="email"
+                v-model="form.email"
+                type="email"
+                placeholder="votre@email.ma"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="companyName">Nom de l'entreprise</label>
+              <input
+                id="companyName"
+                v-model="form.company"
+                type="text"
+                placeholder="Saisir le nom de votre entreprise..."
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="jobTitle">Poste</label>
+              <input
+                id="jobTitle"
+                v-model="form.jobTitle"
+                type="text"
+                placeholder="Ex : Développeur, RH, Manager"
+              />
+            </div>
+
+            <div class="password-row">
+              <div class="form-group password-group">
+                <label for="password">Mot de passe</label>
+                <div class="input-wrapper">
+                  <input
+                    id="password"
+                    v-model="form.password"
+                    :type="showPassword ? 'text' : 'password'"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    :aria-label="
+                      showPassword
+                        ? 'Masquer le mot de passe'
+                        : 'Afficher le mot de passe'
+                    "
+                    @click="togglePassword"
+                  >
+                    <img
+                      class="toggle-icon"
+                      :src="
+                        showPassword
+                          ? '/src/assets/Button.png'
+                          : '/src/assets/icon.png'
+                      "
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-group password-group">
+                <label for="passwordConfirmation">Confirmation</label>
+                <div class="input-wrapper">
+                  <input
+                    id="passwordConfirmation"
+                    v-model="form.passwordConfirmation"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    class="password-toggle"
+                    type="button"
+                    :aria-label="
+                      showConfirmPassword
+                        ? 'Masquer la confirmation du mot de passe'
+                        : 'Afficher la confirmation du mot de passe'
+                    "
+                    @click="toggleConfirmPassword"
+                  >
+                    <img
+                      class="toggle-icon"
+                      :src="
+                        showConfirmPassword
+                          ? '/src/assets/Button.png'
+                          : '/src/assets/icon.png'
+                      "
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="request-note">
+              <p>
+                <strong>Note importante :</strong>
+                Votre demande sera validée par l'administration avant
+                l'activation de votre compte.
+              </p>
+            </div>
+
+            <p v-if="errorMessage" class="error-message">
+              {{ errorMessage }}
+            </p>
+
+            <p v-if="successMessage" class="success-message">
+              {{ successMessage }}
+            </p>
+
+            <button class="submit-btn" type="submit" :disabled="isSubmitting">
+              {{ isSubmitting ? "Envoi..." : "Envoyer une demande" }}
+            </button>
+
+            <p class="login-link">
+              Vous avez déjà un compte?
+              <span @click="goToLogin">Connectez-vous</span>
+            </p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>

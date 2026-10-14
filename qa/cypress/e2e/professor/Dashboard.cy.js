@@ -1,0 +1,125 @@
+describe("E2E - Dashboard professeur", () => {
+  beforeEach(() => {
+    cy.intercept("GET", "**/api/professor/dashboard", {
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          profileSnapshot: { fullName: "prof ghailani" },
+          summaryCards: {
+            pendingProjects: { value: 0 },
+            pendingInternships: { value: 0 },
+            supervisedInternships: { value: 0 },
+            completedProjectReviews: { value: 0 },
+            completedInternshipReviews: { value: 0 },
+          },
+          pendingValidations: [],
+          supervisedInternships: [],
+          recentReviewActivity: [],
+        },
+      },
+    }).as("getProfessorDashboard");
+
+    cy.loginAsRoleSession("PROFESSOR", "/professor");
+    cy.wait("@getProfessorDashboard");
+  });
+
+  it("affiche le dashboard professeur", () => {
+    cy.contains(/espace professeur/i).should("be.visible");
+    cy.contains(/bonjour/i).should("be.visible");
+    cy.contains(/suivez les validations/i).should("be.visible");
+  });
+
+  it("affiche les cartes résumé", () => {
+    cy.get(".stat-card-ui").should("have.length", 4);
+
+    cy.contains(/projets . valider/i).should("be.visible");
+    cy.contains(/stages . valider/i).should("be.visible");
+    cy.contains(/stages supervis/i).should("be.visible");
+    cy.contains(/avis rendus/i).should("be.visible");
+  });
+
+  it("redirige vers validations depuis le bouton principal", () => {
+    cy.contains("a, button", /tout voir|voir les validations/i).click();
+
+    cy.url().should("include", "/professor/validations");
+  });
+
+  it("affiche validations en attente ou état vide", () => {
+    cy.contains(".dashboard-panel", "Validations en attente")
+      .within(() => {
+        cy.root().then(($panel) => {
+          if ($panel.find(".list-row").length > 0) {
+            cy.get(".list-row").first().should("be.visible");
+            cy.get(".type-pill").first().should("be.visible");
+          } else {
+            cy.contains(/aucune validation en attente/i).should("be.visible");
+          }
+        });
+      });
+  });
+
+  it("redirige vers validations depuis Tout voir", () => {
+    cy.contains(".dashboard-panel", "Validations en attente")
+      .within(() => {
+        cy.contains("a", /tout voir/i).click();
+      });
+
+    cy.url().should("include", "/professor/validations");
+  });
+
+  it("affiche stages supervisés ou état vide", () => {
+    cy.contains(".dashboard-panel", /stages supervis/i)
+      .within(() => {
+        cy.root().then(($panel) => {
+          if ($panel.find(".list-row").length > 0) {
+            cy.get(".list-row").first().should("be.visible");
+            cy.get(".status-pill").first().should("be.visible");
+          } else {
+            cy.contains(/aucun stage supervisé/i).should("be.visible");
+          }
+        });
+      });
+  });
+
+  it("affiche derniers avis ou état vide", () => {
+    cy.contains(".dashboard-panel", "Derniers avis")
+      .within(() => {
+        cy.root().then(($panel) => {
+          if ($panel.find(".activity-row").length > 0) {
+            cy.get(".activity-row").first().should("be.visible");
+          } else {
+            cy.contains(/aucun avis rendu récemment/i).should("be.visible");
+          }
+        });
+      });
+  });
+
+  it("vérifie les valeurs des cartes résumé", () => {
+    cy.get(".stat-card-ui").each(($card) => {
+      cy.wrap($card).find(".stat-card-value").invoke("text").should("match", /^[0-9]+$/);
+    });
+  });
+
+  it("affiche les statuts des stages si présents", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find(".status-pill").length > 0) {
+        cy.get(".status-pill").each(($status) => {
+          cy.wrap($status).should("be.visible");
+        });
+      }
+    });
+  });
+
+  it("affiche les types des validations si présents", () => {
+    cy.get("body").then(($body) => {
+      if ($body.find(".type-pill").length > 0) {
+        cy.get(".type-pill").each(($type) => {
+          cy.wrap($type)
+            .invoke("text")
+            .should("match", /Projet|Stage/);
+        });
+      }
+    });
+  });
+});

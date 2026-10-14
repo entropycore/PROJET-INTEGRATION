@@ -1,0 +1,93 @@
+---
+- name: Securiser la VM2 DevSecOps
+  hosts: vm2
+  become: yes
+
+  vars:
+    allowed_network: "192.168.56.0/24"
+    allowed_ports:
+      - "22"
+      - "80"
+      - "8082"
+      - "9000"
+      - "3000"
+      - "9091"
+      - "5050"
+      - "8090"
+      - "8081"
+      - "5432"
+
+  tasks:
+    - name: Mettre a jour le systeme
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Installer les outils de securite
+      apt:
+        name:
+          - ufw
+          - fail2ban
+          - auditd
+          - unattended-upgrades
+          - apparmor
+          - apparmor-utils
+        state: present
+
+    - name: Desactiver la connexion root SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PermitRootLogin"
+        line: "PermitRootLogin no"
+
+    - name: Desactiver l'authentification SSH par mot de passe
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+
+    - name: Redemarrer SSH
+      service:
+        name: ssh
+        state: restarted
+
+    - name: Bloquer tout le trafic entrant par defaut
+      ufw:
+        direction: incoming
+        policy: deny
+
+    - name: Autoriser tout le trafic sortant
+      ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Autoriser les ports necessaires depuis le reseau prive
+      ufw:
+        rule: allow
+        from_ip: "{{ allowed_network }}"
+        port: "{{ item }}"
+        proto: tcp
+      loop: "{{ allowed_ports }}"
+
+    - name: Activer UFW
+      ufw:
+        state: enabled
+
+    - name: Activer Fail2ban
+      service:
+        name: fail2ban
+        enabled: yes
+        state: started
+
+    - name: Activer Auditd
+      service:
+        name: auditd
+        enabled: yes
+        state: started
+
+    - name: Activer les mises a jour automatiques de securite
+      copy:
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        content: |
+          APT::Periodic::Update-Package-Lists "1";
+          APT::Periodic::Unattended-Upgrade "1";
